@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RequiemGlamPatcher</AssemblyName>
+    <RootNamespace>RequiemGlamPatcher</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Loqui" Version="3.2.0" />
+    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.52.0" />
+    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.2" />
+    <PackageReference Include="ReactiveUI.WPF" Version="22.2.1" />
+    <PackageReference Include="Autofac" Version="8.4.0" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,195 @@
+<Window x:Class="RequiemGlamPatcher.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RequiemGlamPatcher.Views"
+        mc:Ignorable="d"
+        Title="Requiem Glam Patcher" Height="800" Width="1400"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Settings Panel -->
+        <GroupBox Grid.Row="0" Header="Settings" Padding="10" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Skyrim Data Path:"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}"/>
+                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Browse..." Command="{Binding Settings.BrowseDataPathCommand}"/>
+                    <Button Content="Auto-Detect" Command="{Binding Settings.AutoDetectPathCommand}"/>
+                    <Button Content="Initialize" Command="{Binding InitializeCommand}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Output Path:"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding Settings.BrowseOutputPathCommand}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Patch File Name:"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}" Foreground="Gray" Margin="10,0,0,0"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                           Text="{Binding Settings.DetectionSource}"
+                           FontStyle="Italic"
+                           Foreground="{Binding Settings.IsRunningFromMO2, Converter={StaticResource MO2ColorConverter}}"
+                           Margin="5"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Plugin Selection -->
+        <GroupBox Grid.Row="1" Header="Plugin Selection" Padding="10" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Source Plugin (Glam Mod):" FontWeight="Bold"/>
+                    <ComboBox ItemsSource="{Binding AvailablePlugins}"
+                              SelectedItem="{Binding SelectedSourcePlugin}"
+                              Margin="0,5,0,5"/>
+                    <Button Content="Load Source Armors" Command="{Binding LoadSourceArmorsCommand}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Target Plugin (e.g., Requiem.esp):" FontWeight="Bold"/>
+                    <ComboBox ItemsSource="{Binding AvailablePlugins}"
+                              SelectedItem="{Binding SelectedTargetPlugin}"
+                              Margin="0,5,0,5"/>
+                    <Button Content="Load Target Armors" Command="{Binding LoadTargetArmorsCommand}"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Source Armors Panel -->
+            <GroupBox Grid.Column="0" Header="Source Armors (Glam Mod)" Padding="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                        <Button Content="Select All" Command="{Binding SelectAllSourceCommand}"/>
+                        <Button Content="Select Outfit" Command="{Binding SelectOutfitCommand}"/>
+                        <TextBlock Text="{Binding SourceArmors.Count, StringFormat='{}{0} armors'}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding SourceArmors}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="False"
+                              SelectionMode="Extended">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Armor" Binding="{Binding ArmorRating}" Width="60" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Weight" Binding="{Binding Weight, StringFormat=F1}" Width="60" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="60" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="LightGray"/>
+
+            <!-- Matching Panel -->
+            <GroupBox Grid.Column="2" Header="Armor Matching" Padding="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="Auto-Match Threshold:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Slider Width="100" Minimum="0" Maximum="1" Value="{Binding AutoMatchThreshold}"
+                                TickFrequency="0.1" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding AutoMatchThreshold, StringFormat=P0}" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                        <Button Content="Auto-Match" Command="{Binding AutoMatchCommand}"/>
+                        <TextBlock Text="{Binding Matches.Count, StringFormat='{}{0} matches'}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Matches}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Source Armor" Binding="{Binding Source.DisplayName}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Confidence" Binding="{Binding ConfidenceText}" Width="80" IsReadOnly="True"/>
+                            <DataGridComboBoxColumn Header="Target Armor"
+                                                    SelectedItemBinding="{Binding SelectedTarget, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="2*">
+                                <DataGridComboBoxColumn.ElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource" Value="{Binding AvailableTargets}"/>
+                                        <Setter Property="DisplayMemberPath" Value="DisplayName"/>
+                                    </Style>
+                                </DataGridComboBoxColumn.ElementStyle>
+                                <DataGridComboBoxColumn.EditingElementStyle>
+                                    <Style TargetType="ComboBox">
+                                        <Setter Property="ItemsSource" Value="{Binding AvailableTargets}"/>
+                                        <Setter Property="DisplayMemberPath" Value="DisplayName"/>
+                                    </Style>
+                                </DataGridComboBoxColumn.EditingElementStyle>
+                            </DataGridComboBoxColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- Progress Bar -->
+        <GroupBox Grid.Row="3" Header="Progress" Padding="10" Margin="0,10,0,10">
+            <StackPanel>
+                <ProgressBar Height="20" Minimum="0" Maximum="{Binding ProgressTotal}" Value="{Binding ProgressCurrent}"/>
+                <TextBlock Text="{Binding StatusMessage}" Margin="0,5,0,0" FontWeight="Bold"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Create Patch" Command="{Binding CreatePatchCommand}"
+                    IsEnabled="{Binding IsPatching, Converter={StaticResource InverseBoolConverter}}"
+                    Padding="20,10" FontSize="14" FontWeight="Bold"/>
+        </StackPanel>
+    </Grid>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <local:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+        <local:BooleanToColorConverter x:Key="MO2ColorConverter"/>
+    </Window.Resources>
+</Window>

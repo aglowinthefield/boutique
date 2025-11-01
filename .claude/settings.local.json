@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(dir:*)",
+      "Bash(git -C \"D:/var/RequiemGlamPatcher\" status)",
+      "Bash(git -C \"D:/var/RequiemGlamPatcher\" log --oneline -10)",
+      "Bash(git -C \"D:/var/RequiemGlamPatcher\" ls-files)",
+      "WebFetch(domain:mutagen-modding.github.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet list package:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet publish:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
