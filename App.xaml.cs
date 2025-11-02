@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Autofac;
@@ -8,23 +6,28 @@ using RequiemGlamPatcher.Models;
 using RequiemGlamPatcher.Services;
 using RequiemGlamPatcher.ViewModels;
 using RequiemGlamPatcher.Views;
+using Serilog;
 
 namespace RequiemGlamPatcher;
 
 public partial class App : Application
 {
     private IContainer? _container;
-    private readonly string _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RequiemGlamPatcher.log");
+    private ILoggingService? _loggingService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        InitializeLogging();
-        Log("Application startup invoked.");
+        _loggingService = new LoggingService();
+        ConfigureExceptionLogging();
+        Log.Information("Application startup invoked.");
 
         // Configure dependency injection
         var builder = new ContainerBuilder();
+
+        builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
+        builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
 
         // Register models
         builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
@@ -48,71 +51,38 @@ public partial class App : Application
         {
             var mainWindow = _container.Resolve<MainWindow>();
             mainWindow.Show();
-            Log("Main window displayed.");
+            Log.Information("Main window displayed.");
         }
         catch (Exception ex)
         {
-            Log("Failed to show main window.", ex);
+            Log.Fatal(ex, "Failed to show main window.");
             throw;
         }
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
-        Log("Application exit.");
+        Log.Information("Application exit.");
         _container?.Dispose();
+        _loggingService?.Dispose();
         base.OnExit(e);
     }
 
-    private void InitializeLogging()
+    private void ConfigureExceptionLogging()
     {
-        try
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            Log.Fatal(args.ExceptionObject as Exception, "AppDomain unhandled exception.");
+
+        DispatcherUnhandledException += (_, args) =>
         {
-            var directory = Path.GetDirectoryName(_logFilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            Log.Fatal(args.Exception, "Dispatcher unhandled exception.");
+            args.Handled = true;
+        };
 
-            Log("Logging initialized.");
-
-            AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-                Log("AppDomain unhandled exception.", args.ExceptionObject as Exception);
-
-            DispatcherUnhandledException += (_, args) =>
-            {
-                Log("Dispatcher unhandled exception.", args.Exception);
-                args.Handled = true;
-            };
-
-            TaskScheduler.UnobservedTaskException += (_, args) =>
-            {
-                Log("Unobserved task exception.", args.Exception);
-                args.SetObserved();
-            };
-        }
-        catch
+        TaskScheduler.UnobservedTaskException += (_, args) =>
         {
-            // Ignored – we avoid throwing during startup if logging fails.
-        }
-    }
-
-    private void Log(string message, Exception? ex = null)
-    {
-        try
-        {
-            var builder = new StringBuilder();
-            builder.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}");
-            if (ex != null)
-            {
-                builder.AppendLine(ex.ToString());
-            }
-
-            File.AppendAllText(_logFilePath, builder.ToString());
-        }
-        catch
-        {
-            // Swallow logging failures to prevent secondary crashes.
-        }
+            Log.Fatal(args.Exception, "Unobserved task exception.");
+            args.SetObserved();
+        };
     }
 }

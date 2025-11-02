@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Binary.Parameters;
@@ -12,10 +14,12 @@ namespace RequiemGlamPatcher.Services;
 public class PatchingService : IPatchingService
 {
     private readonly IMutagenService _mutagenService;
+    private readonly Serilog.ILogger _logger;
 
-    public PatchingService(IMutagenService mutagenService)
+    public PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
     {
         _mutagenService = mutagenService;
+        _logger = loggingService.ForContext<PatchingService>();
     }
 
     public bool ValidatePatch(IEnumerable<ArmorMatch> matches, out string validationMessage)
@@ -56,9 +60,15 @@ public class PatchingService : IPatchingService
             try
             {
                 var validMatches = matches.Where(m => m.TargetArmor != null).ToList();
+                var requiredMasters = new HashSet<ModKey>();
+
+                _logger.Information("Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}", outputPath, validMatches.Count);
 
                 if (!validMatches.Any())
+                {
+                    _logger.Warning("Patch creation aborted — no valid matches were provided.");
                     return (false, "No valid matches to patch.");
+                }
 
                 // Create new patch mod
                 var patchMod = new SkyrimMod(ModKey.FromFileName(Path.GetFileName(outputPath)), SkyrimRelease.SkyrimSE);
@@ -75,6 +85,12 @@ public class PatchingService : IPatchingService
                     // Create a new armor record as override of source
                     var patchedArmor = patchMod.Armors.GetOrAddAsOverride(match.SourceArmor);
 
+                    requiredMasters.Add(match.SourceArmor.FormKey.ModKey);
+                    if (match.TargetArmor is { } targetArmor)
+                    {
+                        requiredMasters.Add(targetArmor.FormKey.ModKey);
+                    }
+
                     // Copy stats from target
                     CopyArmorStats(patchedArmor, match.TargetArmor!);
 
@@ -87,19 +103,24 @@ public class PatchingService : IPatchingService
                     // Note: Tempering recipes are separate records (COBJ) and are handled separately
                 }
 
-                // Handle tempering recipes
-                progress?.Report((total, total, "Processing tempering recipes..."));
-                CopyTemperingRecipes(patchMod, validMatches);
+                //// Handle tempering recipes (temporarily disabled while we investigate freeze issues)
+                ////progress?.Report((total, total, "Processing tempering recipes..."));
+                ////CopyTemperingRecipes(patchMod, validMatches);
+
+                EnsureMasters(patchMod, requiredMasters);
 
                 // Write patch to file
                 progress?.Report((total, total, "Writing patch file..."));
 
                 patchMod.WriteToBinary(outputPath);
 
+                _logger.Information("Patch successfully written to {OutputPath}", outputPath);
+
                 return (true, $"Successfully created patch with {validMatches.Count} armor(s) at {outputPath}");
             }
             catch (Exception ex)
             {
+                _logger.Error(ex, "Error creating patch destined for {OutputPath}", outputPath);
                 return (false, $"Error creating patch: {ex.Message}");
             }
         });
@@ -150,36 +171,51 @@ public class PatchingService : IPatchingService
 
         var linkCache = _mutagenService.LinkCache;
 
-        // For each matched armor, try to find and copy its tempering recipe
+        // Cache all constructible objects once so we can query both source and target recipes efficiently
+        var allRecipes = linkCache.PriorityOrder.WinningOverrides<IConstructibleObjectGetter>().ToList();
+
         foreach (var match in matches)
         {
             if (match.TargetArmor == null)
                 continue;
 
-            // Search for constructible objects (recipes) that create this armor
-            var targetFormKey = match.TargetArmor.FormKey;
+            var targetRecipe = allRecipes.FirstOrDefault(r =>
+                r.CreatedObject.FormKey == match.TargetArmor.FormKey &&
+                IsTemperingRecipe(r, linkCache));
 
-            // Get all constructible objects from the load order
-            var recipes = linkCache.PriorityOrder.WinningOverrides<IConstructibleObjectGetter>();
+            if (targetRecipe == null)
+                continue;
 
-            foreach (var recipe in recipes)
+            var sourceRecipes = allRecipes.Where(r =>
+                    r.CreatedObject.FormKey == match.SourceArmor.FormKey &&
+                    IsTemperingRecipe(r, linkCache))
+                .ToList();
+
+            if (!sourceRecipes.Any())
+                continue;
+
+            foreach (var sourceRecipe in sourceRecipes)
             {
-                // Check if this recipe creates our target armor
-                if (recipe.CreatedObject.FormKey == targetFormKey)
-                {
-                    // Check if it's a tempering recipe (usually has specific workbench keywords)
-                    var editorId = recipe.EditorID?.ToLowerInvariant() ?? "";
-                    if (editorId.Contains("temper") || IsTemperingWorkbench(recipe, linkCache))
-                    {
-                        // Create override that points to our source armor instead
-                        var patchedRecipe = patchMod.ConstructibleObjects.GetOrAddAsOverride(recipe);
+                var patchedRecipe = patchMod.ConstructibleObjects.GetOrAddAsOverride(sourceRecipe);
+                var originalEditorId = patchedRecipe.EditorID;
 
-                        // Update to create the source armor (keeping all other properties)
-                        patchedRecipe.CreatedObject.SetTo(match.SourceArmor.ToLink());
-                    }
-                }
+                patchedRecipe.DeepCopyIn(targetRecipe);
+
+                // Restore identifying data so the recipe still produces the source armor record
+                patchedRecipe.EditorID = originalEditorId;
+                patchedRecipe.CreatedObject.SetTo(match.SourceArmor.ToLink());
+                patchedRecipe.CreatedObjectCount = targetRecipe.CreatedObjectCount;
             }
         }
+    }
+
+    private bool IsTemperingRecipe(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
+    {
+        var editorId = recipe.EditorID?.ToLowerInvariant() ?? string.Empty;
+        if (editorId.Contains("temper"))
+            return true;
+
+        return IsTemperingWorkbench(recipe, linkCache);
     }
 
     private bool IsTemperingWorkbench(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
@@ -195,5 +231,21 @@ public class PatchingService : IPatchingService
         }
 
         return false;
+    }
+
+    private void EnsureMasters(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
+    {
+        foreach (var master in requiredMasters)
+        {
+            if (master == patchMod.ModKey)
+                continue;
+
+            var alreadyPresent = patchMod.ModHeader.MasterReferences.Any(m => m.Master == master);
+            if (!alreadyPresent)
+            {
+                patchMod.ModHeader.MasterReferences.Add(new MasterReference { Master = master });
+                _logger.Debug("Added master {Master} to patch header.", master);
+            }
+        }
     }
 }

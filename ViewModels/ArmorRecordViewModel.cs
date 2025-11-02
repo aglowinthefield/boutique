@@ -1,4 +1,4 @@
-using System.Windows.Input;
+using System.Linq;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -10,7 +10,11 @@ public class ArmorRecordViewModel : ReactiveObject
 {
     private readonly IArmorGetter _armor;
     private readonly ILinkCache? _linkCache;
-    private bool _isSelected;
+    private readonly string _searchCache;
+    private bool _isSlotCompatible = true;
+    private readonly string _formIdDisplay;
+    private readonly uint _formIdSortable;
+    private bool _isMapped;
 
     public IArmorGetter Armor => _armor;
 
@@ -20,6 +24,11 @@ public class ArmorRecordViewModel : ReactiveObject
     public float ArmorRating => _armor.ArmorRating;
     public float Weight => _armor.Weight;
     public uint Value => _armor.Value;
+    public BipedObjectFlag SlotMask => _armor.BodyTemplate?.FirstPersonFlags ?? 0;
+    public string SlotSummary => SlotMask == 0 ? "Unassigned" : SlotMask.ToString();
+    public string ModDisplayName => _armor.FormKey.ModKey.FileName;
+    public string FormIdDisplay => _formIdDisplay;
+    public uint FormIdSortable => _formIdSortable;
 
     public string Keywords
     {
@@ -66,17 +75,51 @@ public class ArmorRecordViewModel : ReactiveObject
         }
     }
 
-    public bool IsSelected
+    public int SlotCompatibilityPriority => _isSlotCompatible ? 0 : 1;
+
+    public bool IsSlotCompatible
     {
-        get => _isSelected;
-        set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+        get => _isSlotCompatible;
+        set
+        {
+            if (this.RaiseAndSetIfChanged(ref _isSlotCompatible, value))
+            {
+                this.RaisePropertyChanged(nameof(SlotCompatibilityPriority));
+            }
+        }
     }
 
     public string FormKeyString => _armor.FormKey.ToString();
+    public string SummaryLine => $"{DisplayName} ({SlotSummary}) ({FormIdDisplay}) ({ModDisplayName})";
+    public bool IsMapped
+    {
+        get => _isMapped;
+        set => this.RaiseAndSetIfChanged(ref _isMapped, value);
+    }
 
     public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
     {
         _armor = armor;
         _linkCache = linkCache;
+        _formIdSortable = armor.FormKey.ID;
+        _formIdDisplay = $"0x{_formIdSortable:X8}";
+
+        _searchCache = $"{DisplayName} {EditorID} {ModDisplayName} {_formIdDisplay} {SlotSummary}".ToLowerInvariant();
+    }
+
+    public bool MatchesSearch(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return true;
+
+        return _searchCache.Contains(searchTerm.Trim().ToLowerInvariant());
+    }
+
+    public bool SharesSlotWith(ArmorRecordViewModel other)
+    {
+        if (SlotMask == 0 || other.SlotMask == 0)
+            return true;
+
+        return (SlotMask & other.SlotMask) != 0;
     }
 }
