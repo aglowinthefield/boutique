@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>RequiemGlamPatcher</AssemblyName>
     <RootNamespace>RequiemGlamPatcher</RootNamespace>
+    <ApplicationIcon>Assets\App.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,22 +11,16 @@ using RequiemGlamPatcher.Models;
 
 namespace RequiemGlamPatcher.Services;
 
-public class PatchingService : IPatchingService
+public class PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
+    : IPatchingService
 {
-    private readonly IMutagenService _mutagenService;
-    private readonly Serilog.ILogger _logger;
-
-    public PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
-    {
-        _mutagenService = mutagenService;
-        _logger = loggingService.ForContext<PatchingService>();
-    }
+    private readonly Serilog.ILogger _logger = loggingService.ForContext<PatchingService>();
 
     public bool ValidatePatch(IEnumerable<ArmorMatch> matches, out string validationMessage)
     {
         var matchList = matches.ToList();
 
-        if (!matchList.Any())
+        if (matchList.Count == 0)
         {
             validationMessage = "No armor matches to patch.";
             return false;
@@ -34,13 +28,13 @@ public class PatchingService : IPatchingService
 
         var validMatches = matchList.Where(m => m.TargetArmor != null).ToList();
 
-        if (!validMatches.Any())
+        if (validMatches.Count == 0)
         {
             validationMessage = "No valid armor matches found. Please ensure target armors are selected.";
             return false;
         }
 
-        if (!_mutagenService.IsInitialized)
+        if (!mutagenService.IsInitialized)
         {
             validationMessage = "Mutagen service is not initialized. Please set the Skyrim data path first.";
             return false;
@@ -64,7 +58,7 @@ public class PatchingService : IPatchingService
 
                 _logger.Information("Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}", outputPath, validMatches.Count);
 
-                if (!validMatches.Any())
+                if (validMatches.Count == 0)
                 {
                     _logger.Warning("Patch creation aborted — no valid matches were provided.");
                     return (false, "No valid matches to patch.");
@@ -73,8 +67,8 @@ public class PatchingService : IPatchingService
                 // Create new patch mod
                 var patchMod = new SkyrimMod(ModKey.FromFileName(Path.GetFileName(outputPath)), SkyrimRelease.SkyrimSE);
 
-                int current = 0;
-                int total = validMatches.Count;
+                var current = 0;
+                var total = validMatches.Count;
 
                 foreach (var match in validMatches)
                 {
@@ -126,7 +120,7 @@ public class PatchingService : IPatchingService
         });
     }
 
-    private void CopyArmorStats(Armor target, IArmorGetter source)
+    private static void CopyArmorStats(Armor target, IArmorGetter source)
     {
         // Copy core stats
         target.ArmorRating = source.ArmorRating;
@@ -134,21 +128,19 @@ public class PatchingService : IPatchingService
         target.Weight = source.Weight;
     }
 
-    private void CopyKeywords(Armor target, IArmorGetter source)
+    private static void CopyKeywords(Armor target, IArmorGetter source)
     {
         // Clear existing keywords and copy from source
-        if (source.Keywords != null)
-        {
-            target.Keywords = new Noggog.ExtendedList<IFormLinkGetter<IKeywordGetter>>();
+        if (source.Keywords == null) return;
+        target.Keywords = [];
 
-            foreach (var keyword in source.Keywords)
-            {
-                target.Keywords.Add(keyword);
-            }
+        foreach (var keyword in source.Keywords)
+        {
+            target.Keywords.Add(keyword);
         }
     }
 
-    private void CopyEnchantment(Armor target, IArmorGetter source)
+    private static void CopyEnchantment(Armor target, IArmorGetter source)
     {
         // Copy enchantment reference (ObjectEffect in Mutagen)
         if (source.ObjectEffect.FormKey != FormKey.Null)
@@ -166,10 +158,10 @@ public class PatchingService : IPatchingService
 
     private void CopyTemperingRecipes(SkyrimMod patchMod, List<ArmorMatch> matches)
     {
-        if (_mutagenService.LinkCache == null)
+        if (mutagenService.LinkCache == null)
             return;
 
-        var linkCache = _mutagenService.LinkCache;
+        var linkCache = mutagenService.LinkCache;
 
         // Cache all constructible objects once so we can query both source and target recipes efficiently
         var allRecipes = linkCache.PriorityOrder.WinningOverrides<IConstructibleObjectGetter>().ToList();
@@ -191,7 +183,7 @@ public class PatchingService : IPatchingService
                     IsTemperingRecipe(r, linkCache))
                 .ToList();
 
-            if (!sourceRecipes.Any())
+            if (sourceRecipes.Count == 0)
                 continue;
 
             foreach (var sourceRecipe in sourceRecipes)
@@ -212,13 +204,10 @@ public class PatchingService : IPatchingService
     private bool IsTemperingRecipe(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
     {
         var editorId = recipe.EditorID?.ToLowerInvariant() ?? string.Empty;
-        if (editorId.Contains("temper"))
-            return true;
-
-        return IsTemperingWorkbench(recipe, linkCache);
+        return editorId.Contains("temper") || IsTemperingWorkbench(recipe, linkCache);
     }
 
-    private bool IsTemperingWorkbench(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
+    private static bool IsTemperingWorkbench(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
     {
         // Check if the workbench keyword indicates tempering
         if (recipe.WorkbenchKeyword.FormKey == FormKey.Null)
