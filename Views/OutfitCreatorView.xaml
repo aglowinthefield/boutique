@@ -154,13 +154,25 @@
                                                 DragOver="OutfitDraftBorder_OnDragOver"
                                                 Drop="OutfitDraftBorder_OnDrop">
                                             <StackPanel>
-                                                <DockPanel Margin="0,0,0,6">
-                                                    <TextBlock Text="{Binding Header}" FontWeight="Bold" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                                    <Button Content="Remove Outfit"
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBox Width="200"
+                                                                 Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 PreviewTextInput="OutfitNameTextBox_OnPreviewTextInput"
+                                                                 DataObject.Pasting="OutfitNameTextBox_OnPasting"
+                                                                 Margin="0,0,8,0"
+                                                                 MaxLength="40"/>
+                                                        <TextBlock Text="{Binding EditorId, StringFormat='ID: {0}'}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                                        <TextBlock Text="{Binding FormIdDisplay, StringFormat='FormID {0}'}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="Remove Outfit"
                                                             Command="{Binding RemoveSelfCommand}"
-                                                            DockPanel.Dock="Right"
                                                             Padding="10,4"/>
-                                                </DockPanel>
+                                                </Grid>
                                                 <ItemsControl ItemsSource="{Binding Pieces}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -213,11 +225,11 @@
             <TextBlock Grid.Column="0"
                        Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} outfit(s) queued'}"
                        VerticalAlignment="Center"/>
-            <Button Grid.Column="1" Content="Save Outfits" Command="{Binding SaveOutfitsCommand}"
-                    Padding="20,10" FontWeight="Bold">
+            <Button Grid.Column="1" Content="Save Outfits" Command="{Binding SaveOutfitsCommand}">
                 <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="IsEnabled" Value="True"/>
+                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                        <Setter Property="Padding" Value="20,10"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding HasOutfitDrafts}" Value="False">
                                 <Setter Property="IsEnabled" Value="False"/>

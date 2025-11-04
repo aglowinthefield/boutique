@@ -46,6 +46,8 @@ public partial class App : Application
 
         _container = builder.Build();
 
+        ApplyThemeToggle();
+
         // Show main window
         try
         {
@@ -66,6 +68,35 @@ public partial class App : Application
         _container?.Dispose();
         _loggingService?.Dispose();
         base.OnExit(e);
+    }
+
+    private static void ApplyThemeToggle()
+    {
+        try
+        {
+            var configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".config", "theme.json");
+            if (!System.IO.File.Exists(configPath))
+            {
+                return;
+            }
+
+            var json = System.IO.File.ReadAllText(configPath);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("EnableTheme", out var enableThemeElement))
+            {
+                return;
+            }
+
+            var enableTheme = enableThemeElement.GetBoolean();
+            if (!enableTheme && Current.Resources.MergedDictionaries.Count > 0)
+            {
+                Current.Resources.MergedDictionaries.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to apply theme toggle configuration. Continuing with default resources.");
+        }
     }
 
     private void ConfigureExceptionLogging()

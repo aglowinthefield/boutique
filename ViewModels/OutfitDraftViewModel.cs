@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
+using System.Text.RegularExpressions;
 using Mutagen.Bethesda.Plugins;
 using ReactiveUI;
 
@@ -11,9 +12,14 @@ namespace RequiemGlamPatcher.ViewModels;
 
 public class OutfitDraftViewModel : ReactiveObject
 {
+    private static readonly Regex AlphaOnlyRegex = new("[^A-Za-z]", RegexOptions.Compiled);
+
     private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
     private readonly Action<OutfitDraftViewModel> _removeDraft;
     private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
+    private string _name = string.Empty;
+    private string _editorId = string.Empty;
+    private string _previousValidName = "Outfit";
     private FormKey? _formKey;
 
     public OutfitDraftViewModel(
@@ -23,10 +29,10 @@ public class OutfitDraftViewModel : ReactiveObject
         Action<OutfitDraftViewModel> removeDraft,
         Action<OutfitDraftViewModel, ArmorRecordViewModel> removePiece)
     {
-        Name = name;
-        EditorId = editorId;
         _removeDraft = removeDraft;
         _removePiece = removePiece;
+
+        SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name, updateHistory: false);
 
         _pieces = new ObservableCollection<ArmorRecordViewModel>(pieces);
         _pieces.CollectionChanged += PiecesOnCollectionChanged;
@@ -38,9 +44,13 @@ public class OutfitDraftViewModel : ReactiveObject
 
     public Guid Id { get; } = Guid.NewGuid();
 
-    public string Name { get; }
+    public string Name
+    {
+        get => _name;
+        set => SetNameInternal(value, updateHistory: true);
+    }
 
-    public string EditorId { get; }
+    public string EditorId => _editorId;
 
     public ReadOnlyObservableCollection<ArmorRecordViewModel> Pieces { get; }
 
@@ -81,7 +91,6 @@ public class OutfitDraftViewModel : ReactiveObject
     public (IReadOnlyList<ArmorRecordViewModel> added, IReadOnlyList<ArmorRecordViewModel> replaced) AddPieces(IEnumerable<ArmorRecordViewModel> newPieces)
     {
         var added = new List<ArmorRecordViewModel>();
-        var replaced = new List<ArmorRecordViewModel>();
 
         foreach (var piece in newPieces)
         {
@@ -91,29 +100,52 @@ public class OutfitDraftViewModel : ReactiveObject
             if (_pieces.Any(p => p.Armor.FormKey == piece.Armor.FormKey))
                 continue;
 
-            var collisions = _pieces.Where(existing => piece.ConflictsWithSlot(existing)).ToList();
-            foreach (var collision in collisions)
-            {
-                if (_pieces.Remove(collision))
-                {
-                    replaced.Add(collision);
-                }
-            }
-
             _pieces.Add(piece);
             added.Add(piece);
         }
 
-        if (added.Count > 0 || replaced.Count > 0)
+        if (added.Count > 0)
         {
             this.RaisePropertyChanged(nameof(HasPieces));
         }
 
-        return (added, replaced);
+        return (added, Array.Empty<ArmorRecordViewModel>());
     }
 
     private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         this.RaisePropertyChanged(nameof(HasPieces));
     }
+
+    public void RevertName() => SetNameInternal(_previousValidName, updateHistory: false);
+
+    private void SetNameInternal(string? value, bool updateHistory)
+    {
+        var sanitized = Sanitize(value);
+        if (string.IsNullOrEmpty(sanitized))
+        {
+            sanitized = string.IsNullOrEmpty(_name) ? "Outfit" : _name;
+        }
+
+        if (sanitized == _name)
+            return;
+
+        if (updateHistory)
+        {
+            _previousValidName = _name;
+        }
+
+        this.RaiseAndSetIfChanged(ref _name, sanitized);
+        this.RaiseAndSetIfChanged(ref _editorId, sanitized);
+        this.RaisePropertyChanged(nameof(Header));
+
+        if (!updateHistory)
+        {
+            _previousValidName = _name;
+        }
+    }
+
+    private static string Sanitize(string? value) => string.IsNullOrEmpty(value)
+        ? string.Empty
+        : AlphaOnlyRegex.Replace(value, string.Empty);
 }

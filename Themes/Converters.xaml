@@ -1,0 +1,7 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:utilities="clr-namespace:RequiemGlamPatcher.Utilities">
+    <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    <utilities:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+    <utilities:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" TrueOpacity="1" FalseOpacity="0.35"/>
+</ResourceDictionary>

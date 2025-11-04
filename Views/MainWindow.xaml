@@ -9,18 +9,12 @@
         Title="Requiem Glam Patcher" Height="800" Width="1400"
         WindowStartupLocation="CenterScreen">
 
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-        <utilities:InverseBooleanConverter x:Key="InverseBoolConverter"/>
-        <utilities:BooleanToOpacityConverter x:Key="BooleanToOpacityConverter" TrueOpacity="1" FalseOpacity="0.35"/>
-    </Window.Resources>
-
-    <Grid Margin="10">
+    <Grid Background="{StaticResource Brush.PanelBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="0">
+        <TabControl Grid.Row="0" Margin="12">
             <TabItem Header="Armor Patch">
                 <views:ArmorPatchView DataContext="{Binding}"/>
             </TabItem>
@@ -29,7 +23,7 @@
             </TabItem>
         </TabControl>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,12,12">
             <ProgressBar Width="220"
                          Height="18"
                          Minimum="0"

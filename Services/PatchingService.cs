@@ -253,7 +253,16 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                     LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
                 };
 
-                patchMod.WriteToBinary(outputPath, writeParameters);
+                try
+                {
+                    patchMod.WriteToBinary(outputPath, writeParameters);
+                }
+                catch (IOException ioEx)
+                {
+                    var lockedMessage = $"Unable to write to {outputPath}. It appears to be locked by another application (Mod Organizer, xEdit, or the Skyrim launcher). Close the application that has the file open, or pick a different output path, then try again.";
+                    _logger.Error(ioEx, lockedMessage);
+                    return (false, lockedMessage, (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
+                }
 
                 _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
 

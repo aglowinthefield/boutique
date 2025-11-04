@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Base Palette (Gruvbox / Kanagawa inspired) -->
+    <Color x:Key="Color.PrimaryBackground">#FF1F1F1F</Color>
+    <Color x:Key="Color.PanelBackground">#FF23242A</Color>
+    <Color x:Key="Color.CardBackground">#FF2A2C34</Color>
+    <Color x:Key="Color.Border">#FF3C3F4B</Color>
+    <Color x:Key="Color.Accent">#FF83A598</Color>
+    <Color x:Key="Color.AccentMuted">#FF6B8E7D</Color>
+    <Color x:Key="Color.Warning">#FFE67E80</Color>
+    <Color x:Key="Color.TextPrimary">#FFECE0C8</Color>
+    <Color x:Key="Color.TextSecondary">#FFB8B2A7</Color>
+    <Color x:Key="Color.TextDisabled">#FF8E897F</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="Brush.PrimaryBackground" Color="{StaticResource Color.PrimaryBackground}"/>
+    <SolidColorBrush x:Key="Brush.PanelBackground" Color="{StaticResource Color.PanelBackground}"/>
+    <SolidColorBrush x:Key="Brush.CardBackground" Color="{StaticResource Color.CardBackground}"/>
+    <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource Color.Border}"/>
+    <SolidColorBrush x:Key="Brush.Accent" Color="{StaticResource Color.Accent}"/>
+    <SolidColorBrush x:Key="Brush.AccentMuted" Color="{StaticResource Color.AccentMuted}"/>
+    <SolidColorBrush x:Key="Brush.Warning" Color="{StaticResource Color.Warning}"/>
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="{StaticResource Color.TextPrimary}"/>
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="{StaticResource Color.TextSecondary}"/>
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="{StaticResource Color.TextDisabled}"/>
+
+    <!-- Optional opacity variants -->
+    <SolidColorBrush x:Key="Brush.BorderLight" Color="{StaticResource Color.Border}" Opacity="0.5"/>
+    <SolidColorBrush x:Key="Brush.HighlightOverlay" Color="{StaticResource Color.Accent}" Opacity="0.12"/>
+</ResourceDictionary>

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Data;
 using System.Windows.Input;
 using ReactiveUI;
@@ -58,6 +60,8 @@ public class MainViewModel : ReactiveObject
     private int _progressCurrent;
     private int _progressTotal;
     private double _autoMatchThreshold = 0.6;
+
+    private static readonly Regex OutfitNameSanitizer = new("[^A-Za-z]", RegexOptions.Compiled);
 
     public SettingsViewModel Settings { get; }
 
@@ -823,6 +827,45 @@ public class MainViewModel : ReactiveObject
         return true;
     }
 
+    private string EnsureUniqueOutfitName(string baseName, OutfitDraftViewModel? exclude)
+    {
+        var sanitizedBase = string.IsNullOrEmpty(baseName) ? "Outfit" : baseName;
+        var candidate = sanitizedBase;
+        var suffixIndex = 0;
+
+        while (_outfitDrafts.Any(o =>
+                   !ReferenceEquals(o, exclude) &&
+                   string.Equals(o.EditorId, candidate, StringComparison.OrdinalIgnoreCase)))
+        {
+            suffixIndex++;
+            candidate = sanitizedBase + AlphabetSuffix(suffixIndex);
+        }
+
+        return candidate;
+    }
+
+    private static string AlphabetSuffix(int index)
+    {
+        if (index <= 0)
+            return string.Empty;
+
+        var builder = new StringBuilder();
+        while (index > 0)
+        {
+            index--;
+            builder.Insert(0, (char)('A' + (index % 26)));
+            index /= 26;
+        }
+
+        return builder.ToString();
+    }
+
+    private static string SanitizeOutfitName(string? value)
+    {
+        var sanitized = value is null ? string.Empty : OutfitNameSanitizer.Replace(value, string.Empty);
+        return string.IsNullOrEmpty(sanitized) ? "Outfit" : sanitized;
+    }
+
     private static List<ArmorRecordViewModel> DistinctArmorPieces(IEnumerable<ArmorRecordViewModel> pieces)
     {
         return pieces
@@ -870,25 +913,26 @@ public class MainViewModel : ReactiveObject
         }
 
         var trimmedName = outfitName.Trim();
+        var sanitizedName = SanitizeOutfitName(trimmedName);
+        sanitizedName = EnsureUniqueOutfitName(sanitizedName, null);
 
-        if (_outfitDrafts.Any(o => string.Equals(o.EditorId, trimmedName, StringComparison.OrdinalIgnoreCase)))
+        if (!string.Equals(trimmedName, sanitizedName, StringComparison.Ordinal))
         {
-            StatusMessage = $"An outfit with editor ID '{trimmedName}' already exists.";
-            _logger.Warning("Duplicate outfit editor ID detected: {EditorId}", trimmedName);
-            return;
+            _logger.Debug("Outfit name sanitized from {Original} to {Sanitized}", trimmedName, sanitizedName);
         }
 
         var draft = new OutfitDraftViewModel(
-            trimmedName,
-            trimmedName,
+            sanitizedName,
+            sanitizedName,
             distinctPieces,
             RemoveOutfitDraft,
             RemoveOutfitPiece);
 
+        draft.PropertyChanged += OutfitDraftOnPropertyChanged;
         _outfitDrafts.Add(draft);
 
-        StatusMessage = $"Queued outfit '{trimmedName}' with {distinctPieces.Count} piece(s).";
-        _logger.Information("Queued outfit draft {EditorId} with {PieceCount} pieces.", trimmedName, distinctPieces.Count);
+        StatusMessage = $"Queued outfit '{draft.Name}' with {distinctPieces.Count} piece(s).";
+        _logger.Information("Queued outfit draft {EditorId} with {PieceCount} pieces.", draft.EditorId, distinctPieces.Count);
     }
 
     public bool TryAddPiecesToDraft(OutfitDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces)
@@ -909,7 +953,15 @@ public class MainViewModel : ReactiveObject
             return false;
         }
 
-        var (added, replaced) = draft.AddPieces(distinctPieces);
+        var combinedPieces = draft.GetPieces().Concat(distinctPieces).ToList();
+        if (!ValidateOutfitPieces(combinedPieces, out var validationMessage))
+        {
+            StatusMessage = validationMessage;
+            _logger.Warning("Cannot add armor to outfit {EditorId}: {Message}", draft.EditorId, validationMessage);
+            return false;
+        }
+
+        var (added, _) = draft.AddPieces(distinctPieces);
 
         if (added.Count == 0)
         {
@@ -918,23 +970,54 @@ public class MainViewModel : ReactiveObject
             return false;
         }
 
-        StatusMessage = replaced.Count > 0
-            ? $"Added {added.Count} piece(s) to outfit '{draft.EditorId}' (replaced {replaced.Count} conflicting piece(s))."
-            : $"Added {added.Count} piece(s) to outfit '{draft.EditorId}'.";
+        StatusMessage = $"Added {added.Count} piece(s) to outfit '{draft.EditorId}'.";
 
         _logger.Information(
-            "Added {AddedCount} armor(s) to outfit draft {EditorId}. Added: {AddedPieces}. Replaced: {ReplacedCount} ({ReplacedPieces}).",
+            "Added {AddedCount} armor(s) to outfit draft {EditorId}. Added: {AddedPieces}.",
             added.Count,
             draft.EditorId,
-            string.Join(", ", added.Select(a => a.DisplayName)),
-            replaced.Count,
-            replaced.Count > 0 ? string.Join(", ", replaced.Select(r => r.DisplayName)) : "none");
+            string.Join(", ", added.Select(a => a.DisplayName)));
 
         return true;
     }
 
+    private void OutfitDraftOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not OutfitDraftViewModel draft)
+            return;
+
+        if (e.PropertyName == nameof(OutfitDraftViewModel.Name))
+        {
+            HandleOutfitDraftRename(draft);
+        }
+    }
+
+    private void HandleOutfitDraftRename(OutfitDraftViewModel draft)
+    {
+        var sanitized = SanitizeOutfitName(draft.Name);
+        if (!string.Equals(draft.Name, sanitized, StringComparison.Ordinal))
+        {
+            draft.Name = sanitized;
+            return;
+        }
+
+        var uniqueName = EnsureUniqueOutfitName(draft.EditorId, draft);
+        if (!string.Equals(uniqueName, draft.EditorId, StringComparison.Ordinal))
+        {
+            var original = draft.EditorId;
+            draft.Name = uniqueName;
+            _logger.Information("Adjusted outfit draft name from {Original} to {Adjusted} to ensure uniqueness.", original, uniqueName);
+            return;
+        }
+
+        StatusMessage = $"Renamed outfit to '{draft.Name}'.";
+        _logger.Information("Renamed outfit draft to {Name}", draft.Name);
+    }
+
     private void RemoveOutfitDraft(OutfitDraftViewModel draft)
     {
+        draft.PropertyChanged -= OutfitDraftOnPropertyChanged;
+
         if (_outfitDrafts.Remove(draft))
         {
             StatusMessage = $"Removed outfit '{draft.EditorId}'.";

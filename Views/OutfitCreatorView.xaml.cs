@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,6 +14,8 @@ namespace RequiemGlamPatcher.Views;
 public partial class OutfitCreatorView : UserControl
 {
     private const string ArmorDragDataFormat = "RequiemGlamPatcher.ArmorRecords";
+    private static readonly Regex AlphaInputRegex = new("^[A-Za-z]+$", RegexOptions.Compiled);
+    private static readonly Regex AlphaSanitizerRegex = new("[^A-Za-z]", RegexOptions.Compiled);
 
     private sealed record DropVisualSnapshot(Brush BorderBrush, Brush Background);
 
@@ -110,6 +113,19 @@ public partial class OutfitCreatorView : UserControl
     private void OutfitArmorsGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _outfitDragStartPoint = e.GetPosition(null);
+
+        if (e.OriginalSource is not DependencyObject source)
+            return;
+
+        var row = FindAncestor<DataGridRow>(source);
+        if (row?.Item == null)
+            return;
+
+        if (Keyboard.Modifiers == ModifierKeys.None && !OutfitArmorsGrid.SelectedItems.Contains(row.Item))
+        {
+            OutfitArmorsGrid.SelectedItems.Clear();
+            row.IsSelected = true;
+        }
     }
 
     private void OutfitArmorsGrid_MouseMove(object sender, MouseEventArgs e)
@@ -173,6 +189,47 @@ public partial class OutfitCreatorView : UserControl
 
         await viewModel.CreateOutfitFromPiecesAsync(pieces);
         e.Handled = true;
+    }
+
+    private void OutfitNameTextBox_OnPreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !AlphaInputRegex.IsMatch(e.Text);
+    }
+
+    private void OutfitNameTextBox_OnPasting(object sender, DataObjectPastingEventArgs e)
+    {
+        if (sender is not TextBox textBox)
+            return;
+
+        if (!e.DataObject.GetDataPresent(DataFormats.Text))
+        {
+            e.CancelCommand();
+            return;
+        }
+
+        if (e.DataObject.GetData(DataFormats.Text) is not string rawText)
+        {
+            e.CancelCommand();
+            return;
+        }
+
+        var sanitized = AlphaSanitizerRegex.Replace(rawText, string.Empty);
+        if (string.IsNullOrEmpty(sanitized))
+        {
+            e.CancelCommand();
+            return;
+        }
+
+        var selectionStart = textBox.SelectionStart;
+        var selectionLength = textBox.SelectionLength;
+
+        var newText = textBox.Text.Remove(selectionStart, selectionLength);
+        newText = newText.Insert(selectionStart, sanitized);
+
+        textBox.Text = newText;
+        textBox.SelectionStart = selectionStart + sanitized.Length;
+        textBox.SelectionLength = 0;
+        e.CancelCommand();
     }
 
     private void NewOutfitDropZone_OnDragEnter(object sender, DragEventArgs e) =>

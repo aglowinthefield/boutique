@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Environments;
 using Mutagen.Bethesda.Plugins;
@@ -48,13 +50,34 @@ public class MutagenService : IMutagenService
             var pluginFiles = Directory.GetFiles(_dataFolderPath, "*.esp")
                 .Concat(Directory.GetFiles(_dataFolderPath, "*.esm"))
                 .Concat(Directory.GetFiles(_dataFolderPath, "*.esl"))
-                .Select(Path.GetFileName)
-                .Where(name => name != null)
-                .Cast<string>()
-                .OrderBy(name => name)
+                .OrderBy(path => Path.GetFileName(path))
                 .ToList();
 
-            return pluginFiles;
+            var armorPlugins = new List<string>();
+
+            foreach (var pluginPath in pluginFiles)
+            {
+                try
+                {
+                    using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+
+                    if (mod.Armors.Count > 0)
+                    {
+                        var name = Path.GetFileName(pluginPath);
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            armorPlugins.Add(name);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore plugins that cannot be read; they will be omitted from the picker.
+                }
+            }
+
+            armorPlugins.Sort(StringComparer.OrdinalIgnoreCase);
+            return armorPlugins;
         });
     }
 
