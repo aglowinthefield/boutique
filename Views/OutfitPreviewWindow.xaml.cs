@@ -106,8 +106,10 @@ public partial class OutfitPreviewWindow : Window
         radius *= 0.5f;
 
         var group = new Model3DGroup();
-        group.Children.Add(new AmbientLight(Colors.Gray));
-        group.Children.Add(new DirectionalLight(Colors.White, new Vector3D(-0.3, -0.5, -0.7)));
+        group.Children.Add(new AmbientLight(Color.FromRgb(80, 80, 80)));
+        group.Children.Add(new DirectionalLight(Color.FromRgb(220, 220, 220), new Vector3D(-0.3, -0.5, -0.7)));
+        group.Children.Add(new DirectionalLight(Color.FromRgb(160, 160, 160), new Vector3D(0.45, 0.1, -0.35)));
+        group.Children.Add(new DirectionalLight(Color.FromRgb(120, 120, 120), new Vector3D(-0.2, 0.4, -0.5)));
 
         foreach (var evaluated in evaluatedMeshes)
         {
@@ -123,6 +125,19 @@ public partial class OutfitPreviewWindow : Window
             if (evaluated.Normals.Count == evaluated.Vertices.Count)
             {
                 geometry.Normals = new Vector3DCollection(evaluated.Normals.Select(n => new Vector3D(n.X, n.Y, n.Z)));
+            }
+
+            var uvs = evaluated.Shape.TextureCoordinates;
+            if (uvs != null)
+            {
+                if (uvs.Count == evaluated.Vertices.Count)
+                {
+                    geometry.TextureCoordinates = new PointCollection(uvs.Select(tc => new Point(tc.X, tc.Y)));
+                }
+                else
+                {
+                    Log.Warning("Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}", uvs.Count, evaluated.Vertices.Count, evaluated.Shape.Name);
+                }
             }
 
             var material = CreateMaterialForMesh(evaluated.Shape);
@@ -159,31 +174,54 @@ public partial class OutfitPreviewWindow : Window
 
     private static Material CreateMaterialForMesh(PreviewMeshShape mesh)
     {
-        var material = TryCreateTextureMaterial(mesh.DiffuseTexturePath);
-        if (material != null)
-            return material;
+        var baseMaterial = TryCreateTextureMaterial(mesh.DiffuseTexturePath);
+        if (baseMaterial == null)
+        {
+            var color = GetFallbackColor(mesh);
+            var brush = new SolidColorBrush(color);
+            brush.Freeze();
+            var diffuse = new DiffuseMaterial(brush);
+            diffuse.Freeze();
+            Log.Debug("Using fallback color material for mesh {MeshName}", mesh.Name);
+            baseMaterial = diffuse;
+        }
 
-        var color = GetFallbackColor(mesh);
-        var brush = new SolidColorBrush(color);
-        brush.Freeze();
-        var diffuse = new DiffuseMaterial(brush);
-        diffuse.Freeze();
-        return diffuse;
+        if (baseMaterial is MaterialGroup group)
+            return group;
+
+        var materialGroup = new MaterialGroup();
+        materialGroup.Children.Add(baseMaterial);
+
+        var specBrush = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255));
+        specBrush.Freeze();
+        var specular = new SpecularMaterial(specBrush, 32);
+        materialGroup.Children.Add(specular);
+
+        return materialGroup;
     }
 
     private static Material? TryCreateTextureMaterial(string? texturePath)
     {
         if (string.IsNullOrWhiteSpace(texturePath))
+        {
+            Log.Debug("No diffuse texture provided for mesh.");
             return null;
+        }
 
         if (!File.Exists(texturePath))
+        {
+            Log.Warning("Diffuse texture path {TexturePath} does not exist on disk.", texturePath);
             return null;
+        }
 
         try
         {
             var bitmap = LoadBitmap(texturePath);
             if (bitmap == null)
+            {
+                Log.Warning("Bitmap decoding returned null for texture {TexturePath}", texturePath);
                 return null;
+            }
 
             var brush = new ImageBrush(bitmap)
             {
@@ -195,10 +233,12 @@ public partial class OutfitPreviewWindow : Window
 
             var material = new DiffuseMaterial(brush);
             material.Freeze();
+            Log.Debug("Successfully created textured material for {TexturePath}", texturePath);
             return material;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to create textured material for {TexturePath}", texturePath);
             return null;
         }
     }
@@ -210,9 +250,11 @@ public partial class OutfitPreviewWindow : Window
             var extension = Path.GetExtension(texturePath);
             if (string.Equals(extension, ".dds", StringComparison.OrdinalIgnoreCase))
             {
+                Log.Debug("Loading DDS texture via Pfim: {TexturePath}", texturePath);
                 return LoadDdsTexture(texturePath);
             }
 
+            Log.Debug("Loading non-DDS texture via WIC decoder: {TexturePath}", texturePath);
             using var stream = File.OpenRead(texturePath);
             var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
             if (decoder.Frames.Count == 0)
@@ -240,9 +282,11 @@ public partial class OutfitPreviewWindow : Window
     {
         try
         {
+            Log.Debug("Decoding DDS texture {TexturePath}", texturePath);
             using var image = Pfim.Pfimage.FromFile(texturePath);
             if (image.Format != ImageFormat.Rgba32 && image.Format != ImageFormat.Rgb24)
             {
+                Log.Debug("Decompressing DDS texture {TexturePath} from format {Format}", texturePath, image.Format);
                 image.Decompress();
             }
 
@@ -255,6 +299,7 @@ public partial class OutfitPreviewWindow : Window
             var buffer = ConvertToBgra32(image, texturePath);
             if (buffer == null)
             {
+                Log.Warning("Conversion to BGRA32 returned null for texture {TexturePath}", texturePath);
                 return null;
             }
 
@@ -273,6 +318,7 @@ public partial class OutfitPreviewWindow : Window
                 bitmap.Freeze();
             }
 
+            Log.Debug("DDS texture {TexturePath} decoded successfully ({Width}x{Height})", texturePath, image.Width, image.Height);
             return bitmap;
         }
         catch (Exception ex)
@@ -290,6 +336,7 @@ public partial class OutfitPreviewWindow : Window
             {
                 case ImageFormat.Rgba32:
                     {
+                        Log.Debug("Converting RGBA32 texture {TexturePath} to BGRA32 buffer.", texturePath);
                         var data = image.Data;
                         var buffer = new byte[data.Length];
                         Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
@@ -303,6 +350,7 @@ public partial class OutfitPreviewWindow : Window
 
                 case ImageFormat.Rgb24:
                     {
+                        Log.Debug("Expanding RGB24 texture {TexturePath} to BGRA32 buffer.", texturePath);
                         var data = image.Data;
                         var totalPixels = data.Length / 3;
                         var buffer = new byte[image.Width * image.Height * 4];

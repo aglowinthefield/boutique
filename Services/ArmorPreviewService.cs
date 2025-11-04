@@ -10,6 +10,7 @@ using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using NiflySharp;
 using NiflySharp.Blocks;
+using NiflySharp.Structs;
 using RequiemGlamPatcher.Models;
 using RequiemGlamPatcher.ViewModels;
 using Serilog;
@@ -59,6 +60,7 @@ public class ArmorPreviewService : IArmorPreviewService
         CancellationToken cancellationToken)
     {
         var gender = DetermineEffectiveGender(pieces, preferredGender, linkCache);
+        _logger.Debug("Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}", pieces.Count, preferredGender);
         var meshes = new List<PreviewMeshShape>();
         var missingAssets = new List<string>();
 
@@ -171,16 +173,32 @@ public class ArmorPreviewService : IArmorPreviewService
 
         try
         {
+            _logger.Debug("Loading NIF mesh from {FullPath}", fullPath);
             var loadResult = nif.Load(fullPath);
             if (loadResult != 0 || !nif.Valid)
+            {
+                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", fullPath, loadResult, nif.Valid);
                 return meshes;
+            }
 
-            foreach (var shape in nif.GetShapes().OfType<INiShape>())
+            var shapes = nif.GetShapes().OfType<INiShape>().ToList();
+            _logger.Debug("Found {ShapeCount} shapes in {FullPath}", shapes.Count, fullPath);
+
+            foreach (var shape in shapes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!TryExtractMesh(nif, shape, dataPath, out var meshData))
+                {
+                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.", shape.Name?.ToString() ?? "<unnamed>", fullPath);
                     continue;
+                }
+
+                if (meshData.DiffuseTexturePath == null)
+                {
+                    _logger.Debug("Skipping shape {ShapeName} because it has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
+                    continue;
+                }
 
                 var shapeName = shape.Name?.ToString();
                 var name = string.IsNullOrWhiteSpace(shapeName) ? partName : $"{partName} - {shapeName}";
@@ -190,6 +208,7 @@ public class ArmorPreviewService : IArmorPreviewService
                     variant,
                     meshData.Vertices,
                     meshData.Normals,
+                    meshData.TextureCoordinates,
                     meshData.Indices,
                     meshData.Transform,
                     meshData.DiffuseTexturePath));
@@ -210,16 +229,38 @@ public class ArmorPreviewService : IArmorPreviewService
 
         var vertices = ExtractVertices(shape);
         if (vertices == null || vertices.Count == 0)
+        {
+            _logger.Debug("Shape {ShapeName} has no vertices.", shape.Name?.ToString() ?? "<unnamed>");
             return false;
+        }
 
         var indices = ExtractIndices(shape);
         if (indices == null || indices.Count == 0)
+        {
+            _logger.Debug("Shape {ShapeName} has no indices.", shape.Name?.ToString() ?? "<unnamed>");
             return false;
+        }
 
         var normals = ExtractNormals(shape);
         if (normals == null || normals.Count != vertices.Count)
         {
             normals = ComputeNormals(vertices, indices);
+            if (normals == null)
+            {
+                _logger.Debug("Shape {ShapeName} computed normals were null.", shape.Name?.ToString() ?? "<unnamed>");
+            }
+        }
+
+        var textureCoordinates = ExtractTextureCoordinates(shape);
+        if (textureCoordinates != null && textureCoordinates.Count != vertices.Count)
+        {
+            _logger.Debug("Shape {ShapeName} texture coordinate count {TexCount} does not match vertex count {VertexCount}. Ignoring UVs.",
+                shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count, vertices.Count);
+            textureCoordinates = null;
+        }
+        else if (textureCoordinates != null)
+        {
+            _logger.Debug("Shape {ShapeName} extracted {TexCount} UV coordinates.", shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count);
         }
 
         var transform = ComputeWorldTransform(nif, shape);
@@ -229,8 +270,12 @@ public class ArmorPreviewService : IArmorPreviewService
         {
             _logger.Debug("Shape {ShapeName} diffuse: {Texture}", shape.Name?.ToString() ?? "<unnamed>", diffuse);
         }
+        else
+        {
+            _logger.Debug("Shape {ShapeName} has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
+        }
 
-        meshData = new MeshData(vertices, normals, indices, transform, diffuse);
+        meshData = new MeshData(vertices, normals, textureCoordinates, indices, transform, diffuse);
         return true;
     }
 
@@ -292,6 +337,86 @@ public class ArmorPreviewService : IArmorPreviewService
         }
 
         return null;
+    }
+
+    private static List<Vector2>? ExtractTextureCoordinates(INiShape shape)
+    {
+        switch (shape)
+        {
+            case BSTriShape bsTriShape:
+                return ExtractFromBSTriShape(bsTriShape);
+            case NiTriShape niTriShape:
+                return ExtractFromNiTriShape(niTriShape);
+        }
+
+        return null;
+    }
+
+    private static List<Vector2>? ExtractFromBSTriShape(BSTriShape shape)
+    {
+        var count = shape.VertexPositions?.Count ?? shape.VertexCount;
+        if (count <= 0)
+            return null;
+
+        var fromSse = TryExtractFromVertexData(shape.VertexDataSSE, count);
+        if (fromSse != null)
+            return fromSse;
+
+        return TryExtractFromVertexData(shape.VertexData, count);
+    }
+
+    private static List<Vector2>? TryExtractFromVertexData(IReadOnlyList<BSVertexDataSSE>? data, int count)
+    {
+        if (data == null || data.Count < count)
+            return null;
+
+        var list = new List<Vector2>(count);
+        for (int i = 0; i < count; i++)
+        {
+            var uv = data[i].UV;
+            list.Add(new Vector2((float)uv.U, (float)uv.V));
+        }
+
+        return list;
+    }
+
+    private static List<Vector2>? TryExtractFromVertexData(IReadOnlyList<BSVertexData>? data, int count)
+    {
+        if (data == null || data.Count < count)
+            return null;
+
+        var list = new List<Vector2>(count);
+        for (int i = 0; i < count; i++)
+        {
+            var uv = data[i].UV;
+            list.Add(new Vector2((float)uv.U, (float)uv.V));
+        }
+
+        return list;
+    }
+
+    private static List<Vector2>? ExtractFromNiTriShape(NiTriShape shape)
+    {
+        var data = shape.GeometryData;
+        var vertexCount = data?.Vertices?.Count ?? data?.NumVertices ?? shape.VertexCount;
+        if (vertexCount <= 0)
+            return null;
+
+        var uvList = data?.UVSets;
+        if (uvList == null || uvList.Count == 0)
+            return null;
+
+        if (uvList.Count < vertexCount)
+            return null;
+
+        var result = new List<Vector2>(vertexCount);
+        for (int i = 0; i < vertexCount; i++)
+        {
+            var uv = uvList[i];
+            result.Add(new Vector2(uv.U, uv.V));
+        }
+
+        return result;
     }
 
     private static List<Vector3> ComputeNormals(IReadOnlyList<Vector3> vertices, IReadOnlyList<int> indices)
@@ -374,53 +499,97 @@ public class ArmorPreviewService : IArmorPreviewService
 
     private string? ExtractDiffuseTexturePath(NifFile nif, INiShape shape, string dataPath)
     {
-        string? texturePath = null;
+        var shapeName = shape.Name?.ToString() ?? "<unnamed>";
+        var candidates = new List<string>();
 
-        var primaryShader = nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef);
-        texturePath = TryGetTextureFromShader(nif, primaryShader); 
-
-        if (string.IsNullOrWhiteSpace(texturePath) && shape.Properties != null)
+        void CollectCandidates(BSLightingShaderProperty? shader)
         {
-            foreach (var propRef in shape.Properties.References)
+            foreach (var candidate in EnumerateTexturePaths(nif, shader))
             {
-                var shader = nif.GetBlock<BSLightingShaderProperty>(propRef);
-                texturePath = TryGetTextureFromShader(nif, shader);
-                if (!string.IsNullOrWhiteSpace(texturePath))
-                {
-                    _logger.Debug("Resolved fallback texture {Texture} for shape {Shape}", texturePath, shape.Name?.ToString() ?? "<unnamed>");
-                    break;
-                }
+                candidates.Add(candidate);
             }
         }
 
-        if (string.IsNullOrWhiteSpace(texturePath))
-            return null;
+        CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
-        var normalized = texturePath
-            .Replace('/', Path.DirectorySeparatorChar)
-            .Replace('\\', Path.DirectorySeparatorChar)
-            .TrimStart(Path.DirectorySeparatorChar);
+        if (candidates.Count == 0 && shape.Properties != null)
+        {
+            foreach (var propRef in shape.Properties.References)
+            {
+                CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(propRef));
+            }
+        }
 
-        var combined = Path.Combine(dataPath, normalized);
-        _logger.Debug("Combined texture path: {Combined}", combined);
-        return combined;
+        foreach (var candidate in candidates)
+        {
+            if (!IsLikelyDiffuseTexture(candidate))
+            {
+                _logger.Debug("Skipping non-diffuse texture candidate {Texture} for shape {Shape}", candidate, shapeName);
+                continue;
+            }
+
+            var combined = CombineAndNormalize(dataPath, candidate);
+            _logger.Debug("Combined texture path: {Combined}", combined);
+            return combined;
+        }
+
+        if (candidates.Count > 0)
+        {
+            _logger.Debug("Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.", candidates.Count, shapeName);
+        }
+        else
+        {
+            _logger.Debug("No texture path resolved for shape {Shape}", shapeName);
+        }
+
+        return null;
     }
 
-    private static string? TryGetTextureFromShader(NifFile nif, BSLightingShaderProperty? shader)
+    private static IEnumerable<string> EnumerateTexturePaths(NifFile nif, BSLightingShaderProperty? shader)
     {
         if (shader == null)
-            return null;
+            yield break;
 
         if (shader.TextureSetRef == null || shader.TextureSetRef.IsEmpty())
-            return null;
+            yield break;
 
         var set = nif.GetBlock<BSShaderTextureSet>(shader.TextureSetRef);
-        var diffuse = set?.Textures?.FirstOrDefault();
-        var content = diffuse?.Content;
-        if (!string.IsNullOrWhiteSpace(content))
-            return content;
+        if (set?.Textures == null)
+            yield break;
 
-        return diffuse?.ToString();
+        foreach (var textureRef in set.Textures)
+        {
+            var path = textureRef?.Content;
+            if (string.IsNullOrWhiteSpace(path))
+                path = textureRef?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(path))
+                yield return path!;
+        }
+    }
+
+    private static bool IsLikelyDiffuseTexture(string texturePath)
+    {
+        var name = Path.GetFileNameWithoutExtension(texturePath);
+        if (string.IsNullOrWhiteSpace(name))
+            return true;
+
+        var lower = name.ToLowerInvariant();
+        var segments = lower.Split(new[] { '_', '-', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var segment in segments)
+        {
+            if (_nonDiffuseSegments.Contains(segment))
+                return false;
+        }
+
+        foreach (var keyword in _nonDiffuseSubstrings)
+        {
+            if (lower.Contains(keyword))
+                return false;
+        }
+
+        return true;
     }
 
     private static IModelGetter? SelectModel(
@@ -480,6 +649,12 @@ public class ArmorPreviewService : IArmorPreviewService
         return null;
     }
 
+    private static string CombineAndNormalize(string dataPath, string relativePath)
+    {
+        var normalized = NormalizeRelativePath(relativePath);
+        return CombineDataPath(dataPath, normalized);
+    }
+
     private static string CombineDataPath(string dataPath, string relativePath)
     {
         if (Path.IsPathRooted(relativePath))
@@ -501,9 +676,67 @@ public class ArmorPreviewService : IArmorPreviewService
         return normalized.TrimStart(Path.DirectorySeparatorChar);
     }
 
+    private static readonly HashSet<string> _nonDiffuseSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "n",
+        "msn",
+        "spec",
+        "s",
+        "g",
+        "glow",
+        "env",
+        "emit",
+        "em",
+        "mask",
+        "rough",
+        "metal",
+        "m",
+        "etc",
+        "sk",
+        "alpha",
+        "cube",
+        "cmap",
+        "height",
+        "disp",
+        "opacity",
+        "normal",
+        "emis",
+        "metallic",
+        "roughness",
+        "gloss"
+    };
+
+    private static readonly string[] _nonDiffuseSubstrings =
+    {
+        "normalmap",
+        "_normal",
+        "_nmap",
+        "_smap",
+        "_msn",
+        "_spec",
+        "_specmap",
+        "_glow",
+        "_env",
+        "_envmap",
+        "_cubemap",
+        "_cmap",
+        "_emit",
+        "_emissive",
+        "_mask",
+        "_rough",
+        "_roughness",
+        "_metal",
+        "_metallic",
+        "_height",
+        "_displace",
+        "_opacity",
+        "_alpha"
+    };
+
     private readonly record struct MeshData(
         IReadOnlyList<Vector3> Vertices,
         IReadOnlyList<Vector3> Normals,
+        IReadOnlyList<Vector2>? TextureCoordinates,
         IReadOnlyList<int> Indices,
         Matrix4x4 Transform,
         string? DiffuseTexturePath);

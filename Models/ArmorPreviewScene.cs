@@ -15,6 +15,7 @@ public sealed record PreviewMeshShape(
     GenderedModelVariant Variant,
     IReadOnlyList<Vector3> Vertices,
     IReadOnlyList<Vector3> Normals,
+    IReadOnlyList<Vector2>? TextureCoordinates,
     IReadOnlyList<int> Indices,
     Matrix4x4 Transform,
     string? DiffuseTexturePath);
