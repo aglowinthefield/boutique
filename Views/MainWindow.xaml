@@ -21,6 +21,9 @@
             <TabItem Header="Outfit Creator">
                 <views:OutfitCreatorView DataContext="{Binding}"/>
             </TabItem>
+            <TabItem Header="Distribution">
+                <views:DistributionView DataContext="{Binding Distribution}"/>
+            </TabItem>
         </TabControl>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,12,12">

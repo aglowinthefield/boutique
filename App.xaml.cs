@@ -36,10 +36,12 @@ public partial class App : Application
         builder.RegisterType<MutagenService>().As<IMutagenService>().SingleInstance();
         builder.RegisterType<PatchingService>().As<IPatchingService>().SingleInstance();
         builder.RegisterType<MatchingService>().As<IMatchingService>().SingleInstance();
+        builder.RegisterType<DistributionDiscoveryService>().As<IDistributionDiscoveryService>().SingleInstance();
 
         // Register ViewModels
         builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
         builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
+        builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();
 
         // Register Views
         builder.RegisterType<MainWindow>().AsSelf();

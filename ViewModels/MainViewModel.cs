@@ -64,6 +64,7 @@ public class MainViewModel : ReactiveObject
     private static readonly Regex OutfitNameSanitizer = new("[^A-Za-z]", RegexOptions.Compiled);
 
     public SettingsViewModel Settings { get; }
+    public DistributionViewModel Distribution { get; }
 
     public ObservableCollection<string> AvailablePlugins
     {
@@ -377,12 +378,14 @@ public class MainViewModel : ReactiveObject
         IMatchingService matchingService,
         IPatchingService patchingService,
         SettingsViewModel settingsViewModel,
+        DistributionViewModel distributionViewModel,
         ILoggingService loggingService)
     {
         _mutagenService = mutagenService;
         _matchingService = matchingService;
         _patchingService = patchingService;
         Settings = settingsViewModel;
+        Distribution = distributionViewModel;
         _logger = loggingService.ForContext<MainViewModel>();
 
         ConfigureSourceArmorsView();
@@ -642,6 +645,8 @@ public class MainViewModel : ReactiveObject
 
             StatusMessage = $"Loaded {AvailablePlugins.Count} plugins";
             _logger.Information("Loaded {PluginCount} plugins from {DataPath}", AvailablePlugins.Count, Settings.SkyrimDataPath);
+
+            await Distribution.RefreshAsync();
         }
         catch (Exception ex)
         {
