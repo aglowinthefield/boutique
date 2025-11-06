@@ -1,5 +1,5 @@
-using System;
-using System.Threading.Tasks;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using Autofac;
 using Boutique.Models;
@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Boutique;
 
-public partial class App : Application
+public partial class App
 {
     private IContainer? _container;
     private ILoggingService? _loggingService;
@@ -78,24 +78,16 @@ public partial class App : Application
     {
         try
         {
-            var configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".config", "theme.json");
-            if (!System.IO.File.Exists(configPath))
-            {
-                return;
-            }
+            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".config", "theme.json");
+            if (!File.Exists(configPath)) return;
 
-            var json = System.IO.File.ReadAllText(configPath);
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("EnableTheme", out var enableThemeElement))
-            {
-                return;
-            }
+            var json = File.ReadAllText(configPath);
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("EnableTheme", out var enableThemeElement)) return;
 
             var enableTheme = enableThemeElement.GetBoolean();
             if (!enableTheme && Current.Resources.MergedDictionaries.Count > 0)
-            {
                 Current.Resources.MergedDictionaries.Clear();
-            }
         }
         catch (Exception ex)
         {

@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Mutagen.Bethesda.Plugins;
 using ReactiveUI;
 
@@ -17,13 +12,13 @@ public class OutfitDraftViewModel : ReactiveObject
     private static readonly Regex AlphaOnlyRegex = new("[^A-Za-z]", RegexOptions.Compiled);
 
     private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
+    private readonly Func<OutfitDraftViewModel, Task> _previewDraft;
     private readonly Action<OutfitDraftViewModel> _removeDraft;
     private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
-    private readonly Func<OutfitDraftViewModel, Task> _previewDraft;
-    private string _name = string.Empty;
     private string _editorId = string.Empty;
-    private string _previousValidName = "Outfit";
     private FormKey? _formKey;
+    private string _name = string.Empty;
+    private string _previousValidName = "Outfit";
 
     public OutfitDraftViewModel(
         string name,
@@ -37,7 +32,7 @@ public class OutfitDraftViewModel : ReactiveObject
         _removePiece = removePiece ?? throw new ArgumentNullException(nameof(removePiece));
         _previewDraft = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
 
-        SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name, updateHistory: false);
+        SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name, false);
 
         _pieces = new ObservableCollection<ArmorRecordViewModel>(pieces);
         _pieces.CollectionChanged += PiecesOnCollectionChanged;
@@ -54,7 +49,7 @@ public class OutfitDraftViewModel : ReactiveObject
     public string Name
     {
         get => _name;
-        set => SetNameInternal(value, updateHistory: true);
+        set => SetNameInternal(value, true);
     }
 
     public string EditorId => _editorId;
@@ -87,17 +82,18 @@ public class OutfitDraftViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> PreviewCommand { get; }
 
-    public IReadOnlyList<ArmorRecordViewModel> GetPieces() => _pieces.ToList();
+    public IReadOnlyList<ArmorRecordViewModel> GetPieces()
+    {
+        return _pieces.ToList();
+    }
 
     public void RemovePiece(ArmorRecordViewModel piece)
     {
-        if (_pieces.Remove(piece))
-        {
-            this.RaisePropertyChanged(nameof(HasPieces));
-        }
+        if (_pieces.Remove(piece)) this.RaisePropertyChanged(nameof(HasPieces));
     }
 
-    public (IReadOnlyList<ArmorRecordViewModel> added, IReadOnlyList<ArmorRecordViewModel> replaced) AddPieces(IEnumerable<ArmorRecordViewModel> newPieces)
+    public (IReadOnlyList<ArmorRecordViewModel> added, IReadOnlyList<ArmorRecordViewModel> replaced) AddPieces(
+        IEnumerable<ArmorRecordViewModel> newPieces)
     {
         var added = new List<ArmorRecordViewModel>();
 
@@ -113,10 +109,7 @@ public class OutfitDraftViewModel : ReactiveObject
             added.Add(piece);
         }
 
-        if (added.Count > 0)
-        {
-            this.RaisePropertyChanged(nameof(HasPieces));
-        }
+        if (added.Count > 0) this.RaisePropertyChanged(nameof(HasPieces));
 
         return (added, Array.Empty<ArmorRecordViewModel>());
     }
@@ -126,35 +119,32 @@ public class OutfitDraftViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasPieces));
     }
 
-    public void RevertName() => SetNameInternal(_previousValidName, updateHistory: false);
+    public void RevertName()
+    {
+        SetNameInternal(_previousValidName, false);
+    }
 
     private void SetNameInternal(string? value, bool updateHistory)
     {
         var sanitized = Sanitize(value);
-        if (string.IsNullOrEmpty(sanitized))
-        {
-            sanitized = string.IsNullOrEmpty(_name) ? "Outfit" : _name;
-        }
+        if (string.IsNullOrEmpty(sanitized)) sanitized = string.IsNullOrEmpty(_name) ? "Outfit" : _name;
 
         if (sanitized == _name)
             return;
 
-        if (updateHistory)
-        {
-            _previousValidName = _name;
-        }
+        if (updateHistory) _previousValidName = _name;
 
         this.RaiseAndSetIfChanged(ref _name, sanitized);
         this.RaiseAndSetIfChanged(ref _editorId, sanitized);
         this.RaisePropertyChanged(nameof(Header));
 
-        if (!updateHistory)
-        {
-            _previousValidName = _name;
-        }
+        if (!updateHistory) _previousValidName = _name;
     }
 
-    private static string Sanitize(string? value) => string.IsNullOrEmpty(value)
-        ? string.Empty
-        : AlphaOnlyRegex.Replace(value, string.Empty);
+    private static string Sanitize(string? value)
+    {
+        return string.IsNullOrEmpty(value)
+            ? string.Empty
+            : AlphaOnlyRegex.Replace(value, string.Empty);
+    }
 }

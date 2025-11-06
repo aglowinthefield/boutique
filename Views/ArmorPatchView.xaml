@@ -9,25 +9,25 @@
              d:DesignWidth="1200">
     <Grid Margin="0,0,0,10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,6" DataContext="{Binding}"/>
+        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,6" DataContext="{Binding}" />
 
         <GroupBox Grid.Row="1" Header="Plugin Selection" Padding="10" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="Source Plugin (Glam Mod):" FontWeight="Bold"/>
+                    <TextBlock Text="Source Plugin (Glam Mod):" FontWeight="Bold" />
                     <ComboBox ItemsSource="{Binding AvailablePlugins}"
                               SelectedItem="{Binding SelectedSourcePlugin}"
                               Margin="0,5,0,5"
@@ -35,11 +35,11 @@
                               IsTextSearchEnabled="True"
                               StaysOpenOnEdit="True"
                               IsTextSearchCaseSensitive="False"
-                              ToolTip="Type to search plugins"/>
+                              ToolTip="Type to search plugins" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">
-                    <TextBlock Text="Target Plugin (e.g., Requiem.esp):" FontWeight="Bold"/>
+                    <TextBlock Text="Target Plugin (e.g., Requiem.esp):" FontWeight="Bold" />
                     <ComboBox ItemsSource="{Binding AvailablePlugins}"
                               SelectedItem="{Binding SelectedTargetPlugin}"
                               Margin="0,5,0,5"
@@ -47,31 +47,31 @@
                               IsTextSearchEnabled="True"
                               StaysOpenOnEdit="True"
                               IsTextSearchCaseSensitive="False"
-                              ToolTip="Type to search plugins"/>
+                              ToolTip="Type to search plugins" />
                 </StackPanel>
             </Grid>
         </GroupBox>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
 
             <GroupBox Grid.Column="0" Header="Source Armors (Glam Mod)" Padding="8">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="Search:" VerticalAlignment="Center"/>
+                        <TextBlock Text="Search:" VerticalAlignment="Center" />
                         <TextBox Width="200" Margin="6,0,0,0"
-                                 Text="{Binding SourceSearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding SourceSearchText, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock Text="{Binding SourceArmors.Count, StringFormat='{}{0} armors'}"
-                                   Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                   Margin="12,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <DataGrid x:Name="SourceArmorsGrid"
@@ -90,10 +90,10 @@
                               VirtualizingPanel.VirtualizationMode="Recycling">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Background" Value="Transparent" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsMapped}" Value="True">
-                                        <Setter Property="Background" Value="#FFE6F4EA"/>
+                                        <Setter Property="Background" Value="#FFE6F4EA" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -101,22 +101,23 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Width="*" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="DisplayName" Mode="OneWay"/>
+                                    <Binding Path="DisplayName" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Slots" Width="130" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="SlotSummary" Mode="OneWay"/>
+                                    <Binding Path="SlotSummary" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True" SortMemberPath="FormIdSortable">
+                            <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True"
+                                                SortMemberPath="FormIdSortable">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="FormIdDisplay" Mode="OneWay"/>
+                                    <Binding Path="FormIdDisplay" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Mod" Width="150" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="ModDisplayName" Mode="OneWay"/>
+                                    <Binding Path="ModDisplayName" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                         </DataGrid.Columns>
@@ -124,41 +125,41 @@
                 </Grid>
             </GroupBox>
 
-            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="LightGray"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="LightGray" />
 
             <GroupBox Grid.Column="2" Header="Target Armors (Stats Source)" Padding="8">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <TextBlock Text="Search:" VerticalAlignment="Center"/>
+                            <TextBlock Text="Search:" VerticalAlignment="Center" />
                             <TextBox Width="200" Margin="6,0,0,0"
-                                     Text="{Binding TargetSearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                                     Text="{Binding TargetSearchText, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Text="{Binding TargetArmors.Count, StringFormat='{}{0} candidates'}"
-                                       Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                       Margin="12,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Auto-Match Threshold:" VerticalAlignment="Center"/>
+                            <TextBlock Text="Auto-Match Threshold:" VerticalAlignment="Center" />
                             <Slider Width="120" Margin="6,0,0,0" Minimum="0" Maximum="1"
                                     Value="{Binding AutoMatchThreshold}"
-                                    TickFrequency="0.1" IsSnapToTickEnabled="True"/>
+                                    TickFrequency="0.1" IsSnapToTickEnabled="True" />
                             <TextBlock Text="{Binding AutoMatchThreshold, StringFormat=P0}"
-                                       Margin="6,0,0,0" VerticalAlignment="Center"/>
-                            <Button Content="Auto-Match" Margin="12,0,0,0" Command="{Binding AutoMatchCommand}"/>
-                            <Button Content="Map Selection" Margin="12,0,0,0" Command="{Binding MapSelectedCommand}"/>
-                            <Button Content="Mark Glam Only" Margin="12,0,0,0" Command="{Binding MapGlamOnlyCommand}"/>
+                                       Margin="6,0,0,0" VerticalAlignment="Center" />
+                            <Button Content="Auto-Match" Margin="12,0,0,0" Command="{Binding AutoMatchCommand}" />
+                            <Button Content="Map Selection" Margin="12,0,0,0" Command="{Binding MapSelectedCommand}" />
+                            <Button Content="Mark Glam Only" Margin="12,0,0,0" Command="{Binding MapGlamOnlyCommand}" />
                             <TextBlock Text="{Binding Matches.Count, StringFormat='{}{0} mappings'}"
-                                       Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                       Margin="12,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Grid>
 
@@ -179,34 +180,36 @@
                               Sorting="TargetArmorsDataGrid_Sorting">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
-                                <Setter Property="IsEnabled" Value="{Binding IsSlotCompatible}"/>
-                                <Setter Property="Opacity" Value="{Binding IsSlotCompatible, Converter={StaticResource BooleanToOpacityConverter}}"/>
+                                <Setter Property="IsEnabled" Value="{Binding IsSlotCompatible}" />
+                                <Setter Property="Opacity"
+                                        Value="{Binding IsSlotCompatible, Converter={StaticResource BooleanToOpacityConverter}}" />
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Width="*" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="DisplayName" Mode="OneWay"/>
+                                    <Binding Path="DisplayName" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Slots" Width="130" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="SlotSummary" Mode="OneWay"/>
+                                    <Binding Path="SlotSummary" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True" SortMemberPath="FormIdSortable">
+                            <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True"
+                                                SortMemberPath="FormIdSortable">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="FormIdDisplay" Mode="OneWay"/>
+                                    <Binding Path="FormIdDisplay" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Mod" Width="150" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="ModDisplayName" Mode="OneWay"/>
+                                    <Binding Path="ModDisplayName" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Armor" Width="80" IsReadOnly="True">
                                 <DataGridTextColumn.Binding>
-                                    <Binding Path="ArmorRating" Mode="OneWay"/>
+                                    <Binding Path="ArmorRating" Mode="OneWay" />
                                 </DataGridTextColumn.Binding>
                             </DataGridTextColumn>
                         </DataGrid.Columns>
@@ -218,37 +221,42 @@
         <GroupBox Grid.Row="3" Header="Mapping Preview" Padding="10" Margin="0,10,0,0">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Matches.Count, StringFormat='{}{0} total mappings'}" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Matches.Count, StringFormat='{}{0} total mappings'}" FontWeight="Bold" />
                     <Button Content="Clear Mappings" Command="{Binding ClearMappingsCommand}" Margin="12,0,0,0"
-                            Visibility="{Binding Matches.Count, Converter={StaticResource BoolToVisConverter}}"/>
+                            Visibility="{Binding Matches.Count, Converter={StaticResource BoolToVisConverter}}" />
                 </StackPanel>
 
-                <TextBlock Grid.Row="1" Text="Each mapping shows the glam armor on the left and the stat source on the right." Margin="0,6,0,10" Foreground="Gray"/>
+                <TextBlock Grid.Row="1"
+                           Text="Each mapping shows the glam armor on the left and the stat source on the right."
+                           Margin="0,6,0,10" Foreground="Gray" />
 
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Matches}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,0,0,8">
+                                <Border BorderBrush="#FFE0E0E0" BorderThickness="1" CornerRadius="4" Padding="10"
+                                        Margin="0,0,0,8">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="{Binding Source.DisplayName}" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding Source.SlotSummary}" Margin="0,2,0,0"/>
-                                            <TextBlock Text="{Binding Source.FormIdDisplay}" Margin="0,2,0,0" Foreground="Gray"/>
-                                            <TextBlock Text="{Binding Source.ModDisplayName}" Margin="0,2,0,0" Foreground="Gray"/>
+                                            <TextBlock Text="{Binding Source.DisplayName}" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding Source.SlotSummary}" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Source.FormIdDisplay}" Margin="0,2,0,0"
+                                                       Foreground="Gray" />
+                                            <TextBlock Text="{Binding Source.ModDisplayName}" Margin="0,2,0,0"
+                                                       Foreground="Gray" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1"
@@ -257,86 +265,92 @@
                                             <TextBlock Text="->"
                                                        FontSize="24"
                                                        FontWeight="Bold"
-                                                       HorizontalAlignment="Center"/>
+                                                       HorizontalAlignment="Center" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="{Binding Target.DisplayName}" FontWeight="Bold">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="Not mapped"/>
+                                                        <Setter Property="Text" Value="Not mapped" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Target}" Value="{x:Null}">
-                                                                <Setter Property="Foreground" Value="Gray"/>
+                                                                <Setter Property="Foreground" Value="Gray" />
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding IsGlamOnly}" Value="True">
-                                                                <Setter Property="Foreground" Value="Gray"/>
-                                                                <Setter Property="Text" Value="? Glam-only (right side not needed)"/>
+                                                                <Setter Property="Foreground" Value="Gray" />
+                                                                <Setter Property="Text"
+                                                                        Value="? Glam-only (right side not needed)" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0">
-                                                <Run Text="Slots: "/>
+                                                <Run Text="Slots: " />
                                                 <Run>
                                                     <Run.Text>
-                                                        <Binding Path="Target.SlotSummary" TargetNullValue="-" Mode="OneWay"/>
+                                                        <Binding Path="Target.SlotSummary" TargetNullValue="-"
+                                                                 Mode="OneWay" />
                                                     </Run.Text>
                                                 </Run>
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0">
-                                                <Run Text="Armor: "/>
+                                                <Run Text="Armor: " />
                                                 <Run>
                                                     <Run.Text>
-                                                        <Binding Path="Target.ArmorRating" Mode="OneWay" StringFormat="{}{0:F1}" TargetNullValue="-"/>
+                                                        <Binding Path="Target.ArmorRating" Mode="OneWay"
+                                                                 StringFormat="{}{0:F1}" TargetNullValue="-" />
                                                     </Run.Text>
                                                 </Run>
-                                                <Run Text="  |  Value: "/>
+                                                <Run Text="  |  Value: " />
                                                 <Run>
                                                     <Run.Text>
-                                                        <Binding Path="Target.Value" Mode="OneWay" StringFormat="{}{0}" TargetNullValue="-"/>
+                                                        <Binding Path="Target.Value" Mode="OneWay" StringFormat="{}{0}"
+                                                                 TargetNullValue="-" />
                                                     </Run.Text>
                                                 </Run>
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0" Foreground="Gray">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Setter Property="Visibility" Value="Visible" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsGlamOnly}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Setter Property="Visibility" Value="Collapsed" />
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding Target}" Value="{x:Null}">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Setter Property="Visibility" Value="Collapsed" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                                 <Run>
                                                     <Run.Text>
-                                                        <Binding Path="Target.FormIdDisplay" Mode="OneWay" TargetNullValue=""/>
+                                                        <Binding Path="Target.FormIdDisplay" Mode="OneWay"
+                                                                 TargetNullValue="" />
                                                     </Run.Text>
                                                 </Run>
-                                                <Run Text=" • "/>
+                                                <Run Text=" • " />
                                                 <Run>
                                                     <Run.Text>
-                                                        <Binding Path="Target.ModDisplayName" Mode="OneWay" TargetNullValue=""/>
+                                                        <Binding Path="Target.ModDisplayName" Mode="OneWay"
+                                                                 TargetNullValue="" />
                                                     </Run.Text>
                                                 </Run>
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0" Foreground="Gray">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Setter Property="Visibility" Value="Collapsed" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsGlamOnly}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
-                                                <Run Text="? Glam-only mapping will zero the armor rating in the patch"/>
+                                                <Run Text="? Glam-only mapping will zero the armor rating in the patch" />
                                             </TextBlock>
                                         </StackPanel>
 
@@ -345,7 +359,7 @@
                                                 Margin="12,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Command="{Binding DataContext.RemoveMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"/>
+                                                CommandParameter="{Binding}" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -357,16 +371,15 @@
 
         <Grid Grid.Row="4" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0"
                        Text="{Binding Matches.Count, StringFormat='{}{0} mapping(s) queued'}"
-                       VerticalAlignment="Center"/>
+                       VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="Create Patch" Command="{Binding CreatePatchCommand}"
                     IsEnabled="{Binding IsPatching, Converter={StaticResource InverseBoolConverter}}"
-                    Padding="20,10" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    Padding="20,10" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right" />
         </Grid>
     </Grid>
 </UserControl>
-

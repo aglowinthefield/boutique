@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
+using Boutique.Models;
+using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Records;
@@ -12,21 +9,76 @@ using Mutagen.Bethesda.Skyrim;
 using NiflySharp;
 using NiflySharp.Blocks;
 using NiflySharp.Structs;
-using Boutique.Models;
-using Boutique.ViewModels;
 using Serilog;
 
 namespace Boutique.Services;
 
 public class ArmorPreviewService : IArmorPreviewService
 {
-    private readonly IMutagenService _mutagenService;
-    private readonly IGameAssetLocator _assetLocator;
-    private readonly ILogger _logger;
-
     private const string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";
     private const string MaleBodyRelativePath = "meshes/actors/character/character assets/malebody_0.nif";
     private static readonly ModKey SkyrimBaseModKey = ModKey.FromNameAndExtension("Skyrim.esm");
+
+    private static readonly HashSet<string> _nonDiffuseSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "n",
+        "msn",
+        "spec",
+        "s",
+        "g",
+        "glow",
+        "env",
+        "emit",
+        "em",
+        "mask",
+        "rough",
+        "metal",
+        "m",
+        "etc",
+        "sk",
+        "alpha",
+        "cube",
+        "cmap",
+        "height",
+        "disp",
+        "opacity",
+        "normal",
+        "emis",
+        "metallic",
+        "roughness",
+        "gloss"
+    };
+
+    private static readonly string[] _nonDiffuseSubstrings =
+    {
+        "normalmap",
+        "_normal",
+        "_nmap",
+        "_smap",
+        "_msn",
+        "_spec",
+        "_specmap",
+        "_glow",
+        "_env",
+        "_envmap",
+        "_cubemap",
+        "_cmap",
+        "_emit",
+        "_emissive",
+        "_mask",
+        "_rough",
+        "_roughness",
+        "_metal",
+        "_metallic",
+        "_height",
+        "_displace",
+        "_opacity",
+        "_alpha"
+    };
+
+    private readonly IGameAssetLocator _assetLocator;
+    private readonly ILogger _logger;
+    private readonly IMutagenService _mutagenService;
 
     public ArmorPreviewService(IMutagenService mutagenService, IGameAssetLocator assetLocator, ILogger logger)
     {
@@ -53,7 +105,9 @@ public class ArmorPreviewService : IArmorPreviewService
             throw new InvalidOperationException("Link cache is not available.");
 
         var pieces = armorPieces?.ToList() ?? new List<ArmorRecordViewModel>();
-        return await Task.Run(() => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken), cancellationToken);
+        return await Task.Run(
+            () => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken),
+            cancellationToken);
     }
 
     private ArmorPreviewScene BuildPreviewInternal(
@@ -64,7 +118,8 @@ public class ArmorPreviewService : IArmorPreviewService
         CancellationToken cancellationToken)
     {
         var gender = DetermineEffectiveGender(pieces, preferredGender, linkCache);
-        _logger.Debug("Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}", pieces.Count, preferredGender);
+        _logger.Debug("Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}",
+            pieces.Count, preferredGender);
         var meshes = new List<PreviewMeshShape>();
         var missingAssets = new List<string>();
 
@@ -98,14 +153,16 @@ public class ArmorPreviewService : IArmorPreviewService
 
                 if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon) || addon is null)
                 {
-                    _logger.Warning("Failed to resolve ArmorAddon {FormKey} for armor {Armor}", addonLink.FormKey, armorName);
+                    _logger.Warning("Failed to resolve ArmorAddon {FormKey} for armor {Armor}", addonLink.FormKey,
+                        armorName);
                     continue;
                 }
 
                 var model = SelectModel(addon.WorldModel, gender, out var variantForAddon);
                 if (model == null)
                 {
-                    _logger.Information("ArmorAddon {Addon} has no usable models for gender {Gender}", addon.EditorID, gender);
+                    _logger.Information("ArmorAddon {Addon} has no usable models for gender {Gender}", addon.EditorID,
+                        gender);
                     continue;
                 }
 
@@ -127,13 +184,11 @@ public class ArmorPreviewService : IArmorPreviewService
                 }
 
                 var identity = $"{variantForAddon}:{meshAssetKey}";
-                if (!visitedParts.Add(identity))
-                {
-                    continue; // Avoid loading identical meshes multiple times
-                }
+                if (!visitedParts.Add(identity)) continue; // Avoid loading identical meshes multiple times
 
                 var partName = $"{armorName} ({addon.EditorID ?? addon.FormKey.ToString()})";
-                meshes.AddRange(LoadMeshesFromNif(partName, fullPath, variantForAddon, addon.FormKey.ModKey, cancellationToken));
+                meshes.AddRange(LoadMeshesFromNif(partName, fullPath, variantForAddon, addon.FormKey.ModKey,
+                    cancellationToken));
             }
         }
 
@@ -149,22 +204,20 @@ public class ArmorPreviewService : IArmorPreviewService
             return GenderedModelVariant.Male;
 
         foreach (var piece in pieces)
+        foreach (var addonLink in piece.Armor.Armature)
         {
-            foreach (var addonLink in piece.Armor.Armature)
-            {
-                if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon) || addon is null)
-                    continue;
+            if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon) || addon is null)
+                continue;
 
-                var worldModel = addon.WorldModel;
-                if (worldModel == null)
-                    continue;
+            var worldModel = addon.WorldModel;
+            if (worldModel == null)
+                continue;
 
-                if (worldModel.Female != null)
-                    continue;
+            if (worldModel.Female != null)
+                continue;
 
-                if (worldModel.Male != null)
-                    return GenderedModelVariant.Male;
-            }
+            if (worldModel.Male != null)
+                return GenderedModelVariant.Male;
         }
 
         return GenderedModelVariant.Female;
@@ -186,7 +239,8 @@ public class ArmorPreviewService : IArmorPreviewService
             var loadResult = nif.Load(meshPath);
             if (loadResult != 0 || !nif.Valid)
             {
-                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", meshPath, loadResult, nif.Valid);
+                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", meshPath, loadResult,
+                    nif.Valid);
                 return meshes;
             }
 
@@ -199,13 +253,15 @@ public class ArmorPreviewService : IArmorPreviewService
 
                 if (!TryExtractMesh(nif, shape, ownerModKey, out var meshData))
                 {
-                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.", shape.Name?.ToString() ?? "<unnamed>", meshPath);
+                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
+                        shape.Name?.ToString() ?? "<unnamed>", meshPath);
                     continue;
                 }
 
                 if (meshData.DiffuseTexturePath == null)
                 {
-                    _logger.Debug("Skipping shape {ShapeName} because it has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
+                    _logger.Debug("Skipping shape {ShapeName} because it has no diffuse texture.",
+                        shape.Name?.ToString() ?? "<unnamed>");
                     continue;
                 }
 
@@ -262,34 +318,32 @@ public class ArmorPreviewService : IArmorPreviewService
             normals = ComputeNormals(vertices, indices);
             var shapeName = shape.Name?.ToString() ?? "<unnamed>";
             if (extractedNormals == null)
-            {
                 _logger.Debug("Shape {ShapeName} provided no normals; computed fallback.", shapeName);
-            }
             else
-            {
-                _logger.Debug("Shape {ShapeName} normals count {ProvidedCount} mismatched vertex count {VertexCount}; computed fallback.", shapeName, extractedNormals.Count, vertices.Count);
-            }
+                _logger.Debug(
+                    "Shape {ShapeName} normals count {ProvidedCount} mismatched vertex count {VertexCount}; computed fallback.",
+                    shapeName, extractedNormals.Count, vertices.Count);
         }
 
         var textureCoordinates = ExtractTextureCoordinates(shape);
         if (textureCoordinates != null && textureCoordinates.Count != vertices.Count)
         {
-            _logger.Debug("Shape {ShapeName} texture coordinate count {TexCount} does not match vertex count {VertexCount}. Ignoring UVs.",
+            _logger.Debug(
+                "Shape {ShapeName} texture coordinate count {TexCount} does not match vertex count {VertexCount}. Ignoring UVs.",
                 shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count, vertices.Count);
             textureCoordinates = null;
         }
         else if (textureCoordinates != null)
         {
-            _logger.Debug("Shape {ShapeName} extracted {TexCount} UV coordinates.", shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count);
+            _logger.Debug("Shape {ShapeName} extracted {TexCount} UV coordinates.",
+                shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count);
         }
 
         var transform = ComputeWorldTransform(nif, shape);
         var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey);
 
         if (diffuse == null)
-        {
             _logger.Debug("Shape {ShapeName} has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
-        }
 
         meshData = new MeshData(vertices, normals, textureCoordinates, indices, transform, diffuse);
         return true;
@@ -313,7 +367,7 @@ public class ArmorPreviewService : IArmorPreviewService
 
     private static List<int>? ExtractIndices(INiShape shape)
     {
-        IEnumerable<NiflySharp.Structs.Triangle>? triangles = null;
+        IEnumerable<Triangle>? triangles = null;
 
         switch (shape)
         {
@@ -387,7 +441,7 @@ public class ArmorPreviewService : IArmorPreviewService
             return null;
 
         var list = new List<Vector2>(count);
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var uv = data[i].UV;
             list.Add(new Vector2((float)uv.U, (float)uv.V));
@@ -402,7 +456,7 @@ public class ArmorPreviewService : IArmorPreviewService
             return null;
 
         var list = new List<Vector2>(count);
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var uv = data[i].UV;
             list.Add(new Vector2((float)uv.U, (float)uv.V));
@@ -426,7 +480,7 @@ public class ArmorPreviewService : IArmorPreviewService
             return null;
 
         var result = new List<Vector2>(vertexCount);
-        for (int i = 0; i < vertexCount; i++)
+        for (var i = 0; i < vertexCount; i++)
         {
             var uv = uvList[i];
             result.Add(new Vector2(uv.U, uv.V));
@@ -439,7 +493,7 @@ public class ArmorPreviewService : IArmorPreviewService
     {
         var normals = Enumerable.Repeat(Vector3.Zero, vertices.Count).ToList();
 
-        for (int i = 0; i < indices.Count; i += 3)
+        for (var i = 0; i < indices.Count; i += 3)
         {
             var i0 = indices[i];
             var i1 = indices[i + 1];
@@ -461,20 +515,18 @@ public class ArmorPreviewService : IArmorPreviewService
             normals[i2] += normal;
         }
 
-        for (int i = 0; i < normals.Count; i++)
-        {
+        for (var i = 0; i < normals.Count; i++)
             if (normals[i] != Vector3.Zero)
                 normals[i] = Vector3.Normalize(normals[i]);
             else
                 normals[i] = Vector3.UnitZ;
-        }
 
         return normals;
     }
 
     private static Matrix4x4 ComputeWorldTransform(NifFile nif, INiShape shape)
     {
-        Matrix4x4 world = Matrix4x4.Identity;
+        var world = Matrix4x4.Identity;
         const int MaxDepth = 256;
 
         INiObject? current = shape;
@@ -520,27 +572,21 @@ public class ArmorPreviewService : IArmorPreviewService
 
         void CollectCandidates(BSLightingShaderProperty? shader)
         {
-            foreach (var candidate in EnumerateTexturePaths(nif, shader))
-            {
-                candidates.Add(candidate);
-            }
+            foreach (var candidate in EnumerateTexturePaths(nif, shader)) candidates.Add(candidate);
         }
 
         CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
         if (candidates.Count == 0 && shape.Properties != null)
-        {
             foreach (var propRef in shape.Properties.References)
-            {
                 CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(propRef));
-            }
-        }
 
         foreach (var candidate in candidates)
         {
             if (!IsLikelyDiffuseTexture(candidate))
             {
-                _logger.Debug("Skipping non-diffuse texture candidate {Texture} for shape {Shape}", candidate, shapeName);
+                _logger.Debug("Skipping non-diffuse texture candidate {Texture} for shape {Shape}", candidate,
+                    shapeName);
                 continue;
             }
 
@@ -554,7 +600,8 @@ public class ArmorPreviewService : IArmorPreviewService
             var resolved = _assetLocator.ResolveAssetPath(normalized, ownerModKey);
             if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
             {
-                _logger.Debug("Resolved texture candidate {Texture} to {ResolvedPath} for shape {Shape}", candidate, resolved, shapeName);
+                _logger.Debug("Resolved texture candidate {Texture} to {ResolvedPath} for shape {Shape}", candidate,
+                    resolved, shapeName);
                 return resolved;
             }
 
@@ -562,13 +609,10 @@ public class ArmorPreviewService : IArmorPreviewService
         }
 
         if (candidates.Count > 0)
-        {
-            _logger.Debug("Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.", candidates.Count, shapeName);
-        }
+            _logger.Debug("Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.",
+                candidates.Count, shapeName);
         else
-        {
             _logger.Debug("No texture path resolved for shape {Shape}", shapeName);
-        }
 
         return null;
     }
@@ -606,16 +650,12 @@ public class ArmorPreviewService : IArmorPreviewService
         var segments = lower.Split(new[] { '_', '-', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var segment in segments)
-        {
             if (_nonDiffuseSegments.Contains(segment))
                 return false;
-        }
 
         foreach (var keyword in _nonDiffuseSubstrings)
-        {
             if (lower.Contains(keyword))
                 return false;
-        }
 
         return true;
     }
@@ -677,8 +717,10 @@ public class ArmorPreviewService : IArmorPreviewService
         return null;
     }
 
-    private static string GetBodyRelativePath(GenderedModelVariant gender) =>
-        gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
+    private static string GetBodyRelativePath(GenderedModelVariant gender)
+    {
+        return gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
+    }
 
     private static string NormalizeAssetPath(string path)
     {
@@ -696,63 +738,6 @@ public class ArmorPreviewService : IArmorPreviewService
         var systemRelative = assetKey.Replace('/', Path.DirectorySeparatorChar);
         return Path.Combine(dataPath, systemRelative);
     }
-
-    private static readonly HashSet<string> _nonDiffuseSegments = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "n",
-        "msn",
-        "spec",
-        "s",
-        "g",
-        "glow",
-        "env",
-        "emit",
-        "em",
-        "mask",
-        "rough",
-        "metal",
-        "m",
-        "etc",
-        "sk",
-        "alpha",
-        "cube",
-        "cmap",
-        "height",
-        "disp",
-        "opacity",
-        "normal",
-        "emis",
-        "metallic",
-        "roughness",
-        "gloss"
-    };
-
-    private static readonly string[] _nonDiffuseSubstrings =
-    {
-        "normalmap",
-        "_normal",
-        "_nmap",
-        "_smap",
-        "_msn",
-        "_spec",
-        "_specmap",
-        "_glow",
-        "_env",
-        "_envmap",
-        "_cubemap",
-        "_cmap",
-        "_emit",
-        "_emissive",
-        "_mask",
-        "_rough",
-        "_roughness",
-        "_metal",
-        "_metallic",
-        "_height",
-        "_displace",
-        "_opacity",
-        "_alpha"
-    };
 
     private readonly record struct MeshData(
         IReadOnlyList<Vector3> Vertices,

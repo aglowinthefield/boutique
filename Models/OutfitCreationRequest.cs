@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;

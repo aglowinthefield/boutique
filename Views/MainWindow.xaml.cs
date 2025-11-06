@@ -1,14 +1,15 @@
-using System.Windows;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Windows;
 using Boutique.ViewModels;
+using Microsoft.VisualBasic;
 
 namespace Boutique.Views;
 
 public partial class MainWindow : Window
 {
-    private bool _initialized;
     private readonly CompositeDisposable _bindings = new();
+    private bool _initialized;
 
     public MainWindow(MainViewModel viewModel)
     {
@@ -28,7 +29,8 @@ public partial class MainWindow : Window
         {
             var message = interaction.Input;
             var result = await Dispatcher.InvokeAsync(() =>
-                MessageBox.Show(this, message, "Overwrite Existing Patch?", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No));
+                MessageBox.Show(this, message, "Overwrite Existing Patch?", MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning, MessageBoxResult.No));
             interaction.SetOutput(result == MessageBoxResult.Yes);
         });
         _bindings.Add(confirmDisposable);
@@ -38,7 +40,7 @@ public partial class MainWindow : Window
             var prompt = interaction.Input;
             var result = await Dispatcher.InvokeAsync(() =>
             {
-                var input = Microsoft.VisualBasic.Interaction.InputBox(prompt, "Create Outfit", string.Empty);
+                var input = Interaction.InputBox(prompt, "Create Outfit", string.Empty);
                 return string.IsNullOrWhiteSpace(input) ? null : input;
             });
             interaction.SetOutput(result);
@@ -60,10 +62,7 @@ public partial class MainWindow : Window
         });
         _bindings.Add(previewDisposable);
 
-        Closed += (_, _) =>
-        {
-            _bindings.Dispose();
-        };
+        Closed += (_, _) => { _bindings.Dispose(); };
         Loaded += OnLoaded;
     }
 

@@ -3,31 +3,24 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
+using Boutique.Models;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
-using Boutique.Models;
 using Serilog;
+using SharpDX.Direct3D11;
 using Color = System.Windows.Media.Color;
 using Vector3 = System.Numerics.Vector3;
 using MeshGeometry3D = HelixToolkit.Wpf.SharpDX.MeshGeometry3D;
-using Material = HelixToolkit.Wpf.SharpDX.Material;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 using Color4 = SharpDX.Color4;
+using ProjectionCamera = HelixToolkit.Wpf.SharpDX.ProjectionCamera;
 using SharpDXVector2 = SharpDX.Vector2;
 using SharpDXVector3 = SharpDX.Vector3;
 
 namespace Boutique.Views;
 
-public partial class OutfitPreviewWindow : Window
+public partial class OutfitPreviewWindow
 {
-    private readonly ArmorPreviewScene _scene;
-    private readonly GroupModel3D _meshGroup = new();
-    private readonly AmbientLight3D _ambientLight = new();
-    private readonly DirectionalLight3D _frontLeftLight = new();
-    private readonly DirectionalLight3D _frontRightLight = new();
-    private readonly DirectionalLight3D _backLight = new();
-    private readonly DirectionalLight3D _frontalLight = new();
-    private readonly DefaultEffectsManager _effectsManager = new();
     private const float AmbientSrgb = 0.2f;
     private const float KeyFillSrgb = 0.6f;
     private const float RimSrgb = 0.85f;
@@ -37,12 +30,20 @@ public partial class OutfitPreviewWindow : Window
     private const float MaterialAmbientMultiplier = 2.3f;
     private const float MaterialSpecularMultiplier = 0.3f;
     private const float MaterialShininess = 0f;
+    private readonly AmbientLight3D _ambientLight = new();
+    private readonly DirectionalLight3D _backLight = new();
+    private readonly DefaultEffectsManager _effectsManager = new();
+    private readonly DirectionalLight3D _frontalLight = new();
+    private readonly DirectionalLight3D _frontLeftLight = new();
+    private readonly DirectionalLight3D _frontRightLight = new();
+    private readonly GroupModel3D _meshGroup = new();
+    private readonly ArmorPreviewScene _scene;
 
-    private float _ambientMultiplier = 0f;
-    private float _keyFillMultiplier = 1.6f;
-    private float _rimMultiplier = 1f;
+    private float _ambientMultiplier;
     private float _frontalMultiplier = 7f;
     private PerspectiveCamera? _initialCamera;
+    private float _keyFillMultiplier = 1.6f;
+    private float _rimMultiplier = 1f;
 
     public OutfitPreviewWindow(ArmorPreviewScene scene)
     {
@@ -71,16 +72,21 @@ public partial class OutfitPreviewWindow : Window
 
         PreviewViewport.UseDefaultGestures = false;
         PreviewViewport.InputBindings.Clear();
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Rotate, new MouseGesture(MouseAction.LeftClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Pan, new MouseGesture(MouseAction.MiddleClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Zoom, new MouseGesture(MouseAction.RightClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents, new MouseGesture(MouseAction.LeftDoubleClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents, new MouseGesture(MouseAction.RightDoubleClick)));
+        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Rotate,
+            new MouseGesture(MouseAction.LeftClick)));
+        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Pan,
+            new MouseGesture(MouseAction.MiddleClick)));
+        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Zoom,
+            new MouseGesture(MouseAction.RightClick)));
+        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents,
+            new MouseGesture(MouseAction.LeftDoubleClick)));
+        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents,
+            new MouseGesture(MouseAction.RightDoubleClick)));
         PreviewViewport.InputBindings.Add(new KeyBinding(ViewportCommands.ZoomExtents, Key.F, ModifierKeys.Control));
         PreviewViewport.BackgroundColor = GetViewportBackgroundColor();
 
         _meshGroup.Transform = Transform3D.Identity;
-        
+
         ConfigureLights();
 
         PreviewViewport.Items.Add(_ambientLight);
@@ -126,7 +132,7 @@ public partial class OutfitPreviewWindow : Window
             {
                 Geometry = geometry,
                 Material = material,
-                CullMode = SharpDX.Direct3D11.CullMode.None,
+                CullMode = CullMode.None,
                 IsHitTestVisible = false
             };
 
@@ -200,22 +206,17 @@ public partial class OutfitPreviewWindow : Window
         };
 
         if (evaluated.Normals.Count == evaluated.Vertices.Count)
-        {
             geometry.Normals = new Vector3Collection(
                 evaluated.Normals.Select(n => new SharpDXVector3(n.X, n.Y, n.Z)));
-        }
 
         var uvs = evaluated.Shape.TextureCoordinates;
         if (uvs != null && uvs.Count == evaluated.Vertices.Count)
-        {
             geometry.TextureCoordinates = new Vector2Collection(
                 uvs.Select(tc => new SharpDXVector2(tc.X, tc.Y)));
-        }
         else if (uvs != null)
-        {
-            Log.Warning("Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}",
+            Log.Warning(
+                "Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}",
                 uvs.Count, evaluated.Vertices.Count, evaluated.Shape.Name);
-        }
 
         geometry.UpdateBounds();
         return geometry;
@@ -236,6 +237,8 @@ public partial class OutfitPreviewWindow : Window
 
         PreviewViewport.Camera = camera;
         _initialCamera = (PerspectiveCamera)camera.Clone();
+
+        UpdateFrontalLightDirection();
     }
 
     private void ConfigureLights()
@@ -326,7 +329,8 @@ public partial class OutfitPreviewWindow : Window
 
     private static Color4 ScaleColor(Color4 baseColor, float multiplier)
     {
-        return new Color4(baseColor.Red * multiplier, baseColor.Green * multiplier, baseColor.Blue * multiplier, baseColor.Alpha);
+        return new Color4(baseColor.Red * multiplier, baseColor.Green * multiplier, baseColor.Blue * multiplier,
+            baseColor.Alpha);
     }
 
     private PhongMaterial CreateMaterialForMesh(PreviewMeshShape mesh)
@@ -378,7 +382,7 @@ public partial class OutfitPreviewWindow : Window
                 AmbientColor = ScaleColor(baseAmbient, MaterialAmbientMultiplier),
                 SpecularColor = ScaleColor(baseSpecular, MaterialSpecularMultiplier),
                 SpecularShininess = Math.Max(0f, MaterialShininess),
-                EmissiveColor = new Color4(0f, 0f, 0f, 1f),
+                EmissiveColor = new Color4(0f, 0f, 0f, 1f)
             };
 
             Log.Debug("Successfully created textured material for {TexturePath}", texturePath);
@@ -398,7 +402,7 @@ public partial class OutfitPreviewWindow : Window
 
     private void UpdateFrontalLightDirection()
     {
-        if (PreviewViewport.Camera is not HelixToolkit.Wpf.SharpDX.ProjectionCamera camera) return;
+        if (PreviewViewport.Camera is not ProjectionCamera camera) return;
         var direction = camera.LookDirection;
         if (direction.LengthSquared > 1e-6)
         {
@@ -413,9 +417,9 @@ public partial class OutfitPreviewWindow : Window
             return Color.FromRgb(200, 200, 200);
 
         var hash = mesh.SourcePath.GetHashCode(StringComparison.OrdinalIgnoreCase);
-        byte r = (byte)((hash >> 16) & 0xFF);
-        byte g = (byte)((hash >> 8) & 0xFF);
-        byte b = (byte)(hash & 0xFF);
+        var r = (byte)((hash >> 16) & 0xFF);
+        var g = (byte)((hash >> 8) & 0xFF);
+        var b = (byte)(hash & 0xFF);
 
         const double scale = 0.6;
         const byte min = 70;
@@ -475,5 +479,8 @@ public partial class OutfitPreviewWindow : Window
         _effectsManager.Dispose();
     }
 
-    private record EvaluatedMesh(PreviewMeshShape Shape, IReadOnlyList<Vector3> Vertices, IReadOnlyList<Vector3> Normals);
+    private record EvaluatedMesh(
+        PreviewMeshShape Shape,
+        IReadOnlyList<Vector3> Vertices,
+        IReadOnlyList<Vector3> Normals);
 }

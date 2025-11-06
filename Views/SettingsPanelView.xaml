@@ -11,43 +11,49 @@
             <Border Padding="6,4">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Skyrim Data Path:" Margin="0,0,6,3" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Skyrim Data Path:" Margin="0,0,6,3"
+                               VerticalAlignment="Center" />
                     <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,6,3" MaxWidth="360"
-                             Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
                     <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,3">
-                        <Button Content="Browse..." Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,4,0" MinWidth="80"/>
-                        <Button Content="Auto-Detect" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90"/>
+                        <Button Content="Browse..." Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,4,0"
+                                MinWidth="80" />
+                        <Button Content="Auto-Detect" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
                     </StackPanel>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Output Path:" Margin="0,0,6,3" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Output Path:" Margin="0,0,6,3"
+                               VerticalAlignment="Center" />
                     <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,6,3" MaxWidth="360"
-                             Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Grid.Row="1" Grid.Column="2" Content="Browse..."
                             Margin="0,0,0,3"
                             Command="{Binding Settings.BrowseOutputPathCommand}"
-                            MinWidth="80"/>
+                            MinWidth="80" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Patch File Name:" Margin="0,0,6,3" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Patch File Name:" Margin="0,0,6,3"
+                               VerticalAlignment="Center" />
                     <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,6,3" MaxWidth="360"
-                             Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}" Foreground="Gray" Margin="0,0,0,3"/>
+                             Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}" Foreground="Gray"
+                               Margin="0,0,0,3" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:" Margin="0,0,6,0"
+                               VerticalAlignment="Center" />
                     <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
                                Text="{Binding Settings.DetectionSource}"
                                FontStyle="Italic"
-                               Foreground="Green"/>
+                               Foreground="Green" />
                 </Grid>
             </Border>
         </Expander>

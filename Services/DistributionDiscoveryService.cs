@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Boutique.Models;
 using Serilog;
 
@@ -20,7 +15,8 @@ public class DistributionDiscoveryService : IDistributionDiscoveryService
         _logger = logger.ForContext<DistributionDiscoveryService>();
     }
 
-    public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(string dataFolderPath, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(string dataFolderPath,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dataFolderPath) || !Directory.Exists(dataFolderPath))
         {
@@ -42,15 +38,13 @@ public class DistributionDiscoveryService : IDistributionDiscoveryService
                 return;
 
             var parsed = ParseDistributionFile(path, dataFolderPath, type);
-            if (parsed != null)
-            {
-                files.Add(parsed);
-            }
+            if (parsed != null) files.Add(parsed);
         }
 
         try
         {
-            foreach (var spidFile in Directory.EnumerateFiles(dataFolderPath, "*_DISTR.ini", SearchOption.AllDirectories))
+            foreach (var spidFile in Directory.EnumerateFiles(dataFolderPath, "*_DISTR.ini",
+                         SearchOption.AllDirectories))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 TryParse(spidFile, DistributionFileType.Spid);
@@ -62,10 +56,7 @@ public class DistributionDiscoveryService : IDistributionDiscoveryService
                 if (seenPaths.Contains(iniFile))
                     continue;
 
-                if (IsSkyPatcherIni(dataFolderPath, iniFile))
-                {
-                    TryParse(iniFile, DistributionFileType.SkyPatcher);
-                }
+                if (IsSkyPatcherIni(dataFolderPath, iniFile)) TryParse(iniFile, DistributionFileType.SkyPatcher);
             }
         }
         catch (OperationCanceledException)
@@ -94,10 +85,7 @@ public class DistributionDiscoveryService : IDistributionDiscoveryService
             .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
             .ToLowerInvariant();
 
-        if (!normalized.Contains(skyPatcherPath))
-        {
-            return false;
-        }
+        if (!normalized.Contains(skyPatcherPath)) return false;
 
         var fileName = Path.GetFileName(iniFile);
         return !string.Equals(fileName, "SkyPatcher.ini", StringComparison.OrdinalIgnoreCase);
@@ -116,7 +104,7 @@ public class DistributionDiscoveryService : IDistributionDiscoveryService
                 lineNumber++;
                 var trimmed = raw.Trim();
                 DistributionLineKind kind;
-                string? sectionName = currentSection;
+                var sectionName = currentSection;
                 string? key = null;
                 string? value = null;
 

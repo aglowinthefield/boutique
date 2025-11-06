@@ -1,5 +1,5 @@
-using Mutagen.Bethesda.Skyrim;
 using Boutique.Models;
+using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
@@ -43,13 +43,9 @@ public class MatchingService : IMatchingService
 
             // Only add match if it meets confidence threshold
             if (bestMatch != null && bestScore >= confidenceThreshold)
-            {
-                matches.Add(new ArmorMatch(source, bestMatch, bestScore, isManualMatch: false));
-            }
+                matches.Add(new ArmorMatch(source, bestMatch, bestScore, false));
             else
-            {
                 matches.Add(new ArmorMatch(source, matchConfidence: bestScore));
-            }
         }
 
         return matches;
@@ -110,7 +106,8 @@ public class MatchingService : IMatchingService
             var tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
 
             // Remove common armor type words
-            var armorTypes = new[] { "boots", "gauntlets", "gloves", "helmet", "hood", "cuirass", "armor", "shield", "bracers" };
+            var armorTypes = new[]
+                { "boots", "gauntlets", "gloves", "helmet", "hood", "cuirass", "armor", "shield", "bracers" };
             var baseTokens = tokens.Where(t => !armorTypes.Contains(t)).ToList();
 
             return string.Join(" ", baseTokens);

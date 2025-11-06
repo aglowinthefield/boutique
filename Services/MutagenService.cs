@@ -1,11 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Environments;
-using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
-using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
@@ -13,29 +9,30 @@ namespace Boutique.Services;
 public class MutagenService : IMutagenService
 {
     private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
-    private ILinkCache<ISkyrimMod, ISkyrimModGetter>? _linkCache;
-    private string? _dataFolderPath;
 
-    public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache => _linkCache;
-    public string? DataFolderPath => _dataFolderPath;
+    public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
+
+    public string? DataFolderPath { get; private set; }
+
     public bool IsInitialized => _environment != null;
 
     public async Task InitializeAsync(string dataFolderPath)
     {
         await Task.Run(() =>
         {
-            _dataFolderPath = dataFolderPath;
+            DataFolderPath = dataFolderPath;
 
             // Try to create game environment
             try
             {
                 _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
-                _linkCache = _environment.LoadOrder.ToImmutableLinkCache();
+                LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
             }
             catch (Exception)
             {
                 // If automatic detection fails, path might not be set correctly
-                throw new InvalidOperationException($"Could not initialize Skyrim environment. Ensure Skyrim SE is installed and the data path is correct: {dataFolderPath}");
+                throw new InvalidOperationException(
+                    $"Could not initialize Skyrim environment. Ensure Skyrim SE is installed and the data path is correct: {dataFolderPath}");
             }
         });
     }
@@ -44,19 +41,18 @@ public class MutagenService : IMutagenService
     {
         return await Task.Run(() =>
         {
-            if (string.IsNullOrEmpty(_dataFolderPath))
+            if (string.IsNullOrEmpty(DataFolderPath))
                 return Enumerable.Empty<string>();
 
-            var pluginFiles = Directory.GetFiles(_dataFolderPath, "*.esp")
-                .Concat(Directory.GetFiles(_dataFolderPath, "*.esm"))
-                .Concat(Directory.GetFiles(_dataFolderPath, "*.esl"))
+            var pluginFiles = Directory.GetFiles(DataFolderPath, "*.esp")
+                .Concat(Directory.GetFiles(DataFolderPath, "*.esm"))
+                .Concat(Directory.GetFiles(DataFolderPath, "*.esl"))
                 .OrderBy(path => Path.GetFileName(path))
                 .ToList();
 
             var armorPlugins = new List<string>();
 
             foreach (var pluginPath in pluginFiles)
-            {
                 try
                 {
                     using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
@@ -64,17 +60,13 @@ public class MutagenService : IMutagenService
                     if (mod.Armors.Count > 0)
                     {
                         var name = Path.GetFileName(pluginPath);
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            armorPlugins.Add(name);
-                        }
+                        if (!string.IsNullOrEmpty(name)) armorPlugins.Add(name);
                     }
                 }
                 catch
                 {
                     // Ignore plugins that cannot be read; they will be omitted from the picker.
                 }
-            }
 
             armorPlugins.Sort(StringComparer.OrdinalIgnoreCase);
             return armorPlugins;
@@ -85,10 +77,10 @@ public class MutagenService : IMutagenService
     {
         return await Task.Run(() =>
         {
-            if (string.IsNullOrEmpty(_dataFolderPath))
+            if (string.IsNullOrEmpty(DataFolderPath))
                 return Enumerable.Empty<IArmorGetter>();
 
-            var pluginPath = Path.Combine(_dataFolderPath, pluginFileName);
+            var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
 
             if (!File.Exists(pluginPath))
                 return Enumerable.Empty<IArmorGetter>();

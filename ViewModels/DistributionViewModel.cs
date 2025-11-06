@@ -1,12 +1,8 @@
-using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using ReactiveUI;
 using Boutique.Services;
+using ReactiveUI;
 using Serilog;
 
 namespace Boutique.ViewModels;
@@ -14,13 +10,28 @@ namespace Boutique.ViewModels;
 public class DistributionViewModel : ReactiveObject
 {
     private readonly IDistributionDiscoveryService _discoveryService;
-    private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
+    private readonly SettingsViewModel _settings;
 
     private ObservableCollection<DistributionFileViewModel> _files = new();
-    private DistributionFileViewModel? _selectedFile;
     private bool _isLoading;
+    private DistributionFileViewModel? _selectedFile;
     private string _statusMessage = "Distribution files not loaded.";
+
+    public DistributionViewModel(
+        IDistributionDiscoveryService discoveryService,
+        SettingsViewModel settings,
+        ILogger logger)
+    {
+        _discoveryService = discoveryService;
+        _settings = settings;
+        _logger = logger.ForContext<DistributionViewModel>();
+
+        RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
+
+        _settings.WhenAnyValue(x => x.SkyrimDataPath)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(DataPath)));
+    }
 
     public ObservableCollection<DistributionFileViewModel> Files
     {
@@ -49,21 +60,6 @@ public class DistributionViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
     public string DataPath => _settings.SkyrimDataPath;
-
-    public DistributionViewModel(
-        IDistributionDiscoveryService discoveryService,
-        SettingsViewModel settings,
-        ILogger logger)
-    {
-        _discoveryService = discoveryService;
-        _settings = settings;
-        _logger = logger.ForContext<DistributionViewModel>();
-
-        RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
-
-        _settings.WhenAnyValue(x => x.SkyrimDataPath)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(DataPath)));
-    }
 
     public async Task RefreshAsync()
     {

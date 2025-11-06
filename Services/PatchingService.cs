@@ -1,21 +1,20 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Boutique.Models;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Binary.Parameters;
+using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
-using Mutagen.Bethesda.Strings;
 using Noggog;
-using Boutique.Models;
+using Serilog;
 
 namespace Boutique.Services;
 
 public class PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
     : IPatchingService
 {
-    private readonly Serilog.ILogger _logger = loggingService.ForContext<PatchingService>();
+    private readonly ILogger _logger = loggingService.ForContext<PatchingService>();
 
     public bool ValidatePatch(IEnumerable<ArmorMatch> matches, out string validationMessage)
     {
@@ -57,7 +56,8 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                 var validMatches = matches.Where(m => m.TargetArmor != null || m.IsGlamOnly).ToList();
                 var requiredMasters = new HashSet<ModKey>();
 
-                _logger.Information("Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}", outputPath, validMatches.Count);
+                _logger.Information("Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}",
+                    outputPath, validMatches.Count);
 
                 if (validMatches.Count == 0)
                 {
@@ -69,23 +69,20 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                 SkyrimMod patchMod;
 
                 if (File.Exists(outputPath))
-                {
                     try
                     {
                         _logger.Information("Existing patch detected at {OutputPath}; loading for append.", outputPath);
                         patchMod = SkyrimMod.CreateFromBinary(outputPath, SkyrimRelease.SkyrimSE);
-                        _logger.Information("Loaded existing patch containing {ArmorCount} armor overrides.", patchMod.Armors.Count);
+                        _logger.Information("Loaded existing patch containing {ArmorCount} armor overrides.",
+                            patchMod.Armors.Count);
                     }
                     catch (Exception ex)
                     {
                         _logger.Error(ex, "Failed to load existing patch at {OutputPath}.", outputPath);
                         return (false, $"Unable to load existing patch: {ex.Message}");
                     }
-                }
                 else
-                {
                     patchMod = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
-                }
 
                 var existingMasters = patchMod.ModHeader.MasterReferences?
                     .Select(m => m.Master) ?? Enumerable.Empty<ModKey>();
@@ -148,34 +145,31 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
         });
     }
 
-    public async Task<(bool success, string message, IReadOnlyList<OutfitCreationResult> results)> CreateOrUpdateOutfitsAsync(
-        IEnumerable<OutfitCreationRequest> outfits,
-        string outputPath,
-        IProgress<(int current, int total, string message)>? progress = null)
+    public async Task<(bool success, string message, IReadOnlyList<OutfitCreationResult> results)>
+        CreateOrUpdateOutfitsAsync(
+            IEnumerable<OutfitCreationRequest> outfits,
+            string outputPath,
+            IProgress<(int current, int total, string message)>? progress = null)
     {
         return await Task.Run(() =>
         {
             try
             {
                 var outfitList = outfits.ToList();
-                if (outfitList.Count == 0)
-                {
-                    return (false, "No outfits to create.", (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
-                }
+                if (outfitList.Count == 0) return (false, "No outfits to create.", Array.Empty<OutfitCreationResult>());
 
                 if (!mutagenService.IsInitialized)
-                {
-                    return (false, "Mutagen service is not initialized. Please set the Skyrim data path first.", (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
-                }
+                    return (false, "Mutagen service is not initialized. Please set the Skyrim data path first.",
+                        Array.Empty<OutfitCreationResult>());
 
-                _logger.Information("Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}", outputPath, outfitList.Count);
+                _logger.Information("Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
+                    outputPath, outfitList.Count);
 
                 var requiredMasters = new HashSet<ModKey>();
                 var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
 
                 SkyrimMod patchMod;
                 if (File.Exists(outputPath))
-                {
                     try
                     {
                         _logger.Information("Loading existing patch at {OutputPath} for outfit append.", outputPath);
@@ -183,14 +177,13 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(ex, "Failed to load existing patch for outfit creation at {OutputPath}.", outputPath);
-                        return (false, $"Unable to load existing patch: {ex.Message}", (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
+                        _logger.Error(ex, "Failed to load existing patch for outfit creation at {OutputPath}.",
+                            outputPath);
+                        return (false, $"Unable to load existing patch: {ex.Message}",
+                            Array.Empty<OutfitCreationResult>());
                     }
-                }
                 else
-                {
                     patchMod = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
-                }
 
                 var existingOutfitMasters = patchMod.ModHeader.MasterReferences?
                     .Select(m => m.Master) ?? Enumerable.Empty<ModKey>();
@@ -206,19 +199,22 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                     progress?.Report((current, total, $"Writing outfit {request.Name}..."));
 
                     var existing = patchMod.Outfits
-                        .FirstOrDefault(o => string.Equals(o.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase));
+                        .FirstOrDefault(o =>
+                            string.Equals(o.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase));
 
                     Outfit outfit;
                     if (existing != null)
                     {
                         outfit = existing;
-                        _logger.Information("Updating existing outfit {EditorId} with {PieceCount} piece(s).", request.EditorId, request.Pieces.Count);
+                        _logger.Information("Updating existing outfit {EditorId} with {PieceCount} piece(s).",
+                            request.EditorId, request.Pieces.Count);
                     }
                     else
                     {
                         outfit = patchMod.Outfits.AddNew();
                         outfit.EditorID = request.EditorId;
-                        _logger.Information("Creating new outfit {EditorId} with {PieceCount} piece(s).", request.EditorId, request.Pieces.Count);
+                        _logger.Information("Creating new outfit {EditorId} with {PieceCount} piece(s).",
+                            request.EditorId, request.Pieces.Count);
                     }
 
                     var pieces = request.Pieces;
@@ -228,13 +224,14 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                         continue;
                     }
 
-                    var items = outfit.Items ??= new();
+                    var items = outfit.Items ??= new ExtendedList<IFormLinkGetter<IOutfitTargetGetter>>();
                     items.Clear();
                     foreach (var armor in pieces)
                     {
                         if (armor == null)
                         {
-                            _logger.Warning("Outfit {EditorId} contains a null armor entry; skipping.", request.EditorId);
+                            _logger.Warning("Outfit {EditorId} contains a null armor entry; skipping.",
+                                request.EditorId);
                             continue;
                         }
 
@@ -259,19 +256,21 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                 }
                 catch (IOException ioEx)
                 {
-                    var lockedMessage = $"Unable to write to {outputPath}. It appears to be locked by another application (Mod Organizer, xEdit, or the Skyrim launcher). Close the application that has the file open, or pick a different output path, then try again.";
+                    var lockedMessage =
+                        $"Unable to write to {outputPath}. It appears to be locked by another application (Mod Organizer, xEdit, or the Skyrim launcher). Close the application that has the file open, or pick a different output path, then try again.";
                     _logger.Error(ioEx, lockedMessage);
-                    return (false, lockedMessage, (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
+                    return (false, lockedMessage, Array.Empty<OutfitCreationResult>());
                 }
 
                 _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
 
-                return (true, $"Saved {results.Count} outfit(s) to {outputPath}", (IReadOnlyList<OutfitCreationResult>)results);
+                return (true, $"Saved {results.Count} outfit(s) to {outputPath}", results);
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error creating outfits destined for {OutputPath}", outputPath);
-                return (false, $"Error creating outfits: {ex.Message}", (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
+                return (false, $"Error creating outfits: {ex.Message}",
+                    (IReadOnlyList<OutfitCreationResult>)Array.Empty<OutfitCreationResult>());
             }
         });
     }
@@ -295,23 +294,16 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
         if (source.Keywords == null) return;
         target.Keywords = [];
 
-        foreach (var keyword in source.Keywords)
-        {
-            target.Keywords.Add(keyword);
-        }
+        foreach (var keyword in source.Keywords) target.Keywords.Add(keyword);
     }
 
     private static void CopyEnchantment(Armor target, IArmorGetter source)
     {
         // Copy enchantment reference (ObjectEffect in Mutagen)
         if (source.ObjectEffect.FormKey != FormKey.Null)
-        {
             target.ObjectEffect.SetTo(source.ObjectEffect);
-        }
         else
-        {
             target.ObjectEffect.Clear();
-        }
 
         // Copy enchantment amount if present
         target.EnchantmentAmount = source.EnchantmentAmount;
@@ -362,13 +354,13 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
         }
     }
 
-    private bool IsTemperingRecipe(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
+    private bool IsTemperingRecipe(IConstructibleObjectGetter recipe, ILinkCache linkCache)
     {
         var editorId = recipe.EditorID?.ToLowerInvariant() ?? string.Empty;
         return editorId.Contains("temper") || IsTemperingWorkbench(recipe, linkCache);
     }
 
-    private static bool IsTemperingWorkbench(IConstructibleObjectGetter recipe, Mutagen.Bethesda.Plugins.Cache.ILinkCache linkCache)
+    private static bool IsTemperingWorkbench(IConstructibleObjectGetter recipe, ILinkCache linkCache)
     {
         // Check if the workbench keyword indicates tempering
         if (recipe.WorkbenchKeyword.FormKey == FormKey.Null)
@@ -391,6 +383,7 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
             _logger.Warning("Patch mod header did not expose a master list; skipping master update.");
             return;
         }
+
         var existing = masterList.Select(m => m.Master).ToHashSet();
 
         foreach (var master in requiredMasters)
@@ -405,6 +398,7 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
             }
         }
 
-        _logger.Information("Patch master list: {Masters}", string.Join(", ", masterList.Select(m => m.Master.FileName)));
+        _logger.Information("Patch master list: {Masters}",
+            string.Join(", ", masterList.Select(m => m.Master.FileName)));
     }
 }

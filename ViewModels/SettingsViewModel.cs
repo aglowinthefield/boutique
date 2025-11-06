@@ -1,19 +1,35 @@
 using System.IO;
 using System.Windows.Input;
+using Boutique.Models;
 using Microsoft.Win32;
 using ReactiveUI;
-using Boutique.Models;
 
 namespace Boutique.ViewModels;
 
 public class SettingsViewModel : ReactiveObject
 {
     private readonly PatcherSettings _settings;
-    private string _skyrimDataPath;
+    private string _detectionSource;
+    private bool _isRunningFromMO2;
     private string _outputPatchPath;
     private string _patchFileName;
-    private bool _isRunningFromMO2;
-    private string _detectionSource;
+    private string _skyrimDataPath;
+
+    public SettingsViewModel(PatcherSettings settings)
+    {
+        _settings = settings;
+        _skyrimDataPath = settings.SkyrimDataPath;
+        _outputPatchPath = settings.OutputPatchPath;
+        _patchFileName = settings.PatchFileName;
+        _detectionSource = "";
+
+        BrowseDataPathCommand = ReactiveCommand.Create(BrowseDataPath);
+        BrowseOutputPathCommand = ReactiveCommand.Create(BrowseOutputPath);
+        AutoDetectPathCommand = ReactiveCommand.Create(AutoDetectPath);
+
+        // Auto-detect on creation if path is empty
+        if (string.IsNullOrEmpty(_skyrimDataPath)) AutoDetectPath();
+    }
 
     public bool IsRunningFromMO2
     {
@@ -63,28 +79,9 @@ public class SettingsViewModel : ReactiveObject
     public ICommand BrowseOutputPathCommand { get; }
     public ICommand AutoDetectPathCommand { get; }
 
-    public SettingsViewModel(PatcherSettings settings)
-    {
-        _settings = settings;
-        _skyrimDataPath = settings.SkyrimDataPath;
-        _outputPatchPath = settings.OutputPatchPath;
-        _patchFileName = settings.PatchFileName;
-        _detectionSource = "";
-
-        BrowseDataPathCommand = ReactiveCommand.Create(BrowseDataPath);
-        BrowseOutputPathCommand = ReactiveCommand.Create(BrowseOutputPath);
-        AutoDetectPathCommand = ReactiveCommand.Create(AutoDetectPath);
-
-        // Auto-detect on creation if path is empty
-        if (string.IsNullOrEmpty(_skyrimDataPath))
-        {
-            AutoDetectPath();
-        }
-    }
-
     private void BrowseDataPath()
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog
+        var dialog = new OpenFileDialog
         {
             Title = "Select Skyrim Data Folder",
             FileName = "Select Folder",
@@ -103,7 +100,7 @@ public class SettingsViewModel : ReactiveObject
 
     private void BrowseOutputPath()
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog
+        var dialog = new OpenFileDialog
         {
             Title = "Select Output Folder",
             FileName = "Select Folder",
@@ -156,11 +153,11 @@ public class SettingsViewModel : ReactiveObject
             @"C:\Program Files\Steam\steamapps\common\Skyrim Special Edition\Data",
             @"D:\Steam\steamapps\common\Skyrim Special Edition\Data",
             @"E:\Steam\steamapps\common\Skyrim Special Edition\Data",
-            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + @"\Steam\steamapps\common\Skyrim Special Edition\Data"
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) +
+            @"\Steam\steamapps\common\Skyrim Special Edition\Data"
         };
 
         foreach (var path in commonPaths)
-        {
             if (Directory.Exists(path))
             {
                 SkyrimDataPath = path;
@@ -169,12 +166,12 @@ public class SettingsViewModel : ReactiveObject
                 DetectionSource = "Detected from common installation path";
                 return;
             }
-        }
 
         // PRIORITY 3: Try reading from registry
         try
         {
-            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Skyrim Special Edition");
+            using var key =
+                Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Skyrim Special Edition");
             if (key != null)
             {
                 var installPath = key.GetValue("installed path") as string;

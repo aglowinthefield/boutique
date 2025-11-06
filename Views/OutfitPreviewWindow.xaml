@@ -9,8 +9,8 @@
         Background="{DynamicResource Brush.PanelBackground}">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <helix:Viewport3DX x:Name="PreviewViewport"
@@ -22,7 +22,7 @@
                            ShowCoordinateSystem="False"
                            ShowFrameRate="False"
                            EnableCurrentPosition="False"
-                           UseDefaultGestures="True"/>
+                           UseDefaultGestures="True" />
 
         <Border Grid.Row="1"
                 Background="#22000000"
@@ -31,11 +31,11 @@
             <StackPanel>
                 <StackPanel x:Name="MissingAssetsPanel"
                             Margin="0,0,0,8">
-                    <TextBlock Text="Missing assets:" FontWeight="Bold"/>
+                    <TextBlock Text="Missing assets:" FontWeight="Bold" />
                     <ItemsControl x:Name="MissingAssetsList" Margin="0,4,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -47,18 +47,19 @@
                           Margin="0,0,0,12">
                     <Grid Margin="0,6,0,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Ambient" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Ambient" Margin="0,0,8,0"
+                                   VerticalAlignment="Center" />
                         <Slider x:Name="AmbientMultiplierSlider"
                                 Grid.Row="0"
                                 Grid.Column="1"
@@ -67,10 +68,13 @@
                                 Value="0"
                                 TickFrequency="0.1"
                                 ValueChanged="OnAmbientMultiplierChanged"
-                                Margin="0,0,8,0"/>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Value, ElementName=AmbientMultiplierSlider, StringFormat=F2}" Width="48" VerticalAlignment="Center" TextAlignment="Right"/>
+                                Margin="0,0,8,0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2"
+                                   Text="{Binding Value, ElementName=AmbientMultiplierSlider, StringFormat=F2}"
+                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Key/Fill" Margin="0,6,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Key/Fill" Margin="0,6,8,0"
+                                   VerticalAlignment="Center" />
                         <Slider x:Name="KeyFillMultiplierSlider"
                                 Grid.Row="1"
                                 Grid.Column="1"
@@ -79,10 +83,12 @@
                                 Value="1.6"
                                 TickFrequency="0.1"
                                 ValueChanged="OnKeyFillMultiplierChanged"
-                                Margin="0,6,8,0"/>
-                        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Value, ElementName=KeyFillMultiplierSlider, StringFormat=F2}" Width="48" VerticalAlignment="Center" TextAlignment="Right"/>
+                                Margin="0,6,8,0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2"
+                                   Text="{Binding Value, ElementName=KeyFillMultiplierSlider, StringFormat=F2}"
+                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Rim" Margin="0,6,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Rim" Margin="0,6,8,0" VerticalAlignment="Center" />
                         <Slider x:Name="RimMultiplierSlider"
                                 Grid.Row="2"
                                 Grid.Column="1"
@@ -91,10 +97,13 @@
                                 Value="1"
                                 TickFrequency="0.1"
                                 ValueChanged="OnRimMultiplierChanged"
-                                Margin="0,6,8,0"/>
-                        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Value, ElementName=RimMultiplierSlider, StringFormat=F2}" Width="48" VerticalAlignment="Center" TextAlignment="Right"/>
+                                Margin="0,6,8,0" />
+                        <TextBlock Grid.Row="2" Grid.Column="2"
+                                   Text="{Binding Value, ElementName=RimMultiplierSlider, StringFormat=F2}" Width="48"
+                                   VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Frontal" Margin="0,6,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Frontal" Margin="0,6,8,0"
+                                   VerticalAlignment="Center" />
                         <Slider x:Name="FrontalMultiplierSlider"
                                 Grid.Row="3"
                                 Grid.Column="1"
@@ -103,8 +112,10 @@
                                 Value="7"
                                 TickFrequency="0.1"
                                 ValueChanged="OnFrontalMultiplierChanged"
-                                Margin="0,6,8,0"/>
-                        <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Value, ElementName=FrontalMultiplierSlider, StringFormat=F2}" Width="48" VerticalAlignment="Center" TextAlignment="Right"/>
+                                Margin="0,6,8,0" />
+                        <TextBlock Grid.Row="3" Grid.Column="2"
+                                   Text="{Binding Value, ElementName=FrontalMultiplierSlider, StringFormat=F2}"
+                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
                     </Grid>
                 </Expander>
 
@@ -112,11 +123,11 @@
                     <Button Content="Reset View"
                             Margin="0,0,8,0"
                             Padding="14,6"
-                            Click="OnResetView"/>
+                            Click="OnResetView" />
                     <Button Content="Close"
                             Padding="14,6"
                             IsCancel="True"
-                            Click="OnClose"/>
+                            Click="OnClose" />
                 </StackPanel>
             </StackPanel>
         </Border>

@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:utilities="clr-namespace:Boutique.Utilities"
         xmlns:views="clr-namespace:Boutique.Views"
         mc:Ignorable="d"
         Title="Boutique" Height="800" Width="1400"
@@ -11,18 +10,18 @@
 
     <Grid Background="{StaticResource Brush.PanelBackground}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TabControl Grid.Row="0" Margin="12">
             <TabItem Header="Armor Patch">
-                <views:ArmorPatchView DataContext="{Binding}"/>
+                <views:ArmorPatchView DataContext="{Binding}" />
             </TabItem>
             <TabItem Header="Outfit Creator">
-                <views:OutfitCreatorView DataContext="{Binding}"/>
+                <views:OutfitCreatorView DataContext="{Binding}" />
             </TabItem>
             <TabItem Header="Distribution">
-                <views:DistributionView DataContext="{Binding Distribution}"/>
+                <views:DistributionView DataContext="{Binding Distribution}" />
             </TabItem>
         </TabControl>
 
@@ -32,10 +31,8 @@
                          Minimum="0"
                          Maximum="{Binding ProgressTotal}"
                          Value="{Binding ProgressCurrent}"
-                         Visibility="{Binding IsProgressActive, Converter={StaticResource BoolToVisConverter}}"/>
-            <TextBlock Text="{Binding StatusMessage}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                         Visibility="{Binding IsProgressActive, Converter={StaticResource BoolToVisConverter}}" />
+            <TextBlock Text="{Binding StatusMessage}" Margin="10,0,0,0" VerticalAlignment="Center" />
         </StackPanel>
     </Grid>
 </Window>
-
-

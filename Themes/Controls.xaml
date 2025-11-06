@@ -3,36 +3,36 @@
     <!-- Typography -->
     <FontFamily x:Key="Font.Primary">Segoe UI</FontFamily>
     <Style x:Key="HeadingTextBlockStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
-        <Setter Property="FontSize" Value="16"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="Margin" Value="0,0,0,6"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
 
     <!-- Window / root -->
     <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource Brush.PrimaryBackground}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+        <Setter Property="Background" Value="{StaticResource Brush.PrimaryBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
     </Style>
 
     <!-- Grid defaults -->
     <Style TargetType="Grid">
-        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <!-- Buttons -->
     <Style TargetType="Button">
-        <Setter Property="Padding" Value="10,6"/>
-        <Setter Property="Margin" Value="5"/>
-        <Setter Property="MinWidth" Value="90"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="MinWidth" Value="90" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.BorderLight}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -44,20 +44,22 @@
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
-                                          RecognizesAccessKey="True"/>
+                                          RecognizesAccessKey="True" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.AccentMuted}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource Brush.AccentMuted}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Accent}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Accent}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}"/>
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource Brush.BorderLight}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -67,9 +69,9 @@
 
     <!-- Primary action buttons -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource Brush.Accent}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Background" Value="{StaticResource Brush.Accent}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -80,21 +82,24 @@
                             CornerRadius="4"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                                          VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.AccentMuted}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource Brush.AccentMuted}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Accent}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Accent}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}"/>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Brush.BorderLight}"/>
+                            <Setter TargetName="border" Property="Background"
+                                    Value="{StaticResource Brush.BorderLight}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
+                            <Setter TargetName="border" Property="BorderBrush"
+                                    Value="{StaticResource Brush.BorderLight}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -104,66 +109,69 @@
 
     <!-- TextBlock -->
     <Style TargetType="TextBlock">
-        <Setter Property="Margin" Value="5"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
-        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <!-- TextBox -->
     <Style TargetType="TextBox">
-        <Setter Property="Padding" Value="6,4"/>
-        <Setter Property="Margin" Value="5"/>
-        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
+        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
     </Style>
 
     <!-- ComboBox -->
     <Style TargetType="ComboBox">
         <Style.Resources>
-            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="{StaticResource Color.PanelBackground}"/>
-            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{StaticResource Color.TextPrimary}"/>
-            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{StaticResource Color.Accent}"/>
-            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{StaticResource Color.PrimaryBackground}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}"
+                             Color="{StaticResource Color.PanelBackground}" />
+            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}"
+                             Color="{StaticResource Color.TextPrimary}" />
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{StaticResource Color.Accent}" />
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                             Color="{StaticResource Color.PrimaryBackground}" />
         </Style.Resources>
-        <Setter Property="Margin" Value="5"/>
-        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}"/>
-        <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextSecondary}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
     </Style>
 
     <Style TargetType="ComboBoxItem">
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}"/>
-        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="Padding" Value="6,3" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+                <Setter Property="Background" Value="{StaticResource Brush.BorderLight}" />
+                <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{StaticResource Brush.AccentMuted}"/>
-                <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}"/>
+                <Setter Property="Background" Value="{StaticResource Brush.AccentMuted}" />
+                <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}"/>
+                <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <!-- GroupBox -->
     <Style TargetType="GroupBox">
-        <Setter Property="Margin" Value="5"/>
-        <Setter Property="Padding" Value="8"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
@@ -182,15 +190,16 @@
                                               ContentStringFormat="{TemplateBinding HeaderStringFormat}">
                                 <ContentPresenter.Resources>
                                     <Style TargetType="ContentPresenter">
-                                        <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-                                        <Setter Property="TextElement.FontWeight" Value="SemiBold"/>
-                                        <Setter Property="TextElement.FontSize" Value="14"/>
+                                        <Setter Property="TextElement.Foreground"
+                                                Value="{StaticResource Brush.TextPrimary}" />
+                                        <Setter Property="TextElement.FontWeight" Value="SemiBold" />
+                                        <Setter Property="TextElement.FontSize" Value="14" />
                                     </Style>
                                 </ContentPresenter.Resources>
                             </ContentPresenter>
                             <ContentPresenter Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}" />
                         </DockPanel>
                     </Border>
                 </ControlTemplate>
@@ -200,30 +209,30 @@
 
     <!-- DataGrid -->
     <Style TargetType="DataGrid">
-        <Setter Property="Background" Value="{StaticResource Brush.PanelBackground}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="RowBackground" Value="{StaticResource Brush.PanelBackground}"/>
-        <Setter Property="AlternatingRowBackground" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Brush.BorderLight}"/>
-        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource Brush.BorderLight}"/>
+        <Setter Property="Background" Value="{StaticResource Brush.PanelBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="RowBackground" Value="{StaticResource Brush.PanelBackground}" />
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="GridLinesVisibility" Value="Horizontal" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Brush.BorderLight}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource Brush.BorderLight}" />
     </Style>
 
     <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="6,4" />
     </Style>
 
     <!-- TabControl -->
     <Style TargetType="TabControl">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabControl">
@@ -232,7 +241,7 @@
                                   Margin="0,0,0,4"
                                   Background="Transparent"
                                   IsItemsHost="True"
-                                  DockPanel.Dock="Top"/>
+                                  DockPanel.Dock="Top" />
                         <Border Background="{StaticResource Brush.CardBackground}"
                                 BorderBrush="{StaticResource Brush.Border}"
                                 BorderThickness="1"
@@ -241,7 +250,7 @@
                             <ContentPresenter x:Name="PART_SelectedContentHost"
                                               Margin="12"
                                               ContentSource="SelectedContent"
-                                              Focusable="False"/>
+                                              Focusable="False" />
                         </Border>
                     </DockPanel>
                 </ControlTemplate>
@@ -250,11 +259,11 @@
     </Style>
 
     <Style TargetType="TabItem">
-        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}"/>
-        <Setter Property="Padding" Value="14,8"/>
-        <Setter Property="Margin" Value="0,0,6,0"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
@@ -267,21 +276,23 @@
                         <ContentPresenter x:Name="ContentSite"
                                           VerticalAlignment="Center"
                                           HorizontalAlignment="Center"
-                                          ContentSource="Header"/>
+                                          ContentSource="Header" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}"/>
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{StaticResource Brush.BorderLight}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource Brush.AccentMuted}"/>
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource Brush.Accent}"/>
-                            <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0"/>
-                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}"/>
+                            <Setter TargetName="Border" Property="Background"
+                                    Value="{StaticResource Brush.AccentMuted}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource Brush.Accent}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1,1,1,0" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.PrimaryBackground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -291,13 +302,13 @@
 
     <!-- ScrollViewer (uniform background) -->
     <Style TargetType="ScrollViewer">
-        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <!-- ProgressBar -->
     <Style TargetType="ProgressBar">
-        <Setter Property="Foreground" Value="{StaticResource Brush.Accent}"/>
-        <Setter Property="Background" Value="{StaticResource Brush.BorderLight}"/>
-        <Setter Property="Height" Value="18"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+        <Setter Property="Background" Value="{StaticResource Brush.BorderLight}" />
+        <Setter Property="Height" Value="18" />
     </Style>
 </ResourceDictionary>

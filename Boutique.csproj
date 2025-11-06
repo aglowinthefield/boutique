@@ -1,36 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Boutique</AssemblyName>
-    <RootNamespace>Boutique</RootNamespace>
-    <ApplicationIcon>Assets\App.ico</ApplicationIcon>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <NoWarn>$(NoWarn);CS0436</NoWarn>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AssemblyName>Boutique</AssemblyName>
+        <RootNamespace>Boutique</RootNamespace>
+        <ApplicationIcon>Assets\App.ico</ApplicationIcon>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <NoWarn>$(NoWarn);CS0436</NoWarn>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Loqui" Version="3.2.0" />
-    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.52.0" />
-    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.3" />
-    <PackageReference Include="ReactiveUI.WPF" Version="22.2.1" />
-    <PackageReference Include="Autofac" Version="8.4.0" />
-    <PackageReference Include="System.Reactive" Version="6.1.0" />
-    <PackageReference Include="Serilog" Version="4.3.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="Nifly" Version="1.0.0" />
-    <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.27.3">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
-    <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Loqui" Version="3.2.0"/>
+        <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.52.0"/>
+        <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.3"/>
+        <PackageReference Include="ReactiveUI.WPF" Version="22.2.1"/>
+        <PackageReference Include="Autofac" Version="8.4.0"/>
+        <PackageReference Include="System.Reactive" Version="6.1.0"/>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2"/>
+        <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+        <PackageReference Include="Nifly" Version="1.0.0"/>
+        <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.27.3">
+            <NoWarn>NU1701</NoWarn>
+        </PackageReference>
+        <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
+            <NoWarn>NU1701</NoWarn>
+        </PackageReference>
+    </ItemGroup>
 
 </Project>

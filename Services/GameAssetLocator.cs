@@ -14,19 +14,8 @@ namespace Boutique.Services;
 
 public class GameAssetLocator : IGameAssetLocator
 {
-    private readonly IMutagenService _mutagenService;
-    private readonly ILogger _logger;
-    private readonly IFileSystem _fileSystem;
-
-    private readonly object _sync = new();
-    private string? _currentDataPath;
-    private string _extractionRoot;
-
-    private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = new();
-    private readonly ConcurrentDictionary<string, string> _extractedAssets = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = new();
-
     private static readonly GameRelease Release = GameRelease.SkyrimSE;
+
     private static readonly ModKey[] FallbackModKeys =
     {
         ModKey.FromNameAndExtension("Skyrim.esm"),
@@ -35,6 +24,17 @@ public class GameAssetLocator : IGameAssetLocator
         ModKey.FromNameAndExtension("HearthFires.esm"),
         ModKey.FromNameAndExtension("Dragonborn.esm")
     };
+
+    private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = new();
+    private readonly ConcurrentDictionary<string, string> _extractedAssets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IFileSystem _fileSystem;
+    private readonly ILogger _logger;
+    private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = new();
+    private readonly IMutagenService _mutagenService;
+
+    private readonly object _sync = new();
+    private string? _currentDataPath;
+    private string _extractionRoot;
 
     public GameAssetLocator(IMutagenService mutagenService, ILogger logger)
     {
@@ -59,7 +59,8 @@ public class GameAssetLocator : IGameAssetLocator
 
         if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
         {
-            _logger.Debug("ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}", normalized);
+            _logger.Debug("ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}",
+                normalized);
             return null;
         }
 
@@ -75,16 +76,12 @@ public class GameAssetLocator : IGameAssetLocator
             return looseCandidate;
 
         foreach (var archive in EnumerateCandidateArchives(modKeyHint))
-        {
             if (TryExtractFromArchive(archive, normalized, out var extracted))
                 return extracted;
-        }
 
         foreach (var fallback in EnumerateFallbackArchives(modKeyHint))
-        {
             if (TryExtractFromArchive(fallback, normalized, out var extracted))
                 return extracted;
-        }
 
         _logger.Debug("Asset {Asset} could not be resolved from loose files or archives.", normalized);
         return null;
@@ -94,7 +91,8 @@ public class GameAssetLocator : IGameAssetLocator
     {
         lock (_sync)
         {
-            if (_currentDataPath != null && string.Equals(_currentDataPath, dataPath, StringComparison.OrdinalIgnoreCase))
+            if (_currentDataPath != null &&
+                string.Equals(_currentDataPath, dataPath, StringComparison.OrdinalIgnoreCase))
                 return;
 
             _currentDataPath = dataPath;
@@ -104,7 +102,7 @@ public class GameAssetLocator : IGameAssetLocator
 
             var hash = ComputePathHash(dataPath);
             _extractionRoot = Path.Combine(Path.GetTempPath(), "Boutique", "ExtractedAssets", hash);
-            EnsureDirectoryExists(_extractionRoot, recreate: true);
+            EnsureDirectoryExists(_extractionRoot, true);
         }
     }
 
@@ -143,11 +141,9 @@ public class GameAssetLocator : IGameAssetLocator
     private IEnumerable<ModKey?> GetFallbackKeys(ModKey? original)
     {
         if (original.HasValue)
-        {
             // Allow resolving against masters of the requested plugin
             foreach (var master in GetMastersForMod(original.Value))
                 yield return master;
-        }
 
         foreach (var fallback in FallbackModKeys)
             yield return fallback;
@@ -159,10 +155,8 @@ public class GameAssetLocator : IGameAssetLocator
         var directoryPath = new DirectoryPath(dataPath);
         var results = new List<CachedArchive>();
 
-        foreach (var filePath in Archive.GetApplicableArchivePaths(Release, directoryPath, modKey, _fileSystem, returnEmptyIfMissing: true))
-        {
+        foreach (var filePath in Archive.GetApplicableArchivePaths(Release, directoryPath, modKey, _fileSystem, true))
             TryAddArchive(results, filePath);
-        }
 
         return results;
     }
@@ -181,7 +175,6 @@ public class GameAssetLocator : IGameAssetLocator
         IReadOnlyList<ModKey> masters = Array.Empty<ModKey>();
 
         if (File.Exists(pluginPath))
-        {
             try
             {
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
@@ -194,7 +187,6 @@ public class GameAssetLocator : IGameAssetLocator
             {
                 _logger.Debug(ex, "Failed to read masters for mod {ModKey}", modKey);
             }
-        }
 
         _mastersByMod[modKey] = masters;
 
@@ -262,16 +254,14 @@ public class GameAssetLocator : IGameAssetLocator
     private static void EnsureDirectoryExists(string path, bool recreate = false)
     {
         if (recreate && Directory.Exists(path))
-        {
             try
             {
-                Directory.Delete(path, recursive: true);
+                Directory.Delete(path, true);
             }
             catch
             {
                 // Best-effort cleanup. Swallow and continue if deletion fails.
             }
-        }
 
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
@@ -300,19 +290,20 @@ public class GameAssetLocator : IGameAssetLocator
 
     private sealed class CachedArchive
     {
-        private readonly IArchiveReader _reader;
-        private readonly ILogger _logger;
         private readonly Lazy<Dictionary<string, IArchiveFile>> _files;
-
-        public string ArchivePath { get; }
+        private readonly ILogger _logger;
+        private readonly IArchiveReader _reader;
 
         public CachedArchive(string archivePath, IArchiveReader reader, ILogger logger)
         {
             ArchivePath = archivePath;
             _reader = reader;
             _logger = logger;
-            _files = new Lazy<Dictionary<string, IArchiveFile>>(BuildLookup, LazyThreadSafetyMode.ExecutionAndPublication);
+            _files = new Lazy<Dictionary<string, IArchiveFile>>(BuildLookup,
+                LazyThreadSafetyMode.ExecutionAndPublication);
         }
+
+        public string ArchivePath { get; }
 
         public IArchiveFile? FindFile(string assetKey)
         {

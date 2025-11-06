@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using ReactiveUI;
 using Boutique.Models;
+using ReactiveUI;
 
 namespace Boutique.ViewModels;
 

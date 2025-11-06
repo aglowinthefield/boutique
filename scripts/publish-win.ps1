@@ -11,19 +11,29 @@ $projectPath = Join-Path $PSScriptRoot "..\Boutique.csproj"
 $outputRoot = Join-Path $PSScriptRoot "..\artifacts\publish"
 $publishPath = Join-Path $outputRoot $Runtime
 
-if (-not (Test-Path $projectPath)) {
+if (-not (Test-Path $projectPath))
+{
     throw "Could not locate project file at '$projectPath'. Run the script from within the repository."
 }
 
-if (-not (Test-Path $outputRoot)) {
+if (-not (Test-Path $outputRoot))
+{
     New-Item -ItemType Directory -Path $outputRoot | Out-Null
 }
 
-if (-not (Test-Path $publishPath)) {
+if (-not (Test-Path $publishPath))
+{
     New-Item -ItemType Directory -Path $publishPath | Out-Null
 }
 
-$selfContained = if ($FrameworkDependent) { "false" } else { "true" }
+$selfContained = if ($FrameworkDependent)
+{
+    "false"
+}
+else
+{
+    "true"
+}
 
 $arguments = @(
     "publish", $projectPath,

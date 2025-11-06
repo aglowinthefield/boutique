@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,19 +8,15 @@ using Boutique.ViewModels;
 
 namespace Boutique.Views;
 
-public partial class OutfitCreatorView : UserControl
+public partial class OutfitCreatorView
 {
     private const string ArmorDragDataFormat = "Boutique.ArmorRecords";
     private static readonly Regex AlphaInputRegex = new("^[A-Za-z]+$", RegexOptions.Compiled);
     private static readonly Regex AlphaSanitizerRegex = new("[^A-Za-z]", RegexOptions.Compiled);
-
-    private sealed record DropVisualSnapshot(Brush BorderBrush, Brush Background);
+    private MainViewModel? _currentViewModel;
 
     private Point? _outfitDragStartPoint;
     private bool _syncingOutfitSelection;
-    private MainViewModel? _currentViewModel;
-
-    private MainViewModel? ViewModel => DataContext as MainViewModel;
 
     public OutfitCreatorView()
     {
@@ -35,6 +28,8 @@ public partial class OutfitCreatorView : UserControl
 
         OutfitArmorsGrid.Loaded += (_, _) => SynchronizeOutfitSelection();
     }
+
+    private MainViewModel? ViewModel => DataContext as MainViewModel;
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -56,10 +51,7 @@ public partial class OutfitCreatorView : UserControl
         if (ReferenceEquals(viewModel, _currentViewModel))
             return;
 
-        if (_currentViewModel is not null)
-        {
-            _currentViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
-        }
+        if (_currentViewModel is not null) _currentViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
 
         _currentViewModel = viewModel;
 
@@ -72,10 +64,7 @@ public partial class OutfitCreatorView : UserControl
 
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainViewModel.SelectedOutfitArmors))
-        {
-            SynchronizeOutfitSelection();
-        }
+        if (e.PropertyName == nameof(MainViewModel.SelectedOutfitArmors)) SynchronizeOutfitSelection();
     }
 
     private void OutfitArmorsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -100,9 +89,7 @@ public partial class OutfitCreatorView : UserControl
         {
             OutfitArmorsGrid.SelectedItems.Clear();
             foreach (var armor in viewModel.SelectedOutfitArmors.OfType<object>())
-            {
                 OutfitArmorsGrid.SelectedItems.Add(armor);
-            }
         }
         finally
         {
@@ -136,9 +123,7 @@ public partial class OutfitCreatorView : UserControl
         var position = e.GetPosition(null);
         if (Math.Abs(position.X - _outfitDragStartPoint.Value.X) < SystemParameters.MinimumHorizontalDragDistance &&
             Math.Abs(position.Y - _outfitDragStartPoint.Value.Y) < SystemParameters.MinimumVerticalDragDistance)
-        {
             return;
-        }
 
         _outfitDragStartPoint = null;
 
@@ -152,10 +137,7 @@ public partial class OutfitCreatorView : UserControl
         if (selected.Count == 0)
         {
             var underMouse = GetArmorRecordFromEvent(e);
-            if (underMouse != null)
-            {
-                selected.Add(underMouse);
-            }
+            if (underMouse != null) selected.Add(underMouse);
         }
 
         if (selected.Count == 0)
@@ -178,10 +160,7 @@ public partial class OutfitCreatorView : UserControl
         if (pieces.Count == 0)
         {
             var underMouse = GetArmorRecordFromEvent(e);
-            if (underMouse != null)
-            {
-                pieces.Add(underMouse);
-            }
+            if (underMouse != null) pieces.Add(underMouse);
         }
 
         if (pieces.Count == 0)
@@ -232,28 +211,26 @@ public partial class OutfitCreatorView : UserControl
         e.CancelCommand();
     }
 
-    private void NewOutfitDropZone_OnDragEnter(object sender, DragEventArgs e) =>
+    private void NewOutfitDropZone_OnDragEnter(object sender, DragEventArgs e)
+    {
         HandleDropTargetDrag(sender as Border, e);
+    }
 
-    private void NewOutfitDropZone_OnDragOver(object sender, DragEventArgs e) =>
+    private void NewOutfitDropZone_OnDragOver(object sender, DragEventArgs e)
+    {
         HandleDropTargetDrag(sender as Border, e);
+    }
 
     private void NewOutfitDropZone_OnDragLeave(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
+        if (sender is Border border) SetDropTargetState(border, false);
 
         e.Handled = true;
     }
 
     private async void NewOutfitDropZone_OnDrop(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
+        if (sender is Border border) SetDropTargetState(border, false);
 
         if (ViewModel is not MainViewModel viewModel)
         {
@@ -271,28 +248,26 @@ public partial class OutfitCreatorView : UserControl
         e.Handled = true;
     }
 
-    private void OutfitDraftBorder_OnDragEnter(object sender, DragEventArgs e) =>
+    private void OutfitDraftBorder_OnDragEnter(object sender, DragEventArgs e)
+    {
         HandleDropTargetDrag(sender as Border, e);
+    }
 
-    private void OutfitDraftBorder_OnDragOver(object sender, DragEventArgs e) =>
+    private void OutfitDraftBorder_OnDragOver(object sender, DragEventArgs e)
+    {
         HandleDropTargetDrag(sender as Border, e);
+    }
 
     private void OutfitDraftBorder_OnDragLeave(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
+        if (sender is Border border) SetDropTargetState(border, false);
 
         e.Handled = true;
     }
 
     private void OutfitDraftBorder_OnDrop(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
+        if (sender is Border border) SetDropTargetState(border, false);
 
         if (ViewModel is not MainViewModel viewModel)
         {
@@ -335,8 +310,10 @@ public partial class OutfitCreatorView : UserControl
         e.Handled = true;
     }
 
-    private static bool HasArmorRecords(IDataObject data) =>
-        data.GetDataPresent(ArmorDragDataFormat);
+    private static bool HasArmorRecords(IDataObject data)
+    {
+        return data.GetDataPresent(ArmorDragDataFormat);
+    }
 
     private static bool TryExtractArmorRecords(IDataObject data, out List<ArmorRecordViewModel> pieces)
     {
@@ -402,4 +379,6 @@ public partial class OutfitCreatorView : UserControl
 
         return null;
     }
+
+    private sealed record DropVisualSnapshot(Brush BorderBrush, Brush Background);
 }

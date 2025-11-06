@@ -3,7 +3,7 @@ using Mutagen.Bethesda.Skyrim;
 namespace Boutique.Models;
 
 /// <summary>
-/// Represents a match between a source armor (from glam mod) and a target armor (from master ESP)
+///     Represents a match between a source armor (from glam mod) and a target armor (from master ESP)
 /// </summary>
 public class ArmorMatch(
     IArmorGetter sourceArmor,

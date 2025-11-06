@@ -1,6 +1,7 @@
 # Boutique
 
-A WPF application for Skyrim Special Edition modding that syncs armor and clothing stats, keywords, enchantments, and tempering recipes from master ESPs (like Requiem.esp, FTweaks, etc.) to appearance/glam mods.
+A WPF application for Skyrim Special Edition modding that syncs armor and clothing stats, keywords, enchantments, and
+tempering recipes from master ESPs (like Requiem.esp, FTweaks, etc.) to appearance/glam mods.
 
 ## Features
 
@@ -9,10 +10,10 @@ A WPF application for Skyrim Special Edition modding that syncs armor and clothi
 - **Manual Override**: Manually select target armors for each source armor
 - **Batch Processing**: Select entire outfit sets and patch them all at once
 - **Comprehensive Syncing**: Copies:
-  - Stats (Armor Rating, Weight, Value)
-  - Keywords (for categorization and perk compatibility)
-  - Enchantments (magical effects)
-  - Tempering recipes (crafting improvements)
+    - Stats (Armor Rating, Weight, Value)
+    - Keywords (for categorization and perk compatibility)
+    - Enchantments (magical effects)
+    - Tempering recipes (crafting improvements)
 - **User-Friendly UI**: Three-panel interface with progress tracking
 
 ## Requirements
@@ -46,20 +47,22 @@ Run the PowerShell script to produce a ready-to-ship single-file EXE:
 pwsh scripts/publish-win.ps1
 ```
 
-Adjust `-Configuration`, `-Runtime`, or add `-FrameworkDependent` if you need a framework-dependent build. Outputs land in `artifacts/publish/<runtime>/`.
+Adjust `-Configuration`, `-Runtime`, or add `-FrameworkDependent` if you need a framework-dependent build. Outputs land
+in `artifacts/publish/<runtime>/`.
 
 ## Running from Mod Organizer 2 (Recommended!)
 
-The easiest way to use Boutique is to run it directly from Mod Organizer 2. It will automatically detect your Skyrim data path and all loaded mods!
+The easiest way to use Boutique is to run it directly from Mod Organizer 2. It will automatically detect your Skyrim
+data path and all loaded mods!
 
 ### Setup in MO2:
 
 1. In Mod Organizer 2, click the **gears icon** (⚙️) next to the "Run" button
 2. Click the **+** button to add a new executable
 3. Fill in the following:
-   - **Title**: `Boutique`
-   - **Binary**: Browse to `Boutique.exe`
-   - Leave other fields as default
+    - **Title**: `Boutique`
+    - **Binary**: Browse to `Boutique.exe`
+    - Leave other fields as default
 4. Click **OK**
 
 ### To Use:
@@ -70,6 +73,7 @@ The easiest way to use Boutique is to run it directly from Mod Organizer 2. It w
 4. Click **Initialize** and proceed with patching!
 
 **Benefits of running from MO2:**
+
 - ✅ Automatically detects the correct Skyrim data path
 - ✅ Sees all plugins as they appear in your load order
 - ✅ Patch ESP is automatically placed in your MO2 overwrite folder
@@ -81,7 +85,8 @@ If you prefer to run the tool standalone without MO2, follow these steps:
 
 ### Step 1: Configure Settings
 
-1. **Skyrim Data Path**: Click "Auto-Detect" to automatically find your Skyrim SE Data folder, or use "Browse..." to manually select it
+1. **Skyrim Data Path**: Click "Auto-Detect" to automatically find your Skyrim SE Data folder, or use "Browse..." to
+   manually select it
 2. **Output Path**: Set where the patch ESP will be created (typically your Skyrim Data folder)
 3. **Patch File Name**: Name your patch (default: `GlamPatch.esp`)
 4. Click **Initialize** to load the Mutagen environment
@@ -96,15 +101,18 @@ If you prefer to run the tool standalone without MO2, follow these steps:
 ### Step 3: Match Armors
 
 **Option A: Auto-Match**
+
 1. Adjust the **Auto-Match Threshold** slider (60% recommended)
 2. Click **Auto-Match**
 3. Review the matches in the Matching panel
 
 **Option B: Manual Match**
+
 1. In the Matching panel, click the Target Armor dropdown for each source armor
 2. Select the appropriate target armor from the list
 
 **Option C: Batch Outfit Selection**
+
 1. In the Source Armors panel, check the boxes for armors in the same outfit
 2. Click **Select Outfit** to automatically select all related pieces
 3. Then use Auto-Match or manual matching
@@ -121,13 +129,14 @@ If you prefer to run the tool standalone without MO2, follow these steps:
 1. Refresh your mod manager (MO2, Vortex, etc.)
 2. Activate `GlamPatch.esp` (or your chosen name)
 3. Ensure it loads **after** both:
-   - The source armor mod
-   - The target master ESP (e.g., Requiem.esp)
+    - The source armor mod
+    - The target master ESP (e.g., Requiem.esp)
 4. Launch Skyrim and enjoy!
 
 ## Example Use Case
 
-**Scenario**: You want to use the [Cleric Outfit SE](https://www.nexusmods.com/skyrimspecialedition/mods/163298) appearance with Requiem's "Leather Boots" stats.
+**Scenario**: You want to use the [Cleric Outfit SE](https://www.nexusmods.com/skyrimspecialedition/mods/163298)
+appearance with Requiem's "Leather Boots" stats.
 
 1. Load `ClericOutfitSE.esp` as Source Plugin
 2. Load `Requiem.esp` as Target Plugin
@@ -141,35 +150,41 @@ Now the Cleric Outfit will have Requiem's stats, keywords, and balance!
 
 ## How It Works
 
-The patcher uses [Mutagen](https://github.com/Mutagen-Modding/Mutagen), a C# library for manipulating Bethesda plugin files.
+The patcher uses [Mutagen](https://github.com/Mutagen-Modding/Mutagen), a C# library for manipulating Bethesda plugin
+files.
 
 **Process**:
+
 1. Reads armor records from source mod (preserves appearance/models)
 2. Reads armor records from target master ESP (extracts stats/keywords)
 3. Creates override records that combine:
-   - Source armor's appearance and models
-   - Target armor's stats, keywords, and enchantments
+    - Source armor's appearance and models
+    - Target armor's stats, keywords, and enchantments
 4. Finds and copies tempering recipes (COBJ records) from target to source
 5. Writes a new ESP patch file
 
 ## Troubleshooting
 
 ### "No plugins found"
+
 - Ensure Skyrim Data Path is correct
 - Click "Auto-Detect" or manually browse to the Data folder
 - The Data folder should contain Skyrim.esm and other plugin files
 
 ### "Error loading armors"
+
 - Ensure the selected plugin is a valid Skyrim SE plugin
 - Try reloading or restarting the application
 - Some plugins may be encrypted or have non-standard formats
 
 ### "Auto-match found no matches"
+
 - Lower the Auto-Match Threshold slider
 - Try manual matching instead
 - Ensure target plugin contains similar armor types
 
 ### Patch doesn't work in game
+
 - Ensure the patch ESP is activated in your mod manager
 - Ensure load order is correct: Source mod → Master ESP → Patch
 - Check for conflicts with other mods that modify the same armors
@@ -177,6 +192,7 @@ The patcher uses [Mutagen](https://github.com/Mutagen-Modding/Mutagen), a C# lib
 ## License
 
 This project uses the following libraries:
+
 - [Mutagen](https://github.com/Mutagen-Modding/Mutagen) - MIT License
 - [ReactiveUI](https://github.com/reactiveui/ReactiveUI) - MIT License
 - [Autofac](https://github.com/autofac/Autofac) - MIT License
@@ -193,4 +209,5 @@ For issues, questions, or feature requests, please open an issue on the GitHub r
 
 ## Disclaimer
 
-This tool modifies Skyrim plugin files. Always backup your Data folder before using. The author is not responsible for any issues that may arise from using this tool.
+This tool modifies Skyrim plugin files. Always backup your Data folder before using. The author is not responsible for
+any issues that may arise from using this tool.
