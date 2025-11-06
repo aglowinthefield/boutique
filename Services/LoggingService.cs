@@ -3,7 +3,7 @@ using System.IO;
 using Serilog;
 using Serilog.Core;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public sealed class LoggingService : ILoggingService
 {
@@ -14,12 +14,12 @@ public sealed class LoggingService : ILoggingService
     {
         LogDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "RequiemGlamPatcher",
+            "Boutique",
             "Logs");
 
         Directory.CreateDirectory(LogDirectory);
 
-        LogFilePattern = Path.Combine(LogDirectory, "RequiemGlamPatcher-.log");
+        LogFilePattern = Path.Combine(LogDirectory, "Boutique-.log");
 
         _logger = new LoggerConfiguration()
             .MinimumLevel.Debug()

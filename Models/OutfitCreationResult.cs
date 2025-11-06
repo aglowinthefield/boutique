@@ -1,5 +1,5 @@
 using Mutagen.Bethesda.Plugins;
 
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 public record OutfitCreationResult(string EditorId, FormKey FormKey);

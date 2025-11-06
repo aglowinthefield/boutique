@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace RequiemGlamPatcher.Utilities;
+namespace Boutique.Utilities;
 
 public class InverseBooleanConverter : IValueConverter
 {

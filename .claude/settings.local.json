@@ -3,9 +3,9 @@
     "allow": [
       "WebSearch",
       "Bash(dir:*)",
-      "Bash(git -C \"D:/var/RequiemGlamPatcher\" status)",
-      "Bash(git -C \"D:/var/RequiemGlamPatcher\" log --oneline -10)",
-      "Bash(git -C \"D:/var/RequiemGlamPatcher\" ls-files)",
+      "Bash(git -C \"D:/var/Boutique\" status)",
+      "Bash(git -C \"D:/var/Boutique\" log --oneline -10)",
+      "Bash(git -C \"D:/var/Boutique\" ls-files)",
       "WebFetch(domain:mutagen-modding.github.io)",
       "WebFetch(domain:github.com)",
       "Bash(dotnet build:*)",

@@ -2,9 +2,9 @@ using System.IO;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ReactiveUI;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.ViewModels;
+namespace Boutique.ViewModels;
 
 public class SettingsViewModel : ReactiveObject
 {

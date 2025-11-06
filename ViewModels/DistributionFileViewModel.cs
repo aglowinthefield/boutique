@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ReactiveUI;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.ViewModels;
+namespace Boutique.ViewModels;
 
 public class DistributionFileViewModel : ReactiveObject
 {

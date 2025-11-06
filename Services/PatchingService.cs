@@ -8,9 +8,9 @@ using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Strings;
 using Noggog;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public class PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
     : IPatchingService

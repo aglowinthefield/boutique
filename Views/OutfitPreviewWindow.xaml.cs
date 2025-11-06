@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 using Serilog;
 using Color = System.Windows.Media.Color;
 using Vector3 = System.Numerics.Vector3;
@@ -15,7 +15,7 @@ using Color4 = SharpDX.Color4;
 using SharpDXVector2 = SharpDX.Vector2;
 using SharpDXVector3 = SharpDX.Vector3;
 
-namespace RequiemGlamPatcher.Views;
+namespace Boutique.Views;
 
 public partial class OutfitPreviewWindow : Window
 {

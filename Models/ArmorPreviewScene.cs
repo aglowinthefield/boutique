@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 public enum GenderedModelVariant
 {

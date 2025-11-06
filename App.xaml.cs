@@ -2,13 +2,13 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using Autofac;
-using RequiemGlamPatcher.Models;
-using RequiemGlamPatcher.Services;
-using RequiemGlamPatcher.ViewModels;
-using RequiemGlamPatcher.Views;
+using Boutique.Models;
+using Boutique.Services;
+using Boutique.ViewModels;
+using Boutique.Views;
 using Serilog;
 
-namespace RequiemGlamPatcher;
+namespace Boutique;
 
 public partial class App : Application
 {
@@ -34,6 +34,7 @@ public partial class App : Application
 
         // Register services
         builder.RegisterType<MutagenService>().As<IMutagenService>().SingleInstance();
+        builder.RegisterType<GameAssetLocator>().As<IGameAssetLocator>().SingleInstance();
         builder.RegisterType<PatchingService>().As<IPatchingService>().SingleInstance();
         builder.RegisterType<MatchingService>().As<IMatchingService>().SingleInstance();
         builder.RegisterType<ArmorPreviewService>().As<IArmorPreviewService>().SingleInstance();

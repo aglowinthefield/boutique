@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace RequiemGlamPatcher.Views;
+namespace Boutique.Views;
 
 public partial class DistributionView : UserControl
 {

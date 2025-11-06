@@ -1,4 +1,4 @@
-<Window x:Class="RequiemGlamPatcher.Views.OutfitPreviewWindow"
+<Window x:Class="Boutique.Views.OutfitPreviewWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helix="clr-namespace:HelixToolkit.Wpf.SharpDX;assembly=HelixToolkit.Wpf.SharpDX"

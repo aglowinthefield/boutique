@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface IPatchingService
 {

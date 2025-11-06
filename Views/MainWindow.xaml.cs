@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Reactive;
 using System.Reactive.Disposables;
-using RequiemGlamPatcher.ViewModels;
+using Boutique.ViewModels;
 
-namespace RequiemGlamPatcher.Views;
+namespace Boutique.Views;
 
 public partial class MainWindow : Window
 {

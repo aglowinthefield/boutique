@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RequiemGlamPatcher is a WPF desktop application for Skyrim Special Edition modding. It syncs armor and clothing stats, keywords, enchantments, and tempering recipes from master ESPs (like Requiem.esp) to appearance/glam mods, allowing players to use cosmetic armor mods while maintaining balanced gameplay stats.
+Boutique is a WPF desktop application for Skyrim Special Edition modding. It syncs armor and clothing stats, keywords, enchantments, and tempering recipes from master ESPs (like Requiem.esp) to appearance/glam mods, allowing players to use cosmetic armor mods while maintaining balanced gameplay stats.
 
 **Tech Stack:**
 - .NET 8.0 with WPF (Windows Presentation Foundation)

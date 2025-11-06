@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using RequiemGlamPatcher.Models;
-using RequiemGlamPatcher.ViewModels;
+using Boutique.Models;
+using Boutique.ViewModels;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface IArmorPreviewService
 {

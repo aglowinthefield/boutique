@@ -6,10 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 using Serilog;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public class DistributionDiscoveryService : IDistributionDiscoveryService
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Mutagen.Bethesda.Skyrim;
 
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 public record OutfitCreationRequest(
     string Name,

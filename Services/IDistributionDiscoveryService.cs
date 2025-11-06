@@ -1,6 +1,6 @@
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface IDistributionDiscoveryService
 {

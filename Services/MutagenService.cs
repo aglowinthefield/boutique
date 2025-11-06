@@ -8,7 +8,7 @@ using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Skyrim;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public class MutagenService : IMutagenService
 {

@@ -1,4 +1,4 @@
-# Requiem Glam Patcher
+# Boutique
 
 A WPF application for Skyrim Special Edition modding that syncs armor and clothing stats, keywords, enchantments, and tempering recipes from master ESPs (like Requiem.esp, FTweaks, etc.) to appearance/glam mods.
 
@@ -26,7 +26,7 @@ A WPF application for Skyrim Special Edition modding that syncs armor and clothi
 
 1. Download the latest release from the Releases page
 2. Extract to a folder of your choice
-3. Run `RequiemGlamPatcher.exe`
+3. Run `Boutique.exe`
 
 ## Building from Source
 
@@ -36,7 +36,7 @@ A WPF application for Skyrim Special Edition modding that syncs armor and clothi
 4. Run: `dotnet build`
 5. Run: `dotnet run`
 
-Or open `RequiemGlamPatcher.sln` in Visual Studio 2022 and build.
+Or open `Boutique.csproj` in Visual Studio 2022 and build.
 
 ## Publishing
 
@@ -50,21 +50,21 @@ Adjust `-Configuration`, `-Runtime`, or add `-FrameworkDependent` if you need a 
 
 ## Running from Mod Organizer 2 (Recommended!)
 
-The easiest way to use RequiemGlamPatcher is to run it directly from Mod Organizer 2. It will automatically detect your Skyrim data path and all loaded mods!
+The easiest way to use Boutique is to run it directly from Mod Organizer 2. It will automatically detect your Skyrim data path and all loaded mods!
 
 ### Setup in MO2:
 
 1. In Mod Organizer 2, click the **gears icon** (⚙️) next to the "Run" button
 2. Click the **+** button to add a new executable
 3. Fill in the following:
-   - **Title**: `Requiem Glam Patcher`
-   - **Binary**: Browse to `RequiemGlamPatcher.exe`
+   - **Title**: `Boutique`
+   - **Binary**: Browse to `Boutique.exe`
    - Leave other fields as default
 4. Click **OK**
 
 ### To Use:
 
-1. Select "Requiem Glam Patcher" from the dropdown in MO2
+1. Select "Boutique" from the dropdown in MO2
 2. Click **Run**
 3. The app will automatically detect your Skyrim data path (you'll see "Detected from Mod Organizer 2" in green)
 4. Click **Initialize** and proceed with patching!

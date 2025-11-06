@@ -4,9 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using RequiemGlamPatcher.ViewModels;
+using Boutique.ViewModels;
 
-namespace RequiemGlamPatcher.Views;
+namespace Boutique.Views;
 
 public partial class ArmorPatchView : UserControl
 {

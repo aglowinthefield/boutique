@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Mutagen.Bethesda.Plugins;
 using ReactiveUI;
 
-namespace RequiemGlamPatcher.ViewModels;
+namespace Boutique.ViewModels;
 
 public class OutfitDraftViewModel : ReactiveObject
 {

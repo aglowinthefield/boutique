@@ -1,7 +1,7 @@
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface IMutagenService
 {

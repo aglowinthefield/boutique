@@ -7,7 +7,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$projectPath = Join-Path $PSScriptRoot "..\RequiemGlamPatcher.csproj"
+$projectPath = Join-Path $PSScriptRoot "..\Boutique.csproj"
 $outputRoot = Join-Path $PSScriptRoot "..\artifacts\publish"
 $publishPath = Join-Path $outputRoot $Runtime
 
@@ -35,7 +35,7 @@ $arguments = @(
     "--output", $publishPath
 )
 
-Write-Host "Publishing RequiemGlamPatcher ($Configuration | $Runtime | SelfContained=$selfContained)..." -ForegroundColor Cyan
+Write-Host "Publishing Boutique ($Configuration | $Runtime | SelfContained=$selfContained)..." -ForegroundColor Cyan
 Write-Host "Output: $publishPath" -ForegroundColor Cyan
 
 dotnet @arguments

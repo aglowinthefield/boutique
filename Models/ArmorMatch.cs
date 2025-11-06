@@ -1,6 +1,6 @@
 using Mutagen.Bethesda.Skyrim;
 
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 /// <summary>
 /// Represents a match between a source armor (from glam mod) and a target armor (from master ESP)

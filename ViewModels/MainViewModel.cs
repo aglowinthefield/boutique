@@ -13,12 +13,12 @@ using System.Text.RegularExpressions;
 using System.Windows.Data;
 using System.Windows.Input;
 using ReactiveUI;
-using RequiemGlamPatcher.Models;
-using RequiemGlamPatcher.Services;
+using Boutique.Models;
+using Boutique.Services;
 using Mutagen.Bethesda.Skyrim;
 using Serilog;
 
-namespace RequiemGlamPatcher.ViewModels;
+namespace Boutique.ViewModels;
 
 public class MainViewModel : ReactiveObject
 {

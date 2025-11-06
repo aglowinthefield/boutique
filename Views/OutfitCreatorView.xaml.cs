@@ -7,13 +7,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using RequiemGlamPatcher.ViewModels;
+using Boutique.ViewModels;
 
-namespace RequiemGlamPatcher.Views;
+namespace Boutique.Views;
 
 public partial class OutfitCreatorView : UserControl
 {
-    private const string ArmorDragDataFormat = "RequiemGlamPatcher.ArmorRecords";
+    private const string ArmorDragDataFormat = "Boutique.ArmorRecords";
     private static readonly Regex AlphaInputRegex = new("^[A-Za-z]+$", RegexOptions.Compiled);
     private static readonly Regex AlphaSanitizerRegex = new("[^A-Za-z]", RegexOptions.Compiled);
 

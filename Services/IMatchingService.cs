@@ -1,7 +1,7 @@
 using Mutagen.Bethesda.Skyrim;
-using RequiemGlamPatcher.Models;
+using Boutique.Models;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface IMatchingService
 {

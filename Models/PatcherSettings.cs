@@ -1,4 +1,4 @@
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 public class PatcherSettings
 {

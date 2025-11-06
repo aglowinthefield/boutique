@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>RequiemGlamPatcher</AssemblyName>
-    <RootNamespace>RequiemGlamPatcher</RootNamespace>
+    <AssemblyName>Boutique</AssemblyName>
+    <RootNamespace>Boutique</RootNamespace>
     <ApplicationIcon>Assets\App.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <NoWarn>$(NoWarn);CS0436</NoWarn>

@@ -4,7 +4,7 @@ using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 
-namespace RequiemGlamPatcher.ViewModels;
+namespace Boutique.ViewModels;
 
 public class ArmorRecordViewModel : ReactiveObject
 {

@@ -1,7 +1,7 @@
 using System;
 using Serilog;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public interface ILoggingService : IDisposable
 {

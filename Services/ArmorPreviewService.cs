@@ -5,29 +5,33 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using NiflySharp;
 using NiflySharp.Blocks;
 using NiflySharp.Structs;
-using RequiemGlamPatcher.Models;
-using RequiemGlamPatcher.ViewModels;
+using Boutique.Models;
+using Boutique.ViewModels;
 using Serilog;
 
-namespace RequiemGlamPatcher.Services;
+namespace Boutique.Services;
 
 public class ArmorPreviewService : IArmorPreviewService
 {
     private readonly IMutagenService _mutagenService;
+    private readonly IGameAssetLocator _assetLocator;
     private readonly ILogger _logger;
 
-    private static readonly string FemaleBodyRelativePath = Path.Combine("meshes", "actors", "character", "character assets", "femalebody_0.nif");
-    private static readonly string MaleBodyRelativePath = Path.Combine("meshes", "actors", "character", "character assets", "malebody_0.nif");
+    private const string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";
+    private const string MaleBodyRelativePath = "meshes/actors/character/character assets/malebody_0.nif";
+    private static readonly ModKey SkyrimBaseModKey = ModKey.FromNameAndExtension("Skyrim.esm");
 
-    public ArmorPreviewService(IMutagenService mutagenService, ILogger logger)
+    public ArmorPreviewService(IMutagenService mutagenService, IGameAssetLocator assetLocator, ILogger logger)
     {
         _mutagenService = mutagenService;
+        _assetLocator = assetLocator;
         _logger = logger.ForContext<ArmorPreviewService>();
     }
 
@@ -65,15 +69,18 @@ public class ArmorPreviewService : IArmorPreviewService
         var missingAssets = new List<string>();
 
         // Always add baseline body mesh
-        var bodyPath = GetBodyPath(dataPath, gender);
-        if (File.Exists(bodyPath))
+        var bodyRelative = GetBodyRelativePath(gender);
+        var bodyAssetKey = NormalizeAssetPath(bodyRelative);
+        var bodyPath = _assetLocator.ResolveAssetPath(bodyAssetKey, SkyrimBaseModKey);
+        if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
         {
-            meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, dataPath, gender, cancellationToken));
+            meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, gender, SkyrimBaseModKey, cancellationToken));
         }
         else
         {
-            missingAssets.Add(bodyPath);
-            _logger.Warning("Base body mesh not found at {BodyPath}", bodyPath);
+            var expected = FormatExpectedPath(dataPath, bodyAssetKey);
+            missingAssets.Add(expected);
+            _logger.Warning("Base body mesh not found at {BodyPath}", expected);
         }
 
         var visitedParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -109,22 +116,24 @@ public class ArmorPreviewService : IArmorPreviewService
                     continue;
                 }
 
-                var fullPath = CombineDataPath(dataPath, modelPath);
-                if (!File.Exists(fullPath))
+                var meshAssetKey = NormalizeAssetPath(modelPath);
+                var fullPath = _assetLocator.ResolveAssetPath(meshAssetKey, addon.FormKey.ModKey);
+                if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
                 {
-                    missingAssets.Add(fullPath);
-                    _logger.Warning("Mesh file {Path} not found for ArmorAddon {Addon}", fullPath, addon.EditorID);
+                    var expected = FormatExpectedPath(dataPath, meshAssetKey);
+                    missingAssets.Add(expected);
+                    _logger.Warning("Mesh file {Path} not found for ArmorAddon {Addon}", expected, addon.EditorID);
                     continue;
                 }
 
-                var identity = $"{variantForAddon}:{fullPath}";
+                var identity = $"{variantForAddon}:{meshAssetKey}";
                 if (!visitedParts.Add(identity))
                 {
                     continue; // Avoid loading identical meshes multiple times
                 }
 
                 var partName = $"{armorName} ({addon.EditorID ?? addon.FormKey.ToString()})";
-                meshes.AddRange(LoadMeshesFromNif(partName, fullPath, dataPath, variantForAddon, cancellationToken));
+                meshes.AddRange(LoadMeshesFromNif(partName, fullPath, variantForAddon, addon.FormKey.ModKey, cancellationToken));
             }
         }
 
@@ -163,9 +172,9 @@ public class ArmorPreviewService : IArmorPreviewService
 
     private IEnumerable<PreviewMeshShape> LoadMeshesFromNif(
         string partName,
-        string fullPath,
-        string dataPath,
+        string meshPath,
         GenderedModelVariant variant,
+        ModKey? ownerModKey,
         CancellationToken cancellationToken)
     {
         var meshes = new List<PreviewMeshShape>();
@@ -173,24 +182,24 @@ public class ArmorPreviewService : IArmorPreviewService
 
         try
         {
-            _logger.Debug("Loading NIF mesh from {FullPath}", fullPath);
-            var loadResult = nif.Load(fullPath);
+            _logger.Debug("Loading NIF mesh from {FullPath}", meshPath);
+            var loadResult = nif.Load(meshPath);
             if (loadResult != 0 || !nif.Valid)
             {
-                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", fullPath, loadResult, nif.Valid);
+                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", meshPath, loadResult, nif.Valid);
                 return meshes;
             }
 
             var shapes = nif.GetShapes().OfType<INiShape>().ToList();
-            _logger.Debug("Found {ShapeCount} shapes in {FullPath}", shapes.Count, fullPath);
+            _logger.Debug("Found {ShapeCount} shapes in {FullPath}", shapes.Count, meshPath);
 
             foreach (var shape in shapes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!TryExtractMesh(nif, shape, dataPath, out var meshData))
+                if (!TryExtractMesh(nif, shape, ownerModKey, out var meshData))
                 {
-                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.", shape.Name?.ToString() ?? "<unnamed>", fullPath);
+                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.", shape.Name?.ToString() ?? "<unnamed>", meshPath);
                     continue;
                 }
 
@@ -204,7 +213,7 @@ public class ArmorPreviewService : IArmorPreviewService
                 var name = string.IsNullOrWhiteSpace(shapeName) ? partName : $"{partName} - {shapeName}";
                 meshes.Add(new PreviewMeshShape(
                     name,
-                    fullPath,
+                    meshPath,
                     variant,
                     meshData.Vertices,
                     meshData.Normals,
@@ -223,7 +232,7 @@ public class ArmorPreviewService : IArmorPreviewService
         return meshes;
     }
 
-    private bool TryExtractMesh(NifFile nif, INiShape shape, string dataPath, out MeshData meshData)
+    private bool TryExtractMesh(NifFile nif, INiShape shape, ModKey? ownerModKey, out MeshData meshData)
     {
         meshData = default;
 
@@ -275,7 +284,7 @@ public class ArmorPreviewService : IArmorPreviewService
         }
 
         var transform = ComputeWorldTransform(nif, shape);
-        var diffuse = ExtractDiffuseTexturePath(nif, shape, dataPath);
+        var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey);
 
         if (diffuse == null)
         {
@@ -504,7 +513,7 @@ public class ArmorPreviewService : IArmorPreviewService
         return result;
     }
 
-    private string? ExtractDiffuseTexturePath(NifFile nif, INiShape shape, string dataPath)
+    private string? ExtractDiffuseTexturePath(NifFile nif, INiShape shape, ModKey? ownerModKey)
     {
         var shapeName = shape.Name?.ToString() ?? "<unnamed>";
         var candidates = new List<string>();
@@ -535,9 +544,21 @@ public class ArmorPreviewService : IArmorPreviewService
                 continue;
             }
 
-            var combined = CombineAndNormalize(dataPath, candidate);
-            _logger.Debug("Combined texture path: {Combined}", combined);
-            return combined;
+            if (Path.IsPathRooted(candidate) && File.Exists(candidate))
+            {
+                _logger.Debug("Using absolute texture path {TexturePath} for shape {Shape}", candidate, shapeName);
+                return candidate;
+            }
+
+            var normalized = NormalizeAssetPath(candidate);
+            var resolved = _assetLocator.ResolveAssetPath(normalized, ownerModKey);
+            if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
+            {
+                _logger.Debug("Resolved texture candidate {Texture} to {ResolvedPath} for shape {Shape}", candidate, resolved, shapeName);
+                return resolved;
+            }
+
+            _logger.Debug("Texture candidate {Texture} not found for shape {Shape}", candidate, shapeName);
         }
 
         if (candidates.Count > 0)
@@ -648,39 +669,32 @@ public class ArmorPreviewService : IArmorPreviewService
             return null;
 
         if (!string.IsNullOrWhiteSpace(file.DataRelativePath.Path))
-            return NormalizeRelativePath(file.DataRelativePath.Path);
+            return NormalizeAssetPath(file.DataRelativePath.Path);
 
         if (!string.IsNullOrWhiteSpace(file.GivenPath))
-            return NormalizeRelativePath(file.GivenPath);
+            return NormalizeAssetPath(file.GivenPath);
 
         return null;
     }
 
-    private static string CombineAndNormalize(string dataPath, string relativePath)
+    private static string GetBodyRelativePath(GenderedModelVariant gender) =>
+        gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
+
+    private static string NormalizeAssetPath(string path)
     {
-        var normalized = NormalizeRelativePath(relativePath);
-        return CombineDataPath(dataPath, normalized);
+        var normalized = path.Replace('\\', '/').Trim();
+        while (normalized.StartsWith("/"))
+            normalized = normalized[1..];
+        return normalized;
     }
 
-    private static string CombineDataPath(string dataPath, string relativePath)
+    private static string FormatExpectedPath(string dataPath, string assetKey)
     {
-        if (Path.IsPathRooted(relativePath))
-            return relativePath;
+        if (Path.IsPathRooted(assetKey))
+            return assetKey;
 
-        return Path.Combine(dataPath, relativePath);
-    }
-
-    private static string GetBodyPath(string dataPath, GenderedModelVariant gender)
-    {
-        var relative = gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
-        return Path.Combine(dataPath, relative);
-    }
-
-    private static string NormalizeRelativePath(string path)
-    {
-        var normalized = path.Replace('/', Path.DirectorySeparatorChar)
-                             .Replace('\\', Path.DirectorySeparatorChar);
-        return normalized.TrimStart(Path.DirectorySeparatorChar);
+        var systemRelative = assetKey.Replace('/', Path.DirectorySeparatorChar);
+        return Path.Combine(dataPath, systemRelative);
     }
 
     private static readonly HashSet<string> _nonDiffuseSegments = new(StringComparer.OrdinalIgnoreCase)

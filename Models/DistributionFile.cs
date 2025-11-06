@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RequiemGlamPatcher.Models;
+namespace Boutique.Models;
 
 public enum DistributionFileType
 {
