@@ -1,8 +1,6 @@
-using System.Windows.Controls;
-
 namespace Boutique.Views;
 
-public partial class DistributionView : UserControl
+public partial class DistributionView
 {
     public DistributionView()
     {

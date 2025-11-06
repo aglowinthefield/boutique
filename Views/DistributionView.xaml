@@ -59,7 +59,6 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="*" />
                         <DataGridTextColumn Header="Type" Binding="{Binding TypeDisplay}" Width="100" />
-                        <DataGridTextColumn Header="Entries" Binding="{Binding RecordCount}" Width="80" />
                         <DataGridTextColumn Header="Outfits" Binding="{Binding OutfitCount}" Width="80" />
                     </DataGrid.Columns>
                 </DataGrid>
