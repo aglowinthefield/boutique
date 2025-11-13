@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Boutique.Models;
 using Boutique.Services;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using Serilog;
@@ -24,6 +26,7 @@ public class MainViewModel : ReactiveObject
     private readonly IMatchingService _matchingService;
     private readonly IMutagenService _mutagenService;
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = new();
+    private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = new();
     private readonly IPatchingService _patchingService;
     private readonly IArmorPreviewService _previewService;
     private int _activeLoadingOperations;
@@ -31,6 +34,7 @@ public class MainViewModel : ReactiveObject
 
     private ObservableCollection<string> _availablePlugins = new();
     private bool _hasOutfitDrafts;
+    private bool _hasExistingPluginOutfits;
     private bool _isCreatingOutfits;
     private bool _isLoading;
     private bool _isPatching;
@@ -83,6 +87,10 @@ public class MainViewModel : ReactiveObject
         HasOutfitDrafts = _outfitDrafts.Count > 0;
         _outfitDrafts.CollectionChanged += (_, _) => HasOutfitDrafts = _outfitDrafts.Count > 0;
 
+        ExistingOutfits = new ReadOnlyObservableCollection<ExistingOutfitViewModel>(_existingOutfits);
+        HasExistingPluginOutfits = _existingOutfits.Count > 0;
+        _existingOutfits.CollectionChanged += (_, _) => HasExistingPluginOutfits = _existingOutfits.Count > 0;
+
         InitializeCommand = ReactiveCommand.CreateFromTask(InitializeAsync);
         AutoMatchCommand = ReactiveCommand.CreateFromTask(AutoMatchAsync,
             this.WhenAnyValue(
@@ -120,6 +128,9 @@ public class MainViewModel : ReactiveObject
             this.WhenAnyValue(x => x.SelectedOutfitPlugin, plugin => !string.IsNullOrWhiteSpace(plugin));
         LoadOutfitPluginCommand =
             ReactiveCommand.CreateFromTask(() => LoadOutfitPluginAsync(forceReload: true), canLoadOutfitPlugin);
+
+        var canCopyExistingOutfits = this.WhenAnyValue(x => x.HasExistingPluginOutfits);
+        CopyExistingOutfitsCommand = ReactiveCommand.Create(CopyExistingOutfits, canCopyExistingOutfits);
     }
 
     public Interaction<string, Unit> PatchCreatedNotification { get; } = new();
@@ -143,6 +154,167 @@ public class MainViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _sourceArmors, value);
             ConfigureSourceArmorsView();
+        }
+    }
+
+    private async Task<int> LoadExistingOutfitsAsync(string plugin)
+    {
+        _existingOutfits.Clear();
+
+        if (_mutagenService.LinkCache == null)
+        {
+            _logger.Warning("Link cache unavailable; skipping outfit discovery for {Plugin}.", plugin);
+            return 0;
+        }
+
+        var outfits = (await _mutagenService.LoadOutfitsFromPluginAsync(plugin)).ToList();
+
+        if (!string.Equals(_selectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
+            return 0;
+
+        var linkCache = _mutagenService.LinkCache;
+        var pluginModKey = ModKey.FromFileName(plugin);
+        var discoveredCount = 0;
+
+        foreach (var outfit in outfits)
+        {
+            if (outfit.FormKey.ModKey != pluginModKey)
+                continue;
+
+            var itemLinks = outfit.Items ?? Array.Empty<IFormLinkGetter<IOutfitTargetGetter>>();
+            var armorPieces = new List<IArmorGetter>();
+
+            foreach (var entry in itemLinks)
+            {
+                if (entry == null)
+                    continue;
+
+                var formKeyNullable = entry.FormKeyNullable;
+                if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                    continue;
+
+                var formKey = formKeyNullable.Value;
+
+                if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
+                {
+                    _logger.Debug("Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
+                        formKey, outfit.EditorID ?? "(No EditorID)", plugin);
+                    continue;
+                }
+
+                if (item is not IArmorGetter armor)
+                {
+                    _logger.Debug("Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
+                        formKey, item.GetType().Name, outfit.EditorID ?? "(No EditorID)");
+                    continue;
+                }
+
+                armorPieces.Add(armor);
+            }
+
+            var distinctPieces = armorPieces
+                .GroupBy(p => p.FormKey)
+                .Select(g => g.First())
+                .ToList();
+
+            if (distinctPieces.Count == 0)
+                continue;
+
+            var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
+            var displayName = editorId;
+
+            var existing = new ExistingOutfitViewModel(
+                displayName,
+                editorId,
+                outfit.FormKey,
+                distinctPieces);
+
+            _existingOutfits.Add(existing);
+            discoveredCount++;
+
+            _logger.Information("Discovered existing outfit {EditorId} in {Plugin} with {PieceCount} piece(s).",
+                editorId, plugin, distinctPieces.Count);
+        }
+
+        return discoveredCount;
+    }
+
+    private void CopyExistingOutfits()
+    {
+        if (_existingOutfits.Count == 0)
+        {
+            StatusMessage = "No existing outfits to copy.";
+            _logger.Debug("CopyExistingOutfits invoked with no discovered outfits.");
+            return;
+        }
+
+        if (_mutagenService.LinkCache == null)
+        {
+            StatusMessage = "Initialize Skyrim data path before copying outfits.";
+            _logger.Warning("CopyExistingOutfits attempted without an active link cache.");
+            return;
+        }
+
+        var linkCache = _mutagenService.LinkCache;
+        var copied = 0;
+
+        foreach (var existing in _existingOutfits.ToList())
+        {
+            if (_outfitDrafts.Any(d =>
+                    d.FormKey.HasValue &&
+                    d.FormKey.Value == existing.FormKey))
+            {
+                _logger.Debug("Skipping existing outfit {EditorId} because it is already queued.", existing.EditorId);
+                continue;
+            }
+
+            var baseName = SanitizeOutfitName(existing.EditorId);
+            var uniqueName = EnsureUniqueOutfitName(baseName, null);
+
+            if (!string.Equals(uniqueName, baseName, StringComparison.Ordinal))
+                _logger.Debug("Adjusted outfit name from {Original} to {Adjusted} when copying existing outfit.",
+                    baseName, uniqueName);
+
+            var pieces = existing.Pieces
+                .Select(armor => new ArmorRecordViewModel(armor, linkCache))
+                .ToList();
+
+            if (!ValidateOutfitPieces(pieces, out var validationMessage))
+            {
+                _logger.Warning(
+                    "Skipping existing outfit {EditorId} due to slot conflict while copying: {Message}",
+                    existing.EditorId,
+                    validationMessage);
+                continue;
+            }
+
+            var draft = new OutfitDraftViewModel(
+                uniqueName,
+                uniqueName,
+                pieces,
+                RemoveOutfitDraft,
+                RemoveOutfitPiece,
+                PreviewDraftAsync);
+
+            draft.FormKey = existing.FormKey;
+            draft.PropertyChanged += OutfitDraftOnPropertyChanged;
+            _outfitDrafts.Add(draft);
+            copied++;
+        }
+
+        _existingOutfits.Clear();
+
+        if (copied > 0)
+        {
+            StatusMessage = $"Copied {copied} existing outfit(s) into the queue.";
+            _logger.Information("Copied {CopiedCount} existing outfit(s) into the queue from plugin {Plugin}.",
+                copied,
+                _selectedOutfitPlugin ?? "<none>");
+        }
+        else
+        {
+            StatusMessage = "Existing outfits are already queued or could not be copied.";
+            _logger.Information("No existing outfits were copied; they may already be queued or lacked valid pieces.");
         }
     }
 
@@ -240,6 +412,8 @@ public class MainViewModel : ReactiveObject
             if (string.Equals(value, _selectedOutfitPlugin, StringComparison.Ordinal))
                 return;
 
+            _existingOutfits.Clear();
+
             this.RaiseAndSetIfChanged(ref _selectedOutfitPlugin, value);
             _logger.Information("Selected outfit plugin set to {Plugin}", value ?? "<none>");
 
@@ -259,6 +433,8 @@ public class MainViewModel : ReactiveObject
 
     public ReadOnlyObservableCollection<OutfitDraftViewModel> OutfitDrafts { get; }
 
+    public ReadOnlyObservableCollection<ExistingOutfitViewModel> ExistingOutfits { get; }
+
     public bool IsCreatingOutfits
     {
         get => _isCreatingOutfits;
@@ -273,6 +449,12 @@ public class MainViewModel : ReactiveObject
     {
         get => _hasOutfitDrafts;
         private set => this.RaiseAndSetIfChanged(ref _hasOutfitDrafts, value);
+    }
+
+    public bool HasExistingPluginOutfits
+    {
+        get => _hasExistingPluginOutfits;
+        private set => this.RaiseAndSetIfChanged(ref _hasExistingPluginOutfits, value);
     }
 
     public IList SelectedSourceArmors
@@ -436,6 +618,7 @@ public class MainViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> SaveOutfitsCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadTargetPluginCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadOutfitPluginCommand { get; }
+    public ReactiveCommand<Unit, Unit> CopyExistingOutfitsCommand { get; }
 
     private void ConfigureSourceArmorsView()
     {
@@ -825,8 +1008,16 @@ public class MainViewModel : ReactiveObject
                 ? new List<ArmorRecordViewModel> { OutfitArmors[0] }
                 : Array.Empty<ArmorRecordViewModel>();
 
-            StatusMessage = $"Loaded {OutfitArmors.Count} armors from {plugin} for outfit creation.";
-            _logger.Information("Loaded {ArmorCount} outfit armors from {Plugin}", OutfitArmors.Count, plugin);
+            var existingOutfitCount = await LoadExistingOutfitsAsync(plugin);
+
+            StatusMessage = existingOutfitCount > 0
+                ? $"Loaded {OutfitArmors.Count} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
+                : $"Loaded {OutfitArmors.Count} armors from {plugin} for outfit creation.";
+            _logger.Information(
+                "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
+                OutfitArmors.Count,
+                plugin,
+                existingOutfitCount);
         }
         catch (Exception ex)
         {

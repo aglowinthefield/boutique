@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,8 +10,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Boutique.Models;
 using Boutique.Services;
+using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.Plugins.Records;
+using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using Serilog;
@@ -184,19 +188,16 @@ public class DistributionViewModel : ReactiveObject
             return;
         }
 
+        List<IOutfitGetter>? cachedOutfits = null;
+
         foreach (var keyString in line.OutfitFormKeys)
         {
-            if (!TryCreateFormKey(keyString, out var formKey))
-                continue;
-
-            if (!linkCache.TryResolve<IOutfitGetter>(formKey, out var outfit))
+            if (!TryResolveOutfit(keyString, linkCache, ref cachedOutfits, out var outfit, out var label))
                 continue;
 
             var armorPieces = GatherArmorPieces(outfit, linkCache);
             if (armorPieces.Count == 0)
                 continue;
-
-            var label = outfit.EditorID ?? formKey.ToString();
 
             try
             {
@@ -208,13 +209,104 @@ public class DistributionViewModel : ReactiveObject
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Failed to preview outfit {FormKey}", formKey);
+                _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
                 StatusMessage = $"Failed to preview outfit: {ex.Message}";
                 return;
             }
         }
 
         StatusMessage = "Unable to resolve outfit for preview.";
+    }
+
+    private bool TryResolveOutfit(
+        string identifier,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        ref List<IOutfitGetter>? cachedOutfits,
+        [NotNullWhen(true)] out IOutfitGetter? outfit,
+        out string label)
+    {
+        outfit = null;
+        label = string.Empty;
+
+        if (TryCreateFormKey(identifier, out var formKey) &&
+            linkCache.TryResolve<IOutfitGetter>(formKey, out var resolvedFromFormKey))
+        {
+            outfit = resolvedFromFormKey;
+            label = outfit.EditorID ?? formKey.ToString();
+            return true;
+        }
+
+        if (TryResolveOutfitByEditorId(identifier, linkCache, ref cachedOutfits, out var resolvedFromEditorId))
+        {
+            outfit = resolvedFromEditorId;
+            label = outfit.EditorID ?? identifier;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryResolveOutfitByEditorId(
+        string identifier,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        ref List<IOutfitGetter>? cachedOutfits,
+        [NotNullWhen(true)] out IOutfitGetter? outfit)
+    {
+        outfit = null;
+
+        if (!TryParseEditorIdReference(identifier, out var modKey, out var editorId))
+            return false;
+
+        cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
+
+        IEnumerable<IOutfitGetter> query = cachedOutfits
+            .Where(o => string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+
+        if (modKey.HasValue)
+            query = query.Where(o => o.FormKey.ModKey == modKey.Value);
+
+        outfit = query.FirstOrDefault();
+        return outfit != null;
+    }
+
+    private static bool TryParseEditorIdReference(string identifier, out ModKey? modKey, out string editorId)
+    {
+        modKey = null;
+        editorId = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(identifier))
+            return false;
+
+        var trimmed = identifier.Trim();
+        string? modCandidate = null;
+        string? editorCandidate = null;
+
+        var pipeIndex = trimmed.IndexOf('|');
+        var tildeIndex = trimmed.IndexOf('~');
+
+        if (pipeIndex >= 0)
+        {
+            modCandidate = trimmed[..pipeIndex].Trim();
+            editorCandidate = trimmed[(pipeIndex + 1)..].Trim();
+        }
+        else if (tildeIndex >= 0)
+        {
+            editorCandidate = trimmed[..tildeIndex].Trim();
+            modCandidate = trimmed[(tildeIndex + 1)..].Trim();
+        }
+        else
+        {
+            editorCandidate = trimmed;
+        }
+
+        if (!string.IsNullOrWhiteSpace(modCandidate) && TryParseModKey(modCandidate, out var parsedMod))
+            modKey = parsedMod;
+
+        if (string.IsNullOrWhiteSpace(editorCandidate))
+            return false;
+
+        editorId = editorCandidate;
+        return true;
     }
 
     private static List<ArmorRecordViewModel> GatherArmorPieces(

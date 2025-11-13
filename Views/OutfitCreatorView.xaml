@@ -19,12 +19,10 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -55,19 +53,6 @@
                             Command="{Binding LoadOutfitPluginCommand}" />
                 </Grid>
             </Grid>
-
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,5,0,0">
-                <TextBlock Text="Search:" VerticalAlignment="Center" />
-                <TextBox Width="220" Margin="6,0,0,0"
-                         Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBlock Text="{Binding OutfitArmors.Count, StringFormat='{}{0} armors'}"
-                           Margin="12,0,0,0" VerticalAlignment="Center" />
-            </StackPanel>
-
-            <Button Grid.Column="2" Content="Create Outfit"
-                    Command="{Binding CreateOutfitCommand}"
-                    Padding="20,10"
-                    VerticalAlignment="Bottom" />
         </Grid>
 
         <Grid Grid.Row="2" Margin="0,10,0,10">
@@ -79,7 +64,26 @@
 
             <GroupBox Grid.Column="0" Header="Available Armors" Padding="8">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0"
+                                Orientation="Horizontal"
+                                Margin="0,0,0,8">
+                        <TextBlock Text="Search:" VerticalAlignment="Center" />
+                        <TextBox Width="220"
+                                 Margin="6,0,0,0"
+                                 Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="{Binding OutfitArmors.Count, StringFormat='{}{0} armors'}"
+                                   Margin="12,0,0,0"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+
                     <DataGrid x:Name="OutfitArmorsGrid"
+                              Grid.Row="1"
                               ItemsSource="{Binding OutfitArmorsView}"
                               SelectionChanged="OutfitArmorsGrid_SelectionChanged"
                               MouseDoubleClick="OutfitArmorsGrid_MouseDoubleClick"
@@ -114,20 +118,28 @@
                             </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <Button Grid.Row="2"
+                            Content="Create New Outfit from Selected"
+                            Command="{Binding CreateOutfitCommand}"
+                            HorizontalAlignment="Right"
+                            Margin="0,8,0,0"
+                            Padding="20,10" />
                 </Grid>
             </GroupBox>
 
             <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="LightGray" />
 
-            <GroupBox Grid.Column="2" Header="Queued Outfits" Padding="8">
+            <GroupBox Grid.Column="2" Header="Plugin Outfits" Padding="8">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <Border x:Name="NewOutfitDropZone"
-                            Grid.Row="0"
+                            Grid.Row="1"
                             Margin="0,0,0,10"
                             Padding="12"
                             Background="#08007ACC"
@@ -147,7 +159,45 @@
                                    VerticalAlignment="Center" />
                     </Border>
 
-                    <Grid Grid.Row="1">
+                    <Border Grid.Row="0"
+                            Margin="0,0,0,10"
+                            Padding="10"
+                            Background="#10FFFFFF"
+                            BorderBrush="#FF7FAFF6"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <Border.Visibility>
+                            <Binding Path="HasExistingPluginOutfits">
+                                <Binding.Converter>
+                                    <BooleanToVisibilityConverter />
+                                </Binding.Converter>
+                            </Binding>
+                        </Border.Visibility>
+                        <StackPanel>
+                            <TextBlock Text="{Binding ExistingOutfits.Count, StringFormat='This plugin already defines {0} outfit(s).'}"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,6" />
+                            <ScrollViewer MaxHeight="200"
+                                          VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding ExistingOutfits}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Summary}"
+                                                       Foreground="Gray"
+                                                       Margin="0,0,0,2" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <Button Content="Copy Existing Outfits"
+                                    Command="{Binding CopyExistingOutfitsCommand}"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,8,0,0"
+                                    Padding="14,6" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2">
                         <TextBlock Text="No outfits queued. Select armors on the left and click Create Outfit."
                                    Foreground="Gray" FontStyle="Italic"
                                    HorizontalAlignment="Center"

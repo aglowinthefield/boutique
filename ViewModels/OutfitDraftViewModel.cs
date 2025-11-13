@@ -111,7 +111,7 @@ public class OutfitDraftViewModel : ReactiveObject
 
         if (added.Count > 0) this.RaisePropertyChanged(nameof(HasPieces));
 
-        return (added, Array.Empty<ArmorRecordViewModel>());
+        return (added, []);
     }
 
     private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

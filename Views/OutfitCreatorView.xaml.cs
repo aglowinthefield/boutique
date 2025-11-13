@@ -55,11 +55,9 @@ public partial class OutfitCreatorView
 
         _currentViewModel = viewModel;
 
-        if (_currentViewModel is not null)
-        {
-            _currentViewModel.PropertyChanged += ViewModelOnPropertyChanged;
-            SynchronizeOutfitSelection();
-        }
+        if (_currentViewModel is null) return;
+        _currentViewModel.PropertyChanged += ViewModelOnPropertyChanged;
+        SynchronizeOutfitSelection();
     }
 
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -72,7 +70,7 @@ public partial class OutfitCreatorView
         if (_syncingOutfitSelection)
             return;
 
-        if (ViewModel is not MainViewModel viewModel)
+        if (ViewModel is not { } viewModel)
             return;
 
         var selected = OutfitArmorsGrid.SelectedItems.Cast<object>().ToList();
@@ -81,7 +79,7 @@ public partial class OutfitCreatorView
 
     private void SynchronizeOutfitSelection()
     {
-        if (ViewModel is not MainViewModel viewModel)
+        if (ViewModel is not { } viewModel)
             return;
 
         _syncingOutfitSelection = true;
@@ -127,7 +125,7 @@ public partial class OutfitCreatorView
 
         _outfitDragStartPoint = null;
 
-        if (ViewModel is not MainViewModel viewModel)
+        if (ViewModel is null)
             return;
 
         var selected = OutfitArmorsGrid.SelectedItems
@@ -150,7 +148,7 @@ public partial class OutfitCreatorView
 
     private async void OutfitArmorsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (ViewModel is not MainViewModel viewModel)
+        if (ViewModel is not { } viewModel)
             return;
 
         var pieces = OutfitArmorsGrid.SelectedItems
@@ -180,13 +178,7 @@ public partial class OutfitCreatorView
         if (sender is not TextBox textBox)
             return;
 
-        if (!e.DataObject.GetDataPresent(DataFormats.Text))
-        {
-            e.CancelCommand();
-            return;
-        }
-
-        if (e.DataObject.GetData(DataFormats.Text) is not string rawText)
+        if (!e.DataObject.GetDataPresent(DataFormats.Text) || e.DataObject.GetData(DataFormats.Text) is not string rawText)
         {
             e.CancelCommand();
             return;

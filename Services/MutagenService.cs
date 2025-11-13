@@ -57,7 +57,7 @@ public class MutagenService : IMutagenService
                 {
                     using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
 
-                    if (mod.Armors.Count <= 0) continue;
+                    if (mod.Armors.Count <= 0 && mod.Outfits.Count <= 0) continue;
                     var name = Path.GetFileName(pluginPath);
                     if (!string.IsNullOrEmpty(name)) armorPlugins.Add(name);
                 }
@@ -94,6 +94,30 @@ public class MutagenService : IMutagenService
             catch (Exception)
             {
                 return Enumerable.Empty<IArmorGetter>();
+            }
+        });
+    }
+
+    public async Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName)
+    {
+        return await Task.Run(() =>
+        {
+            if (string.IsNullOrEmpty(DataFolderPath))
+                return [];
+
+            var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
+
+            if (!File.Exists(pluginPath))
+                return [];
+
+            try
+            {
+                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+                return mod.Outfits.ToList();
+            }
+            catch (Exception)
+            {
+                return Enumerable.Empty<IOutfitGetter>();
             }
         });
     }

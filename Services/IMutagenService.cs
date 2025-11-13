@@ -34,4 +34,9 @@ public interface IMutagenService
     ///     Loads armor records from a specific plugin
     /// </summary>
     Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName);
+
+    /// <summary>
+    ///     Loads outfit records from a specific plugin
+    /// </summary>
+    Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName);
 }

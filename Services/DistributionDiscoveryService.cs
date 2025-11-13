@@ -262,8 +262,10 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
 
         foreach (var token in tokens)
         {
-            if (TryNormalizeFormKeyToken(token, out var normalized))
-                results.Add(normalized);
+            if (!TryNormalizeFormKeyToken(token, out var normalized))
+                continue;
+
+            results.Add(normalized);
         }
 
         return results;
@@ -279,10 +281,15 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
         if (string.IsNullOrWhiteSpace(cleaned))
             return false;
 
-        if (!TryExtractFormKeyParts(cleaned, out var modPart, out var formIdPart))
-            return false;
+        if (TryExtractFormKeyParts(cleaned, out var modPart, out var formIdPart) &&
+            !string.IsNullOrWhiteSpace(modPart) &&
+            !string.IsNullOrWhiteSpace(formIdPart))
+        {
+            normalized = $"{modPart}|{formIdPart}";
+            return true;
+        }
 
-        normalized = $"{modPart}|{formIdPart}";
+        normalized = cleaned;
         return true;
     }
 
