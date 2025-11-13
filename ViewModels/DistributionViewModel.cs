@@ -286,20 +286,50 @@ public class DistributionViewModel : ReactiveObject
 
         if (pipeIndex >= 0)
         {
-            modCandidate = trimmed[..pipeIndex].Trim();
-            editorCandidate = trimmed[(pipeIndex + 1)..].Trim();
+            var firstPart = trimmed[..pipeIndex].Trim();
+            var secondPart = trimmed[(pipeIndex + 1)..].Trim();
+            if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
+            {
+                modKey = modFromSecond;
+                editorCandidate = firstPart;
+            }
+            else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
+            {
+                modKey = modFromFirst;
+                editorCandidate = secondPart;
+            }
+            else
+            {
+                editorCandidate = firstPart;
+                modCandidate = secondPart;
+            }
         }
         else if (tildeIndex >= 0)
         {
-            editorCandidate = trimmed[..tildeIndex].Trim();
-            modCandidate = trimmed[(tildeIndex + 1)..].Trim();
+            var firstPart = trimmed[..tildeIndex].Trim();
+            var secondPart = trimmed[(tildeIndex + 1)..].Trim();
+            if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
+            {
+                modKey = modFromSecond;
+                editorCandidate = firstPart;
+            }
+            else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
+            {
+                modKey = modFromFirst;
+                editorCandidate = secondPart;
+            }
+            else
+            {
+                editorCandidate = firstPart;
+                modCandidate = secondPart;
+            }
         }
         else
         {
             editorCandidate = trimmed;
         }
 
-        if (!string.IsNullOrWhiteSpace(modCandidate) && TryParseModKey(modCandidate, out var parsedMod))
+        if (!modKey.HasValue && !string.IsNullOrWhiteSpace(modCandidate) && TryParseModKey(modCandidate, out var parsedMod))
             modKey = parsedMod;
 
         if (string.IsNullOrWhiteSpace(editorCandidate))
