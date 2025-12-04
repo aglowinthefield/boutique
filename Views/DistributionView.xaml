@@ -38,6 +38,22 @@
                              Margin="0,0,12,0"
                              IsIndeterminate="True"
                              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}" />
+                <Button x:Name="ToggleEditModeButton"
+                        Width="100"
+                        Margin="0,0,6,0"
+                        Click="ToggleEditMode_Click"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Content" Value="Edit Mode" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                    <Setter Property="Content" Value="View Mode" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <Button Content="Refresh"
                         Width="90"
                         Command="{Binding RefreshCommand}"
@@ -52,7 +68,9 @@
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Grid.Column="0" Header="Distribution Files" Padding="6">
+            <!-- View Mode: Distribution Files List -->
+            <GroupBox Grid.Column="0" Header="Distribution Files" Padding="6"
+                      Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisConverter}}">
                 <DataGrid ItemsSource="{Binding Files}"
                           SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                           AutoGenerateColumns="False"
@@ -68,7 +86,140 @@
                 </DataGrid>
             </GroupBox>
 
-            <GroupBox Grid.Column="2" Header="Preview" Padding="6">
+            <!-- Edit Mode: Distribution Entries Editor -->
+            <GroupBox Grid.Column="0" Header="Distribution Entries" Padding="6"
+                      Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- File Selector -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="File:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <ComboBox ItemsSource="{Binding AvailableDistributionFiles}"
+                                      SelectedItem="{Binding SelectedDistributionFile, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"
+                                      MinWidth="250"
+                                      Margin="0,0,6,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" 
+                                    Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
+                            <TextBlock Text="Filename:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalAlignment="Center"
+                                     MinWidth="200"
+                                     Margin="0,0,6,0"
+                                     ToolTip="Enter filename (e.g., Distribution.ini)" />
+                            <Button Content="Browse..."
+                                    Command="{Binding SelectDistributionFilePathCommand}"
+                                    Padding="8,2" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button Content="Add Entry"
+                                Command="{Binding AddDistributionEntryCommand}"
+                                Margin="0,0,6,0"
+                                Padding="8,2" />
+                        <Button Content="Load File"
+                                Command="{Binding LoadDistributionFileCommand}"
+                                Margin="0,0,6,0"
+                                Padding="8,2" />
+                        <Button Content="Save File"
+                                Command="{Binding SaveDistributionFileCommand}"
+                                Padding="8,2" />
+                    </StackPanel>
+
+                    <!-- Distribution Entries List -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding DistributionEntries}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,6" Padding="6" Cursor="Hand">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="Gray" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.SelectedEntry, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{Binding}">
+                                                        <Setter Property="BorderBrush" Value="#0078D4" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.InputBindings>
+                                                <MouseBinding Gesture="LeftClick" Command="{Binding DataContext.SelectEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                            </Grid.InputBindings>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Header with Remove Button -->
+                                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                <ComboBox ItemsSource="{Binding DataContext.AvailableOutfits, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          SelectedItem="{Binding SelectedOutfit}"
+                                                          DisplayMemberPath="EditorID"
+                                                          MinWidth="200"
+                                                          Margin="0,0,6,0" />
+                                                <Button Content="Remove"
+                                                        Command="{Binding RemoveCommand}"
+                                                        Padding="6,2" />
+                                            </StackPanel>
+
+                                            <!-- NPC Selection -->
+                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="NPCs:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                <TextBlock Text="{Binding SelectedNpcs.Count, StringFormat='{}{0} selected'}"
+                                                           VerticalAlignment="Center"
+                                                           FontStyle="Italic" />
+                                            </StackPanel>
+
+                                            <!-- Selected NPCs List -->
+                                            <ItemsControl Grid.Row="2" ItemsSource="{Binding SelectedNpcs}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="LightGray" BorderThickness="1" Margin="0,2" Padding="4">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="{Binding FormKeyString}" 
+                                                                           FontFamily="Consolas"
+                                                                           FontSize="10"
+                                                                           VerticalAlignment="Center"
+                                                                           Margin="0,0,6,0" />
+                                                                <Button Content="×"
+                                                                        Click="RemoveNpc_Click"
+                                                                        Tag="{Binding}"
+                                                                        Padding="4,0"
+                                                                        FontWeight="Bold"
+                                                                        Background="Transparent"
+                                                                        BorderBrush="Transparent" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </GroupBox>
+
+            <!-- View Mode: Preview -->
+            <GroupBox Grid.Column="2" Header="Preview" Padding="6"
+                      Visibility="{Binding IsEditMode, Converter={StaticResource InverseBoolToVisConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -165,6 +316,100 @@
                             </ItemsControl>
                         </ScrollViewer>
                     </Border>
+                </Grid>
+            </GroupBox>
+
+            <!-- Edit Mode: NPC Picker -->
+            <GroupBox Grid.Column="2" Header="NPC Selection" Padding="6"
+                      Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Scan Button -->
+                    <Button Grid.Row="0" Content="Scan NPCs from Modlist"
+                            Command="{Binding ScanNpcsCommand}"
+                            Margin="0,0,0,6"
+                            Padding="8,2" />
+
+                    <!-- Search Box -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBox Text="{Binding NpcSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 MinWidth="200"
+                                 ToolTip="Search NPCs by name, EditorID, or FormKey" />
+                    </StackPanel>
+
+                    <!-- NPC List -->
+                    <DataGrid x:Name="NpcDataGrid"
+                             Grid.Row="2" 
+                             ItemsSource="{Binding FilteredNpcs}"
+                             AutoGenerateColumns="False"
+                             CanUserAddRows="False"
+                             CanUserDeleteRows="False"
+                             CanUserSortColumns="True"
+                             SelectionMode="Single"
+                             SelectionUnit="FullRow"
+                             GridLinesVisibility="All"
+                             HeadersVisibility="Column"
+                             IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="Auto" SortMemberPath="IsSelected">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Name" 
+                                                Binding="{Binding DisplayName}" 
+                                                Width="*"
+                                                CanUserSort="True" />
+                            <DataGridTextColumn Header="EditorID" 
+                                                Binding="{Binding EditorID}" 
+                                                Width="200"
+                                                CanUserSort="True" />
+                            <DataGridTextColumn Header="FormKey" 
+                                                Binding="{Binding FormKeyString}" 
+                                                Width="150"
+                                                CanUserSort="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontFamily" Value="Consolas" />
+                                        <Setter Property="FontSize" Value="10" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Mod" 
+                                                Binding="{Binding ModDisplayName}" 
+                                                Width="150"
+                                                CanUserSort="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontSize" Value="10" />
+                                        <Setter Property="Foreground" Value="Gray" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Add Selected NPCs Button -->
+                    <StackPanel Grid.Row="3" Margin="0,6,0,0">
+                        <TextBlock Text="{Binding SelectedEntry.SelectedOutfit.EditorID, StringFormat='Target Entry: {0}', FallbackValue='Target Entry: (None selected - click an entry to select)'}"
+                                   FontStyle="Italic"
+                                   Margin="0,0,0,4"
+                                   Foreground="Gray" />
+                        <Button Content="Add Selected NPCs to Entry"
+                                Command="{Binding AddSelectedNpcsToEntryCommand}"
+                                Padding="8,2" />
+                    </StackPanel>
                 </Grid>
             </GroupBox>
         </Grid>

@@ -26,6 +26,16 @@ if (-not (Test-Path $publishPath))
     New-Item -ItemType Directory -Path $publishPath | Out-Null
 }
 
+# Kill any existing Boutique processes
+$boutiqueProcesses = Get-Process -Name "Boutique" -ErrorAction SilentlyContinue
+if ($boutiqueProcesses)
+{
+    Write-Host "Stopping existing Boutique processes..." -ForegroundColor Yellow
+    $boutiqueProcesses | Stop-Process -Force
+    Start-Sleep -Seconds 1
+    Write-Host "Boutique processes stopped." -ForegroundColor Green
+}
+
 $selfContained = if ($FrameworkDependent)
 {
     "false"
