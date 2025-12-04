@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="800"
              d:DesignWidth="1200">
-    <Grid Margin="10,0,0,10">
+    <Grid Margin="4,0,0,6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -15,9 +15,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,6" DataContext="{Binding}" />
+        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,4" DataContext="{Binding}" />
 
-        <Grid Grid.Row="1" Margin="0,0,0,10">
+        <Grid Grid.Row="1" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -52,7 +52,7 @@
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Grid.Column="0" Header="Distribution Files" Padding="8">
+            <GroupBox Grid.Column="0" Header="Distribution Files" Padding="6">
                 <DataGrid ItemsSource="{Binding Files}"
                           SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
                           AutoGenerateColumns="False"
@@ -68,7 +68,7 @@
                 </DataGrid>
             </GroupBox>
 
-            <GroupBox Grid.Column="2" Header="Preview" Padding="8">
+            <GroupBox Grid.Column="2" Header="Preview" Padding="6">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -81,18 +81,17 @@
                                TextWrapping="Wrap"
                                FontWeight="Bold" />
 
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,0">
                         <TextBlock Text="Search:"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,6,0" />
+                                   Margin="0,0,4,0" />
                         <TextBox Width="220"
-                                 Margin="0,0,6,0"
                                  Text="{Binding LineFilter, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Filter lines containing this text"
                                  FontFamily="Consolas" />
                     </StackPanel>
 
-                    <Border Grid.Row="2" Margin="0,6,0,0" BorderBrush="{DynamicResource Brush.Border}"
+                    <Border Grid.Row="2" Margin="0,4,0,0" BorderBrush="Gray"
                             BorderThickness="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding FilteredLines}">
@@ -110,7 +109,7 @@
                                                     <Setter Property="Background" Value="Transparent" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsOutfitDistribution}" Value="True">
-                                                            <Setter Property="Background" Value="{DynamicResource Brush.HighlightOverlay}" />
+                                                            <Setter Property="Background" Value="#1A0078D4" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -171,7 +170,7 @@
         </Grid>
 
         <TextBlock Grid.Row="3"
-                   Margin="0,10,0,0"
+                   Margin="0,6,0,0"
                    Text="{Binding StatusMessage}"
                    FontStyle="Italic" />
     </Grid>

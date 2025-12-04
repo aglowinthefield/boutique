@@ -6,7 +6,7 @@
         Width="900"
         Height="700"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource Brush.PanelBackground}">
+        >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="800"
              d:DesignWidth="1200">
-    <Grid Margin="10,0,0,10">
+    <Grid Margin="4,0,0,6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -15,54 +15,39 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,6" DataContext="{Binding}" />
+        <views:SettingsPanelView Grid.Row="0" Margin="0,0,0,4" DataContext="{Binding}" />
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="0,0,0,4">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Outfit Source Plugin:" FontWeight="Bold" />
-
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding AvailablePlugins}"
-                              SelectedItem="{Binding SelectedOutfitPlugin}"
-                              Margin="0,5,0,0"
-                              IsEditable="True"
-                              IsTextSearchEnabled="True"
-                              StaysOpenOnEdit="True"
-                              IsTextSearchCaseSensitive="False"
-                              ToolTip="Type to search plugins" />
-
-                    <Button Grid.Column="1"
-                            Content="Load"
-                            Margin="6,5,0,0"
-                            MinWidth="70"
-                            Command="{Binding LoadOutfitPluginCommand}" />
-                </Grid>
-            </Grid>
+            <TextBlock Text="Outfit Source Plugin:"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding AvailablePlugins}"
+                      SelectedItem="{Binding SelectedOutfitPlugin}"
+                      IsEditable="True"
+                      IsTextSearchEnabled="True"
+                      StaysOpenOnEdit="True"
+                      IsTextSearchCaseSensitive="False"
+                      ToolTip="Type to search plugins" />
+            <Button Grid.Column="2"
+                    Content="Load"
+                    Command="{Binding LoadOutfitPluginCommand}" />
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,10,0,10">
+        <Grid Grid.Row="2" Margin="0,6,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="6" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Grid.Column="0" Header="Available Armors" Padding="8">
+            <GroupBox Grid.Column="0" Header="Available Armors" Padding="6">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -72,13 +57,12 @@
 
                     <StackPanel Grid.Row="0"
                                 Orientation="Horizontal"
-                                Margin="0,0,0,8">
-                        <TextBlock Text="Search:" VerticalAlignment="Center" />
+                                Margin="0,0,0,4">
+                        <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,4,0" />
                         <TextBox Width="220"
-                                 Margin="6,0,0,0"
                                  Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock Text="{Binding OutfitArmors.Count, StringFormat='{}{0} armors'}"
-                                   Margin="12,0,0,0"
+                                   Margin="8,0,0,0"
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
@@ -123,14 +107,14 @@
                             Content="Create New Outfit from Selected"
                             Command="{Binding CreateOutfitCommand}"
                             HorizontalAlignment="Right"
-                            Margin="0,8,0,0"
-                            Padding="20,10" />
+                            Margin="0,4,0,0"
+                            Padding="12,6" />
                 </Grid>
             </GroupBox>
 
-            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="LightGray" />
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="LightGray" />
 
-            <GroupBox Grid.Column="2" Header="Plugin Outfits" Padding="8">
+            <GroupBox Grid.Column="2" Header="Plugin Outfits" Padding="6">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -140,8 +124,8 @@
 
                     <Border x:Name="NewOutfitDropZone"
                             Grid.Row="1"
-                            Margin="0,0,0,10"
-                            Padding="12"
+                            Margin="0,0,0,6"
+                            Padding="8"
                             Background="#08007ACC"
                             BorderBrush="#FF7FAFF6"
                             BorderThickness="1"
@@ -160,8 +144,8 @@
                     </Border>
 
                     <Border Grid.Row="0"
-                            Margin="0,0,0,10"
-                            Padding="10"
+                            Margin="0,0,0,6"
+                            Padding="8"
                             Background="#10FFFFFF"
                             BorderBrush="#FF7FAFF6"
                             BorderThickness="1"
@@ -192,8 +176,8 @@
                             <Button Content="Copy Existing Outfits"
                                     Command="{Binding CopyExistingOutfitsCommand}"
                                     HorizontalAlignment="Right"
-                                    Margin="0,8,0,0"
-                                    Padding="14,6" />
+                                    Margin="0,6,0,0"
+                                    Padding="10,4" />
                         </StackPanel>
                     </Border>
 
@@ -218,8 +202,8 @@
                             <ItemsControl ItemsSource="{Binding OutfitDrafts}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Margin="0,0,0,10"
-                                                Padding="8"
+                                        <Border Margin="0,0,0,6"
+                                                Padding="6"
                                                 BorderBrush="#FFD9D9D9"
                                                 BorderThickness="1"
                                                 CornerRadius="4"
@@ -229,7 +213,7 @@
                                                 DragOver="OutfitDraftBorder_OnDragOver"
                                                 Drop="OutfitDraftBorder_OnDrop">
                                             <StackPanel>
-                                                <Grid Margin="0,0,0,6">
+                                                <Grid Margin="0,0,0,4">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
@@ -252,17 +236,17 @@
                                                                 VerticalAlignment="Center">
                                                         <Button Content="Preview"
                                                                 Command="{Binding PreviewCommand}"
-                                                                Padding="10,4"
-                                                                Margin="0,0,8,0" />
+                                                                Padding="8,4"
+                                                                Margin="0,0,6,0" />
                                                         <Button Content="Remove Outfit"
                                                                 Command="{Binding RemoveSelfCommand}"
-                                                                Padding="10,4" />
+                                                                Padding="8,4" />
                                                     </StackPanel>
                                                 </Grid>
                                                 <ItemsControl ItemsSource="{Binding Pieces}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid Margin="0,4,0,4">
+                                                            <Grid Margin="0,2,0,2">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
@@ -275,13 +259,13 @@
                                                                 <Button Grid.Column="1" Content="Remove"
                                                                         Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                         CommandParameter="{Binding}"
-                                                                        Margin="6,0,0,0" />
+                                                                        Margin="4,0,0,0" />
                                                             </Grid>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <TextBlock Text="No pieces selected." Foreground="Gray"
-                                                           FontStyle="Italic" Margin="0,4,0,0">
+                                                           FontStyle="Italic" Margin="0,2,0,0">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -305,7 +289,7 @@
             </GroupBox>
         </Grid>
 
-        <Grid Grid.Row="3" Margin="0,0,0,10">
+        <Grid Grid.Row="3" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -313,11 +297,9 @@
             <TextBlock Grid.Column="0"
                        Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} outfit(s) queued'}"
                        VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Save Outfits" Command="{Binding SaveOutfitsCommand}">
+            <Button Grid.Column="1" Content="Save Outfits" Command="{Binding SaveOutfitsCommand}" Padding="16,8" FontWeight="Bold">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-                        <Setter Property="Padding" Value="20,10" />
-                        <Setter Property="FontWeight" Value="Bold" />
+                    <Style TargetType="Button">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding HasOutfitDrafts}" Value="False">
                                 <Setter Property="IsEnabled" Value="False" />
