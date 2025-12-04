@@ -23,9 +23,9 @@
 
     <!-- Buttons -->
     <Style TargetType="Button">
-        <Setter Property="Padding" Value="10,6" />
-        <Setter Property="Margin" Value="5" />
-        <Setter Property="MinWidth" Value="90" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="MinWidth" Value="80" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="Background" Value="{StaticResource Brush.BorderLight}" />
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
@@ -109,7 +109,7 @@
 
     <!-- TextBlock -->
     <Style TargetType="TextBlock">
-        <Setter Property="Margin" Value="5" />
+        <Setter Property="Margin" Value="2" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
         <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
@@ -118,8 +118,8 @@
 
     <!-- TextBox -->
     <Style TargetType="TextBox">
-        <Setter Property="Padding" Value="6,4" />
-        <Setter Property="Margin" Value="5" />
+        <Setter Property="Padding" Value="5,3" />
+        <Setter Property="Margin" Value="2" />
         <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
@@ -137,7 +137,7 @@
             <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
                              Color="{StaticResource Color.PrimaryBackground}" />
         </Style.Resources>
-        <Setter Property="Margin" Value="5" />
+        <Setter Property="Margin" Value="2" />
         <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextSecondary}" />
@@ -148,7 +148,7 @@
     <Style TargetType="ComboBoxItem">
         <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
         <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
-        <Setter Property="Padding" Value="6,3" />
+        <Setter Property="Padding" Value="4,2" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource Brush.BorderLight}" />
@@ -166,8 +166,8 @@
 
     <!-- GroupBox -->
     <Style TargetType="GroupBox">
-        <Setter Property="Margin" Value="5" />
-        <Setter Property="Padding" Value="8" />
+        <Setter Property="Margin" Value="3" />
+        <Setter Property="Padding" Value="6" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
@@ -183,7 +183,7 @@
                             SnapsToDevicePixels="True">
                         <DockPanel>
                             <ContentPresenter DockPanel.Dock="Top"
-                                              Margin="0,0,0,8"
+                                              Margin="0,0,0,4"
                                               RecognizesAccessKey="True"
                                               Content="{TemplateBinding Header}"
                                               ContentTemplate="{TemplateBinding HeaderTemplate}"
@@ -217,6 +217,8 @@
         <Setter Property="GridLinesVisibility" Value="Horizontal" />
         <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Brush.BorderLight}" />
         <Setter Property="VerticalGridLinesBrush" Value="{StaticResource Brush.BorderLight}" />
+        <Setter Property="RowHeight" Value="26" />
+        <Setter Property="ColumnHeaderHeight" Value="30" />
     </Style>
 
     <Style TargetType="DataGridColumnHeader">
@@ -225,7 +227,7 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
-        <Setter Property="Padding" Value="6,4" />
+        <Setter Property="Padding" Value="4,2" />
     </Style>
 
     <!-- TabControl -->
@@ -260,8 +262,8 @@
 
     <Style TargetType="TabItem">
         <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
-        <Setter Property="Padding" Value="14,8" />
-        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,0,4,0" />
         <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Template">

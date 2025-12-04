@@ -248,7 +248,7 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
             if (string.IsNullOrWhiteSpace(segment))
                 continue;
 
-            var tokens = segment.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var tokens = segment.Split([','], StringSplitOptions.RemoveEmptyEntries);
             keys.AddRange(NormalizeFormKeyTokens(tokens));
         }
 

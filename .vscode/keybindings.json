@@ -1,6 +1,6 @@
 [
   {
-    "key": "ctrl+alt+p",
+    "key": "f6",
     "command": "workbench.action.tasks.runTask",
     "args": "Publish Boutique"
   }

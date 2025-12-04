@@ -21,15 +21,16 @@ namespace Boutique.ViewModels;
 public class MainViewModel : ReactiveObject
 {
     private static readonly Regex OutfitNameSanitizer = new("[^A-Za-z]", RegexOptions.Compiled);
+    private static readonly BipedObjectFlag[] BipedObjectFlags = Enum.GetValues<BipedObjectFlag>()
+        .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0) // Only single-bit flags (powers of 2)
+        .ToArray();
     private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = new();
     private readonly ILogger _logger;
-    private readonly IMatchingService _matchingService;
     private readonly IMutagenService _mutagenService;
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = new();
     private readonly IPatchingService _patchingService;
     private readonly IArmorPreviewService _previewService;
     private int _activeLoadingOperations;
-    private double _autoMatchThreshold = 0.6;
 
     private ObservableCollection<string> _availablePlugins = new();
     private bool _hasExistingPluginOutfits;
@@ -64,7 +65,6 @@ public class MainViewModel : ReactiveObject
 
     public MainViewModel(
         IMutagenService mutagenService,
-        IMatchingService matchingService,
         IPatchingService patchingService,
         IArmorPreviewService previewService,
         SettingsViewModel settingsViewModel,
@@ -72,7 +72,6 @@ public class MainViewModel : ReactiveObject
         ILoggingService loggingService)
     {
         _mutagenService = mutagenService;
-        _matchingService = matchingService;
         _patchingService = patchingService;
         _previewService = previewService;
         Settings = settingsViewModel;
@@ -91,11 +90,6 @@ public class MainViewModel : ReactiveObject
         _existingOutfits.CollectionChanged += (_, _) => HasExistingPluginOutfits = _existingOutfits.Count > 0;
 
         InitializeCommand = ReactiveCommand.CreateFromTask(InitializeAsync);
-        AutoMatchCommand = ReactiveCommand.CreateFromTask(AutoMatchAsync,
-            this.WhenAnyValue(
-                x => x.SourceArmors.Count,
-                x => x.TargetArmors.Count,
-                (source, target) => source > 0 && target > 0));
         CreatePatchCommand = ReactiveCommand.CreateFromTask(CreatePatchAsync,
             this.WhenAnyValue(x => x.Matches.Count, count => count > 0));
         ClearMappingsCommand = ReactiveCommand.Create(ClearMappings,
@@ -439,14 +433,7 @@ public class MainViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _progressTotal, value);
     }
 
-    public double AutoMatchThreshold
-    {
-        get => _autoMatchThreshold;
-        set => this.RaiseAndSetIfChanged(ref _autoMatchThreshold, value);
-    }
-
     public ICommand InitializeCommand { get; }
-    public ICommand AutoMatchCommand { get; }
     public ICommand CreatePatchCommand { get; }
     public ICommand ClearMappingsCommand { get; }
     public ICommand MapSelectedCommand { get; }
@@ -1044,12 +1031,9 @@ public class MainViewModel : ReactiveObject
             if (mask == 0)
                 continue;
 
-            foreach (var flag in Enum.GetValues<BipedObjectFlag>())
+            // Use cached enum values instead of calling Enum.GetValues repeatedly
+            foreach (var flag in BipedObjectFlags)
             {
-                var flagValue = (uint)flag;
-                if (flagValue == 0 || (flagValue & (flagValue - 1)) != 0)
-                    continue;
-
                 if (!mask.HasFlag(flag))
                     continue;
 
@@ -1125,7 +1109,13 @@ public class MainViewModel : ReactiveObject
 
     public async Task CreateOutfitFromPiecesAsync(IReadOnlyList<ArmorRecordViewModel> pieces)
     {
-        var distinctPieces = DistinctArmorPieces(pieces);
+        // Move validation to background thread to avoid blocking UI
+        var (distinctPieces, isValid, validationMessage) = await Task.Run(() =>
+        {
+            var distinct = DistinctArmorPieces(pieces);
+            var valid = ValidateOutfitPieces(distinct, out var message);
+            return (distinct, valid, message);
+        });
 
         if (distinctPieces.Count == 0)
         {
@@ -1134,12 +1124,15 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        if (!ValidateOutfitPieces(distinctPieces, out var validationMessage))
+        if (!isValid)
         {
             StatusMessage = validationMessage;
             _logger.Warning("Outfit creation blocked due to slot conflict: {Message}", validationMessage);
             return;
         }
+
+        // Yield to UI thread to allow UI to update before showing popup
+        await Task.Yield();
 
         const string namePrompt = "Enter the outfit name (also used as the EditorID):";
         var outfitName = await RequestOutfitName.Handle(namePrompt).ToTask();
@@ -1374,50 +1367,6 @@ public class MainViewModel : ReactiveObject
             IsCreatingOutfits = false;
             ProgressCurrent = 0;
             ProgressTotal = 0;
-        }
-    }
-
-    private async Task AutoMatchAsync()
-    {
-        StatusMessage = "Auto-matching armors...";
-        _logger.Information("Auto-matching armors with threshold {Threshold}", AutoMatchThreshold);
-
-        try
-        {
-            var sourceList = SourceArmors.Select(vm => vm.Armor).ToList();
-            var targetArmors = TargetArmors.Select(vm => vm.Armor).ToList();
-
-            var matchResults = await Task.Run(() =>
-                _matchingService.AutoMatchArmors(sourceList, targetArmors, AutoMatchThreshold).ToList());
-
-            var sourceLookup = SourceArmors.ToDictionary(vm => vm.Armor.FormKey);
-            var targetLookup = TargetArmors.ToDictionary(vm => vm.Armor.FormKey);
-
-            var mappingViewModels = new ObservableCollection<ArmorMatchViewModel>();
-            foreach (var match in matchResults)
-            {
-                if (!sourceLookup.TryGetValue(match.SourceArmor.FormKey, out var sourceVm))
-                    continue;
-
-                ArmorRecordViewModel? targetVm = null;
-                if (match.TargetArmor != null &&
-                    targetLookup.TryGetValue(match.TargetArmor.FormKey, out var foundTarget)) targetVm = foundTarget;
-
-                mappingViewModels.Add(new ArmorMatchViewModel(match, sourceVm, targetVm));
-            }
-
-            Matches = mappingViewModels;
-            var matchedCount = Matches.Count(m => m.HasTarget);
-            StatusMessage = $"Auto-matched {matchedCount}/{Matches.Count} armors";
-            _logger.Information("Auto-match completed with {MatchedCount} mapped armors out of {TotalMatches}",
-                matchedCount, Matches.Count);
-
-            foreach (var mapping in Matches) mapping.Source.IsMapped = mapping.HasTarget;
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error during auto-match: {ex.Message}";
-            _logger.Error(ex, "Auto-match failed.");
         }
     }
 
