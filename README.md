@@ -18,7 +18,7 @@ tempering recipes from master ESPs (like Requiem.esp, FTweaks, etc.) to appearan
 ## Requirements
 
 - Windows 10/11
-- .NET 8.0 Runtime
+- [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (download the "Desktop Runtime" for Windows x64)
 - Skyrim Special Edition
 - Mods to patch (e.g., armor appearance mods from Nexus)
 
@@ -46,8 +46,15 @@ Run the PowerShell script to produce a ready-to-ship single-file EXE:
 pwsh scripts/publish-win.ps1
 ```
 
-Adjust `-Configuration`, `-Runtime`, or add `-FrameworkDependent` if you need a framework-dependent build. Outputs land
-in `artifacts/publish/<runtime>/`.
+This creates a framework-dependent build (~80MB) that requires .NET 8 Desktop Runtime.
+
+Add `-SelfContained` for a larger (~220MB) standalone build that bundles the .NET runtime:
+
+```powershell
+pwsh scripts/publish-win.ps1 -SelfContained
+```
+
+Outputs land in `artifacts/publish/<runtime>/`.
 
 ## Running from Mod Organizer 2 (Recommended!)
 

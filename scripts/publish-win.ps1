@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
-    [switch]$FrameworkDependent
+    [switch]$SelfContained
 )
 
 Set-StrictMode -Version Latest
@@ -36,13 +36,13 @@ if ($boutiqueProcesses)
     Write-Host "Boutique processes stopped." -ForegroundColor Green
 }
 
-$selfContained = if ($FrameworkDependent)
+$selfContained = if ($SelfContained)
 {
-    "false"
+    "true"
 }
 else
 {
-    "true"
+    "false"
 }
 
 $arguments = @(
