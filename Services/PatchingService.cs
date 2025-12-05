@@ -128,6 +128,9 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
 
                 EnsureMasters(patchMod, requiredMasters);
 
+                // Auto-ESL if under record limit
+                TryApplyEslFlag(patchMod);
+
                 // Write patch to file
                 progress?.Report((total, total, "Writing patch file..."));
 
@@ -156,7 +159,8 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
         if (result.Item1)
         {
             progress?.Report((1, 1, "Refreshing load order..."));
-            await mutagenService.RefreshLinkCacheAsync();
+            var pluginName = Path.GetFileName(outputPath);
+            await mutagenService.RefreshLinkCacheAsync(pluginName);
         }
 
         return result;
@@ -249,6 +253,10 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
                 }
 
                 EnsureMasters(patchMod, requiredMasters);
+
+                // Auto-ESL if under record limit
+                TryApplyEslFlag(patchMod);
+
                 progress?.Report((total, total, "Writing patch file..."));
 
                 // Release any file handles held by the environment before writing
@@ -287,7 +295,8 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
         if (result.Item1)
         {
             progress?.Report((1, 1, "Refreshing load order..."));
-            await mutagenService.RefreshLinkCacheAsync();
+            var pluginName = Path.GetFileName(outputPath);
+            await mutagenService.RefreshLinkCacheAsync(pluginName);
         }
 
         return result;
@@ -411,5 +420,32 @@ public class PatchingService(IMutagenService mutagenService, ILoggingService log
 
         _logger.Information("Patch master list: {Masters}",
             string.Join(", ", masterList.Select(m => m.Master.FileName)));
+    }
+
+    /// <summary>
+    /// Attempts to ESL-flag the patch if it's safe to do so (under 2048 new records).
+    /// Override records don't count against this limit since they reuse existing FormIDs.
+    /// </summary>
+    private void TryApplyEslFlag(SkyrimMod patchMod)
+    {
+        // ESL plugins can have at most 2048 new records (FormIDs 0x000-0x7FF in light master range)
+        // Override records don't count - they reuse the original FormID
+        const int eslRecordLimit = 2048;
+
+        // Count only NEW records (those with FormKeys belonging to this mod)
+        var newRecordCount = patchMod.EnumerateMajorRecords()
+            .Count(r => r.FormKey.ModKey == patchMod.ModKey);
+
+        if (newRecordCount < eslRecordLimit)
+        {
+            patchMod.ModHeader.Flags |= SkyrimModHeader.HeaderFlag.Light;
+            _logger.Information("ESL flag applied. New record count: {Count} (limit: {Limit}).",
+                newRecordCount, eslRecordLimit);
+        }
+        else
+        {
+            _logger.Warning("ESL flag NOT applied. New record count {Count} exceeds limit of {Limit}.",
+                newRecordCount, eslRecordLimit);
+        }
     }
 }

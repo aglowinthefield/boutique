@@ -3,12 +3,16 @@ using Mutagen.Bethesda;
 using Mutagen.Bethesda.Environments;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
+using Serilog;
 
 namespace Boutique.Services;
 
-public class MutagenService : IMutagenService
+public class MutagenService(ILoggingService loggingService) : IMutagenService
 {
+    private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
     private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
+
+    public event EventHandler? PluginsChanged;
 
     public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
@@ -122,10 +126,13 @@ public class MutagenService : IMutagenService
         });
     }
 
-    public async Task RefreshLinkCacheAsync()
+    public async Task RefreshLinkCacheAsync(string? expectedPlugin = null)
     {
         if (string.IsNullOrEmpty(DataFolderPath))
             return;
+
+        var previousCount = _environment?.LoadOrder.Count ?? 0;
+        _logger.Information("Refreshing LinkCache (current load order: {PreviousCount} mod(s))...", previousCount);
 
         await Task.Run(() =>
         {
@@ -135,10 +142,46 @@ public class MutagenService : IMutagenService
             _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
             LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
         });
+
+        var newCount = _environment?.LoadOrder.Count ?? 0;
+        var diff = newCount - previousCount;
+        var diffText = diff > 0 ? $"+{diff}" : diff.ToString();
+
+        _logger.Information("LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
+            previousCount, newCount, diffText);
+
+        // Verify the expected plugin exists on disk (it may not be in the load order if not enabled in plugins.txt)
+        if (!string.IsNullOrEmpty(expectedPlugin) && !string.IsNullOrEmpty(DataFolderPath))
+        {
+            var pluginPath = Path.Combine(DataFolderPath, expectedPlugin);
+            var fileExists = File.Exists(pluginPath);
+
+            if (fileExists)
+            {
+                var fileInfo = new FileInfo(pluginPath);
+                _logger.Information("Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
+                    expectedPlugin, fileInfo.Length, fileInfo.LastWriteTime);
+
+                // Check if it's also in the active load order (enabled in plugins.txt)
+                var inLoadOrder = _environment?.LoadOrder
+                    .Any(entry => string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+                if (!inLoadOrder)
+                    _logger.Debug("{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.", expectedPlugin);
+            }
+            else
+            {
+                _logger.Warning("Expected plugin {Plugin} was NOT found at {Path}!", expectedPlugin, pluginPath);
+            }
+        }
+
+        // Notify subscribers that the plugin list may have changed
+        PluginsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void ReleaseLinkCache()
     {
+        _logger.Debug("Releasing LinkCache file handles...");
         _environment?.Dispose();
         _environment = null;
         LinkCache = null;

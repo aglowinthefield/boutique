@@ -6,6 +6,11 @@ namespace Boutique.Services;
 public interface IMutagenService
 {
     /// <summary>
+    ///     Raised when the plugin list may have changed (e.g., after writing a new patch).
+    ///     ViewModels should subscribe to refresh their plugin lists.
+    /// </summary>
+    event EventHandler? PluginsChanged;
+    /// <summary>
     ///     Gets the LinkCache for resolving FormLinks
     /// </summary>
     ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; }
@@ -44,7 +49,8 @@ public interface IMutagenService
     ///     Refreshes the LinkCache to pick up newly created or modified plugins.
     ///     Call this after writing a patch to ensure subsequent operations can read it.
     /// </summary>
-    Task RefreshLinkCacheAsync();
+    /// <param name="expectedPlugin">Optional plugin filename to verify is present after refresh.</param>
+    Task RefreshLinkCacheAsync(string? expectedPlugin = null);
 
     /// <summary>
     ///     Releases file handles held by the environment/LinkCache.

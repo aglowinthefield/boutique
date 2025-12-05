@@ -102,6 +102,9 @@ public class DistributionViewModel : ReactiveObject
         _mutagenService = mutagenService;
         _logger = logger.ForContext<DistributionViewModel>();
 
+        // Subscribe to plugin changes so we refresh the available outfits list
+        _mutagenService.PluginsChanged += OnPluginsChanged;
+
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         PreviewLineCommand = ReactiveCommand.CreateFromTask<DistributionLine>(PreviewLineAsync, 
             this.WhenAnyValue(vm => vm.IsLoading).Select(loading => !loading));
@@ -974,41 +977,6 @@ public class DistributionViewModel : ReactiveObject
         DistributionPreviewText = string.Join(Environment.NewLine, lines);
     }
 
-    private void LoadAvailableOutfits()
-    {
-        // Only load once, and only if not already loaded
-        if (_outfitsLoaded || AvailableOutfits.Count > 0)
-            return;
-
-        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            AvailableOutfits.Clear();
-            return;
-        }
-
-        try
-        {
-            // Load outfits on background thread to avoid blocking UI
-            Task.Run(() =>
-            {
-                var outfits = linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                
-                // Dispatch back to UI thread to update collection
-                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                {
-                    AvailableOutfits = new ObservableCollection<IOutfitGetter>(outfits);
-                    _outfitsLoaded = true;
-                    _logger.Debug("Loaded {Count} available outfits.", outfits.Count);
-                }, System.Windows.Threading.DispatcherPriority.Background);
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to load available outfits.");
-            AvailableOutfits.Clear();
-        }
-    }
-
     private async Task LoadAvailableOutfitsAsync()
     {
         // Only load once, and only if not already loaded
@@ -1023,10 +991,14 @@ public class DistributionViewModel : ReactiveObject
 
         try
         {
-            // Load outfits on background thread
+            // Load outfits from the active load order (enabled plugins)
             var outfits = await Task.Run(() => 
                 linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList());
-            
+
+            // Also load outfits from the patch file if it exists but isn't in the active load order
+            // This handles newly created patches that aren't enabled in plugins.txt yet
+            await MergeOutfitsFromPatchFileAsync(outfits);
+
             // Update collection on UI thread
             AvailableOutfits = new ObservableCollection<IOutfitGetter>(outfits);
             _outfitsLoaded = true;
@@ -1038,13 +1010,51 @@ public class DistributionViewModel : ReactiveObject
             AvailableOutfits.Clear();
         }
     }
-    
+
+    /// <summary>
+    /// Merges outfits from the patch file into the provided list if the patch exists
+    /// but isn't in the active load order (not enabled in plugins.txt).
+    /// </summary>
+    private async Task MergeOutfitsFromPatchFileAsync(List<IOutfitGetter> outfits)
+    {
+        var patchPath = _settings.FullOutputPath;
+        if (string.IsNullOrEmpty(patchPath) || !File.Exists(patchPath))
+            return;
+
+        var patchOutfits = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
+        var existingFormKeys = outfits.Select(o => o.FormKey).ToHashSet();
+
+        var newOutfits = patchOutfits.Where(o => !existingFormKeys.Contains(o.FormKey)).ToList();
+        if (newOutfits.Count > 0)
+        {
+            outfits.AddRange(newOutfits);
+            _logger.Information("Added {Count} outfit(s) from patch file {Patch} (not in active load order).",
+                newOutfits.Count, Path.GetFileName(patchPath));
+        }
+    }
+
     // Public method to trigger lazy loading when ComboBox opens
     public void EnsureOutfitsLoaded()
     {
         if (!_outfitsLoaded)
         {
-            LoadAvailableOutfits();
+            // Fire and forget - the async method will update the collection when done
+            _ = LoadAvailableOutfitsAsync();
+        }
+    }
+
+    private async void OnPluginsChanged(object? sender, EventArgs e)
+    {
+        _logger.Debug("PluginsChanged event received in DistributionViewModel, invalidating outfits cache...");
+
+        // Reset the loaded flag so outfits will be reloaded on next access
+        _outfitsLoaded = false;
+
+        // If we're in edit mode, reload outfits immediately so the dropdown has the latest
+        if (IsEditMode)
+        {
+            _logger.Information("Edit mode active, reloading available outfits...");
+            await LoadAvailableOutfitsAsync();
         }
     }
 

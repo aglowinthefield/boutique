@@ -78,6 +78,9 @@ public class MainViewModel : ReactiveObject
         Distribution = distributionViewModel;
         _logger = loggingService.ForContext<MainViewModel>();
 
+        // Subscribe to plugin list changes so we can refresh the available plugins dropdown
+        _mutagenService.PluginsChanged += OnPluginsChanged;
+
         ConfigureSourceArmorsView();
         ConfigureTargetArmorsView();
         ConfigureOutfitArmorsView();
@@ -867,6 +870,25 @@ public class MainViewModel : ReactiveObject
         finally
         {
             EndLoading();
+        }
+    }
+
+    private async void OnPluginsChanged(object? sender, EventArgs e)
+    {
+        _logger.Debug("PluginsChanged event received, refreshing available plugins list...");
+
+        try
+        {
+            var plugins = await _mutagenService.GetAvailablePluginsAsync();
+            var previousCount = AvailablePlugins.Count;
+            AvailablePlugins = new ObservableCollection<string>(plugins);
+
+            _logger.Information("Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
+                previousCount, AvailablePlugins.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to refresh available plugins list.");
         }
     }
 
