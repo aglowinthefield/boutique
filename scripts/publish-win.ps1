@@ -36,26 +36,19 @@ if ($boutiqueProcesses)
     Write-Host "Boutique processes stopped." -ForegroundColor Green
 }
 
-$selfContained = if ($SelfContained)
-{
-    "true"
-}
-else
-{
-    "false"
-}
+$selfContainedValue = $SelfContained.ToString().ToLower()
 
 $arguments = @(
     "publish", $projectPath,
     "-c", $Configuration,
     "-r", $Runtime,
-    "--self-contained", $selfContained,
+    "--self-contained", $selfContainedValue,
     "-p:PublishSingleFile=true",
     "-p:IncludeNativeLibrariesForSelfExtract=true",
     "--output", $publishPath
 )
 
-Write-Host "Publishing Boutique ($Configuration | $Runtime | SelfContained=$selfContained)..." -ForegroundColor Cyan
+Write-Host "Publishing Boutique ($Configuration | $Runtime | SelfContained=$selfContainedValue)..." -ForegroundColor Cyan
 Write-Host "Output: $publishPath" -ForegroundColor Cyan
 
 dotnet @arguments

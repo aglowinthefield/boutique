@@ -2,13 +2,17 @@ root = true
 
 [*]
 indent_style = space
-indent_size = 2
+indent_size = 4
 end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+[*.{json,yml,yaml}]
+indent_size = 2
+
 [*.cs]
+indent_size = 4
 # Unused code detection
 dotnet_diagnostic.IDE0051.severity = warning  # Private member is never used
 dotnet_diagnostic.IDE0052.severity = warning  # Private member value assigned but never read
