@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:Boutique.Views"
              mc:Ignorable="d"
+             x:Name="Root"
              d:DesignHeight="800"
              d:DesignWidth="1200">
     <Grid Margin="4,0,0,6">
@@ -263,13 +264,13 @@
                                                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
                                                         <RadioButton Content="Assign"
                                                                      IsChecked="{Binding IsSelected}"
-                                                                     Command="{Binding DataContext.SelectEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                     Command="{Binding DataContext.SelectEntryCommand, ElementName=Root}"
                                                                      CommandParameter="{Binding}"
                                                                      Margin="0,0,12,0"
                                                                      VerticalAlignment="Center"
                                                                      FontWeight="Bold" />
                                                         <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                        <ComboBox ItemsSource="{Binding DataContext.AvailableOutfits, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        <ComboBox ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
                                                                   SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
                                                                   Text="{Binding SelectedOutfit.EditorID, Mode=OneWay}"
                                                                   DisplayMemberPath="EditorID"
@@ -288,7 +289,7 @@
                                                                 Background="Transparent"
                                                                 BorderBrush="Transparent"
                                                                 BorderThickness="0"
-                                                                Command="{Binding DataContext.PreviewEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}"
                                                                 CommandParameter="{Binding}">
                                                             <Image Source="pack://application:,,,/Assets/eye.png"
                                                                    Width="16"
