@@ -110,6 +110,61 @@ All services are registered in `App.xaml.cs` using Autofac. The DI container res
 - Parses INI files for outfit distribution management
 - Types: `DistributionFileType.Spid` and `DistributionFileType.SkyPatcher`
 
+### SPID Distribution Syntax Reference
+
+**Docs**: https://www.nexusmods.com/skyrimspecialedition/articles/6617
+
+SPID distributes forms at runtime (no plugin/save changes). Configs are `*_DISTR.ini` files in `Data/`.
+
+**General Syntax**:
+```
+FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
+           ─────────────── ───────────── ─────────── ──────────── ──────────── ───────────────── ──────
+               required       optional     optional    optional     optional       optional      optional
+```
+
+**Example**: `Outfit = 1_Obi_Druchii|ActorTypeNPC|VampireFaction|NONE|F|NONE|5`
+- Outfit `1_Obi_Druchii` → Female NPCs with `ActorTypeNPC` keyword AND in `VampireFaction` → 5% chance
+
+**Form Types**: `Spell`, `Perk`, `Item`, `Shout`, `Package`, `Keyword`, `Outfit`, `SleepOutfit`, `Faction`, `Skin`
+
+**Distributable Form** (position 1):
+- EditorID: `ElvenMace`, `DefaultOutfit`
+- FormID: `0x12345~MyPlugin.esp`
+
+**StringFilters** (position 2) - NPC name, EditorID, keywords, race keywords:
+- Exact: `Balgruuf`, `ActorTypeNPC`
+- Exclude: `-Balgruuf`
+- Partial: `*Guard` (matches "Whiterun Guard", "Falkreath Guard")
+- Combine (AND): `ActorTypeNPC+Bandit+ActorTypeGhost`
+- Multiple (OR): `Balgruuf,Ulfric,Elisif`
+
+**FormFilters** (position 3) - Race, Class, Faction, CombatStyle, Outfit, Perk, VoiceType, Location, specific NPC:
+- Include: `NordRace`, `CrimeFactionWhiterun`
+- Exclude: `-NordRace`
+- Combine (AND): `NordRace+CrimeFactionWhiterun`
+- Plugin filter: `CoolNPCs.esp`
+
+**LevelFilters** (position 4):
+- Min level: `5` or `5/`
+- Range: `5/20`
+- Exact: `10/10`
+- Skill: `14(50/50)` (skill index 14 = Destruction at exactly 50)
+
+**TraitFilters** (position 5):
+- `F` = Female, `M` = Male, `U` = Unique, `S` = Summonable, `C` = Child, `L` = Leveled, `T` = Teammate, `D` = Dead
+- Exclude: `-U` (not unique)
+- Combine: `-U/M/-C` (non-unique male adults)
+
+**CountOrPackageIdx** (position 6):
+- Items: count (`3`) or range (`10-20`)
+- Packages: insertion index (0-based)
+
+**Chance** (position 7): Percentage 0-100, default 100
+
+**Filter Logic**: Sections are AND, expressions within a section are OR.
+`Form = 0x12345|A,B|0x12,0x34` → "(A OR B) AND (0x12 OR 0x34)"
+
 ### Mutagen Integration
 
 Mutagen is the core library for reading and writing Bethesda plugin files. Key concepts:

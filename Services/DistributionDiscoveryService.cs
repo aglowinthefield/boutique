@@ -215,7 +215,7 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
         };
     }
 
-    private static IReadOnlyList<string> ExtractSpidOutfitKeys(string trimmed)
+    internal static IReadOnlyList<string> ExtractSpidOutfitKeys(string trimmed)
     {
         var equalsIndex = trimmed.IndexOf('=');
         if (equalsIndex < 0)
@@ -225,11 +225,153 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
         if (string.IsNullOrWhiteSpace(valuePortion))
             return Array.Empty<string>();
 
-        var tokens = valuePortion.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-        return NormalizeFormKeyTokens(tokens);
+        // SPID format: OutfitIdentifier|StringFilters|FormFilters|LevelFilters|Traits|IdxOrCount|Chance
+        // The identifier can be:
+        // - EditorID: 1_Obi_Druchii
+        // - FormKey with tilde: 0x12345~Plugin.esp
+        // - FormKey with pipe: Plugin.esp|0x12345
+        // We need to extract just the outfit identifier(s), not the filter parameters.
+        
+        // Handle comma-separated multiple outfit identifiers
+        var tokens = valuePortion.Split([','], StringSplitOptions.RemoveEmptyEntries);
+        var results = new List<string>();
+        
+        foreach (var token in tokens)
+        {
+            var outfitId = ExtractSpidOutfitIdentifier(token.Trim());
+            if (!string.IsNullOrWhiteSpace(outfitId))
+                results.Add(outfitId);
+        }
+        
+        return results;
     }
 
-    private static IReadOnlyList<string> ExtractSkyPatcherOutfitKeys(string trimmed)
+    /// <summary>
+    /// Extracts the outfit identifier from a SPID value token, stripping any filter parameters.
+    /// </summary>
+    internal static string ExtractSpidOutfitIdentifier(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return string.Empty;
+
+        var cleaned = RemoveInlineComment(token);
+        if (string.IsNullOrWhiteSpace(cleaned))
+            return string.Empty;
+
+        // Check for tilde-format FormKey: 0x12345~Plugin.esp or 0x12345~Plugin.esp|filters
+        var tildeIndex = cleaned.IndexOf('~');
+        if (tildeIndex >= 0)
+        {
+            // Format: FormID~ModKey|filters
+            // We need FormID~ModKey
+            var afterTilde = cleaned[(tildeIndex + 1)..];
+            var pipeAfterMod = afterTilde.IndexOf('|');
+            
+            if (pipeAfterMod >= 0)
+            {
+                // Check if there's a valid mod extension before the pipe
+                var modPart = afterTilde[..pipeAfterMod];
+                if (IsModKeyFileName(modPart))
+                {
+                    // This is FormID~ModKey|filters, extract FormID~ModKey
+                    return cleaned[..(tildeIndex + 1 + pipeAfterMod)];
+                }
+            }
+            
+            // No pipe after mod, or the part after tilde to pipe isn't a valid mod
+            // Check if the whole part after tilde is a mod key
+            var endOfModKey = FindEndOfModKey(afterTilde);
+            if (endOfModKey > 0)
+                return cleaned[..(tildeIndex + 1 + endOfModKey)];
+            
+            // Fallback: return everything up to first pipe after tilde
+            return pipeAfterMod >= 0 ? cleaned[..(tildeIndex + 1 + pipeAfterMod)] : cleaned;
+        }
+
+        // Check for pipe-format FormKey: Plugin.esp|0x12345|filters
+        var pipeIndex = cleaned.IndexOf('|');
+        if (pipeIndex >= 0)
+        {
+            var firstPart = cleaned[..pipeIndex];
+            
+            // If first part is a mod key (ends with .esp/.esm/.esl), then second part is FormID
+            if (IsModKeyFileName(firstPart))
+            {
+                var afterFirstPipe = cleaned[(pipeIndex + 1)..];
+                var secondPipe = afterFirstPipe.IndexOf('|');
+                
+                if (secondPipe >= 0)
+                {
+                    // Check if the part between pipes looks like a FormID (hex number)
+                    var potentialFormId = afterFirstPipe[..secondPipe];
+                    if (LooksLikeFormId(potentialFormId))
+                    {
+                        // This is ModKey|FormID|filters
+                        return cleaned[..(pipeIndex + 1 + secondPipe)];
+                    }
+                }
+                else
+                {
+                    // Only one pipe: ModKey|FormID (no filters)
+                    return cleaned;
+                }
+            }
+            
+            // First part is not a mod key, so this is EditorID|filters format
+            // Return just the EditorID
+            return firstPart;
+        }
+
+        // No tilde or pipe - just an EditorID
+        return cleaned;
+    }
+
+    /// <summary>
+    /// Checks if a string looks like a mod key file name (ends with .esp, .esm, or .esl).
+    /// </summary>
+    internal static bool IsModKeyFileName(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        
+        return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
+               text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
+               text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Finds the end index of a mod key in a string (looking for .esp/.esm/.esl).
+    /// </summary>
+    private static int FindEndOfModKey(string text)
+    {
+        var extensions = new[] { ".esp", ".esm", ".esl" };
+        foreach (var ext in extensions)
+        {
+            var idx = text.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+                return idx + ext.Length;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Checks if a string looks like a FormID (hex number with optional 0x prefix).
+    /// </summary>
+    internal static bool LooksLikeFormId(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        
+        var trimmed = text.Trim();
+        if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            trimmed = trimmed[2..];
+        
+        // FormIDs are hex numbers, typically 6-8 characters
+        return trimmed.Length >= 1 && trimmed.Length <= 8 && 
+               trimmed.All(c => char.IsAsciiHexDigit(c));
+    }
+
+    internal static IReadOnlyList<string> ExtractSkyPatcherOutfitKeys(string trimmed)
     {
         var keys = new List<string>();
         
