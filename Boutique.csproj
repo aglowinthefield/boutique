@@ -12,6 +12,11 @@
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <NoWarn>$(NoWarn);CS0436</NoWarn>
         
+        <!-- Versioning -->
+        <Version>1.0.0</Version>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        
         <!-- Code analysis for detecting unused code -->
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest</AnalysisLevel>
@@ -35,6 +40,7 @@
         <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
             <NoWarn>NU1701</NoWarn>
         </PackageReference>
+        <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2" />
     </ItemGroup>
 
     <ItemGroup>

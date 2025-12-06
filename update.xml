@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<item>
+    <!-- 
+        AutoUpdater.NET Update Configuration
+        
+        Update this file when releasing a new version:
+        1. Update the <version> to match the new release version
+        2. Update the <url> to point to the new release download
+        3. Update the <changelog> to point to the release notes
+        4. Commit and push this file to your main branch
+        
+        The app checks this file on startup to see if updates are available.
+    -->
+    
+    <!-- Must match the Version in Boutique.csproj (e.g., 1.0.0) -->
+    <version>1.0.0</version>
+    
+    <!-- Direct download URL to the release zip file -->
+    <url>https://github.com/aglowinthefield/Boutique/releases/download/v1.0.0/Boutique.zip</url>
+    
+    <!-- Link to release notes/changelog (shown as "What's New" link) -->
+    <changelog>https://github.com/aglowinthefield/Boutique/releases/tag/v1.0.0</changelog>
+    
+    <!-- Set to true to force users to update before using the app -->
+    <mandatory>false</mandatory>
+    
+    <!-- Optional: Minimum version required to use this update path -->
+    <!-- <mandatory minVersion="1.0.0">false</mandatory> -->
+    
+    <!-- Optional: Checksum for verifying download integrity -->
+    <!-- <checksum algorithm="MD5">checksum_value_here</checksum> -->
+</item>
+

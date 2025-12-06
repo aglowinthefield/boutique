@@ -1,7 +1,9 @@
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using Autofac;
+using AutoUpdaterDotNET;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.ViewModels;
@@ -66,6 +68,32 @@ public partial class App
         {
             Log.Fatal(ex, "Failed to show main window.");
             throw;
+        }
+
+        // Check for updates
+        CheckForUpdates();
+    }
+
+    private static void CheckForUpdates()
+    {
+        try
+        {
+            // Configure AutoUpdater
+            AutoUpdater.InstalledVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            AutoUpdater.ShowSkipButton = true;
+            AutoUpdater.ShowRemindLaterButton = true;
+            AutoUpdater.ReportErrors = false; // Fail silently if no internet connection
+            AutoUpdater.RunUpdateAsAdmin = false;
+            
+            const string updateUrl = "https://raw.githubusercontent.com/aglowinthefield/Boutique/main/update.xml";
+            
+            AutoUpdater.Start(updateUrl);
+            Log.Information("Update check initiated.");
+        }
+        catch (Exception ex)
+        {
+            // Don't crash the app if update check fails
+            Log.Warning(ex, "Failed to check for updates.");
         }
     }
 
