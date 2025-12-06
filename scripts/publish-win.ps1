@@ -119,8 +119,8 @@ Write-Host "Distribution zip created: $zipPath" -ForegroundColor Green
 # Show next steps
 Write-Host ""
 Write-Host "=== Release Checklist ===" -ForegroundColor Magenta
-Write-Host "1. Update 'update.xml' with the new version and download URL" -ForegroundColor White
-Write-Host "2. Create a GitHub release with tag 'v$Version'" -ForegroundColor White
-Write-Host "3. Upload 'artifacts/publish/Boutique.zip' to the release" -ForegroundColor White
-Write-Host "4. Commit and push the updated 'update.xml'" -ForegroundColor White
+Write-Host "1. Create a GitHub release with tag 'v$Version' (or '$Version-alpha', etc.)" -ForegroundColor White
+Write-Host "2. Upload 'artifacts/publish/Boutique.zip' to the release" -ForegroundColor White
+Write-Host ""
+Write-Host "The app will automatically detect the new release from GitHub!" -ForegroundColor Green
 Write-Host ""

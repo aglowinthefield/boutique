@@ -12,10 +12,10 @@
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <NoWarn>$(NoWarn);CS0436</NoWarn>
         
-        <!-- Versioning -->
-        <Version>1.0.0</Version>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
+        <!-- Versioning - update this for each release -->
+        <Version>0.0.1</Version>
+        <AssemblyVersion>0.0.1.0</AssemblyVersion>
+        <FileVersion>0.0.1.0</FileVersion>
         
         <!-- Code analysis for detecting unused code -->
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
