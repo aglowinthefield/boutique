@@ -647,7 +647,7 @@
                                 </DataGridTextColumn>
                                 <DataGridTextColumn Header="FormKey" 
                                                     Binding="{Binding FormKeyString}" 
-                                                    Width="150"
+                                                    Width="130"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -656,6 +656,29 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
+                                <DataGridTextColumn Header="Targeting" 
+                                                    Binding="{Binding TargetingType}" 
+                                                    Width="100"
+                                                    CanUserSort="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="10" />
+                                            <Setter Property="Foreground" Value="#0066CC" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn Header="Chance" Width="60" CanUserSort="True" SortMemberPath="Chance">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding ChanceDisplay}"
+                                                       Foreground="#CC6600"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="10"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                                 <DataGridTemplateColumn Header="Conflict" Width="70" CanUserSort="True" SortMemberPath="HasConflict">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -706,6 +729,8 @@
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto" />
                                                             <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
                                                         </Grid.RowDefinitions>
                                                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                                                             <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
@@ -723,12 +748,41 @@
                                                                     </Style>
                                                                 </TextBlock.Style>
                                                             </TextBlock>
+                                                            <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}" 
+                                                                       Foreground="#CC6600" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Chance}" Value="100">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
                                                         </StackPanel>
                                                         <TextBlock Grid.Row="1" 
                                                                    Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
                                                                    FontFamily="Consolas"
                                                                    FontSize="11"
                                                                    Margin="0,2,0,0" />
+                                                        <TextBlock Grid.Row="2" 
+                                                                   Text="{Binding TargetingDescription}"
+                                                                   Foreground="#0066CC"
+                                                                   FontSize="10"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0,2,0,0">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding TargetingDescription}" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>

@@ -1834,11 +1834,18 @@ public class DistributionViewModel : ReactiveObject
                     file.FileName, file.Type, file.Lines.Count, file.OutfitDistributionCount);
             }
 
+            // First, scan all NPCs with full filter data for proper SPID matching
+            StatusMessage = "Scanning NPCs for filter matching...";
+            _logger.Debug("Scanning NPCs with full filter data...");
+            var npcFilterData = await _npcScanningService.ScanNpcsWithFilterDataAsync();
+            _logger.Debug("Scanned {Count} NPCs with filter data", npcFilterData.Count);
+            
             StatusMessage = $"Resolving outfit assignments from {distributionFiles.Count} files...";
-            _logger.Debug("Calling ResolveNpcOutfitsAsync with {Count} files", distributionFiles.Count);
+            _logger.Debug("Calling ResolveNpcOutfitsWithFiltersAsync with {FileCount} files and {NpcCount} NPCs", 
+                distributionFiles.Count, npcFilterData.Count);
 
-            var assignments = await _npcOutfitResolutionService.ResolveNpcOutfitsAsync(distributionFiles);
-            _logger.Debug("ResolveNpcOutfitsAsync returned {Count} assignments", assignments.Count);
+            var assignments = await _npcOutfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(distributionFiles, npcFilterData);
+            _logger.Debug("ResolveNpcOutfitsWithFiltersAsync returned {Count} assignments", assignments.Count);
 
             NpcOutfitAssignments.Clear();
             foreach (var assignment in assignments)
