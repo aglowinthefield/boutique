@@ -45,6 +45,7 @@ public partial class App
         builder.RegisterType<DistributionFileWriterService>().As<IDistributionFileWriterService>().SingleInstance();
         builder.RegisterType<NpcOutfitResolutionService>().As<INpcOutfitResolutionService>().SingleInstance();
         builder.RegisterType<SpidFilterMatchingService>().As<ISpidFilterMatchingService>().SingleInstance();
+        builder.RegisterType<DistributionConflictDetectionService>().As<IDistributionConflictDetectionService>().SingleInstance();
 
         // Register ViewModels
         builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();

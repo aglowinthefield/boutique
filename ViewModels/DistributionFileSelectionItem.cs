@@ -1,15 +1,9 @@
 namespace Boutique.ViewModels;
 
-public class DistributionFileSelectionItem
+public class DistributionFileSelectionItem(bool isNewFile, DistributionFileViewModel? file)
 {
-    public bool IsNewFile { get; }
-    public DistributionFileViewModel? File { get; }
-
-    public DistributionFileSelectionItem(bool isNewFile, DistributionFileViewModel? file)
-    {
-        IsNewFile = isNewFile;
-        File = file;
-    }
+    public bool IsNewFile { get; } = isNewFile;
+    public DistributionFileViewModel? File { get; } = file;
 
     public string DisplayName
     {

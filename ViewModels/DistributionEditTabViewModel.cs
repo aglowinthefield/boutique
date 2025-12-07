@@ -6,7 +6,6 @@ using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
 using Microsoft.Win32;
-using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -16,116 +15,52 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public enum DistributionTab
+public class DistributionEditTabViewModel : ReactiveObject
 {
-    Files = 0,
-    Edit = 1,
-    Npcs = 2
-}
-
-public class DistributionViewModel : ReactiveObject
-{
-    private readonly IDistributionDiscoveryService _discoveryService;
     private readonly IDistributionFileWriterService _fileWriterService;
     private readonly INpcScanningService _npcScanningService;
-    private readonly INpcOutfitResolutionService _npcOutfitResolutionService;
     private readonly IDistributionConflictDetectionService _conflictDetectionService;
-    private readonly ILogger _logger;
-    private readonly IMutagenService _mutagenService;
     private readonly IArmorPreviewService _armorPreviewService;
+    private readonly IMutagenService _mutagenService;
     private readonly SettingsViewModel _settings;
-    
-    /// <summary>
-    /// Exposes SettingsViewModel for data binding in SettingsPanelView.
-    /// This ensures consistent settings state across all tabs.
-    /// </summary>
-    public SettingsViewModel Settings => _settings;
+    private readonly ILogger _logger;
 
     private ObservableCollection<DistributionEntryViewModel> _distributionEntries = new();
     private bool _isBulkLoading;
     private bool _outfitsLoaded;
-    
-    private void OnDistributionEntriesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        // Skip expensive operations during bulk loading
-        if (_isBulkLoading)
-            return;
-            
-        _logger.Debug("OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}", 
-            e.Action, e.NewItems?.Count ?? 0, e.OldItems?.Count ?? 0);
-        
-        // Raise PropertyChanged synchronously - this is fast and necessary for bindings
-        this.RaisePropertyChanged(nameof(DistributionEntriesCount));
-        
-        // Subscribe to property changes on new entries
-        if (e.NewItems != null)
-        {
-            foreach (DistributionEntryViewModel entry in e.NewItems)
-            {
-                SubscribeToEntryChanges(entry);
-            }
-        }
-        
-        // Update preview whenever entries change
-        UpdateDistributionPreview();
-        
-        _logger.Debug("OnDistributionEntriesChanged completed");
-    }
-    
-    private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
-    {
-        entry.WhenAnyValue(evm => evm.SelectedOutfit)
-            .Skip(1) // Skip initial value
-            .Subscribe(_ => UpdateDistributionPreview());
-        entry.WhenAnyValue(evm => evm.SelectedNpcs)
-            .Skip(1) // Skip initial value
-            .Subscribe(_ => UpdateDistributionPreview());
-        entry.SelectedNpcs.CollectionChanged += (s, args) => UpdateDistributionPreview();
-    }
-    
-    private int DistributionEntriesCount => _distributionEntries.Count;
 
-    public DistributionViewModel(
-        IDistributionDiscoveryService discoveryService,
+    public DistributionEditTabViewModel(
         IDistributionFileWriterService fileWriterService,
         INpcScanningService npcScanningService,
-        INpcOutfitResolutionService npcOutfitResolutionService,
         IDistributionConflictDetectionService conflictDetectionService,
-        SettingsViewModel settings,
         IArmorPreviewService armorPreviewService,
         IMutagenService mutagenService,
+        SettingsViewModel settings,
         ILogger logger)
     {
-        _discoveryService = discoveryService;
         _fileWriterService = fileWriterService;
         _npcScanningService = npcScanningService;
-        _npcOutfitResolutionService = npcOutfitResolutionService;
         _conflictDetectionService = conflictDetectionService;
-        _settings = settings;
         _armorPreviewService = armorPreviewService;
         _mutagenService = mutagenService;
-        _logger = logger.ForContext<DistributionViewModel>();
+        _settings = settings;
+        _logger = logger.ForContext<DistributionEditTabViewModel>();
 
         // Subscribe to plugin changes so we refresh the available outfits list
         _mutagenService.PluginsChanged += OnPluginsChanged;
 
-        RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
-        
-        var notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
-        PreviewLineCommand = ReactiveCommand.CreateFromTask<DistributionLine>(PreviewLineAsync, notLoading);
-        PreviewEntryCommand = ReactiveCommand.CreateFromTask<DistributionEntryViewModel>(PreviewEntryAsync, notLoading);
-        
         // Subscribe to collection changes to update computed count property
         _distributionEntries.CollectionChanged += OnDistributionEntriesChanged;
-        
+
         AddDistributionEntryCommand = ReactiveCommand.Create(AddDistributionEntry);
         RemoveDistributionEntryCommand = ReactiveCommand.Create<DistributionEntryViewModel>(RemoveDistributionEntry);
         SelectEntryCommand = ReactiveCommand.Create<DistributionEntryViewModel>(SelectEntry);
-        
+
         // Simple canExecute observables for commands
         var hasEntries = this.WhenAnyValue(vm => vm.DistributionEntriesCount, count => count > 0);
         AddSelectedNpcsToEntryCommand = ReactiveCommand.Create(AddSelectedNpcsToEntry, hasEntries);
-        
+
+        var notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
         var canSave = this.WhenAnyValue(
             vm => vm.DistributionEntriesCount,
             vm => vm.DistributionFilePath,
@@ -134,110 +69,20 @@ public class DistributionViewModel : ReactiveObject
             (count, path, isNew, newName) => 
                 count > 0 && 
                 (!string.IsNullOrWhiteSpace(path) || (isNew && !string.IsNullOrWhiteSpace(newName))));
-        
+
         SaveDistributionFileCommand = ReactiveCommand.CreateFromTask(SaveDistributionFileAsync, canSave);
         LoadDistributionFileCommand = ReactiveCommand.CreateFromTask(LoadDistributionFileAsync, notLoading);
         ScanNpcsCommand = ReactiveCommand.CreateFromTask(ScanNpcsAsync, notLoading);
         SelectDistributionFilePathCommand = ReactiveCommand.Create(SelectDistributionFilePath);
-        
-        // NPCs tab commands
-        ScanNpcOutfitsCommand = ReactiveCommand.CreateFromTask(ScanNpcOutfitsAsync, notLoading);
-        PreviewNpcOutfitCommand = ReactiveCommand.CreateFromTask<NpcOutfitAssignmentViewModel>(PreviewNpcOutfitAsync, notLoading);
-
-        // Trigger edit mode initialization when Edit tab is selected
-        this.WhenAnyValue(vm => vm.SelectedTabIndex)
-            .Where(index => index == (int)DistributionTab.Edit)
-            .Subscribe(_ =>
-            {
-                this.RaisePropertyChanged(nameof(IsEditMode));
-                UpdateAvailableDistributionFiles();
-                if (SelectedDistributionFile == null)
-                {
-                    // Select "New File" by default
-                    var newFileItem = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-                    if (newFileItem != null)
-                    {
-                        SelectedDistributionFile = newFileItem;
-                    }
-                }
-                // Don't load outfits upfront - load lazily when ComboBox opens
-                // Update preview when entering edit mode
-                UpdateDistributionPreview();
-            });
+        PreviewEntryCommand = ReactiveCommand.CreateFromTask<DistributionEntryViewModel>(PreviewEntryAsync, notLoading);
 
         this.WhenAnyValue(vm => vm.NpcSearchText)
             .Subscribe(_ => UpdateFilteredNpcs());
-        
-        // NPCs tab search filtering
-        this.WhenAnyValue(vm => vm.NpcOutfitSearchText)
-            .Subscribe(_ => UpdateFilteredNpcOutfitAssignments());
-        
-        // Update outfit contents when selection changes
-        this.WhenAnyValue(vm => vm.SelectedNpcAssignment)
-            .Subscribe(_ => UpdateSelectedNpcOutfitContents());
-        
-        // Auto-scan NPC outfits when NPCs tab is selected
-        this.WhenAnyValue(vm => vm.SelectedTabIndex)
-            .Where(index => index == (int)DistributionTab.Npcs)
-            .Subscribe(_ => 
-            {
-                // Only auto-scan if we haven't already scanned
-                if (NpcOutfitAssignments.Count == 0 && !IsLoading)
-                {
-                    _logger.Debug("NPCs tab selected, triggering auto-scan");
-                    Task.Run(() => ScanNpcOutfitsAsync());
-                }
-            });
-
-        // Update FilteredLines when SelectedFile or LineFilter changes
-        this.WhenAnyValue(vm => vm.SelectedFile, vm => vm.LineFilter)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredLines)));
     }
-
-    [Reactive] public ObservableCollection<DistributionFileViewModel> Files { get; private set; } = new();
-
-    [Reactive] public DistributionFileViewModel? SelectedFile { get; set; }
 
     [Reactive] public bool IsLoading { get; private set; }
 
-    [Reactive] public string StatusMessage { get; private set; } = "Distribution files not loaded.";
-
-    public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
-    public ReactiveCommand<DistributionLine, Unit> PreviewLineCommand { get; }
-    public ReactiveCommand<DistributionEntryViewModel, Unit> PreviewEntryCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddDistributionEntryCommand { get; }
-    public ReactiveCommand<DistributionEntryViewModel, Unit> RemoveDistributionEntryCommand { get; }
-    public ReactiveCommand<DistributionEntryViewModel, Unit> SelectEntryCommand { get; }
-    public ReactiveCommand<Unit, Unit> AddSelectedNpcsToEntryCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveDistributionFileCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadDistributionFileCommand { get; }
-    public ReactiveCommand<Unit, Unit> ScanNpcsCommand { get; }
-    public ReactiveCommand<Unit, Unit> SelectDistributionFilePathCommand { get; }
-    public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
-    
-    // NPCs tab commands
-    public ReactiveCommand<Unit, Unit> ScanNpcOutfitsCommand { get; }
-    public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand { get; }
-
-    [Reactive] public string LineFilter { get; set; } = string.Empty;
-
-    public IEnumerable<DistributionLine> FilteredLines
-    {
-        get
-        {
-            var lines = SelectedFile?.Lines ?? Array.Empty<DistributionLine>();
-
-            if (string.IsNullOrWhiteSpace(LineFilter))
-                return lines;
-
-            var term = LineFilter.Trim();
-            return lines.Where(line => line.RawText.Contains(term, StringComparison.OrdinalIgnoreCase));
-        }
-    }
-
-    public string DataPath => _settings.SkyrimDataPath;
-
-    public bool IsEditMode => SelectedTabIndex == (int)DistributionTab.Edit;
+    [Reactive] public string StatusMessage { get; private set; } = string.Empty;
 
     public ObservableCollection<DistributionEntryViewModel> DistributionEntries
     {
@@ -257,6 +102,8 @@ public class DistributionViewModel : ReactiveObject
             }
         }
     }
+
+    private int DistributionEntriesCount => _distributionEntries.Count;
 
     public DistributionEntryViewModel? SelectedEntry
     {
@@ -363,37 +210,6 @@ public class DistributionViewModel : ReactiveObject
 
     [Reactive] public ObservableCollection<NpcRecordViewModel> FilteredNpcs { get; private set; } = new();
 
-    // NPCs tab properties
-    [Reactive] public int SelectedTabIndex { get; set; }
-
-    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> NpcOutfitAssignments { get; private set; } = new();
-
-    public NpcOutfitAssignmentViewModel? SelectedNpcAssignment
-    {
-        get => field;
-        set
-        {
-            // Clear previous selection
-            field?.IsSelected = false;
-            
-            this.RaiseAndSetIfChanged(ref field, value);
-            
-            // Set new selection
-            if (value != null)
-            {
-                value.IsSelected = true;
-            }
-        }
-    }
-
-    [Reactive] public string NpcOutfitSearchText { get; set; } = string.Empty;
-
-    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments { get; private set; } = new();
-
-    [Reactive] public string SelectedNpcOutfitContents { get; private set; } = string.Empty;
-
-    public bool IsInitialized => _mutagenService.IsInitialized;
-
     /// <summary>
     /// Indicates whether the current distribution entries have conflicts with existing files.
     /// </summary>
@@ -414,145 +230,75 @@ public class DistributionViewModel : ReactiveObject
     /// </summary>
     [Reactive] public string SuggestedFileName { get; private set; } = string.Empty;
 
-    public async Task RefreshAsync()
+    public ReactiveCommand<Unit, Unit> AddDistributionEntryCommand { get; }
+    public ReactiveCommand<DistributionEntryViewModel, Unit> RemoveDistributionEntryCommand { get; }
+    public ReactiveCommand<DistributionEntryViewModel, Unit> SelectEntryCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddSelectedNpcsToEntryCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveDistributionFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> LoadDistributionFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> ScanNpcsCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectDistributionFilePathCommand { get; }
+    public ReactiveCommand<DistributionEntryViewModel, Unit> PreviewEntryCommand { get; }
+
+    public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
+
+    public bool IsInitialized => _mutagenService.IsInitialized;
+
+    /// <summary>
+    /// Sets the distribution files from the Files tab. This is used for conflict detection
+    /// and for populating the AvailableDistributionFiles dropdown.
+    /// </summary>
+    public void SetDistributionFiles(IReadOnlyList<DistributionFileViewModel> files)
     {
-        if (IsLoading)
-            return;
-
-        try
-        {
-            IsLoading = true;
-            var dataPath = _settings.SkyrimDataPath;
-
-            if (string.IsNullOrWhiteSpace(dataPath))
-            {
-                Files = [];
-                StatusMessage = "Set the Skyrim data path in Settings to scan distribution files.";
-                return;
-            }
-
-            if (!Directory.Exists(dataPath))
-            {
-                Files = [];
-                StatusMessage = $"Skyrim data path does not exist: {dataPath}";
-                return;
-            }
-
-            StatusMessage = "Scanning for distribution files...";
-            var discovered = await _discoveryService.DiscoverAsync(dataPath);
-            var outfitFiles = discovered
-                .Where(file => file.OutfitDistributionCount > 0)
-                .ToList();
-
-            var viewModels = outfitFiles
-                .Select(file => new DistributionFileViewModel(file))
-                .ToList();
-
-            Files = new ObservableCollection<DistributionFileViewModel>(viewModels);
-            LineFilter = string.Empty;
-            SelectedFile = Files.FirstOrDefault();
-
-            // Update available distribution files for dropdown
-            UpdateAvailableDistributionFiles();
-
-            StatusMessage = Files.Count == 0
-                ? "No outfit distributions found."
-                : $"Found {Files.Count} outfit distribution file(s).";
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to refresh distribution files.");
-            StatusMessage = $"Error loading distribution files: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        UpdateAvailableDistributionFiles(files);
     }
 
-    private async Task PreviewLineAsync(DistributionLine? line)
+    private IReadOnlyList<DistributionFileViewModel>? _distributionFiles;
+
+    /// <summary>
+    /// Internal method to store distribution files for conflict detection.
+    /// </summary>
+    internal void SetDistributionFilesInternal(IReadOnlyList<DistributionFileViewModel> files)
     {
-        if (line == null)
-            return;
-
-        if (line.OutfitFormKeys.Count == 0)
-        {
-            StatusMessage = "Selected line does not reference an outfit.";
-            return;
-        }
-
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
-            return;
-        }
-
-        List<IOutfitGetter>? cachedOutfits = null;
-
-        foreach (var keyString in line.OutfitFormKeys)
-        {
-            if (!OutfitResolver.TryResolve(keyString, linkCache, ref cachedOutfits, out var outfit, out var label))
-                continue;
-
-            var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-            if (armorPieces.Count == 0)
-                continue;
-
-            try
-            {
-                StatusMessage = $"Building preview for {label}...";
-                var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, GenderedModelVariant.Female);
-                await ShowPreview.Handle(scene);
-                StatusMessage = $"Preview ready for {label}.";
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-                StatusMessage = $"Failed to preview outfit: {ex.Message}";
-                return;
-            }
-        }
-
-        StatusMessage = "Unable to resolve outfit for preview.";
+        _distributionFiles = files;
     }
 
-    private async Task PreviewEntryAsync(DistributionEntryViewModel? entry)
+    private void OnDistributionEntriesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        if (entry == null || entry.SelectedOutfit == null)
-        {
-            StatusMessage = "No outfit selected for preview.";
+        // Skip expensive operations during bulk loading
+        if (_isBulkLoading)
             return;
-        }
-
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+            
+        _logger.Debug("OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}", 
+            e.Action, e.NewItems?.Count ?? 0, e.OldItems?.Count ?? 0);
+        
+        // Raise PropertyChanged synchronously - this is fast and necessary for bindings
+        this.RaisePropertyChanged(nameof(DistributionEntriesCount));
+        
+        // Subscribe to property changes on new entries
+        if (e.NewItems != null)
         {
-            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
-            return;
+            foreach (DistributionEntryViewModel entry in e.NewItems)
+            {
+                SubscribeToEntryChanges(entry);
+            }
         }
-
-        var outfit = entry.SelectedOutfit;
-        var label = outfit.EditorID ?? outfit.FormKey.ToString();
-
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (armorPieces.Count == 0)
-        {
-            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
-            return;
-        }
-
-        try
-        {
-            StatusMessage = $"Building preview for {label}...";
-            var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, GenderedModelVariant.Female);
-            await ShowPreview.Handle(scene);
-            StatusMessage = $"Preview ready for {label}.";
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-            StatusMessage = $"Failed to preview outfit: {ex.Message}";
-        }
+        
+        // Update preview whenever entries change
+        UpdateDistributionPreview();
+        
+        _logger.Debug("OnDistributionEntriesChanged completed");
+    }
+    
+    private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
+    {
+        entry.WhenAnyValue(evm => evm.SelectedOutfit)
+            .Skip(1) // Skip initial value
+            .Subscribe(_ => UpdateDistributionPreview());
+        entry.WhenAnyValue(evm => evm.SelectedNpcs)
+            .Skip(1) // Skip initial value
+            .Subscribe(_ => UpdateDistributionPreview());
+        entry.SelectedNpcs.CollectionChanged += (s, args) => UpdateDistributionPreview();
     }
 
     private void AddDistributionEntry()
@@ -761,24 +507,8 @@ public class DistributionViewModel : ReactiveObject
             StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
             _logger.Information("Saved distribution file: {FilePath}", finalFilePath);
 
-            // Refresh the file list
-            await RefreshAsync();
-            
-            // If we saved a new file, select it in the dropdown
-            if (IsCreatingNewFile)
-            {
-                var savedFile = Files.FirstOrDefault(f => 
-                    string.Equals(f.FullPath, finalFilePath, StringComparison.OrdinalIgnoreCase));
-                if (savedFile != null)
-                {
-                    var matchingItem = AvailableDistributionFiles.FirstOrDefault(item => 
-                        !item.IsNewFile && item.File == savedFile);
-                    if (matchingItem != null)
-                    {
-                        SelectedDistributionFile = matchingItem;
-                    }
-                }
-            }
+            // Notify parent that file was saved (for refreshing file list)
+            FileSaved?.Invoke(finalFilePath);
         }
         catch (Exception ex)
         {
@@ -790,6 +520,11 @@ public class DistributionViewModel : ReactiveObject
             IsLoading = false;
         }
     }
+
+    /// <summary>
+    /// Event raised when a file is saved, so the parent can refresh the file list.
+    /// </summary>
+    public event Action<string>? FileSaved;
 
     private async Task LoadDistributionFileAsync()
     {
@@ -839,19 +574,6 @@ public class DistributionViewModel : ReactiveObject
             // Now do a single update for count and preview
             this.RaisePropertyChanged(nameof(DistributionEntriesCount));
             UpdateDistributionPreview();
-
-            // Update selected file in dropdown to match loaded file
-            var matchingFile = Files.FirstOrDefault(f => 
-                string.Equals(f.FullPath, DistributionFilePath, StringComparison.OrdinalIgnoreCase));
-            if (matchingFile != null)
-            {
-                var matchingItem = AvailableDistributionFiles.FirstOrDefault(item => 
-                    !item.IsNewFile && item.File == matchingFile);
-                if (matchingItem != null)
-                {
-                    SelectedDistributionFile = matchingItem;
-                }
-            }
 
             StatusMessage = $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
             _logger.Information("Loaded distribution file: {FilePath} with {Count} entries", DistributionFilePath, entries.Count);
@@ -957,7 +679,7 @@ public class DistributionViewModel : ReactiveObject
         }
     }
 
-    private void UpdateAvailableDistributionFiles()
+    private void UpdateAvailableDistributionFiles(IReadOnlyList<DistributionFileViewModel> files)
     {
         var previousSelected = SelectedDistributionFile;
         var previousFilePath = DistributionFilePath;
@@ -968,7 +690,7 @@ public class DistributionViewModel : ReactiveObject
         items.Add(new DistributionFileSelectionItem(isNewFile: true, file: null));
         
         // Add existing files
-        foreach (var file in Files)
+        foreach (var file in files)
         {
             items.Add(new DistributionFileSelectionItem(isNewFile: false, file: file));
         }
@@ -1130,20 +852,53 @@ public class DistributionViewModel : ReactiveObject
 
     private async void OnPluginsChanged(object? sender, EventArgs e)
     {
-        _logger.Debug("PluginsChanged event received in DistributionViewModel, invalidating outfits cache...");
+        _logger.Debug("PluginsChanged event received in DistributionEditTabViewModel, invalidating outfits cache...");
 
         // Reset the loaded flag so outfits will be reloaded on next access
         _outfitsLoaded = false;
 
-        // If we're in edit mode, reload outfits immediately so the dropdown has the latest
-        if (IsEditMode)
-        {
-            _logger.Information("Edit mode active, reloading available outfits...");
-            await LoadAvailableOutfitsAsync();
-        }
+        // Reload outfits immediately so the dropdown has the latest
+        _logger.Information("Reloading available outfits...");
+        await LoadAvailableOutfitsAsync();
     }
 
-    #region Helper Methods
+    private async Task PreviewEntryAsync(DistributionEntryViewModel? entry)
+    {
+        if (entry == null || entry.SelectedOutfit == null)
+        {
+            StatusMessage = "No outfit selected for preview.";
+            return;
+        }
+
+        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        {
+            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+            return;
+        }
+
+        var outfit = entry.SelectedOutfit;
+        var label = outfit.EditorID ?? outfit.FormKey.ToString();
+
+        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        if (armorPieces.Count == 0)
+        {
+            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+            return;
+        }
+
+        try
+        {
+            StatusMessage = $"Building preview for {label}...";
+            var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, GenderedModelVariant.Female);
+            await ShowPreview.Handle(scene);
+            StatusMessage = $"Preview ready for {label}.";
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
+            StatusMessage = $"Failed to preview outfit: {ex.Message}";
+        }
+    }
 
     /// <summary>
     /// Detects conflicts between the current distribution entries and existing distribution files.
@@ -1170,10 +925,20 @@ public class DistributionViewModel : ReactiveObject
             return;
         }
 
+        // Need distribution files for conflict detection
+        if (_distributionFiles == null || _distributionFiles.Count == 0)
+        {
+            HasConflicts = false;
+            ConflictSummary = string.Empty;
+            SuggestedFileName = NewFileName;
+            ClearNpcConflictIndicators();
+            return;
+        }
+
         // Use the conflict detection service
         var result = _conflictDetectionService.DetectConflicts(
             DistributionEntries.ToList(),
-            Files.ToList(),
+            _distributionFiles.ToList(),
             NewFileName,
             linkCache);
 
@@ -1207,7 +972,6 @@ public class DistributionViewModel : ReactiveObject
         }
     }
 
-
     /// <summary>
     /// Clears conflict indicators on all NPCs in distribution entries.
     /// </summary>
@@ -1222,7 +986,6 @@ public class DistributionViewModel : ReactiveObject
             }
         }
     }
-
 
     /// <summary>
     /// Creates a DistributionEntryViewModel from a DistributionEntry,
@@ -1337,225 +1100,5 @@ public class DistributionViewModel : ReactiveObject
             FilteredNpcs.Add(npc);
         }
     }
-
-    #endregion
-
-    #region NPCs Tab Methods
-
-    private async Task ScanNpcOutfitsAsync()
-    {
-        _logger.Debug("ScanNpcOutfitsAsync started");
-        
-        try
-        {
-            IsLoading = true;
-
-            // Initialize MutagenService if not already initialized
-            if (!_mutagenService.IsInitialized)
-            {
-                var dataPath = _settings.SkyrimDataPath;
-                _logger.Debug("MutagenService not initialized, data path: {DataPath}", dataPath);
-                
-                if (string.IsNullOrWhiteSpace(dataPath))
-                {
-                    StatusMessage = "Please set the Skyrim data path in Settings before scanning NPC outfits.";
-                    _logger.Warning("Skyrim data path is not set");
-                    return;
-                }
-
-                if (!Directory.Exists(dataPath))
-                {
-                    StatusMessage = $"Skyrim data path does not exist: {dataPath}";
-                    _logger.Warning("Skyrim data path does not exist: {DataPath}", dataPath);
-                    return;
-                }
-
-                StatusMessage = "Initializing Skyrim environment...";
-                _logger.Debug("Initializing MutagenService...");
-                await _mutagenService.InitializeAsync(dataPath);
-                _logger.Debug("MutagenService initialized successfully");
-                this.RaisePropertyChanged(nameof(IsInitialized));
-            }
-
-            // Make sure we have distribution files loaded
-            if (Files.Count == 0)
-            {
-                StatusMessage = "Scanning for distribution files...";
-                _logger.Debug("No distribution files loaded, refreshing...");
-                await RefreshAsync();
-                _logger.Debug("Refresh complete, found {Count} files", Files.Count);
-            }
-
-            // Get the raw distribution files from the discovered files
-            _logger.Debug("Building distribution file list from {Count} file view models", Files.Count);
-            
-            var distributionFiles = Files
-                .Select(fvm => new DistributionFile(
-                    fvm.FileName,
-                    fvm.FullPath,
-                    fvm.RelativePath,
-                    fvm.TypeDisplay == "SPID" ? DistributionFileType.Spid : DistributionFileType.SkyPatcher,
-                    fvm.Lines,
-                    fvm.OutfitCount))
-                .ToList();
-
-            foreach (var file in distributionFiles)
-            {
-                _logger.Debug("Distribution file: {FileName} ({Type}), {LineCount} lines, {OutfitCount} outfit distributions",
-                    file.FileName, file.Type, file.Lines.Count, file.OutfitDistributionCount);
-            }
-
-            // First, scan all NPCs with full filter data for proper SPID matching
-            StatusMessage = "Scanning NPCs for filter matching...";
-            _logger.Debug("Scanning NPCs with full filter data...");
-            var npcFilterData = await _npcScanningService.ScanNpcsWithFilterDataAsync();
-            _logger.Debug("Scanned {Count} NPCs with filter data", npcFilterData.Count);
-            
-            StatusMessage = $"Resolving outfit assignments from {distributionFiles.Count} files...";
-            _logger.Debug("Calling ResolveNpcOutfitsWithFiltersAsync with {FileCount} files and {NpcCount} NPCs", 
-                distributionFiles.Count, npcFilterData.Count);
-
-            var assignments = await _npcOutfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(distributionFiles, npcFilterData);
-            _logger.Debug("ResolveNpcOutfitsWithFiltersAsync returned {Count} assignments", assignments.Count);
-
-            NpcOutfitAssignments.Clear();
-            foreach (var assignment in assignments)
-            {
-                var vm = new NpcOutfitAssignmentViewModel(assignment);
-                NpcOutfitAssignments.Add(vm);
-            }
-
-            // Update filtered list
-            UpdateFilteredNpcOutfitAssignments();
-
-            var conflictCount = assignments.Count(a => a.HasConflict);
-            StatusMessage = $"Found {assignments.Count} NPCs with outfit distributions ({conflictCount} conflicts).";
-            _logger.Information("Resolved {Count} NPC outfit assignments with {Conflicts} conflicts.", 
-                assignments.Count, conflictCount);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to scan NPC outfits.");
-            StatusMessage = $"Error scanning NPC outfits: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task PreviewNpcOutfitAsync(NpcOutfitAssignmentViewModel? npcAssignment)
-    {
-        if (npcAssignment == null || !npcAssignment.FinalOutfitFormKey.HasValue)
-        {
-            StatusMessage = "No outfit to preview for this NPC.";
-            return;
-        }
-
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
-            return;
-        }
-
-        var outfitFormKey = npcAssignment.FinalOutfitFormKey.Value;
-        if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-        {
-            StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
-            return;
-        }
-
-        var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        
-        if (armorPieces.Count == 0)
-        {
-            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
-            return;
-        }
-
-        try
-        {
-            StatusMessage = $"Building preview for {label}...";
-            var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, GenderedModelVariant.Female);
-            await ShowPreview.Handle(scene);
-            StatusMessage = $"Preview ready for {label}.";
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-            StatusMessage = $"Failed to preview outfit: {ex.Message}";
-        }
-    }
-
-    private void UpdateFilteredNpcOutfitAssignments()
-    {
-        IEnumerable<NpcOutfitAssignmentViewModel> filtered;
-
-        if (string.IsNullOrWhiteSpace(NpcOutfitSearchText))
-        {
-            filtered = NpcOutfitAssignments;
-        }
-        else
-        {
-            var term = NpcOutfitSearchText.Trim().ToLowerInvariant();
-            filtered = NpcOutfitAssignments.Where(a => 
-                (a.DisplayName?.ToLowerInvariant().Contains(term) ?? false) ||
-                (a.EditorId?.ToLowerInvariant().Contains(term) ?? false) ||
-                (a.FinalOutfitEditorId?.ToLowerInvariant().Contains(term) ?? false) ||
-                a.FormKeyString.ToLowerInvariant().Contains(term) ||
-                a.ModDisplayName.ToLowerInvariant().Contains(term));
-        }
-
-        FilteredNpcOutfitAssignments.Clear();
-        foreach (var assignment in filtered)
-        {
-            FilteredNpcOutfitAssignments.Add(assignment);
-        }
-    }
-
-    private void UpdateSelectedNpcOutfitContents()
-    {
-        if (SelectedNpcAssignment == null || !SelectedNpcAssignment.FinalOutfitFormKey.HasValue)
-        {
-            SelectedNpcOutfitContents = string.Empty;
-            return;
-        }
-
-        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            SelectedNpcOutfitContents = "LinkCache not available";
-            return;
-        }
-
-        var outfitFormKey = SelectedNpcAssignment.FinalOutfitFormKey.Value;
-        if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-        {
-            SelectedNpcOutfitContents = $"Could not resolve outfit: {outfitFormKey}";
-            return;
-        }
-
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"Outfit: {outfit.EditorID ?? outfit.FormKey.ToString()}");
-        sb.AppendLine();
-
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (armorPieces.Count == 0)
-        {
-            sb.AppendLine("(No armor pieces)");
-        }
-        else
-        {
-            sb.AppendLine("Armor Pieces:");
-            foreach (var armor in armorPieces)
-            {
-                var armorName = armor.EditorID ?? armor.FormKeyString;
-                sb.AppendLine($"  - {armorName}");
-            }
-        }
-
-        SelectedNpcOutfitContents = sb.ToString();
-    }
-
-    #endregion
 }
+
