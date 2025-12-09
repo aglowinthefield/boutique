@@ -45,7 +45,26 @@ public class DistributionFilesTabViewModel : ReactiveObject
 
     [Reactive] public ObservableCollection<DistributionFileViewModel> Files { get; private set; } = new();
 
-    [Reactive] public DistributionFileViewModel? SelectedFile { get; set; }
+    private DistributionFileViewModel? _selectedFile;
+    
+    public DistributionFileViewModel? SelectedFile
+    {
+        get => _selectedFile;
+        set
+        {
+            if (Equals(_selectedFile, value))
+                return;
+                
+            _logger.Debug("SelectedFile changed from {Old} to {New} (Lines: {LineCount})", 
+                _selectedFile?.FileName ?? "null", 
+                value?.FileName ?? "null",
+                value?.Lines.Count ?? 0);
+                
+            this.RaiseAndSetIfChanged(ref _selectedFile, value);
+            // Explicitly notify FilteredLines when SelectedFile changes
+            this.RaisePropertyChanged(nameof(FilteredLines));
+        }
+    }
 
     [Reactive] public bool IsLoading { get; private set; }
 
@@ -87,39 +106,70 @@ public class DistributionFilesTabViewModel : ReactiveObject
 
             if (string.IsNullOrWhiteSpace(dataPath))
             {
-                Files = [];
+                Files.Clear();
                 StatusMessage = "Set the Skyrim data path in Settings to scan distribution files.";
                 return;
             }
 
             if (!Directory.Exists(dataPath))
             {
-                Files = [];
+                Files.Clear();
                 StatusMessage = $"Skyrim data path does not exist: {dataPath}";
                 return;
             }
 
             StatusMessage = "Scanning for distribution files...";
+            _logger.Debug("Starting distribution file discovery in {DataPath}", dataPath);
+            
             var discovered = await _discoveryService.DiscoverAsync(dataPath);
+            _logger.Debug("Discovery service returned {Count} files", discovered.Count);
+            
             var outfitFiles = discovered
                 .Where(file => file.OutfitDistributionCount > 0)
                 .ToList();
+
+            _logger.Debug("Filtered to {Count} files with outfit distributions", outfitFiles.Count);
 
             var viewModels = outfitFiles
                 .Select(file => new DistributionFileViewModel(file))
                 .ToList();
 
-            Files = new ObservableCollection<DistributionFileViewModel>(viewModels);
+            // Update collection in place to maintain bindings
+            Files.Clear();
+            foreach (var vm in viewModels)
+            {
+                Files.Add(vm);
+            }
+            
             LineFilter = string.Empty;
-            SelectedFile = Files.FirstOrDefault();
+            var newSelectedFile = Files.FirstOrDefault();
+            SelectedFile = newSelectedFile;
+            
+            // Explicitly notify that FilteredLines may have changed (in case SelectedFile didn't change reference)
+            this.RaisePropertyChanged(nameof(FilteredLines));
+            
+            // Explicitly notify that Files collection changed (for WhenAnyValue subscribers)
+            this.RaisePropertyChanged(nameof(Files));
 
-            StatusMessage = Files.Count == 0
-                ? "No outfit distributions found."
-                : $"Found {Files.Count} outfit distribution file(s).";
+            if (Files.Count == 0)
+            {
+                StatusMessage = discovered.Count == 0
+                    ? "No distribution files found. Check that your data path is correct and contains *_DISTR.ini files or SkyPatcher INI files."
+                    : $"Found {discovered.Count} distribution file(s), but none contain outfit distributions.";
+                _logger.Warning("No outfit distribution files found. Discovered {TotalCount} files total, but {OutfitCount} had outfit distributions", 
+                    discovered.Count, outfitFiles.Count);
+            }
+            else
+            {
+                StatusMessage = $"Found {Files.Count} outfit distribution file(s).";
+                _logger.Information("Successfully loaded {Count} outfit distribution file(s)", Files.Count);
+            }
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to refresh distribution files.");
+            Files.Clear();
+            SelectedFile = null;
             StatusMessage = $"Error loading distribution files: {ex.Message}";
         }
         finally

@@ -88,7 +88,74 @@ public class DistributionViewModel : ReactiveObject
                 EditTab.SetDistributionFiles(fileList);
                 EditTab.SetDistributionFilesInternal(fileList);
                 NpcsTab.SetDistributionFilesInternal(fileList);
+                // Notify parent bindings that Files collection changed
+                this.RaisePropertyChanged(nameof(Files));
             });
+        
+        // Also subscribe to CollectionChanged to catch in-place modifications
+        FilesTab.Files.CollectionChanged += (sender, e) =>
+        {
+            var fileList = FilesTab.Files.ToList();
+            EditTab.SetDistributionFiles(fileList);
+            EditTab.SetDistributionFilesInternal(fileList);
+            NpcsTab.SetDistributionFilesInternal(fileList);
+            // Notify parent bindings that Files collection changed
+            this.RaisePropertyChanged(nameof(Files));
+        };
+        
+        // Forward property changes from FilesTab to parent for bindings
+        FilesTab.WhenAnyValue(vm => vm.SelectedFile)
+            .Subscribe(_ => 
+            {
+                this.RaisePropertyChanged(nameof(SelectedFile));
+                // FilteredLines depends on SelectedFile, so notify when it changes
+                this.RaisePropertyChanged(nameof(FilteredLines));
+            });
+        FilesTab.WhenAnyValue(vm => vm.LineFilter)
+            .Subscribe(_ => 
+            {
+                this.RaisePropertyChanged(nameof(LineFilter));
+                // FilteredLines depends on LineFilter, so notify when it changes
+                this.RaisePropertyChanged(nameof(FilteredLines));
+            });
+        
+        // Forward property changes from EditTab to parent for bindings
+        EditTab.WhenAnyValue(vm => vm.DistributionFilePath)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFilePath)));
+        EditTab.WhenAnyValue(vm => vm.DistributionPreviewText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionPreviewText)));
+        EditTab.WhenAnyValue(vm => vm.SelectedDistributionFile)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedDistributionFile)));
+        EditTab.WhenAnyValue(vm => vm.AvailableDistributionFiles)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(AvailableDistributionFiles)));
+        EditTab.WhenAnyValue(vm => vm.DistributionEntries)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionEntries)));
+        EditTab.WhenAnyValue(vm => vm.SelectedEntry)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedEntry)));
+        EditTab.WhenAnyValue(vm => vm.IsCreatingNewFile)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(IsCreatingNewFile)));
+        EditTab.WhenAnyValue(vm => vm.ShowNewFileNameInput)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowNewFileNameInput)));
+        EditTab.WhenAnyValue(vm => vm.NewFileName)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(NewFileName)));
+        EditTab.WhenAnyValue(vm => vm.HasConflicts)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(HasConflicts)));
+        EditTab.WhenAnyValue(vm => vm.ConflictsResolvedByFilename)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictsResolvedByFilename)));
+        EditTab.WhenAnyValue(vm => vm.ConflictSummary)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictSummary)));
+        EditTab.WhenAnyValue(vm => vm.SuggestedFileName)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SuggestedFileName)));
+        
+        // Forward property changes from NpcsTab to parent for bindings
+        NpcsTab.WhenAnyValue(vm => vm.SelectedNpcAssignment)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcAssignment)));
+        NpcsTab.WhenAnyValue(vm => vm.NpcOutfitAssignments)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitAssignments)));
+        NpcsTab.WhenAnyValue(vm => vm.FilteredNpcOutfitAssignments)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedNpcOutfitContents)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcOutfitContents)));
 
         // Wire up Edit tab file save to refresh Files tab
         EditTab.FileSaved += async filePath =>
@@ -98,6 +165,36 @@ public class DistributionViewModel : ReactiveObject
             EditTab.SetDistributionFiles(FilesTab.Files.ToList());
             EditTab.SetDistributionFilesInternal(FilesTab.Files.ToList());
         };
+        
+        // Subscribe to collection changes for collections that need forwarding
+        EditTab.AvailableDistributionFiles.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(AvailableDistributionFiles));
+        EditTab.DistributionEntries.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(DistributionEntries));
+        EditTab.FilteredNpcs.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(FilteredNpcs));
+        EditTab.FilteredFactions.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(FilteredFactions));
+        EditTab.FilteredKeywords.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(FilteredKeywords));
+        EditTab.FilteredRaces.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(FilteredRaces));
+        NpcsTab.NpcOutfitAssignments.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(NpcOutfitAssignments));
+        NpcsTab.FilteredNpcOutfitAssignments.CollectionChanged += (sender, e) => 
+            this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments));
+        
+        // Forward search text changes
+        EditTab.WhenAnyValue(vm => vm.NpcSearchText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcSearchText)));
+        EditTab.WhenAnyValue(vm => vm.FactionSearchText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(FactionSearchText)));
+        EditTab.WhenAnyValue(vm => vm.KeywordSearchText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(KeywordSearchText)));
+        EditTab.WhenAnyValue(vm => vm.RaceSearchText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(RaceSearchText)));
+        NpcsTab.WhenAnyValue(vm => vm.NpcOutfitSearchText)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitSearchText)));
 
         // Aggregate loading state from tabs
         this.WhenAnyValue(
@@ -125,11 +222,21 @@ public class DistributionViewModel : ReactiveObject
             {
                 this.RaisePropertyChanged(nameof(IsEditMode));
 
-                if (index == (int)DistributionTab.Edit)
+                if (index == (int)DistributionTab.Files)
                 {
-                    // Initialize Edit tab when selected
-                    EditTab.SetDistributionFiles(FilesTab.Files.ToList());
-                    EditTab.SetDistributionFilesInternal(FilesTab.Files.ToList());
+                    // Auto-refresh Files tab when selected if files haven't been loaded yet
+                    if (FilesTab.Files.Count == 0 && !FilesTab.IsLoading && !string.IsNullOrWhiteSpace(_settings.SkyrimDataPath))
+                    {
+                        _logger.Debug("Files tab selected, triggering auto-refresh");
+                        _ = FilesTab.RefreshCommand.Execute();
+                    }
+                }
+                else                 if (index == (int)DistributionTab.Edit)
+                {
+                    // Initialize Edit tab when selected - always update to ensure latest files
+                    var fileList = FilesTab.Files.ToList();
+                    EditTab.SetDistributionFiles(fileList);
+                    EditTab.SetDistributionFilesInternal(fileList);
                     
                     // Select "New File" by default if nothing selected
                     if (EditTab.SelectedDistributionFile == null)
@@ -150,7 +257,7 @@ public class DistributionViewModel : ReactiveObject
                     if (NpcsTab.NpcOutfitAssignments.Count == 0 && !NpcsTab.IsLoading)
                     {
                         _logger.Debug("NPCs tab selected, triggering auto-scan");
-                        _ = Task.Run(() => NpcsTab.ScanNpcOutfitsCommand.Execute());
+                        _ = NpcsTab.ScanNpcOutfitsCommand.Execute();
                     }
                 }
             });

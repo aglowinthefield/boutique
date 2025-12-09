@@ -34,25 +34,45 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
             MatchCasing = MatchCasing.CaseInsensitive
         };
 
+        var spidFileCount = 0;
+        var skyPatcherFileCount = 0;
+        var parsedCount = 0;
+        var skippedCount = 0;
+
         try
         {
+            _logger.Debug("Starting distribution file discovery in {DataPath}", dataFolderPath);
+
             foreach (var spidFile in Directory.EnumerateFiles(dataFolderPath, "*_DISTR.ini", enumerationOptions))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                spidFileCount++;
                 TryParse(spidFile, DistributionFileType.Spid);
             }
+
+            _logger.Debug("Found {Count} SPID distribution files (*_DISTR.ini)", spidFileCount);
 
             var skyPatcherRoot = Path.Combine(dataFolderPath, "skse", "plugins", "SkyPatcher");
             if (Directory.Exists(skyPatcherRoot))
             {
+                _logger.Debug("SkyPatcher directory exists: {Path}", skyPatcherRoot);
                 foreach (var iniFile in Directory.EnumerateFiles(skyPatcherRoot, "*.ini*", enumerationOptions))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (seenPaths.Contains(iniFile))
                         continue;
 
-                    if (IsSkyPatcherIni(dataFolderPath, iniFile)) TryParse(iniFile, DistributionFileType.SkyPatcher);
+                    if (IsSkyPatcherIni(dataFolderPath, iniFile))
+                    {
+                        skyPatcherFileCount++;
+                        TryParse(iniFile, DistributionFileType.SkyPatcher);
+                    }
                 }
+                _logger.Debug("Found {Count} SkyPatcher distribution files", skyPatcherFileCount);
+            }
+            else
+            {
+                _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
             }
         }
         catch (OperationCanceledException)
@@ -64,10 +84,21 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
             _logger.Error(ex, "Failed while discovering distribution files.");
         }
 
-        return files
+        var result = files
             .OrderBy(f => f.Type)
             .ThenBy(f => f.RelativePath, StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+        _logger.Information(
+            "Distribution discovery complete: {TotalFound} files found ({SpidCount} SPID, {SkyPatcherCount} SkyPatcher), {ParsedCount} parsed successfully, {SkippedCount} skipped (no outfit distributions), {ResultCount} returned",
+            spidFileCount + skyPatcherFileCount,
+            spidFileCount,
+            skyPatcherFileCount,
+            parsedCount,
+            skippedCount,
+            result.Count);
+
+        return result;
 
         void TryParse(string path, DistributionFileType type)
         {
@@ -75,7 +106,17 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
                 return;
 
             var parsed = ParseDistributionFile(path, dataFolderPath, type);
-            if (parsed != null) files.Add(parsed);
+            if (parsed != null)
+            {
+                files.Add(parsed);
+                parsedCount++;
+                _logger.Debug("Successfully parsed {Type} file: {Path} ({OutfitCount} outfit distributions)", type, path, parsed.OutfitDistributionCount);
+            }
+            else
+            {
+                skippedCount++;
+                _logger.Debug("Skipped {Type} file (no outfit distributions): {Path}", type, path);
+            }
         }
     }
 
@@ -100,15 +141,18 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
     {
         try
         {
+            _logger.Debug("Parsing {Type} distribution file: {Path}", type, filePath);
             var lines = new List<DistributionLine>();
             var currentSection = string.Empty;
             var lineNumber = 0;
 
             var outfitCount = 0;
+            var totalLines = 0;
 
             foreach (var raw in File.ReadLines(filePath, Encoding.UTF8))
             {
                 lineNumber++;
+                totalLines++;
                 var trimmed = raw.Trim();
                 DistributionLineKind kind;
                 var sectionName = currentSection;
@@ -151,6 +195,7 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
                 {
                     outfitCount++;
                     outfitFormKeys = ExtractOutfitFormKeys(type, trimmed);
+                    _logger.Debug("Found outfit distribution line {LineNumber} in {Path}: {Line}", lineNumber, filePath, trimmed);
                 }
 
                 lines.Add(new DistributionLine(lineNumber, raw, kind, sectionName, key, value, isOutfitDistribution,
@@ -159,8 +204,14 @@ public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscove
 
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
 
+            _logger.Debug("Parsed {Type} file {Path}: {TotalLines} total lines, {OutfitCount} outfit distributions", 
+                type, filePath, totalLines, outfitCount);
+
             if (outfitCount == 0)
+            {
+                _logger.Debug("Skipping {Type} file {Path} - no outfit distributions found", type, filePath);
                 return null;
+            }
 
             return new DistributionFile(
                 Path.GetFileName(filePath),

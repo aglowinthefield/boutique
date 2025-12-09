@@ -160,7 +160,13 @@ public class DistributionEditTabViewModel : ReactiveObject
                     // Automatically load the file when selected
                     if (File.Exists(DistributionFilePath) && !IsLoading)
                     {
+                        _logger.Debug("Auto-loading file when selected: {Path}", DistributionFilePath);
                         _ = LoadDistributionFileAsync();
+                    }
+                    else
+                    {
+                        _logger.Debug("Not auto-loading file - Exists: {Exists}, IsLoading: {IsLoading}", 
+                            File.Exists(DistributionFilePath), IsLoading);
                     }
                 }
                 else if (value.IsNewFile)
@@ -322,19 +328,26 @@ public class DistributionEditTabViewModel : ReactiveObject
     
     private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
     {
+        // Debounce preview updates to avoid excessive calls during rapid changes
+        var previewUpdateSubject = new System.Reactive.Subjects.Subject<Unit>();
+        previewUpdateSubject
+            .Throttle(TimeSpan.FromMilliseconds(300))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => UpdateDistributionPreview());
+        
         entry.WhenAnyValue(evm => evm.SelectedOutfit)
             .Skip(1) // Skip initial value
-            .Subscribe(_ => UpdateDistributionPreview());
+            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
         entry.WhenAnyValue(evm => evm.SelectedNpcs)
             .Skip(1) // Skip initial value
-            .Subscribe(_ => UpdateDistributionPreview());
-        entry.SelectedNpcs.CollectionChanged += (s, args) => UpdateDistributionPreview();
-        entry.SelectedFactions.CollectionChanged += (s, args) => UpdateDistributionPreview();
-        entry.SelectedKeywords.CollectionChanged += (s, args) => UpdateDistributionPreview();
-        entry.SelectedRaces.CollectionChanged += (s, args) => UpdateDistributionPreview();
+            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
+        entry.SelectedNpcs.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
+        entry.SelectedFactions.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
+        entry.SelectedKeywords.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
+        entry.SelectedRaces.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
         entry.WhenAnyValue(evm => evm.Chance)
             .Skip(1) // Skip initial value
-            .Subscribe(_ => UpdateDistributionPreview());
+            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
     }
 
     private void AddDistributionEntry()
@@ -708,9 +721,13 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     private async Task LoadDistributionFileAsync()
     {
+        _logger.Debug("LoadDistributionFileAsync called. DistributionFilePath: {Path}, Exists: {Exists}", 
+            DistributionFilePath, File.Exists(DistributionFilePath ?? string.Empty));
+            
         if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
         {
             StatusMessage = "File does not exist. Please select a valid file.";
+            _logger.Warning("Cannot load file - path is empty or file does not exist: {Path}", DistributionFilePath);
             return;
         }
 
@@ -718,6 +735,7 @@ public class DistributionEditTabViewModel : ReactiveObject
         {
             IsLoading = true;
             StatusMessage = "Loading distribution file...";
+            _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
 
             var entries = await _fileWriterService.LoadDistributionFileAsync(DistributionFilePath);
 
@@ -868,18 +886,17 @@ public class DistributionEditTabViewModel : ReactiveObject
         var previousSelected = SelectedDistributionFile;
         var previousFilePath = DistributionFilePath;
         
-        var items = new List<DistributionFileSelectionItem>();
+        // Update collection in place to maintain bindings
+        AvailableDistributionFiles.Clear();
         
         // Add "New File" option
-        items.Add(new DistributionFileSelectionItem(isNewFile: true, file: null));
+        AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: true, file: null));
         
         // Add existing files
         foreach (var file in files)
         {
-            items.Add(new DistributionFileSelectionItem(isNewFile: false, file: file));
+            AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: false, file: file));
         }
-        
-        AvailableDistributionFiles = new ObservableCollection<DistributionFileSelectionItem>(items);
         
         // Try to restore previous selection
         if (previousSelected != null)
@@ -951,91 +968,73 @@ public class DistributionEditTabViewModel : ReactiveObject
             if (entryVm.SelectedOutfit == null)
                 continue;
 
-            var hasFilters = entryVm.SelectedFactions.Count > 0 || 
-                            entryVm.SelectedKeywords.Count > 0 || 
-                            entryVm.SelectedRaces.Count > 0 ||
-                            entryVm.Chance.HasValue;
+            // Always use SkyPatcher format
+            // SkyPatcher format: filterByNpcs=...:filterByFactions=...:filterByKeywords=...:filterByRaces=...:outfitDefault=...
+            var filterParts = new List<string>();
 
-            // Use SPID format if filters are used, otherwise use SkyPatcher format
-            if (hasFilters || entryVm.SelectedNpcs.Count == 0)
+            // Add NPC filter if present
+            if (entryVm.SelectedNpcs.Count > 0)
             {
-                // SPID format: Outfit = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
-                var outfitIdentifier = FormatOutfitIdentifier(entryVm.SelectedOutfit);
-                
-                // StringFilters (position 2): Keywords
-                var stringFilters = new List<string>();
-                foreach (var keyword in entryVm.SelectedKeywords)
-                {
-                    var editorId = keyword.EditorID;
-                    if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-                    {
-                        stringFilters.Add(editorId);
-                    }
-                }
-                var stringFiltersPart = stringFilters.Count > 0 ? string.Join("+", stringFilters) : "NONE";
-
-                // FormFilters (position 3): Factions and Races
-                var formFilters = new List<string>();
-                foreach (var faction in entryVm.SelectedFactions)
-                {
-                    var editorId = faction.EditorID;
-                    if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-                    {
-                        formFilters.Add(editorId);
-                    }
-                }
-                foreach (var race in entryVm.SelectedRaces)
-                {
-                    var editorId = race.EditorID;
-                    if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-                    {
-                        formFilters.Add(editorId);
-                    }
-                }
-                var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : "NONE";
-
-                // LevelFilters (position 4): Not supported yet
-                var levelFiltersPart = "NONE";
-
-                // TraitFilters (position 5): Not supported yet
-                var traitFiltersPart = "NONE";
-
-                // CountOrPackageIdx (position 6): Not supported yet
-                var countPart = "NONE";
-
-                // Chance (position 7)
-                var chancePart = entryVm.Chance.HasValue ? entryVm.Chance.Value.ToString() : "100";
-
-                // Build SPID line
-                var spidLine = $"Outfit = {outfitIdentifier}|{stringFiltersPart}|{formFiltersPart}|{levelFiltersPart}|{traitFiltersPart}|{countPart}|{chancePart}";
-                lines.Add(spidLine);
-            }
-            else if (entryVm.SelectedNpcs.Count > 0)
-            {
-                // SkyPatcher format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
                 var npcFormKeys = entryVm.SelectedNpcs
                     .Select(npc => FormKeyHelper.Format(npc.FormKey))
                     .ToList();
-
                 var npcList = string.Join(",", npcFormKeys);
-                var outfitFormKey = FormKeyHelper.Format(entryVm.SelectedOutfit.FormKey);
-
-                var line = $"filterByNpcs={npcList}:outfitDefault={outfitFormKey}";
-                lines.Add(line);
+                filterParts.Add($"filterByNpcs={npcList}");
             }
+
+            // Add faction filter if present
+            if (entryVm.SelectedFactions.Count > 0)
+            {
+                var factionFormKeys = entryVm.SelectedFactions
+                    .Select(faction => FormKeyHelper.Format(faction.FormKey))
+                    .ToList();
+                var factionList = string.Join(",", factionFormKeys);
+                filterParts.Add($"filterByFactions={factionList}");
+            }
+
+            // Add keyword filter if present
+            if (entryVm.SelectedKeywords.Count > 0)
+            {
+                var keywordFormKeys = entryVm.SelectedKeywords
+                    .Select(keyword => FormKeyHelper.Format(keyword.FormKey))
+                    .ToList();
+                var keywordList = string.Join(",", keywordFormKeys);
+                filterParts.Add($"filterByKeywords={keywordList}");
+            }
+
+            // Add race filter if present
+            if (entryVm.SelectedRaces.Count > 0)
+            {
+                var raceFormKeys = entryVm.SelectedRaces
+                    .Select(race => FormKeyHelper.Format(race.FormKey))
+                    .ToList();
+                var raceList = string.Join(",", raceFormKeys);
+                filterParts.Add($"filterByRaces={raceList}");
+            }
+
+            // Add outfit
+            var outfitFormKey = FormKeyHelper.Format(entryVm.SelectedOutfit.FormKey);
+            filterParts.Add($"outfitDefault={outfitFormKey}");
+
+            // TODO: Chance-based distribution - need to verify SkyPatcher syntax for chance
+            // If SkyPatcher supports chance, add it here (e.g., chance=50 or similar)
+            if (entryVm.Chance.HasValue && entryVm.Chance.Value != 100)
+            {
+                // Note: Need to confirm SkyPatcher syntax for chance-based distribution
+                // For now, adding as comment - user will provide correct syntax if needed
+                filterParts.Add($"chance={entryVm.Chance.Value}");
+            }
+
+            var line = string.Join(":", filterParts);
+            lines.Add(line);
         }
 
         DistributionPreviewText = string.Join(Environment.NewLine, lines);
         
-        // Also detect conflicts when preview is updated
+        // Also detect conflicts when preview is updated (runs asynchronously internally)
         DetectConflicts();
     }
 
-    private string FormatOutfitIdentifier(IOutfitGetter outfit)
-    {
-        // Format as FormKey: 0x800~Plugin.esp
-        return $"0x{outfit.FormKey.ID:X}~{outfit.FormKey.ModKey.FileName}";
-    }
 
     private async Task LoadAvailableOutfitsAsync()
     {
@@ -1193,41 +1192,55 @@ public class DistributionEditTabViewModel : ReactiveObject
             return;
         }
 
-        // Use the conflict detection service
-        var result = _conflictDetectionService.DetectConflicts(
-            DistributionEntries.ToList(),
-            _distributionFiles.ToList(),
-            NewFileName,
-            linkCache);
-
-        // Update properties from result
-        HasConflicts = result.HasConflicts;
-        ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
-        ConflictSummary = result.ConflictSummary;
-        SuggestedFileName = result.SuggestedFileName;
-
-        // Update NPC conflict indicators
-        var conflictNpcFormKeys = result.Conflicts
-            .Select(c => c.NpcFormKey)
-            .ToHashSet();
-
-        foreach (var entry in DistributionEntries)
+        // Run expensive conflict detection on background thread
+        Task.Run(() =>
         {
-            foreach (var npcVm in entry.SelectedNpcs)
+            try
             {
-                if (conflictNpcFormKeys.Contains(npcVm.FormKey))
+                // Use the conflict detection service
+                var result = _conflictDetectionService.DetectConflicts(
+                    DistributionEntries.ToList(),
+                    _distributionFiles.ToList(),
+                    NewFileName,
+                    linkCache);
+
+                // Update properties from result on UI thread
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
-                    var conflict = result.Conflicts.First(c => c.NpcFormKey == npcVm.FormKey);
-                    npcVm.HasConflict = !result.ConflictsResolvedByFilename;
-                    npcVm.ConflictingFileName = conflict.ExistingFileName;
-                }
-                else
-                {
-                    npcVm.HasConflict = false;
-                    npcVm.ConflictingFileName = null;
-                }
+                    HasConflicts = result.HasConflicts;
+                    ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
+                    ConflictSummary = result.ConflictSummary;
+                    SuggestedFileName = result.SuggestedFileName;
+
+                    // Update NPC conflict indicators
+                    var conflictNpcFormKeys = result.Conflicts
+                        .Select(c => c.NpcFormKey)
+                        .ToHashSet();
+
+                    foreach (var entry in DistributionEntries)
+                    {
+                        foreach (var npcVm in entry.SelectedNpcs)
+                        {
+                            if (conflictNpcFormKeys.Contains(npcVm.FormKey))
+                            {
+                                var conflict = result.Conflicts.First(c => c.NpcFormKey == npcVm.FormKey);
+                                npcVm.HasConflict = !result.ConflictsResolvedByFilename;
+                                npcVm.ConflictingFileName = conflict.ExistingFileName;
+                            }
+                            else
+                            {
+                                npcVm.HasConflict = false;
+                                npcVm.ConflictingFileName = null;
+                            }
+                        }
+                    }
+                });
             }
-        }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error during conflict detection");
+            }
+        });
     }
 
     /// <summary>

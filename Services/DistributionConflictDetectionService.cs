@@ -156,12 +156,31 @@ public class DistributionConflictDetectionService : IDistributionConflictDetecti
     {
         var map = new Dictionary<FormKey, (string FileName, string? OutfitName)>();
 
+        // Check if we need NPC lookup dictionaries (for SPID files)
+        var hasSpidFiles = files.Any(f => f.TypeDisplay == "SPID");
+        Dictionary<string, INpcGetter>? npcByEditorId = null;
+        Dictionary<string, INpcGetter>? npcByName = null;
+
+        if (hasSpidFiles)
+        {
+            // Build NPC lookup dictionaries once for all SPID files
+            var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
+            npcByEditorId = allNpcs
+                .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+                .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            npcByName = allNpcs
+                .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
+                .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        }
+
         foreach (var file in files)
         {
             foreach (var line in file.Lines.Where(l => l.IsOutfitDistribution))
             {
-                // Parse the line to extract NPC FormKeys
-                var npcFormKeys = DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache);
+                // Parse the line to extract NPC FormKeys (reuse cached dictionaries for SPID files)
+                var npcFormKeys = DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache, npcByEditorId, npcByName);
                 var outfitName = DistributionLineParser.ExtractOutfitNameFromLine(line, linkCache);
 
                 foreach (var npcFormKey in npcFormKeys)

@@ -20,26 +20,27 @@ public static class DistributionLineParser
     /// <param name="file">The distribution file containing the line</param>
     /// <param name="line">The distribution line to parse</param>
     /// <param name="linkCache">LinkCache for resolving NPCs by EditorID or name</param>
+    /// <param name="npcByEditorId">Optional pre-built dictionary of NPCs by EditorID (for SPID files)</param>
+    /// <param name="npcByName">Optional pre-built dictionary of NPCs by name (for SPID files)</param>
     /// <returns>List of NPC FormKeys found in the line</returns>
     public static List<FormKey> ExtractNpcFormKeysFromLine(
         DistributionFileViewModel file,
         DistributionLine line,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        Dictionary<string, INpcGetter>? npcByEditorId = null,
+        Dictionary<string, INpcGetter>? npcByName = null)
     {
         var results = new List<FormKey>();
 
-        // Build lookup dictionaries for NPC resolution (only if needed for SPID)
-        Dictionary<string, INpcGetter>? npcByEditorId = null;
-        Dictionary<string, INpcGetter>? npcByName = null;
-
-        if (file.TypeDisplay == "SPID")
+        // Build lookup dictionaries for NPC resolution (only if needed for SPID and not provided)
+        if (file.TypeDisplay == "SPID" && (npcByEditorId == null || npcByName == null))
         {
             var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
-            npcByEditorId = allNpcs
+            npcByEditorId ??= allNpcs
                 .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
                 .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-            npcByName = allNpcs
+            npcByName ??= allNpcs
                 .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
                 .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);

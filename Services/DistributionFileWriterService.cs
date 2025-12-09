@@ -60,78 +60,65 @@ public class DistributionFileWriterService : IDistributionFileWriterService
                     if (entry.Outfit == null)
                         continue;
 
-                    var hasFilters = entry.FactionFormKeys.Count > 0 || 
-                                    entry.KeywordFormKeys.Count > 0 || 
-                                    entry.RaceFormKeys.Count > 0 ||
-                                    entry.Chance.HasValue;
+                    // Always use SkyPatcher format
+                    // SkyPatcher format: filterByNpcs=...:filterByFactions=...:filterByKeywords=...:filterByRaces=...:outfitDefault=...
+                    var filterParts = new List<string>();
 
-                    // Use SPID format if filters are used, otherwise use SkyPatcher format
-                    if (hasFilters || entry.NpcFormKeys.Count == 0)
+                    // Add NPC filter if present
+                    if (entry.NpcFormKeys.Count > 0)
                     {
-                        // SPID format: Outfit = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
-                        var outfitIdentifier = FormatOutfitIdentifier(entry.Outfit);
-                        
-                        // StringFilters (position 2): Keywords
-                        var stringFilters = new List<string>();
-                        foreach (var keywordFormKey in entry.KeywordFormKeys)
-                        {
-                            if (linkCache.TryResolve<IKeywordGetter>(keywordFormKey, out var keyword) && 
-                                !string.IsNullOrWhiteSpace(keyword.EditorID))
-                            {
-                                stringFilters.Add(keyword.EditorID);
-                            }
-                        }
-                        var stringFiltersPart = stringFilters.Count > 0 ? string.Join("+", stringFilters) : "NONE";
-
-                        // FormFilters (position 3): Factions and Races
-                        var formFilters = new List<string>();
-                        foreach (var factionFormKey in entry.FactionFormKeys)
-                        {
-                            if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) && 
-                                !string.IsNullOrWhiteSpace(faction.EditorID))
-                            {
-                                formFilters.Add(faction.EditorID);
-                            }
-                        }
-                        foreach (var raceFormKey in entry.RaceFormKeys)
-                        {
-                            if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) && 
-                                !string.IsNullOrWhiteSpace(race.EditorID))
-                            {
-                                formFilters.Add(race.EditorID);
-                            }
-                        }
-                        var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : "NONE";
-
-                        // LevelFilters (position 4): Not supported yet
-                        var levelFiltersPart = "NONE";
-
-                        // TraitFilters (position 5): Not supported yet
-                        var traitFiltersPart = "NONE";
-
-                        // CountOrPackageIdx (position 6): Not supported yet
-                        var countPart = "NONE";
-
-                        // Chance (position 7)
-                        var chancePart = entry.Chance.HasValue ? entry.Chance.Value.ToString() : "100";
-
-                        // Build SPID line
-                        var spidLine = $"Outfit = {outfitIdentifier}|{stringFiltersPart}|{formFiltersPart}|{levelFiltersPart}|{traitFiltersPart}|{countPart}|{chancePart}";
-                        lines.Add(spidLine);
-                    }
-                    else if (entry.NpcFormKeys.Count > 0)
-                    {
-                        // SkyPatcher format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
                         var npcFormKeys = entry.NpcFormKeys
                             .Select(fk => FormatFormKey(fk))
                             .ToList();
-
                         var npcList = string.Join(",", npcFormKeys);
-                        var outfitFormKey = FormatFormKey(entry.Outfit.FormKey);
-
-                        var line = $"filterByNpcs={npcList}:outfitDefault={outfitFormKey}";
-                        lines.Add(line);
+                        filterParts.Add($"filterByNpcs={npcList}");
                     }
+
+                    // Add faction filter if present
+                    if (entry.FactionFormKeys.Count > 0)
+                    {
+                        var factionFormKeys = entry.FactionFormKeys
+                            .Select(fk => FormatFormKey(fk))
+                            .ToList();
+                        var factionList = string.Join(",", factionFormKeys);
+                        filterParts.Add($"filterByFactions={factionList}");
+                    }
+
+                    // Add keyword filter if present
+                    if (entry.KeywordFormKeys.Count > 0)
+                    {
+                        var keywordFormKeys = entry.KeywordFormKeys
+                            .Select(fk => FormatFormKey(fk))
+                            .ToList();
+                        var keywordList = string.Join(",", keywordFormKeys);
+                        filterParts.Add($"filterByKeywords={keywordList}");
+                    }
+
+                    // Add race filter if present
+                    if (entry.RaceFormKeys.Count > 0)
+                    {
+                        var raceFormKeys = entry.RaceFormKeys
+                            .Select(fk => FormatFormKey(fk))
+                            .ToList();
+                        var raceList = string.Join(",", raceFormKeys);
+                        filterParts.Add($"filterByRaces={raceList}");
+                    }
+
+                    // Add outfit
+                    var outfitFormKey = FormatFormKey(entry.Outfit.FormKey);
+                    filterParts.Add($"outfitDefault={outfitFormKey}");
+
+                    // TODO: Chance-based distribution - need to verify SkyPatcher syntax for chance
+                    // If SkyPatcher supports chance, add it here (e.g., chance=50 or similar)
+                    if (entry.Chance.HasValue && entry.Chance.Value != 100)
+                    {
+                        // Note: Need to confirm SkyPatcher syntax for chance-based distribution
+                        // For now, adding as comment - user will provide correct syntax if needed
+                        filterParts.Add($"chance={entry.Chance.Value}");
+                    }
+
+                    var line = string.Join(":", filterParts);
+                    lines.Add(line);
                 }
 
                 // Write file with UTF-8 encoding
@@ -188,8 +175,9 @@ public class DistributionFileWriterService : IDistributionFileWriterService
 
                     DistributionEntry? entry = null;
 
-                    // Try SkyPatcher format first: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
-                    if (trimmed.Contains("filterByNpcs=") && trimmed.Contains("outfitDefault="))
+                    // Try SkyPatcher format first: filterByNpcs=...:filterByFactions=...:outfitDefault=...
+                    if (trimmed.Contains("outfitDefault=") && 
+                        (trimmed.Contains("filterByNpcs=") || trimmed.Contains("filterByFactions=")))
                     {
                         entry = ParseDistributionLine(trimmed, linkCache);
                     }
@@ -224,30 +212,56 @@ public class DistributionFileWriterService : IDistributionFileWriterService
     {
         try
         {
-            // Format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
-            var npcPartIndex = line.IndexOf("filterByNpcs=", StringComparison.OrdinalIgnoreCase);
+            // Format: filterByNpcs=ModKey|FormID,ModKey|FormID:filterByFactions=ModKey|FormID:outfitDefault=ModKey|FormID
             var outfitPartIndex = line.IndexOf("outfitDefault=", StringComparison.OrdinalIgnoreCase);
-
-            if (npcPartIndex < 0 || outfitPartIndex < 0)
+            if (outfitPartIndex < 0)
                 return null;
 
-            // Extract NPCs
-            var npcStart = npcPartIndex + "filterByNpcs=".Length;
-            var npcEnd = line.IndexOf(':', npcStart);
-            if (npcEnd < 0)
-                return null;
+            var npcFormKeys = new List<FormKey>();
+            var factionFormKeys = new List<FormKey>();
 
-            var npcString = line.Substring(npcStart, npcEnd - npcStart);
-            var npcFormKeys = npcString
-                .Split(',')
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => TryParseFormKey(s))
-                .Where(fk => fk.HasValue)
-                .Select(fk => fk!.Value)
-                .ToList();
+            // Extract NPCs if present
+            var npcPartIndex = line.IndexOf("filterByNpcs=", StringComparison.OrdinalIgnoreCase);
+            if (npcPartIndex >= 0)
+            {
+                var npcStart = npcPartIndex + "filterByNpcs=".Length;
+                var npcEnd = line.IndexOf(':', npcStart);
+                if (npcEnd < 0)
+                    npcEnd = outfitPartIndex; // Use outfit position as end if no colon found
 
-            if (npcFormKeys.Count == 0)
+                var npcString = line.Substring(npcStart, npcEnd - npcStart);
+                npcFormKeys = npcString
+                    .Split(',')
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => TryParseFormKey(s))
+                    .Where(fk => fk.HasValue)
+                    .Select(fk => fk!.Value)
+                    .ToList();
+            }
+
+            // Extract factions if present
+            var factionPartIndex = line.IndexOf("filterByFactions=", StringComparison.OrdinalIgnoreCase);
+            if (factionPartIndex >= 0)
+            {
+                var factionStart = factionPartIndex + "filterByFactions=".Length;
+                var factionEnd = line.IndexOf(':', factionStart);
+                if (factionEnd < 0)
+                    factionEnd = outfitPartIndex; // Use outfit position as end if no colon found
+
+                var factionString = line.Substring(factionStart, factionEnd - factionStart);
+                factionFormKeys = factionString
+                    .Split(',')
+                    .Select(s => s.Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => TryParseFormKey(s))
+                    .Where(fk => fk.HasValue)
+                    .Select(fk => fk!.Value)
+                    .ToList();
+            }
+
+            // Must have at least NPCs or factions
+            if (npcFormKeys.Count == 0 && factionFormKeys.Count == 0)
                 return null;
 
             // Extract outfit
@@ -267,7 +281,8 @@ public class DistributionFileWriterService : IDistributionFileWriterService
             return new DistributionEntry
             {
                 Outfit = outfit,
-                NpcFormKeys = npcFormKeys
+                NpcFormKeys = npcFormKeys,
+                FactionFormKeys = factionFormKeys
             };
         }
         catch (Exception ex)
@@ -282,11 +297,6 @@ public class DistributionFileWriterService : IDistributionFileWriterService
         return $"{formKey.ModKey.FileName}|{formKey.ID:X8}";
     }
 
-    private static string FormatOutfitIdentifier(IOutfitGetter outfit)
-    {
-        // Format as FormKey: 0x800~Plugin.esp
-        return $"0x{outfit.FormKey.ID:X}~{outfit.FormKey.ModKey.FileName}";
-    }
 
     private static FormKey? TryParseFormKey(string text)
     {

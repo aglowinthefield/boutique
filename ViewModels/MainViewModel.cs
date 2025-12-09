@@ -769,7 +769,8 @@ public class MainViewModel : ReactiveObject
             _logger.Information("Loaded {PluginCount} plugins from {DataPath}", AvailablePlugins.Count,
                 Settings.SkyrimDataPath);
 
-            await Distribution.RefreshAsync();
+            // Refresh distribution files
+            await Distribution.FilesTab.RefreshCommand.Execute();
         }
         catch (Exception ex)
         {

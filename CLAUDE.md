@@ -254,6 +254,299 @@ FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|Co
 **Filter Logic**: Sections are AND, expressions within a section are OR.
 `Form = 0x12345|A,B|0x12,0x34` → "(A OR B) AND (0x12 OR 0x34)"
 
+### SkyPatcher Distribution Syntax Reference
+
+SkyPatcher modifies NPCs and outfits at runtime via INI files. Configs are typically in `Data/skse/plugins/SkyPatcher/npc/` for NPC operations and outfit-specific directories for outfit operations.
+
+**General Syntax**: Multiple filters and operations can be combined with `:` separator:
+```
+filterByXXX=value:filterByYYY=value:operation=value
+```
+
+**FormKey Format**: `ModKey|FormID` (e.g., `Skyrim.esm|000FDEAC` or `MyMod.esp|FE000D65`)
+
+#### Patch String Structure
+
+Patch strings are modular and consist of two parts:
+
+1. **Filter** - Specifies which objects to patch
+2. **Operation** - Changes or actions to perform on the objects
+
+**Example**:
+```
+filterByFactions=Skyrim.esm|000FDEAC:outfitDefault=MyMod.esp|FE000D65
+```
+
+**Multiple Values**: When something is named in plural, you can add multiple values separated by commas:
+- `filterByNpcs=Skyrim.esm|13BBF,Skyrim.esm|1B07A` - filters multiple NPCs
+- `filterByFactions=Skyrim.esm|000FDEAC,Skyrim.esm|0001BCC0` - filters multiple factions
+- `filterByKeywords=Skyrim.esm|00013794,Skyrim.esm|00013795` - filters multiple keywords
+
+**FormID & EditorID**: SkyPatcher supports both FormID and EditorID formats:
+- FormID: `Skyrim.esm|000FDEAC` (recommended - copy full FormID from xEdit/Creation Kit)
+- EditorID: `VigilantOfStendarrFaction` (works for most filters)
+
+**FormID Shortening**: It's sometimes possible to shorten FormIDs (e.g., `myMod.esp|08000223` → `myMod.esp|223`), but it's best practice to use the full FormID to prevent errors.
+
+**Note**: Some operations don't support EditorID:
+- Outfit Patcher: `formsToReplace` requires FormID
+
+#### Filter Logic
+
+SkyPatcher supports three types of filter logic for each filter category:
+
+**filterByXy** - AND logic: All values must match (comma-separated):
+```
+filterByKeywords=Skyrim.esm|00013794,Skyrim.esm|00013795
+```
+Both keywords must be present for the match to succeed.
+
+**filterByXyOr** - OR logic: At least one value must match (comma-separated):
+```
+filterByKeywordsOr=Skyrim.esm|00013794,Skyrim.esm|00013795
+```
+At least one keyword must be present for the match to succeed.
+
+**filterByXyExcluded** - Exclusion logic: If any value matches, the match fails (comma-separated):
+```
+filterByKeywordsExcluded=Skyrim.esm|00013794
+```
+If this keyword is present, the match fails.
+
+**Filter Independence**: Filters work independently from each other. Each filter type is evaluated separately:
+- If `filterByFactions` matches, `filterByKeywords` can also match
+- If `filterByFactions` has no match, `filterByKeywords` can still have a match
+- All filter types must pass for the operation to succeed
+
+**Example**: 
+```
+filterByKeywords=Skyrim.esm|00013794,Skyrim.esm|00013795:filterByKeywordsOr=Skyrim.esm|00013796:filterByKeywordsExcluded=Skyrim.esm|00013797
+```
+- `filterByKeywords`: Both keywords (00013794 AND 00013795) must match
+- `filterByKeywordsOr`: At least one keyword (00013796) must match
+- `filterByKeywordsExcluded`: Keyword 00013797 must NOT be present
+- All three conditions must pass for the operation to succeed
+
+**No Filters**: If no filters are set, all records will be accessed.
+
+**Player Exception**: The player is always excluded from race or keyword filtering. To target the player, use `filterByNpcs=Skyrim.esm|7` with no other filters.
+
+#### Skyrim Biped Slot Index List
+
+When filtering by biped slots, use these index values:
+
+| Index | Slot |
+|-------|------|
+| 0 | Head |
+| 1 | Hair |
+| 2 | Body |
+| 3 | Hand |
+| 4 | Forearms |
+| 5 | Amulet |
+| 6 | Ring |
+| 7 | Feet |
+| 8 | Calves |
+| 9 | Shield |
+| 10 | Tail |
+| 11 | LongHair |
+| 12 | Circlet |
+| 13 | Ears |
+| 14 | ModMouth |
+| 15 | ModNeck |
+| 16 | ModChestPrimary |
+| 17 | ModBack |
+| 18 | ModMisc1 |
+| 19 | ModPelvisPrimary |
+| 20 | DecapitateHead |
+| 21 | Decapitate |
+| 22 | ModPelvisSecondary |
+| 23 | ModLegRight |
+| 24 | ModLegLeft |
+| 25 | ModFaceJewelry |
+| 26 | ModChestSecondary |
+| 27 | ModShoulder |
+| 28 | ModArmLeft |
+| 29 | ModArmRight |
+| 30 | ModMisc2 |
+| 31 | FX01 |
+
+#### NPC Filtering Operations (for Outfit Distribution)
+
+**filterByNpcs** - Filter by specific NPCs (comma-separated):
+```
+filterByNpcs=Skyrim.esm|13BBF,Skyrim.esm|1B07A:outfitDefault=Skyrim.esm|D3E05
+```
+
+**filterByNpcsExcluded** - Exclude specific NPCs (comma-separated):
+```
+filterByNpcsExcluded=Skyrim.esm|13BBF
+```
+
+**filterByFactions** - Filter by factions (AND logic, comma-separated):
+```
+filterByFactions=Skyrim.esm|000FDEAC:outfitDefault=MyMod.esp|FE000D65
+```
+
+**filterByFactionsOr** - Filter by factions (OR logic, comma-separated):
+```
+filterByFactionsOr=Skyrim.esm|000FDEAC,Skyrim.esm|0001BCC0
+```
+
+**filterByFactionsExcluded** - Exclude factions (comma-separated):
+```
+filterByFactionsExcluded=Skyrim.esm|000FDEAC
+```
+
+**filterByRaces** - Filter by race (comma-separated):
+```
+filterByRaces=Skyrim.esm|000131E8:outfitDefault=Skyrim.esm|D3E05
+```
+
+**filterByDefaultOutfits** - Filter NPCs by their default outfit:
+```
+filterByDefaultOutfits=Skyrim.esm|246EE7
+```
+
+**filterByKeywords** - Filter by keywords (AND logic, comma-separated):
+```
+filterByKeywords=Skyrim.esm|00013794,Skyrim.esm|00013795:outfitDefault=Skyrim.esm|D3E05
+```
+
+**filterByKeywordsOr** - Filter by keywords (OR logic, comma-separated):
+```
+filterByKeywordsOr=Skyrim.esm|00013794,Skyrim.esm|00013795
+```
+
+**filterByKeywordsExcluded** - Exclude keywords (comma-separated):
+```
+filterByKeywordsExcluded=Skyrim.esm|00013794
+```
+
+**filterByEditorIdContains** - Filter by EditorID (AND logic, partial match, comma-separated):
+```
+filterByEditorIdContains=Bandit,Guard:outfitDefault=Skyrim.esm|D3E05
+```
+
+**filterByEditorIdContainsOr** - Filter by EditorID (OR logic, partial match, comma-separated):
+```
+filterByEditorIdContainsOr=Bandit,Guard
+```
+
+**filterByEditorIdContainsExcluded** - Exclude EditorIDs (comma-separated):
+```
+filterByEditorIdContainsExcluded=Bandit
+```
+
+**filterByGender** - Filter by gender:
+```
+filterByGender=female:outfitDefault=Skyrim.esm|D3E05
+filterByGender=male:outfitDefault=Skyrim.esm|D3E06
+```
+
+**filterByModNames** - Filter by mod names (can be combined with other filters, comma-separated):
+```
+filterByModNames=SkyValor.esp:filterByFactions=Skyrim.esm|0001BCC0:outfitDefault=Skyrim.esm|D3E05
+```
+
+#### NPC Outfit Operations
+
+**outfitDefault** - Change NPC's default outfit:
+```
+filterByFactions=Skyrim.esm|0001A692:outfitDefault=Skyrim.esm|D3E05
+```
+
+**outfitSleep** - Change NPC's sleep outfit:
+```
+filterByNpcs=Skyrim.esm|13BBF:outfitSleep=Skyrim.esm|D3E06
+```
+
+#### Outfit Filtering Operations
+
+**filterByModNames** - Filter outfits by mod names (comma-separated):
+```
+filterByModNames=SkyValor.esp:filterByOutfits=Skyrim.esm|246EE7
+```
+
+**filterByOutfits** - Filter specific outfits (comma-separated):
+```
+filterByOutfits=Skyrim.esm|246EE7,Skyrim.esm|246EE8
+```
+Note: If no filter is used, it affects ALL outfits.
+
+**filterByForms** - Filter outfits containing specific objects (AND logic, comma-separated):
+```
+filterByForms=Skyrim.esm|59A71
+```
+
+**filterByFormsOr** - Filter outfits containing specific objects (OR logic, comma-separated):
+```
+filterByFormsOr=Skyrim.esm|59A71,Skyrim.esm|59A72
+```
+
+**filterByFormsExclude** - Exclude outfits containing specific objects (comma-separated):
+```
+filterByFormsExclude=Skyrim.esm|59A71
+```
+
+#### Outfit Operations
+
+**formsToAdd** - Add objects to outfit form lists (comma-separated):
+```
+filterByOutfits=Skyrim.esm|246EE7:formsToAdd=Skyrim.esm|59A71
+```
+
+**formsToRemove** - Remove objects from outfit form lists (comma-separated):
+```
+filterByOutfits=Skyrim.esm|246EE7:formsToRemove=Skyrim.esm|59A71
+```
+
+**formsToReplace** - Replace forms in outfit (FormID only):
+```
+filterByOutfits=Skyrim.esm|246EE7:formsToReplace=Skyrim.esm|59A71=Skyrim.esm|59A72
+```
+
+**clear** - Clear outfit and remove all records:
+```
+filterByOutfits=Skyrim.esm|246EE7:clear=true
+```
+
+#### Example SkyPatcher Lines
+
+**Outfit Example** - Filter by faction and set outfit:
+```
+filterByFactions=Skyrim.esm|000FDEAC:outfitDefault=Obi - Eve's Sunfire Armor.esp|FE000D65
+```
+
+**Outfit Example** - Filter by NPCs and set outfit:
+```
+filterByNpcs=Skyrim.esm|13BBF:outfitDefault=Skyrim.esm|D3E05
+```
+
+**Outfit Example** - Combine multiple filter types:
+```
+filterByFactions=Skyrim.esm|0001BCC0:filterByNpcs=Skyrim.esm|13BBF:outfitDefault=Skyrim.esm|D3E05
+```
+
+**Outfit Example** - Combine filters with mod name filter:
+```
+filterByModNames=SkyValor.esp:filterByFactions=Skyrim.esm|0001BCC0:outfitDefault=Skyrim.esm|D3E05
+```
+
+**Outfit Example** - Filter by race and set outfit:
+```
+filterByRaces=Skyrim.esm|000131E8:outfitDefault=Skyrim.esm|D3E05
+```
+
+**Outfit Example** - Filter by keywords and set outfit:
+```
+filterByKeywords=Skyrim.esm|00013794:outfitDefault=Skyrim.esm|D3E05
+```
+
+**Outfit Example** - Combine multiple filter types (factions, keywords, gender):
+```
+filterByFactions=Skyrim.esm|0001BCC0:filterByKeywords=Skyrim.esm|00013794:filterByGender=female:outfitDefault=Skyrim.esm|D3E05
+```
+
 ### Mutagen Integration
 
 Mutagen is the core library for reading and writing Bethesda plugin files. Key concepts:
