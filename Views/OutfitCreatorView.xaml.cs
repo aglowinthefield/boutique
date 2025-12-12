@@ -320,7 +320,7 @@ public partial class OutfitCreatorView
     {
         if (!HasArmorRecords(data))
         {
-            pieces = new List<ArmorRecordViewModel>();
+            pieces = [];
             return false;
         }
 
@@ -332,7 +332,7 @@ public partial class OutfitCreatorView
             return pieces.Count > 0;
         }
 
-        pieces = new List<ArmorRecordViewModel>();
+        pieces = [];
         return false;
     }
 

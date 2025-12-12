@@ -107,7 +107,7 @@ public sealed class SpidFilterSection
     /// List of filter expressions (comma-separated in SPID = OR logic).
     /// Each expression can have AND-combined parts (+ separator).
     /// </summary>
-    public List<SpidFilterExpression> Expressions { get; init; } = new();
+    public List<SpidFilterExpression> Expressions { get; init; } = [];
 
     public bool IsEmpty => Expressions.Count == 0;
 
@@ -136,7 +136,7 @@ public sealed class SpidFilterExpression
     /// <summary>
     /// Individual filter parts combined with AND logic (+ separator in SPID).
     /// </summary>
-    public List<SpidFilterPart> Parts { get; init; } = new();
+    public List<SpidFilterPart> Parts { get; init; } = [];
 
     public override string ToString()
     {

@@ -43,7 +43,7 @@ public class DistributionFilesTabViewModel : ReactiveObject
             .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredLines)));
     }
 
-    [Reactive] public ObservableCollection<DistributionFileViewModel> Files { get; private set; } = new();
+    [Reactive] public ObservableCollection<DistributionFileViewModel> Files { get; private set; } = [];
 
     private DistributionFileViewModel? _selectedFile;
 

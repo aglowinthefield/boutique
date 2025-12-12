@@ -25,23 +25,23 @@ public class MainViewModel : ReactiveObject
     private static readonly BipedObjectFlag[] BipedObjectFlags = Enum.GetValues<BipedObjectFlag>()
         .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0) // Only single-bit flags (powers of 2)
         .ToArray();
-    private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = new();
+    private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = [];
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
-    private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = new();
+    private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = [];
     private readonly PatchingService _patchingService;
     private readonly ArmorPreviewService _previewService;
     private int _activeLoadingOperations;
 
     private string? _lastLoadedOutfitPlugin;
     private string? _lastLoadedTargetPlugin;
-    private ObservableCollection<ArmorRecordViewModel> _outfitArmors = new();
+    private ObservableCollection<ArmorRecordViewModel> _outfitArmors = [];
     private ICollectionView? _outfitArmorsView;
     private IList _selectedOutfitArmors = new List<ArmorRecordViewModel>();
     private IList _selectedSourceArmors = new List<ArmorRecordViewModel>();
-    private ObservableCollection<ArmorRecordViewModel> _sourceArmors = new();
+    private ObservableCollection<ArmorRecordViewModel> _sourceArmors = [];
     private ICollectionView? _sourceArmorsView;
-    private ObservableCollection<ArmorRecordViewModel> _targetArmors = new();
+    private ObservableCollection<ArmorRecordViewModel> _targetArmors = [];
     private ICollectionView? _targetArmorsView;
 
     public MainViewModel(
@@ -125,7 +125,7 @@ public class MainViewModel : ReactiveObject
     public SettingsViewModel Settings { get; }
     public DistributionViewModel Distribution { get; }
 
-    [Reactive] public ObservableCollection<string> AvailablePlugins { get; set; } = new();
+    [Reactive] public ObservableCollection<string> AvailablePlugins { get; set; } = [];
 
     public ObservableCollection<ArmorRecordViewModel> SourceArmors
     {
@@ -147,7 +147,7 @@ public class MainViewModel : ReactiveObject
         }
     }
 
-    [Reactive] public ObservableCollection<ArmorMatchViewModel> Matches { get; set; } = new();
+    [Reactive] public ObservableCollection<ArmorMatchViewModel> Matches { get; set; } = [];
 
     [Reactive] public string SourceSearchText { get; set; } = string.Empty;
     [Reactive] public string TargetSearchText { get; set; } = string.Empty;
@@ -293,7 +293,7 @@ public class MainViewModel : ReactiveObject
             _logger.Information("Selected source plugin set to {Plugin}", value ?? "<none>");
 
             ClearMappingsInternal();
-            SourceArmors = new ObservableCollection<ArmorRecordViewModel>();
+            SourceArmors = [];
             SelectedSourceArmors = Array.Empty<ArmorRecordViewModel>();
             SourceSearchText = string.Empty;
 

@@ -16,7 +16,7 @@ public class ExistingOutfitViewModel
         EditorId = editorId;
         FormKey = formKey;
 
-        var pieceList = pieces?.ToList() ?? new List<IArmorGetter>();
+        var pieceList = pieces?.ToList() ?? [];
         Pieces = new ReadOnlyCollection<IArmorGetter>(pieceList);
         PieceCount = Pieces.Count;
         FormIdDisplay = $"0x{formKey.ID:X8}";

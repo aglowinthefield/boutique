@@ -10,10 +10,10 @@ namespace Boutique.ViewModels;
 
 public class DistributionEntryViewModel : ReactiveObject
 {
-    private ObservableCollection<NpcRecordViewModel> _selectedNpcs = new();
-    private ObservableCollection<FactionRecordViewModel> _selectedFactions = new();
-    private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = new();
-    private ObservableCollection<RaceRecordViewModel> _selectedRaces = new();
+    private ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
+    private ObservableCollection<FactionRecordViewModel> _selectedFactions = [];
+    private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
+    private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
 
     public DistributionEntryViewModel(
         DistributionEntry entry,

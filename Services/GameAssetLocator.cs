@@ -25,11 +25,11 @@ public class GameAssetLocator
         ModKey.FromNameAndExtension("Dragonborn.esm")
     ];
 
-    private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = new();
+    private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = [];
     private readonly ConcurrentDictionary<string, string> _extractedAssets = new(StringComparer.OrdinalIgnoreCase);
     private readonly IFileSystem _fileSystem;
     private readonly ILogger _logger;
-    private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = new();
+    private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = [];
     private readonly MutagenService _mutagenService;
 
     private readonly object _sync = new();

@@ -60,7 +60,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
 
     [Reactive] public string StatusMessage { get; private set; } = string.Empty;
 
-    [Reactive] public ObservableCollection<OutfitRecordViewModel> Outfits { get; private set; } = new();
+    [Reactive] public ObservableCollection<OutfitRecordViewModel> Outfits { get; private set; } = [];
 
     public OutfitRecordViewModel? SelectedOutfit
     {
@@ -81,9 +81,9 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
 
     [Reactive] public bool HideVanillaOutfits { get; set; }
 
-    [Reactive] public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; private set; } = new();
+    [Reactive] public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; private set; } = [];
 
-    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; private set; } = new();
+    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; private set; } = [];
 
     public ReactiveCommand<Unit, Unit> LoadOutfitsCommand { get; }
 
@@ -351,7 +351,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             if (finalOutfitFormKey.HasValue)
             {
                 if (!outfitNpcSets.ContainsKey(finalOutfitFormKey.Value))
-                    outfitNpcSets[finalOutfitFormKey.Value] = new HashSet<FormKey>();
+                    outfitNpcSets[finalOutfitFormKey.Value] = [];
                 outfitNpcSets[finalOutfitFormKey.Value].Add(assignment.NpcFormKey);
             }
 
@@ -359,7 +359,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             foreach (var dist in assignment.Distributions)
             {
                 if (!outfitNpcSets.ContainsKey(dist.OutfitFormKey))
-                    outfitNpcSets[dist.OutfitFormKey] = new HashSet<FormKey>();
+                    outfitNpcSets[dist.OutfitFormKey] = [];
                 // Add this NPC to the set for this outfit (HashSet automatically handles duplicates)
                 outfitNpcSets[dist.OutfitFormKey].Add(assignment.NpcFormKey);
             }

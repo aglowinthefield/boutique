@@ -256,7 +256,7 @@ public class NpcOutfitResolutionService
         {
             if (!npcDistributions.TryGetValue(npc.FormKey, out var distributions))
             {
-                distributions = new List<OutfitDistribution>();
+                distributions = [];
                 npcDistributions[npc.FormKey] = distributions;
             }
 
@@ -311,7 +311,7 @@ public class NpcOutfitResolutionService
         {
             if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
             {
-                distributions = new List<OutfitDistribution>();
+                distributions = [];
                 npcDistributions[npcFormKey] = distributions;
             }
 
@@ -547,7 +547,7 @@ public class NpcOutfitResolutionService
 
                 if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
                 {
-                    distributions = new List<OutfitDistribution>();
+                    distributions = [];
                     npcDistributions[npcFormKey] = distributions;
                 }
 
@@ -845,7 +845,7 @@ public class NpcOutfitResolutionService
             var npcFormKey = npc.FormKey;
             if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
             {
-                distributions = new List<OutfitDistribution>();
+                distributions = [];
                 npcDistributions[npcFormKey] = distributions;
             }
 
@@ -897,7 +897,7 @@ public class NpcOutfitResolutionService
             var npcFormKey = npcData.FormKey;
             if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
             {
-                distributions = new List<OutfitDistribution>();
+                distributions = [];
                 npcDistributions[npcFormKey] = distributions;
             }
 

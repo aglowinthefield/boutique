@@ -58,7 +58,7 @@ public class DistributionNpcsTabViewModel : ReactiveObject
 
     [Reactive] public string StatusMessage { get; private set; } = string.Empty;
 
-    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> NpcOutfitAssignments { get; private set; } = new();
+    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> NpcOutfitAssignments { get; private set; } = [];
 
     public NpcOutfitAssignmentViewModel? SelectedNpcAssignment
     {
@@ -77,7 +77,7 @@ public class DistributionNpcsTabViewModel : ReactiveObject
 
     [Reactive] public string NpcOutfitSearchText { get; set; } = string.Empty;
 
-    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments { get; private set; } = new();
+    [Reactive] public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments { get; private set; } = [];
 
     [Reactive] public string SelectedNpcOutfitContents { get; private set; } = string.Empty;
 

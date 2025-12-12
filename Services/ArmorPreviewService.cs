@@ -95,7 +95,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         if (linkCache == null)
             throw new InvalidOperationException("Link cache is not available.");
 
-        var pieces = armorPieces?.ToList() ?? new List<ArmorRecordViewModel>();
+        var pieces = armorPieces?.ToList() ?? [];
         return await Task.Run(
             () => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken),
             cancellationToken);
