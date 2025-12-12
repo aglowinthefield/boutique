@@ -13,8 +13,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class ArmorPreviewService(IMutagenService mutagenService, IGameAssetLocator assetLocator, ILogger logger)
-    : IArmorPreviewService
+public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator assetLocator, ILogger logger)
 {
     private const string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";
     private const string MaleBodyRelativePath = "meshes/actors/character/character assets/malebody_0.nif";

@@ -8,7 +8,7 @@ namespace Boutique.Services;
 /// Implements the full SPID filter matching logic including string filters,
 /// form filters, level filters, and trait filters.
 /// </summary>
-public class SpidFilterMatchingService : ISpidFilterMatchingService
+public class SpidFilterMatchingService
 {
 
     public bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter)

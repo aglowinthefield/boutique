@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class GameAssetLocator : IGameAssetLocator
+public class GameAssetLocator
 {
     private const GameRelease Release = GameRelease.SkyrimSE;
 
@@ -30,13 +30,13 @@ public class GameAssetLocator : IGameAssetLocator
     private readonly IFileSystem _fileSystem;
     private readonly ILogger _logger;
     private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = new();
-    private readonly IMutagenService _mutagenService;
+    private readonly MutagenService _mutagenService;
 
     private readonly object _sync = new();
     private string? _currentDataPath;
     private string _extractionRoot;
 
-    public GameAssetLocator(IMutagenService mutagenService, ILogger logger)
+    public GameAssetLocator(MutagenService mutagenService, ILogger logger)
     {
         _mutagenService = mutagenService;
         _logger = logger.ForContext<GameAssetLocator>();

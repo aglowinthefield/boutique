@@ -27,10 +27,10 @@ public class MainViewModel : ReactiveObject
         .ToArray();
     private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = new();
     private readonly ILogger _logger;
-    private readonly IMutagenService _mutagenService;
+    private readonly MutagenService _mutagenService;
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = new();
-    private readonly IPatchingService _patchingService;
-    private readonly IArmorPreviewService _previewService;
+    private readonly PatchingService _patchingService;
+    private readonly ArmorPreviewService _previewService;
     private int _activeLoadingOperations;
 
     private string? _lastLoadedOutfitPlugin;
@@ -46,9 +46,9 @@ public class MainViewModel : ReactiveObject
     private ICollectionView? _targetArmorsView;
 
     public MainViewModel(
-        IMutagenService mutagenService,
-        IPatchingService patchingService,
-        IArmorPreviewService previewService,
+        MutagenService mutagenService,
+        PatchingService patchingService,
+        ArmorPreviewService previewService,
         SettingsViewModel settingsViewModel,
         DistributionViewModel distributionViewModel,
         ILoggingService loggingService)

@@ -2,7 +2,7 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
-public class MatchingService : IMatchingService
+public class MatchingService
 {
     public IEnumerable<IGrouping<string, IArmorGetter>> GroupByOutfit(IEnumerable<IArmorGetter> armors)
     {

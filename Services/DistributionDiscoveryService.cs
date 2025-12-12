@@ -6,7 +6,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class DistributionDiscoveryService(ILogger logger) : IDistributionDiscoveryService
+public class DistributionDiscoveryService(ILogger logger)
 {
     private readonly ILogger _logger = logger.ForContext<DistributionDiscoveryService>();
 

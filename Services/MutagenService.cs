@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class MutagenService(ILoggingService loggingService) : IMutagenService
+public class MutagenService(ILoggingService loggingService)
 {
     private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
     private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;

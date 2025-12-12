@@ -8,7 +8,7 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
-public class DistributionConflictDetectionService : IDistributionConflictDetectionService
+public class DistributionConflictDetectionService
 {
     public ConflictDetectionResult DetectConflicts(
         IReadOnlyList<DistributionEntryViewModel> entries,

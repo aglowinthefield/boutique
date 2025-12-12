@@ -11,8 +11,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class PatchingService(IMutagenService mutagenService, ILoggingService loggingService)
-    : IPatchingService
+public class PatchingService(MutagenService mutagenService, ILoggingService loggingService)
 {
     private readonly ILogger _logger = loggingService.ForContext<PatchingService>();
 

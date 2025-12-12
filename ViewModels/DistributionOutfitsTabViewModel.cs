@@ -17,20 +17,20 @@ namespace Boutique.ViewModels;
 
 public class DistributionOutfitsTabViewModel : ReactiveObject
 {
-    private readonly INpcScanningService _npcScanningService;
-    private readonly INpcOutfitResolutionService _npcOutfitResolutionService;
-    private readonly IDistributionDiscoveryService _discoveryService;
-    private readonly IArmorPreviewService _armorPreviewService;
-    private readonly IMutagenService _mutagenService;
+    private readonly NpcScanningService _npcScanningService;
+    private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
+    private readonly DistributionDiscoveryService _discoveryService;
+    private readonly ArmorPreviewService _armorPreviewService;
+    private readonly MutagenService _mutagenService;
     private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
 
     public DistributionOutfitsTabViewModel(
-        INpcScanningService npcScanningService,
-        INpcOutfitResolutionService npcOutfitResolutionService,
-        IDistributionDiscoveryService discoveryService,
-        IArmorPreviewService armorPreviewService,
-        IMutagenService mutagenService,
+        NpcScanningService npcScanningService,
+        NpcOutfitResolutionService npcOutfitResolutionService,
+        DistributionDiscoveryService discoveryService,
+        ArmorPreviewService armorPreviewService,
+        MutagenService mutagenService,
         SettingsViewModel settings,
         ILogger logger)
     {

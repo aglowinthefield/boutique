@@ -7,12 +7,12 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class NpcScanningService : INpcScanningService
+public class NpcScanningService
 {
-    private readonly IMutagenService _mutagenService;
+    private readonly MutagenService _mutagenService;
     private readonly ILogger _logger;
 
-    public NpcScanningService(IMutagenService mutagenService, ILogger logger)
+    public NpcScanningService(MutagenService mutagenService, ILogger logger)
     {
         _mutagenService = mutagenService;
         _logger = logger.ForContext<NpcScanningService>();

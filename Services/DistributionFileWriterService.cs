@@ -9,12 +9,12 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class DistributionFileWriterService : IDistributionFileWriterService
+public class DistributionFileWriterService
 {
-    private readonly IMutagenService _mutagenService;
+    private readonly MutagenService _mutagenService;
     private readonly ILogger _logger;
 
-    public DistributionFileWriterService(IMutagenService mutagenService, ILogger logger)
+    public DistributionFileWriterService(MutagenService mutagenService, ILogger logger)
     {
         _mutagenService = mutagenService;
         _logger = logger.ForContext<DistributionFileWriterService>();

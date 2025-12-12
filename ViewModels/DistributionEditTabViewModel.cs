@@ -17,11 +17,11 @@ namespace Boutique.ViewModels;
 
 public class DistributionEditTabViewModel : ReactiveObject
 {
-    private readonly IDistributionFileWriterService _fileWriterService;
-    private readonly INpcScanningService _npcScanningService;
-    private readonly IDistributionConflictDetectionService _conflictDetectionService;
-    private readonly IArmorPreviewService _armorPreviewService;
-    private readonly IMutagenService _mutagenService;
+    private readonly DistributionFileWriterService _fileWriterService;
+    private readonly NpcScanningService _npcScanningService;
+    private readonly DistributionConflictDetectionService _conflictDetectionService;
+    private readonly ArmorPreviewService _armorPreviewService;
+    private readonly MutagenService _mutagenService;
     private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
 
@@ -30,11 +30,11 @@ public class DistributionEditTabViewModel : ReactiveObject
     private bool _outfitsLoaded;
 
     public DistributionEditTabViewModel(
-        IDistributionFileWriterService fileWriterService,
-        INpcScanningService npcScanningService,
-        IDistributionConflictDetectionService conflictDetectionService,
-        IArmorPreviewService armorPreviewService,
-        IMutagenService mutagenService,
+        DistributionFileWriterService fileWriterService,
+        NpcScanningService npcScanningService,
+        DistributionConflictDetectionService conflictDetectionService,
+        ArmorPreviewService armorPreviewService,
+        MutagenService mutagenService,
         SettingsViewModel settings,
         ILogger logger)
     {

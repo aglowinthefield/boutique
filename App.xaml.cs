@@ -35,17 +35,17 @@ public partial class App
         builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
 
         // Register services
-        builder.RegisterType<MutagenService>().As<IMutagenService>().SingleInstance();
-        builder.RegisterType<GameAssetLocator>().As<IGameAssetLocator>().SingleInstance();
-        builder.RegisterType<PatchingService>().As<IPatchingService>().SingleInstance();
-        builder.RegisterType<MatchingService>().As<IMatchingService>().SingleInstance();
-        builder.RegisterType<ArmorPreviewService>().As<IArmorPreviewService>().SingleInstance();
-        builder.RegisterType<DistributionDiscoveryService>().As<IDistributionDiscoveryService>().SingleInstance();
-        builder.RegisterType<NpcScanningService>().As<INpcScanningService>().SingleInstance();
-        builder.RegisterType<DistributionFileWriterService>().As<IDistributionFileWriterService>().SingleInstance();
-        builder.RegisterType<NpcOutfitResolutionService>().As<INpcOutfitResolutionService>().SingleInstance();
-        builder.RegisterType<SpidFilterMatchingService>().As<ISpidFilterMatchingService>().SingleInstance();
-        builder.RegisterType<DistributionConflictDetectionService>().As<IDistributionConflictDetectionService>().SingleInstance();
+        builder.RegisterType<MutagenService>().SingleInstance();
+        builder.RegisterType<GameAssetLocator>().SingleInstance();
+        builder.RegisterType<PatchingService>().SingleInstance();
+        builder.RegisterType<MatchingService>().SingleInstance();
+        builder.RegisterType<ArmorPreviewService>().SingleInstance();
+        builder.RegisterType<DistributionDiscoveryService>().SingleInstance();
+        builder.RegisterType<NpcScanningService>().SingleInstance();
+        builder.RegisterType<DistributionFileWriterService>().SingleInstance();
+        builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
+        builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
+        builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
 
         // Register ViewModels
         builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();

@@ -15,16 +15,16 @@ namespace Boutique.ViewModels;
 
 public class DistributionFilesTabViewModel : ReactiveObject
 {
-    private readonly IDistributionDiscoveryService _discoveryService;
-    private readonly IArmorPreviewService _armorPreviewService;
-    private readonly IMutagenService _mutagenService;
+    private readonly DistributionDiscoveryService _discoveryService;
+    private readonly ArmorPreviewService _armorPreviewService;
+    private readonly MutagenService _mutagenService;
     private readonly ILogger _logger;
     private readonly SettingsViewModel _settings;
 
     public DistributionFilesTabViewModel(
-        IDistributionDiscoveryService discoveryService,
-        IArmorPreviewService armorPreviewService,
-        IMutagenService mutagenService,
+        DistributionDiscoveryService discoveryService,
+        ArmorPreviewService armorPreviewService,
+        MutagenService mutagenService,
         SettingsViewModel settings,
         ILogger logger)
     {

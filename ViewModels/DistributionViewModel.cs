@@ -24,14 +24,14 @@ public class DistributionViewModel : ReactiveObject
     private readonly SettingsViewModel _settings;
 
     public DistributionViewModel(
-        IDistributionDiscoveryService discoveryService,
-        IDistributionFileWriterService fileWriterService,
-        INpcScanningService npcScanningService,
-        INpcOutfitResolutionService npcOutfitResolutionService,
-        IDistributionConflictDetectionService conflictDetectionService,
+        DistributionDiscoveryService discoveryService,
+        DistributionFileWriterService fileWriterService,
+        NpcScanningService npcScanningService,
+        NpcOutfitResolutionService npcOutfitResolutionService,
+        DistributionConflictDetectionService conflictDetectionService,
         SettingsViewModel settings,
-        IArmorPreviewService armorPreviewService,
-        IMutagenService mutagenService,
+        ArmorPreviewService armorPreviewService,
+        MutagenService mutagenService,
         ILogger logger)
     {
         _settings = settings;

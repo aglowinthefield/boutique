@@ -7,15 +7,15 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class NpcOutfitResolutionService : INpcOutfitResolutionService
+public class NpcOutfitResolutionService
 {
-    private readonly IMutagenService _mutagenService;
-    private readonly ISpidFilterMatchingService _filterMatchingService;
+    private readonly MutagenService _mutagenService;
+    private readonly SpidFilterMatchingService _filterMatchingService;
     private readonly ILogger _logger;
 
     public NpcOutfitResolutionService(
-        IMutagenService mutagenService, 
-        ISpidFilterMatchingService filterMatchingService,
+        MutagenService mutagenService, 
+        SpidFilterMatchingService filterMatchingService,
         ILogger logger)
     {
         _mutagenService = mutagenService;
