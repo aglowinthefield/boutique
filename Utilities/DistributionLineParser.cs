@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Boutique.Models;
 using Boutique.ViewModels;
 using Mutagen.Bethesda;
@@ -174,8 +172,8 @@ public static class DistributionLineParser
         if (pipeIndex < 0)
             return null;
 
-        var modKeyString = trimmed.Substring(0, pipeIndex).Trim();
-        var formIdString = trimmed.Substring(pipeIndex + 1).Trim();
+        var modKeyString = trimmed[..pipeIndex].Trim();
+        var formIdString = trimmed[(pipeIndex + 1)..].Trim();
 
         if (!ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             return null;

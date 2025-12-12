@@ -1,4 +1,3 @@
-using Boutique.Models;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;

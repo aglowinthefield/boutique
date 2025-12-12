@@ -5,7 +5,6 @@ using System.Reactive.Linq;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
-using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;

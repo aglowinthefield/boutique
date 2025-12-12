@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Boutique.Models;
 using Boutique.Utilities;
@@ -7,19 +5,11 @@ using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
-using Serilog;
 
 namespace Boutique.Services;
 
 public class DistributionConflictDetectionService : IDistributionConflictDetectionService
 {
-    private readonly ILogger _logger;
-
-    public DistributionConflictDetectionService(ILogger logger)
-    {
-        _logger = logger.ForContext<DistributionConflictDetectionService>();
-    }
-
     public ConflictDetectionResult DetectConflicts(
         IReadOnlyList<DistributionEntryViewModel> entries,
         IReadOnlyList<DistributionFileViewModel> existingFiles,

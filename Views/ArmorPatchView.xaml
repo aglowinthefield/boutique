@@ -175,8 +175,12 @@
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Setter Property="IsEnabled" Value="{Binding IsSlotCompatible}" />
-                                <Setter Property="Opacity"
-                                        Value="{Binding IsSlotCompatible, Converter={StaticResource BooleanToOpacityConverter}}" />
+                                <Setter Property="Opacity" Value="0.35" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSlotCompatible}" Value="True">
+                                        <Setter Property="Opacity" Value="1.0" />
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
@@ -334,8 +338,18 @@
                        Text="{Binding Matches.Count, StringFormat='{}{0} mapping(s) queued'}"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="Create Patch" Command="{Binding CreatePatchCommand}"
-                    IsEnabled="{Binding IsPatching, Converter={StaticResource InverseBoolConverter}}"
-                    Padding="12,6" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right" />
+                    Padding="12,6" FontSize="13" FontWeight="Bold" HorizontalAlignment="Right">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="IsEnabled" Value="True" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPatching}" Value="True">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

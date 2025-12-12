@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Boutique.Models;
 using Mutagen.Bethesda.Plugins;
-using Serilog;
 
 namespace Boutique.Services;
 
@@ -14,12 +10,6 @@ namespace Boutique.Services;
 /// </summary>
 public class SpidFilterMatchingService : ISpidFilterMatchingService
 {
-    private readonly ILogger _logger;
-
-    public SpidFilterMatchingService(ILogger logger)
-    {
-        _logger = logger.ForContext<SpidFilterMatchingService>();
-    }
 
     public bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter)
     {

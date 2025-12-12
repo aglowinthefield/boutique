@@ -42,8 +42,18 @@
                              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}" />
                 <Button Content="Refresh"
                         Width="90"
-                        Command="{Binding RefreshCommand}"
-                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+                        Command="{Binding RefreshCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="IsEnabled" Value="True" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </StackPanel>
         </Grid>
 

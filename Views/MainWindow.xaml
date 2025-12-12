@@ -14,14 +14,14 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TabControl Grid.Row="0" Margin="8" SelectionChanged="TabControl_OnSelectionChanged">
-            <TabItem Header="Armor Patch">
-                <views:ArmorPatchView DataContext="{Binding}" />
+            <TabItem Header="Distribution">
+                <views:DistributionView DataContext="{Binding Distribution}" />
             </TabItem>
             <TabItem Header="Outfit Creator">
                 <views:OutfitCreatorView DataContext="{Binding}" />
             </TabItem>
-            <TabItem Header="Distribution">
-                <views:DistributionView DataContext="{Binding Distribution}" />
+            <TabItem Header="Armor Patch">
+                <views:ArmorPatchView DataContext="{Binding}" />
             </TabItem>
         </TabControl>
 
