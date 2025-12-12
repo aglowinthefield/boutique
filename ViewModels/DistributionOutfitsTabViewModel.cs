@@ -11,6 +11,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
+using static Boutique.Utilities.SkyrimConstants;
 
 namespace Boutique.ViewModels;
 
@@ -49,6 +50,10 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
         this.WhenAnyValue(vm => vm.OutfitSearchText)
             .Subscribe(_ => UpdateFilteredOutfits());
         
+        // Vanilla outfit filtering
+        this.WhenAnyValue(vm => vm.HideVanillaOutfits)
+            .Subscribe(_ => UpdateFilteredOutfits());
+        
         // Update NPC assignments when selection changes
         this.WhenAnyValue(vm => vm.SelectedOutfit)
             .Subscribe(_ => UpdateSelectedOutfitNpcAssignments());
@@ -79,6 +84,8 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
     }
 
     [Reactive] public string OutfitSearchText { get; set; } = string.Empty;
+
+    [Reactive] public bool HideVanillaOutfits { get; set; }
 
     [Reactive] public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; private set; } = new();
 
@@ -257,16 +264,19 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
 
     private void UpdateFilteredOutfits()
     {
-        IEnumerable<OutfitRecordViewModel> filtered;
+        IEnumerable<OutfitRecordViewModel> filtered = Outfits;
 
-        if (string.IsNullOrWhiteSpace(OutfitSearchText))
-        {
-            filtered = Outfits;
-        }
-        else
+        // Filter by search text
+        if (!string.IsNullOrWhiteSpace(OutfitSearchText))
         {
             var term = OutfitSearchText.Trim().ToLowerInvariant();
-            filtered = Outfits.Where(o => o.MatchesSearch(term));
+            filtered = filtered.Where(o => o.MatchesSearch(term));
+        }
+
+        // Filter out vanilla outfits if checkbox is checked
+        if (HideVanillaOutfits)
+        {
+            filtered = filtered.Where(o => !IsVanillaPlugin(o.ModDisplayName));
         }
 
         FilteredOutfits.Clear();

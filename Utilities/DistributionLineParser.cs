@@ -11,6 +11,7 @@ namespace Boutique.Utilities;
 
 /// <summary>
 /// Utility class for parsing distribution file lines to extract NPC FormKeys and outfit information.
+/// Handles both SPID and SkyPatcher formats, delegating SPID parsing to SpidLineParser.
 /// </summary>
 public static class DistributionLineParser
 {
@@ -30,10 +31,79 @@ public static class DistributionLineParser
         Dictionary<string, INpcGetter>? npcByEditorId = null,
         Dictionary<string, INpcGetter>? npcByName = null)
     {
-        var results = new List<FormKey>();
+        if (file.TypeDisplay == "SkyPatcher")
+        {
+            return ExtractNpcFormKeysFromSkyPatcherLine(line.RawText);
+        }
+        
+        if (file.TypeDisplay == "SPID")
+        {
+            return ExtractNpcFormKeysFromSpidLine(line.RawText, linkCache, npcByEditorId, npcByName);
+        }
 
-        // Build lookup dictionaries for NPC resolution (only if needed for SPID and not provided)
-        if (file.TypeDisplay == "SPID" && (npcByEditorId == null || npcByName == null))
+        return [];
+    }
+    
+    /// <summary>
+    /// Extracts NPC FormKeys from a SkyPatcher distribution line.
+    /// </summary>
+    private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText)
+    {
+        var results = new List<FormKey>();
+        
+        // SkyPatcher format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
+        var trimmed = rawText.Trim();
+        var filterByNpcsIndex = trimmed.IndexOf("filterByNpcs=", StringComparison.OrdinalIgnoreCase);
+        
+        if (filterByNpcsIndex >= 0)
+        {
+            var npcStart = filterByNpcsIndex + "filterByNpcs=".Length;
+            var npcEnd = trimmed.IndexOf(':', npcStart);
+            
+            if (npcEnd > npcStart)
+            {
+                var npcString = trimmed.Substring(npcStart, npcEnd - npcStart);
+                
+                foreach (var npcPart in npcString.Split(','))
+                {
+                    var formKey = TryParseFormKey(npcPart.Trim());
+                    if (formKey.HasValue)
+                    {
+                        results.Add(formKey.Value);
+                    }
+                }
+            }
+        }
+        
+        return results;
+    }
+    
+    /// <summary>
+    /// Extracts NPC FormKeys from a SPID distribution line using SpidLineParser.
+    /// </summary>
+    private static List<FormKey> ExtractNpcFormKeysFromSpidLine(
+        string rawText,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        Dictionary<string, INpcGetter>? npcByEditorId,
+        Dictionary<string, INpcGetter>? npcByName)
+    {
+        var results = new List<FormKey>();
+        
+        // Use SpidLineParser for robust SPID parsing
+        if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null)
+        {
+            return results;
+        }
+        
+        // Get specific NPC identifiers from the parsed filter
+        var npcIdentifiers = SpidLineParser.GetSpecificNpcIdentifiers(filter);
+        if (npcIdentifiers.Count == 0)
+        {
+            return results;
+        }
+        
+        // Build lookup dictionaries if not provided
+        if (npcByEditorId == null || npcByName == null)
         {
             var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
             npcByEditorId ??= allNpcs
@@ -45,74 +115,26 @@ public static class DistributionLineParser
                 .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
         }
-
-        if (file.TypeDisplay == "SkyPatcher")
+        
+        // Resolve each NPC identifier to a FormKey
+        foreach (var identifier in npcIdentifiers)
         {
-            // SkyPatcher format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
-            var trimmed = line.RawText.Trim();
-            var filterByNpcsIndex = trimmed.IndexOf("filterByNpcs=", StringComparison.OrdinalIgnoreCase);
-            
-            if (filterByNpcsIndex >= 0)
+            INpcGetter? npc = null;
+            if (npcByEditorId.TryGetValue(identifier, out var npcById))
             {
-                var npcStart = filterByNpcsIndex + "filterByNpcs=".Length;
-                var npcEnd = trimmed.IndexOf(':', npcStart);
-                
-                if (npcEnd > npcStart)
-                {
-                    var npcString = trimmed.Substring(npcStart, npcEnd - npcStart);
-                    
-                    foreach (var npcPart in npcString.Split(','))
-                    {
-                        var formKey = TryParseFormKey(npcPart.Trim());
-                        if (formKey.HasValue)
-                        {
-                            results.Add(formKey.Value);
-                        }
-                    }
-                }
+                npc = npcById;
+            }
+            else if (npcByName.TryGetValue(identifier, out var npcByNameMatch))
+            {
+                npc = npcByNameMatch;
+            }
+
+            if (npc != null)
+            {
+                results.Add(npc.FormKey);
             }
         }
-        else if (file.TypeDisplay == "SPID")
-        {
-            // SPID format: Outfit = 0x800~ModKey|EditorID[,EditorID,...]
-            var trimmed = line.RawText.Trim();
-            var equalsIndex = trimmed.IndexOf('=');
-            if (equalsIndex < 0) return results;
-
-            var valuePart = trimmed.Substring(equalsIndex + 1).Trim();
-            var tildeIndex = valuePart.IndexOf('~');
-            if (tildeIndex < 0) return results;
-
-            var rest = valuePart.Substring(tildeIndex + 1).Trim();
-            var pipeIndex = rest.IndexOf('|');
-            if (pipeIndex < 0) return results;
-
-            var editorIdsString = rest.Substring(pipeIndex + 1).Trim();
-            var npcIdentifiers = editorIdsString
-                .Split(',')
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .ToList();
-
-            foreach (var identifier in npcIdentifiers)
-            {
-                INpcGetter? npc = null;
-                if (npcByEditorId != null && npcByEditorId.TryGetValue(identifier, out var npcById))
-                {
-                    npc = npcById;
-                }
-                else if (npcByName != null && npcByName.TryGetValue(identifier, out var npcByNameMatch))
-                {
-                    npc = npcByNameMatch;
-                }
-
-                if (npc != null)
-                {
-                    results.Add(npc.FormKey);
-                }
-            }
-        }
-
+        
         return results;
     }
 

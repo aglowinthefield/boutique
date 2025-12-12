@@ -216,6 +216,8 @@ public class DistributionViewModel : ReactiveObject
             .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitSearchText)));
         OutfitsTab.WhenAnyValue(vm => vm.OutfitSearchText)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(OutfitSearchText)));
+        OutfitsTab.WhenAnyValue(vm => vm.HideVanillaOutfits)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(HideVanillaOutfits)));
         OutfitsTab.WhenAnyValue(vm => vm.SelectedOutfit)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedOutfit)));
         OutfitsTab.WhenAnyValue(vm => vm.Outfits)
@@ -591,6 +593,13 @@ public class DistributionViewModel : ReactiveObject
     {
         get => OutfitsTab.OutfitSearchText;
         set => OutfitsTab.OutfitSearchText = value;
+    }
+    
+    /// <summary>UI: Checkbox in Outfits tab to hide vanilla outfits.</summary>
+    public bool HideVanillaOutfits
+    {
+        get => OutfitsTab.HideVanillaOutfits;
+        set => OutfitsTab.HideVanillaOutfits = value;
     }
     
     /// <summary>UI: List of NPCs that have the selected outfit distributed to them.</summary>
