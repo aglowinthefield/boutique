@@ -5,45 +5,38 @@ using ReactiveUI.Fody.Helpers;
 
 namespace Boutique.ViewModels;
 
-public class NpcOutfitAssignmentViewModel : ReactiveObject
+public class NpcOutfitAssignmentViewModel(NpcOutfitAssignment assignment) : ReactiveObject
 {
-    private readonly NpcOutfitAssignment _assignment;
-
-    public NpcOutfitAssignmentViewModel(NpcOutfitAssignment assignment)
-    {
-        _assignment = assignment;
-    }
-
     /// <summary>The underlying assignment model.</summary>
-    public NpcOutfitAssignment Assignment => _assignment;
+    public NpcOutfitAssignment Assignment { get; } = assignment;
 
     /// <summary>NPC FormKey.</summary>
-    public FormKey NpcFormKey => _assignment.NpcFormKey;
+    public FormKey NpcFormKey => Assignment.NpcFormKey;
     /// <summary>NPC EditorID.</summary>
-    public string? EditorId => _assignment.EditorId;
+    public string? EditorId => Assignment.EditorId;
     /// <summary>NPC display name.</summary>
-    public string? Name => _assignment.Name;
+    public string? Name => Assignment.Name;
     /// <summary>Display name (Name if available, otherwise EditorID).</summary>
-    public string DisplayName => _assignment.DisplayName;
+    public string DisplayName => Assignment.DisplayName;
     /// <summary>FormKey as string.</summary>
-    public string FormKeyString => _assignment.FormKeyString;
+    public string FormKeyString => Assignment.FormKeyString;
     /// <summary>Source mod display name.</summary>
-    public string ModDisplayName => _assignment.ModDisplayName;
+    public string ModDisplayName => Assignment.ModDisplayName;
 
     /// <summary>Final resolved outfit FormKey.</summary>
-    public FormKey? FinalOutfitFormKey => _assignment.FinalOutfitFormKey;
+    public FormKey? FinalOutfitFormKey => Assignment.FinalOutfitFormKey;
     /// <summary>Final resolved outfit EditorID.</summary>
-    public string? FinalOutfitEditorId => _assignment.FinalOutfitEditorId;
+    public string? FinalOutfitEditorId => Assignment.FinalOutfitEditorId;
     /// <summary>Final outfit display string.</summary>
-    public string FinalOutfitDisplay => _assignment.FinalOutfitDisplay;
+    public string FinalOutfitDisplay => Assignment.FinalOutfitDisplay;
 
     /// <summary>Whether this NPC has conflicting outfit distributions.</summary>
-    public bool HasConflict => _assignment.HasConflict;
+    public bool HasConflict => Assignment.HasConflict;
     /// <summary>Number of distributions affecting this NPC.</summary>
-    public int DistributionCount => _assignment.Distributions.Count;
+    public int DistributionCount => Assignment.Distributions.Count;
 
     /// <summary>All distributions for this NPC (for detail panel).</summary>
-    public IReadOnlyList<OutfitDistribution> Distributions => _assignment.Distributions;
+    public IReadOnlyList<OutfitDistribution> Distributions => Assignment.Distributions;
 
     /// <summary>Selection state for DataGrid binding.</summary>
     [Reactive] public bool IsSelected { get; set; }

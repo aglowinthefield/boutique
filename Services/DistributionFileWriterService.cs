@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Boutique.Models;
+using Boutique.Utilities;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -222,8 +223,9 @@ public class DistributionFileWriterService
             {
                 var lines = File.ReadAllLines(filePath, Encoding.UTF8);
 
-                // Pre-cache NPCs for SPID parsing (only if we have SPID lines)
+                // Pre-cache NPCs and Outfits for SPID parsing (only if we have SPID lines)
                 List<INpcGetter>? cachedNpcs = null;
+                List<IOutfitGetter>? cachedOutfits = null;
 
                 foreach (var line in lines)
                 {
@@ -242,13 +244,15 @@ public class DistributionFileWriterService
                     {
                         entry = ParseDistributionLine(trimmed, linkCache);
                     }
-                    // Try SPID format: Outfit = 0x800~ModKey|EditorID[,EditorID,...]
-                    else if (trimmed.StartsWith("Outfit", StringComparison.OrdinalIgnoreCase) && trimmed.Contains('~') && trimmed.Contains('|'))
+                    // Try SPID format: Outfit = FormOrEditorID|StringFilters|FormFilters|...
+                    // Use SpidLineParser which handles both EditorID and FormKey formats
+                    else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
                     {
                         hasSpidLines = true;
-                        // Lazy-load NPC cache only when we encounter SPID format
+                        // Lazy-load caches only when we encounter SPID format
                         cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                        entry = ParseSpidLine(trimmed, linkCache, cachedNpcs);
+                        cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
+                        entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits, _logger);
                     }
 
                     if (entry != null)
@@ -389,113 +393,5 @@ public class DistributionFileWriterService
             return null;
 
         return new FormKey(modKey, formId);
-    }
-
-    private DistributionEntry? ParseSpidLine(string line, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, List<INpcGetter> cachedNpcs)
-    {
-        try
-        {
-            // Format: Outfit = 0x800~ModKey|EditorID[,EditorID,...]
-            // Or: Outfit = 800~ModKey|EditorID[,EditorID,...]
-
-            var equalsIndex = line.IndexOf('=');
-            if (equalsIndex < 0)
-                return null;
-
-            var valuePart = line.Substring(equalsIndex + 1).Trim();
-
-            // Find the ~ separator between FormID and ModKey
-            var tildeIndex = valuePart.IndexOf('~');
-            if (tildeIndex < 0)
-                return null;
-
-            var formIdString = valuePart.Substring(0, tildeIndex).Trim();
-            var rest = valuePart.Substring(tildeIndex + 1).Trim();
-
-            // Parse FormID (can be 0x800 or 800)
-            formIdString = formIdString.Replace("0x", "").Replace("0X", "");
-            if (!uint.TryParse(formIdString, System.Globalization.NumberStyles.HexNumber, null, out var formId))
-            {
-                _logger.Debug("Failed to parse FormID: {FormIdString}", formIdString);
-                return null;
-            }
-
-            // Find the | separator between ModKey and EditorIDs
-            var pipeIndex = rest.IndexOf('|');
-            if (pipeIndex < 0)
-                return null;
-
-            var modKeyString = rest.Substring(0, pipeIndex).Trim();
-            var editorIdsString = rest.Substring(pipeIndex + 1).Trim();
-
-            if (!ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
-            {
-                _logger.Debug("Failed to parse ModKey: {ModKeyString}", modKeyString);
-                return null;
-            }
-
-            // Create FormKey for the outfit
-            var outfitFormKey = new FormKey(modKey, formId);
-
-            // Resolve outfit
-            if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-            {
-                _logger.Debug("Could not resolve outfit: {FormKey}", outfitFormKey);
-                return null;
-            }
-
-            // Parse NPC identifiers (comma-separated)
-            // SPID format allows both EditorID and Name (display name)
-            var npcIdentifiers = editorIdsString
-                .Split(',')
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .ToList();
-
-            if (npcIdentifiers.Count == 0)
-            {
-                _logger.Debug("No NPC identifiers found in line: {Line}", line);
-                return null;
-            }
-
-            // Resolve NPCs by EditorID or Name using the pre-cached list
-            // Note: The ModKey in SPID format is for the outfit, not the NPCs
-            // NPCs are identified by EditorID or Name and can be from any mod
-            var npcFormKeys = new List<FormKey>();
-
-            foreach (var identifier in npcIdentifiers)
-            {
-                // Try to find NPC by EditorID first, then by Name
-                var npc = cachedNpcs.FirstOrDefault(n =>
-                    string.Equals(n.EditorID, identifier, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(n.Name?.String, identifier, StringComparison.OrdinalIgnoreCase));
-
-                if (npc != null)
-                {
-                    npcFormKeys.Add(npc.FormKey);
-                }
-                else
-                {
-                    _logger.Debug("Could not resolve NPC by EditorID or Name: {Identifier}", identifier);
-                }
-            }
-
-            if (npcFormKeys.Count == 0)
-            {
-                _logger.Debug("No NPCs could be resolved for line: {Line}", line);
-                return null;
-            }
-
-            return new DistributionEntry
-            {
-                Outfit = outfit,
-                NpcFormKeys = npcFormKeys
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.Debug(ex, "Failed to parse SPID distribution line: {Line}", line);
-            return null;
-        }
     }
 }
