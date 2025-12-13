@@ -70,7 +70,7 @@ public class DistributionDiscoveryService(ILogger logger)
                 var skyEnumSw = System.Diagnostics.Stopwatch.StartNew();
                 var skyPatcherOptions = new EnumerationOptions
                 {
-                    RecurseSubdirectories = false,  // Non-recursive: SPID files are always in Data root
+                    RecurseSubdirectories = true,  // SkyPatcher files can be in subfolders
                     ReturnSpecialDirectories = false,
                     IgnoreInaccessible = true,
                     MatchCasing = MatchCasing.CaseInsensitive

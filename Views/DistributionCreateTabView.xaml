@@ -87,122 +87,152 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <!-- Header -->
-                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
+                                    <StackPanel>
+                                        <!-- Header: Assign + Outfit + Chance + Preview + Remove -->
+                                        <WrapPanel Margin="0,0,0,2">
                                             <RadioButton Content="Assign" IsChecked="{Binding IsSelected}"
                                                          Command="{Binding DataContext.SelectEntryCommand, ElementName=Root}"
-                                                         CommandParameter="{Binding}" Margin="0,0,12,0" FontWeight="Bold" />
-                                            <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                         CommandParameter="{Binding}" Margin="0,0,10,0" FontWeight="Bold" VerticalAlignment="Center" />
+                                            <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,4,0" />
                                             <ComboBox ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
                                                       SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
-                                                      DisplayMemberPath="EditorID" MinWidth="200" Margin="0,0,6,0"
+                                                      DisplayMemberPath="EditorID" MinWidth="180" Margin="0,0,6,0"
                                                       MaxDropDownHeight="300" IsEditable="True" IsTextSearchEnabled="True"
                                                       TextSearch.TextPath="EditorID" DropDownOpened="ComboBox_DropDownOpened" />
-                                            <Button Margin="0,0,6,0" Padding="4,2" ToolTip="Preview Outfit" Background="Transparent" BorderThickness="0"
+                                            <CheckBox Content="%" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,2,0" ToolTip="Use Chance" />
+                                            <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="36" VerticalAlignment="Center"
+                                                     IsEnabled="{Binding UseChance}" Margin="0,0,6,0" ToolTip="Chance (0-100)" />
+                                            <Button Padding="3,1" ToolTip="Preview Outfit" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
                                                     Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}" CommandParameter="{Binding}">
-                                                <Image Source="pack://application:,,,/Assets/eye.png" Width="16" Height="16" />
+                                                <Image Source="pack://application:,,,/Assets/eye.png" Width="14" Height="14" />
                                             </Button>
-                                            <Button Content="Remove" Command="{Binding RemoveCommand}" Padding="6,2" />
+                                            <Button Content="×" Command="{Binding RemoveCommand}" Padding="5,1" ToolTip="Remove Entry" VerticalAlignment="Center" />
+                                        </WrapPanel>
+
+                                        <!-- NPCs (hidden when empty) -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedNpcs.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="NPCs:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" Foreground="Gray" />
+                                            <ItemsControl ItemsSource="{Binding SelectedNpcs}" VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,3,2" Padding="4,1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="2" Background="#F8F8F8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="9" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                                                <Button Content="×" Click="RemoveNpc_Click" Tag="{Binding}" Padding="3,0" Margin="3,0,0,0"
+                                                                        Background="Transparent" BorderThickness="0" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
 
-                                        <!-- Chance -->
-                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
-                                            <CheckBox Content="Use Chance" IsChecked="{Binding UseChance, Mode=TwoWay}" Margin="0,0,8,0" />
-                                            <TextBlock Text="Chance (%):" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                            <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" MinWidth="60" IsEnabled="{Binding UseChance}" />
-                                            <TextBlock Text="(0-100)" Margin="6,0,0,0" FontStyle="Italic" Foreground="Gray" FontSize="10" />
+                                        <!-- Factions (hidden when empty) -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedFactions.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="Factions:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" Foreground="Gray" />
+                                            <ItemsControl ItemsSource="{Binding SelectedFactions}" VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,3,2" Padding="4,1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="2" Background="#F8F8F8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="9" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                                                <Button Content="×" Click="RemoveFaction_Click" Tag="{Binding}" Padding="3,0" Margin="3,0,0,0"
+                                                                        Background="Transparent" BorderThickness="0" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
 
-                                        <!-- NPCs -->
-                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
-                                            <TextBlock Text="NPCs:" Margin="0,0,6,0" />
-                                            <TextBlock Text="{Binding SelectedNpcs.Count, StringFormat='{}{0} selected'}" FontStyle="Italic" />
+                                        <!-- Keywords (hidden when empty) -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedKeywords.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="Keywords:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" Foreground="Gray" />
+                                            <ItemsControl ItemsSource="{Binding SelectedKeywords}" VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,3,2" Padding="4,1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="2" Background="#F8F8F8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="9" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                                                <Button Content="×" Click="RemoveKeyword_Click" Tag="{Binding}" Padding="3,0" Margin="3,0,0,0"
+                                                                        Background="Transparent" BorderThickness="0" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
-                                        <ItemsControl Grid.Row="3" ItemsSource="{Binding SelectedNpcs}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding DisplayName}" Margin="0,0,6,0" />
-                                                            <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="10" Margin="0,0,6,0" />
-                                                            <Button Content="×" Click="RemoveNpc_Click" Tag="{Binding}" Padding="4,0" Background="Transparent" BorderThickness="0" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
 
-                                        <!-- Factions -->
-                                        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,4,0,4">
-                                            <TextBlock Text="Factions:" Margin="0,0,6,0" />
-                                            <TextBlock Text="{Binding SelectedFactions.Count, StringFormat='{}{0} selected'}" FontStyle="Italic" />
+                                        <!-- Races (hidden when empty) -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedRaces.Count}" Value="0">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="Races:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" Foreground="Gray" />
+                                            <ItemsControl ItemsSource="{Binding SelectedRaces}" VerticalAlignment="Center">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,3,2" Padding="4,1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="2" Background="#F8F8F8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="9" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" />
+                                                                <Button Content="×" Click="RemoveRace_Click" Tag="{Binding}" Padding="3,0" Margin="3,0,0,0"
+                                                                        Background="Transparent" BorderThickness="0" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
-                                        <ItemsControl Grid.Row="5" ItemsSource="{Binding SelectedFactions}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding DisplayName}" Margin="0,0,6,0" />
-                                                            <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="10" Margin="0,0,6,0" />
-                                                            <Button Content="×" Click="RemoveFaction_Click" Tag="{Binding}" Padding="4,0" Background="Transparent" BorderThickness="0" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-
-                                        <!-- Keywords -->
-                                        <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,4,0,4">
-                                            <TextBlock Text="Keywords:" Margin="0,0,6,0" />
-                                            <TextBlock Text="{Binding SelectedKeywords.Count, StringFormat='{}{0} selected'}" FontStyle="Italic" />
-                                        </StackPanel>
-                                        <ItemsControl Grid.Row="7" ItemsSource="{Binding SelectedKeywords}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding DisplayName}" Margin="0,0,6,0" />
-                                                            <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="10" Margin="0,0,6,0" />
-                                                            <Button Content="×" Click="RemoveKeyword_Click" Tag="{Binding}" Padding="4,0" Background="Transparent" BorderThickness="0" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-
-                                        <!-- Races -->
-                                        <StackPanel Grid.Row="8" Orientation="Horizontal" Margin="0,4,0,4">
-                                            <TextBlock Text="Races:" Margin="0,0,6,0" />
-                                            <TextBlock Text="{Binding SelectedRaces.Count, StringFormat='{}{0} selected'}" FontStyle="Italic" />
-                                        </StackPanel>
-                                        <ItemsControl Grid.Row="9" ItemsSource="{Binding SelectedRaces}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding DisplayName}" Margin="0,0,6,0" />
-                                                            <TextBlock Text="{Binding FormKeyString}" FontFamily="Consolas" FontSize="10" Margin="0,0,6,0" />
-                                                            <Button Content="×" Click="RemoveRace_Click" Tag="{Binding}" Padding="4,0" Background="Transparent" BorderThickness="0" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </Grid>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -347,4 +377,3 @@
         </GroupBox>
     </Grid>
 </UserControl>
-
