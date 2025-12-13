@@ -19,9 +19,9 @@ namespace Boutique.ViewModels;
 public class DistributionEditTabViewModel : ReactiveObject
 {
     private readonly DistributionFileWriterService _fileWriterService;
-    private readonly NpcScanningService _npcScanningService;
     private readonly ArmorPreviewService _armorPreviewService;
     private readonly MutagenService _mutagenService;
+    private readonly GameDataCacheService _cache;
     private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
 
@@ -31,16 +31,16 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     public DistributionEditTabViewModel(
         DistributionFileWriterService fileWriterService,
-        NpcScanningService npcScanningService,
         ArmorPreviewService armorPreviewService,
         MutagenService mutagenService,
+        GameDataCacheService cache,
         SettingsViewModel settings,
         ILogger logger)
     {
         _fileWriterService = fileWriterService;
-        _npcScanningService = npcScanningService;
         _armorPreviewService = armorPreviewService;
         _mutagenService = mutagenService;
+        _cache = cache;
         _settings = settings;
         _logger = logger.ForContext<DistributionEditTabViewModel>();
 
@@ -137,13 +137,17 @@ public class DistributionEditTabViewModel : ReactiveObject
         }
     }
 
-    [Reactive] public ObservableCollection<NpcRecordViewModel> AvailableNpcs { get; private set; } = [];
+    /// <summary>Available NPCs for distribution entry selection (from cache).</summary>
+    public ObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
 
-    [Reactive] public ObservableCollection<FactionRecordViewModel> AvailableFactions { get; private set; } = [];
+    /// <summary>Available factions for distribution entry selection (from cache).</summary>
+    public ObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
 
-    [Reactive] public ObservableCollection<KeywordRecordViewModel> AvailableKeywords { get; private set; } = [];
+    /// <summary>Available keywords for distribution entry selection (from cache).</summary>
+    public ObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
 
-    [Reactive] public ObservableCollection<RaceRecordViewModel> AvailableRaces { get; private set; } = [];
+    /// <summary>Available races for distribution entry selection (from cache).</summary>
+    public ObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
 
     [Reactive] public ObservableCollection<IOutfitGetter> AvailableOutfits { get; private set; } = [];
 
@@ -870,25 +874,28 @@ public class DistributionEditTabViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(IsInitialized));
             }
 
-            StatusMessage = "Scanning NPCs from modlist...";
-
-            var npcs = await _npcScanningService.ScanNpcsAsync();
-
-            AvailableNpcs.Clear();
-            foreach (var npc in npcs)
+            // Wait for cache to be loaded if not already
+            if (!_cache.IsLoaded && !_cache.IsLoading)
             {
-                var npcVm = new NpcRecordViewModel(npc);
-                AvailableNpcs.Add(npcVm);
+                StatusMessage = "Loading game data cache...";
+                await _cache.LoadAsync();
+            }
+            else if (_cache.IsLoading)
+            {
+                StatusMessage = "Waiting for game data cache...";
+                while (_cache.IsLoading)
+                    await Task.Delay(100);
             }
 
-            // Update the filtered list after populating
+            // NPCs, factions, races, keywords are already available from cache
+            // Just update the filtered list
             UpdateFilteredNpcs();
 
-            StatusMessage = $"Scanned {AvailableNpcs.Count} NPCs.";
-            _logger.Information("Scanned {Count} NPCs.", AvailableNpcs.Count);
+            StatusMessage = $"Data loaded: {AvailableNpcs.Count} NPCs, {AvailableFactions.Count} factions, {AvailableRaces.Count} races.";
+            _logger.Information("Using cached data: {NpcCount} NPCs, {FactionCount} factions.",
+                AvailableNpcs.Count, AvailableFactions.Count);
 
-            // Also load filters and outfits when scanning NPCs (LinkCache is now available)
-            await LoadAvailableFiltersAsync();
+            // Load outfits when scanning (LinkCache is now available)
             await LoadAvailableOutfitsAsync();
         }
         catch (Exception ex)
@@ -1773,71 +1780,6 @@ public class DistributionEditTabViewModel : ReactiveObject
         foreach (var race in filtered)
         {
             FilteredRaces.Add(race);
-        }
-    }
-
-    private async Task LoadAvailableFiltersAsync()
-    {
-        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            AvailableFactions.Clear();
-            AvailableKeywords.Clear();
-            AvailableRaces.Clear();
-            return;
-        }
-
-        try
-        {
-            // Load factions, keywords, and races from the active load order
-            var (factions, keywords, races) = await Task.Run(() =>
-            {
-                var f = linkCache.WinningOverrides<IFactionGetter>()
-                    .Select(faction => new FactionRecordViewModel(new FactionRecord(
-                        faction.FormKey,
-                        faction.EditorID,
-                        faction.Name?.String,
-                        faction.FormKey.ModKey)))
-                    .OrderBy(f => f.DisplayName)
-                    .ToList();
-
-                var k = linkCache.WinningOverrides<IKeywordGetter>()
-                    .Select(keyword => new KeywordRecordViewModel(new KeywordRecord(
-                        keyword.FormKey,
-                        keyword.EditorID,
-                        keyword.FormKey.ModKey)))
-                    .OrderBy(k => k.DisplayName)
-                    .ToList();
-
-                var r = linkCache.WinningOverrides<IRaceGetter>()
-                    .Select(race => new RaceRecordViewModel(new RaceRecord(
-                        race.FormKey,
-                        race.EditorID,
-                        race.Name?.String,
-                        race.FormKey.ModKey)))
-                    .OrderBy(r => r.DisplayName)
-                    .ToList();
-
-                return (f, k, r);
-            });
-
-            AvailableFactions = new ObservableCollection<FactionRecordViewModel>(factions);
-            AvailableKeywords = new ObservableCollection<KeywordRecordViewModel>(keywords);
-            AvailableRaces = new ObservableCollection<RaceRecordViewModel>(races);
-
-            // Update filtered collections
-            UpdateFilteredFactions();
-            UpdateFilteredKeywords();
-            UpdateFilteredRaces();
-
-            _logger.Debug("Loaded {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races.",
-                factions.Count, keywords.Count, races.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to load available filters.");
-            AvailableFactions.Clear();
-            AvailableKeywords.Clear();
-            AvailableRaces.Clear();
         }
     }
 

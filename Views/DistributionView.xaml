@@ -59,7 +59,7 @@
 
         <!-- TabControl with Create, Files, NPCs, and Outfits tabs -->
         <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}">
-            
+
             <!-- CREATE TAB -->
             <TabItem Header="Create">
                 <Grid>
@@ -101,7 +101,7 @@
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" 
+                                <StackPanel Orientation="Horizontal"
                                             Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
                                     <TextBlock Text="Filename:" VerticalAlignment="Center" Margin="0,0,6,0" />
                                     <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}"
@@ -130,25 +130,25 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" 
-                                                   Text="⚠" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
+                                        <TextBlock Grid.Column="0"
+                                                   Text="⚠"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
                                                    Foreground="#FF8C00"
                                                    VerticalAlignment="Top"
                                                    Margin="0,0,8,0" />
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding ConflictSummary}" 
-                                                       TextWrapping="Wrap" 
-                                                       Foreground="#CC6600" 
+                                            <TextBlock Text="{Binding ConflictSummary}"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="#CC6600"
                                                        FontSize="11" />
                                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                <TextBlock Text="Suggested filename: " 
-                                                           Foreground="#CC6600" 
+                                                <TextBlock Text="Suggested filename: "
+                                                           Foreground="#CC6600"
                                                            FontWeight="Bold"
                                                            FontSize="11" />
-                                                <TextBlock Text="{Binding SuggestedFileName}" 
-                                                           Foreground="#CC6600" 
+                                                <TextBlock Text="{Binding SuggestedFileName}"
+                                                           Foreground="#CC6600"
                                                            FontFamily="Consolas"
                                                            FontWeight="Bold"
                                                            FontSize="11" />
@@ -156,7 +156,7 @@
                                         </StackPanel>
                                     </Grid>
                                 </Border>
-                                
+
                                 <!-- Conflict Resolved Banner (conflicts exist but resolved by filename) -->
                                 <Border Margin="0,6,0,0" Padding="8" CornerRadius="4"
                                         Visibility="{Binding ConflictsResolvedByFilename, Converter={StaticResource BoolToVisConverter}}">
@@ -174,17 +174,17 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" 
-                                                   Text="✓" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold" 
+                                        <TextBlock Grid.Column="0"
+                                                   Text="✓"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
                                                    Foreground="#228B22"
                                                    VerticalAlignment="Top"
                                                    Margin="0,0,8,0" />
                                         <TextBlock Grid.Column="1"
-                                                   Text="{Binding ConflictSummary}" 
-                                                   TextWrapping="Wrap" 
-                                                   Foreground="#1B6B1B" 
+                                                   Text="{Binding ConflictSummary}"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="#1B6B1B"
                                                    FontSize="11" />
                                     </Grid>
                                 </Border>
@@ -291,8 +291,8 @@
                                                                  MaxWidth="80"
                                                                  IsEnabled="{Binding UseChance}"
                                                                  ToolTip="Distribution chance (0-100). Default is 100%." />
-                                                        <TextBlock Text="(0-100)" 
-                                                                   VerticalAlignment="Center" 
+                                                        <TextBlock Text="(0-100)"
+                                                                   VerticalAlignment="Center"
                                                                    Margin="6,0,0,0"
                                                                    FontStyle="Italic"
                                                                    Foreground="Gray"
@@ -327,7 +327,7 @@
                                                                     </Border.Style>
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <!-- Conflict Warning Icon -->
-                                                                        <TextBlock Text="⚠" 
+                                                                        <TextBlock Text="⚠"
                                                                                    Foreground="#FF8C00"
                                                                                    FontWeight="Bold"
                                                                                    VerticalAlignment="Center"
@@ -345,7 +345,7 @@
                                                                             </TextBlock.Style>
                                                                         </TextBlock>
                                                                         <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                        <TextBlock Text="{Binding FormKeyString}" 
+                                                                        <TextBlock Text="{Binding FormKeyString}"
                                                                                    FontFamily="Consolas"
                                                                                    FontSize="10"
                                                                                    VerticalAlignment="Center"
@@ -378,7 +378,7 @@
                                                                 <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                        <TextBlock Text="{Binding FormKeyString}" 
+                                                                        <TextBlock Text="{Binding FormKeyString}"
                                                                                    FontFamily="Consolas"
                                                                                    FontSize="10"
                                                                                    VerticalAlignment="Center"
@@ -411,7 +411,7 @@
                                                                 <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                        <TextBlock Text="{Binding FormKeyString}" 
+                                                                        <TextBlock Text="{Binding FormKeyString}"
                                                                                    FontFamily="Consolas"
                                                                                    FontSize="10"
                                                                                    VerticalAlignment="Center"
@@ -444,7 +444,7 @@
                                                                 <Border Margin="0,2" Padding="4" BorderBrush="LightGray" BorderThickness="1">
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                        <TextBlock Text="{Binding FormKeyString}" 
+                                                                        <TextBlock Text="{Binding FormKeyString}"
                                                                                    FontFamily="Consolas"
                                                                                    FontSize="10"
                                                                                    VerticalAlignment="Center"
@@ -506,7 +506,7 @@
 
                                     <!-- NPC List -->
                                     <DataGrid x:Name="NpcDataGrid"
-                                             Grid.Row="1" 
+                                             Grid.Row="1"
                                              ItemsSource="{Binding FilteredNpcs}"
                                              AutoGenerateColumns="False"
                                              CanUserAddRows="False"
@@ -519,23 +519,23 @@
                                              EnableRowVirtualization="True"
                                              EnableColumnVirtualization="True">
                                         <DataGrid.Columns>
-                                            <DataGridCheckBoxColumn Header="" 
+                                            <DataGridCheckBoxColumn Header=""
                                                                     Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="Auto"
                                                                     SortMemberPath="IsSelected"
                                                                     IsReadOnly="False" />
-                                            <DataGridTextColumn Header="Name" 
-                                                                Binding="{Binding DisplayName}" 
+                                            <DataGridTextColumn Header="Name"
+                                                                Binding="{Binding DisplayName}"
                                                                 Width="*"
                                                                 CanUserSort="True"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="EditorID" 
-                                                                Binding="{Binding EditorID}" 
+                                            <DataGridTextColumn Header="EditorID"
+                                                                Binding="{Binding EditorID}"
                                                                 Width="200"
                                                                 CanUserSort="True"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="FormKey" 
-                                                                Binding="{Binding FormKeyString}" 
+                                            <DataGridTextColumn Header="FormKey"
+                                                                Binding="{Binding FormKeyString}"
                                                                 Width="150"
                                                                 CanUserSort="True"
                                                                 IsReadOnly="True">
@@ -546,8 +546,8 @@
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
-                                            <DataGridTextColumn Header="Mod" 
-                                                                Binding="{Binding ModDisplayName}" 
+                                            <DataGridTextColumn Header="Mod"
+                                                                Binding="{Binding ModDisplayName}"
                                                                 Width="150"
                                                                 CanUserSort="True"
                                                                 IsReadOnly="True">
@@ -603,19 +603,19 @@
                                              EnableRowVirtualization="True"
                                              EnableColumnVirtualization="True">
                                         <DataGrid.Columns>
-                                            <DataGridCheckBoxColumn Header="" 
+                                            <DataGridCheckBoxColumn Header=""
                                                                     Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="Auto" />
-                                            <DataGridTextColumn Header="Name" 
-                                                                Binding="{Binding DisplayName}" 
+                                            <DataGridTextColumn Header="Name"
+                                                                Binding="{Binding DisplayName}"
                                                                 Width="*"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="EditorID" 
-                                                                Binding="{Binding EditorID}" 
+                                            <DataGridTextColumn Header="EditorID"
+                                                                Binding="{Binding EditorID}"
                                                                 Width="200"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="FormKey" 
-                                                                Binding="{Binding FormKeyString}" 
+                                            <DataGridTextColumn Header="FormKey"
+                                                                Binding="{Binding FormKeyString}"
                                                                 Width="150"
                                                                 IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
@@ -665,15 +665,15 @@
                                              EnableRowVirtualization="True"
                                              EnableColumnVirtualization="True">
                                         <DataGrid.Columns>
-                                            <DataGridCheckBoxColumn Header="" 
+                                            <DataGridCheckBoxColumn Header=""
                                                                     Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="Auto" />
-                                            <DataGridTextColumn Header="EditorID" 
-                                                                Binding="{Binding EditorID}" 
+                                            <DataGridTextColumn Header="EditorID"
+                                                                Binding="{Binding EditorID}"
                                                                 Width="*"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="FormKey" 
-                                                                Binding="{Binding FormKeyString}" 
+                                            <DataGridTextColumn Header="FormKey"
+                                                                Binding="{Binding FormKeyString}"
                                                                 Width="150"
                                                                 IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
@@ -723,19 +723,19 @@
                                              EnableRowVirtualization="True"
                                              EnableColumnVirtualization="True">
                                         <DataGrid.Columns>
-                                            <DataGridCheckBoxColumn Header="" 
+                                            <DataGridCheckBoxColumn Header=""
                                                                     Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="Auto" />
-                                            <DataGridTextColumn Header="Name" 
-                                                                Binding="{Binding DisplayName}" 
+                                            <DataGridTextColumn Header="Name"
+                                                                Binding="{Binding DisplayName}"
                                                                 Width="*"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="EditorID" 
-                                                                Binding="{Binding EditorID}" 
+                                            <DataGridTextColumn Header="EditorID"
+                                                                Binding="{Binding EditorID}"
                                                                 Width="200"
                                                                 IsReadOnly="True" />
-                                            <DataGridTextColumn Header="FormKey" 
-                                                                Binding="{Binding FormKeyString}" 
+                                            <DataGridTextColumn Header="FormKey"
+                                                                Binding="{Binding FormKeyString}"
                                                                 Width="150"
                                                                 IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
@@ -759,7 +759,7 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            
+
             <!-- FILES TAB -->
             <TabItem Header="Files">
                 <Grid>
@@ -888,11 +888,12 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            
+
             <!-- NPCs TAB -->
             <TabItem Header="NPCs">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
@@ -922,8 +923,104 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- SPID-Style Filter Controls -->
+                    <GroupBox Grid.Row="1" Header="SPID-Style Filters" Margin="0,0,0,6" Padding="6">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Filter Controls Row -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <!-- Gender Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding GenderFilterOptions}"
+                                              SelectedItem="{Binding SelectedGenderFilter}"
+                                              MinWidth="90"
+                                              ToolTip="Filter by NPC gender (SPID trait: F/M)" />
+                                </StackPanel>
+
+                                <!-- Unique Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding UniqueFilterOptions}"
+                                              SelectedItem="{Binding SelectedUniqueFilter}"
+                                              MinWidth="100"
+                                              ToolTip="Filter by unique NPC flag (SPID trait: U/-U)" />
+                                </StackPanel>
+
+                                <!-- Templated Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Templated:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding TemplatedFilterOptions}"
+                                              SelectedItem="{Binding SelectedTemplatedFilter}"
+                                              MinWidth="110"
+                                              ToolTip="Filter by whether NPC uses a template" />
+                                </StackPanel>
+
+                                <!-- Child Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Age:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding ChildFilterOptions}"
+                                              SelectedItem="{Binding SelectedChildFilter}"
+                                              MinWidth="80"
+                                              ToolTip="Filter by child/adult status (SPID trait: C/-C)" />
+                                </StackPanel>
+
+                                <!-- Faction Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Faction:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding AvailableFactionsForNpcFilter}"
+                                              SelectedItem="{Binding SelectedFactionForNpcFilter}"
+                                              DisplayMemberPath="DisplayName"
+                                              MinWidth="150"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              ToolTip="Filter by faction membership (SPID FormFilter)" />
+                                </StackPanel>
+
+                                <!-- Race Filter -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                    <TextBlock Text="Race:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ComboBox ItemsSource="{Binding AvailableRacesForNpcFilter}"
+                                              SelectedItem="{Binding SelectedRaceForNpcFilter}"
+                                              DisplayMemberPath="DisplayName"
+                                              MinWidth="120"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              ToolTip="Filter by race (SPID FormFilter)" />
+                                </StackPanel>
+
+                                <!-- Clear Filters Button -->
+                                <Button Content="Clear Filters"
+                                        Command="{Binding ClearFiltersCommand}"
+                                        Padding="8,2"
+                                        VerticalAlignment="Center"
+                                        ToolTip="Reset all filters to default" />
+                            </StackPanel>
+
+                            <!-- Filter Status Row -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="{Binding FilterDescription}"
+                                           FontStyle="Italic"
+                                           Foreground="#0066CC"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Margin="12,0,0,0"
+                                           VerticalAlignment="Center">
+                                    <Run Text="Showing " />
+                                    <Run Text="{Binding FilteredCount, Mode=OneWay}" FontWeight="Bold" />
+                                    <Run Text=" of " />
+                                    <Run Text="{Binding TotalCount, Mode=OneWay}" />
+                                    <Run Text=" NPCs" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
                     <!-- Main Content Area -->
-                    <Grid Grid.Row="1">
+                    <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
@@ -959,20 +1056,20 @@
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name" 
-                                                    Binding="{Binding DisplayName}" 
+                                <DataGridTextColumn Header="Name"
+                                                    Binding="{Binding DisplayName}"
                                                     Width="*"
                                                     CanUserSort="True" />
-                                <DataGridTextColumn Header="EditorID" 
-                                                    Binding="{Binding EditorId}" 
+                                <DataGridTextColumn Header="EditorID"
+                                                    Binding="{Binding EditorId}"
                                                     Width="180"
                                                     CanUserSort="True" />
-                                <DataGridTextColumn Header="Final Outfit" 
-                                                    Binding="{Binding FinalOutfitDisplay}" 
+                                <DataGridTextColumn Header="Final Outfit"
+                                                    Binding="{Binding FinalOutfitDisplay}"
                                                     Width="200"
                                                     CanUserSort="True" />
-                                <DataGridTextColumn Header="Mod" 
-                                                    Binding="{Binding ModDisplayName}" 
+                                <DataGridTextColumn Header="Mod"
+                                                    Binding="{Binding ModDisplayName}"
                                                     Width="150"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
@@ -982,8 +1079,8 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="FormKey" 
-                                                    Binding="{Binding FormKeyString}" 
+                                <DataGridTextColumn Header="FormKey"
+                                                    Binding="{Binding FormKeyString}"
                                                     Width="130"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
@@ -993,8 +1090,8 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="Targeting" 
-                                                    Binding="{Binding TargetingType}" 
+                                <DataGridTextColumn Header="Targeting"
+                                                    Binding="{Binding TargetingType}"
                                                     Width="100"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
@@ -1030,12 +1127,14 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"
                                       Background="LightGray" Margin="0,2" />
 
                         <!-- Detail Panel -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="10" />
                                 <ColumnDefinition Width="*" />
@@ -1071,7 +1170,7 @@
                                                         </Grid.RowDefinitions>
                                                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                                                             <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
-                                                            <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}" 
+                                                            <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
                                                                        Foreground="Gray" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0" />
                                                             <TextBlock Text=" [WINNER]" Foreground="Green" FontWeight="Bold">
                                                                 <TextBlock.Style>
@@ -1085,7 +1184,7 @@
                                                                     </Style>
                                                                 </TextBlock.Style>
                                                             </TextBlock>
-                                                            <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}" 
+                                                            <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}"
                                                                        Foreground="#CC6600" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
@@ -1099,12 +1198,12 @@
                                                                 </TextBlock.Style>
                                                             </TextBlock>
                                                         </StackPanel>
-                                                        <TextBlock Grid.Row="1" 
+                                                        <TextBlock Grid.Row="1"
                                                                    Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
                                                                    FontFamily="Consolas"
                                                                    FontSize="11"
                                                                    Margin="0,2,0,0" />
-                                                        <TextBlock Grid.Row="2" 
+                                                        <TextBlock Grid.Row="2"
                                                                    Text="{Binding TargetingDescription}"
                                                                    Foreground="#0066CC"
                                                                    FontSize="10"
@@ -1135,7 +1234,7 @@
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
-                                    
+
                                     <TextBox Grid.Row="0"
                                              Text="{Binding SelectedNpcOutfitContents, Mode=OneWay}"
                                              IsReadOnly="True"
@@ -1144,7 +1243,7 @@
                                              VerticalScrollBarVisibility="Auto"
                                              FontFamily="Consolas"
                                              FontSize="11" />
-                                    
+
                                     <Button Grid.Row="1"
                                             Content="Preview Outfit"
                                             Command="{Binding PreviewNpcOutfitCommand}"
@@ -1154,11 +1253,55 @@
                                             HorizontalAlignment="Left" />
                                 </Grid>
                             </GroupBox>
+
+                            <!-- Filter Syntax Preview -->
+                            <GroupBox Grid.Column="4" Header="Filter Syntax Preview" Padding="6">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel>
+                                            <!-- SPID Syntax -->
+                                            <TextBlock Text="SPID Format:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding GeneratedSpidSyntax, Mode=OneWay}"
+                                                     IsReadOnly="True"
+                                                     TextWrapping="Wrap"
+                                                     AcceptsReturn="True"
+                                                     FontFamily="Consolas"
+                                                     FontSize="10"
+                                                     Background="#F5F5F5"
+                                                     Padding="4"
+                                                     Margin="0,0,0,8" />
+
+                                            <!-- SkyPatcher Syntax -->
+                                            <TextBlock Text="SkyPatcher Format:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding GeneratedSkyPatcherSyntax, Mode=OneWay}"
+                                                     IsReadOnly="True"
+                                                     TextWrapping="Wrap"
+                                                     AcceptsReturn="True"
+                                                     FontFamily="Consolas"
+                                                     FontSize="10"
+                                                     Background="#F5F5F5"
+                                                     Padding="4" />
+                                        </StackPanel>
+                                    </ScrollViewer>
+
+                                    <TextBlock Grid.Row="1"
+                                               Text="Copy syntax to use in your distribution INI files"
+                                               FontStyle="Italic"
+                                               Foreground="Gray"
+                                               FontSize="10"
+                                               Margin="0,6,0,0" />
+                                </Grid>
+                            </GroupBox>
                         </Grid>
                     </Grid>
                 </Grid>
             </TabItem>
-            
+
             <!-- OUTFITS TAB -->
             <TabItem Header="Outfits">
                 <Grid>
@@ -1225,12 +1368,12 @@
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="EditorID" 
-                                                    Binding="{Binding EditorID}" 
+                                <DataGridTextColumn Header="EditorID"
+                                                    Binding="{Binding EditorID}"
                                                     Width="*"
                                                     CanUserSort="True" />
-                                <DataGridTextColumn Header="FormKey" 
-                                                    Binding="{Binding FormKeyString}" 
+                                <DataGridTextColumn Header="FormKey"
+                                                    Binding="{Binding FormKeyString}"
                                                     Width="150"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
@@ -1240,8 +1383,8 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="Mod" 
-                                                    Binding="{Binding ModDisplayName}" 
+                                <DataGridTextColumn Header="Mod"
+                                                    Binding="{Binding ModDisplayName}"
                                                     Width="150"
                                                     CanUserSort="True">
                                     <DataGridTextColumn.ElementStyle>
@@ -1251,8 +1394,8 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="NPCs" 
-                                                    Binding="{Binding NpcCount}" 
+                                <DataGridTextColumn Header="NPCs"
+                                                    Binding="{Binding NpcCount}"
                                                     Width="60"
                                                     CanUserSort="True"
                                                     SortDirection="Descending">
@@ -1277,7 +1420,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"
                                       Background="LightGray" Margin="0,2" />
 
                         <!-- Detail Panel -->
@@ -1303,16 +1446,16 @@
                                           EnableRowVirtualization="True"
                                           EnableColumnVirtualization="True">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Name" 
-                                                            Binding="{Binding DisplayName}" 
+                                        <DataGridTextColumn Header="Name"
+                                                            Binding="{Binding DisplayName}"
                                                             Width="*"
                                                             CanUserSort="True" />
-                                        <DataGridTextColumn Header="EditorID" 
-                                                            Binding="{Binding EditorId}" 
+                                        <DataGridTextColumn Header="EditorID"
+                                                            Binding="{Binding EditorId}"
                                                             Width="180"
                                                             CanUserSort="True" />
-                                        <DataGridTextColumn Header="FormKey" 
-                                                            Binding="{Binding FormKeyString}" 
+                                        <DataGridTextColumn Header="FormKey"
+                                                            Binding="{Binding FormKeyString}"
                                                             Width="130"
                                                             CanUserSort="True">
                                             <DataGridTextColumn.ElementStyle>
@@ -1322,8 +1465,8 @@
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
-                                        <DataGridTextColumn Header="Mod" 
-                                                            Binding="{Binding ModDisplayName}" 
+                                        <DataGridTextColumn Header="Mod"
+                                                            Binding="{Binding ModDisplayName}"
                                                             Width="150"
                                                             CanUserSort="True">
                                             <DataGridTextColumn.ElementStyle>
@@ -1356,10 +1499,10 @@
                                                             <RowDefinition Height="Auto" />
                                                             <RowDefinition Height="Auto" />
                                                         </Grid.RowDefinitions>
-                                                        <TextBlock Grid.Row="0" 
-                                                                   Text="{Binding DisplayName}" 
+                                                        <TextBlock Grid.Row="0"
+                                                                   Text="{Binding DisplayName}"
                                                                    FontWeight="Bold" />
-                                                        <ItemsControl Grid.Row="1" 
+                                                        <ItemsControl Grid.Row="1"
                                                                       ItemsSource="{Binding Distributions}"
                                                                       Margin="0,4,0,0">
                                                             <ItemsControl.ItemTemplate>
@@ -1368,7 +1511,7 @@
                                                                         <StackPanel>
                                                                             <StackPanel Orientation="Horizontal">
                                                                                 <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
-                                                                                <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}" 
+                                                                                <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
                                                                                            Foreground="Gray" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0" />
                                                                                 <TextBlock Text=" [WINNER]" Foreground="Green" FontWeight="Bold">
                                                                                     <TextBlock.Style>

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using Boutique.Models;
@@ -15,22 +14,22 @@ namespace Boutique.ViewModels;
 
 public class DistributionFilesTabViewModel : ReactiveObject
 {
-    private readonly DistributionDiscoveryService _discoveryService;
     private readonly ArmorPreviewService _armorPreviewService;
     private readonly MutagenService _mutagenService;
+    private readonly GameDataCacheService _cache;
     private readonly ILogger _logger;
     private readonly SettingsViewModel _settings;
 
     public DistributionFilesTabViewModel(
-        DistributionDiscoveryService discoveryService,
         ArmorPreviewService armorPreviewService,
         MutagenService mutagenService,
+        GameDataCacheService cache,
         SettingsViewModel settings,
         ILogger logger)
     {
-        _discoveryService = discoveryService;
         _armorPreviewService = armorPreviewService;
         _mutagenService = mutagenService;
+        _cache = cache;
         _settings = settings;
         _logger = logger.ForContext<DistributionFilesTabViewModel>();
 
@@ -41,6 +40,39 @@ public class DistributionFilesTabViewModel : ReactiveObject
         // Update FilteredLines when SelectedFile or LineFilter changes
         this.WhenAnyValue(vm => vm.SelectedFile, vm => vm.LineFilter)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredLines)));
+
+        // Subscribe to cache loaded event to populate files
+        _cache.CacheLoaded += OnCacheLoaded;
+
+        // If cache is already loaded, populate files immediately
+        if (_cache.IsLoaded)
+        {
+            PopulateFilesFromCache();
+        }
+    }
+
+    private void OnCacheLoaded(object? sender, EventArgs e)
+    {
+        PopulateFilesFromCache();
+    }
+
+    private void PopulateFilesFromCache()
+    {
+        Files.Clear();
+        foreach (var file in _cache.AllDistributionFiles)
+        {
+            Files.Add(file);
+        }
+
+        SelectedFile = Files.FirstOrDefault();
+        this.RaisePropertyChanged(nameof(FilteredLines));
+        this.RaisePropertyChanged(nameof(Files));
+
+        StatusMessage = Files.Count == 0
+            ? "No outfit distribution files found."
+            : $"Found {Files.Count} outfit distribution file(s).";
+
+        _logger.Debug("Populated {Count} distribution files from cache.", Files.Count);
     }
 
     [Reactive] public ObservableCollection<DistributionFileViewModel> Files { get; private set; } = [];
@@ -102,68 +134,13 @@ public class DistributionFilesTabViewModel : ReactiveObject
         try
         {
             IsLoading = true;
-            var dataPath = _settings.SkyrimDataPath;
+            StatusMessage = "Refreshing distribution files...";
 
-            if (string.IsNullOrWhiteSpace(dataPath))
-            {
-                Files.Clear();
-                StatusMessage = "Set the Skyrim data path in Settings to scan distribution files.";
-                return;
-            }
+            // Reload the cache which will re-discover files
+            await _cache.ReloadAsync();
 
-            if (!Directory.Exists(dataPath))
-            {
-                Files.Clear();
-                StatusMessage = $"Skyrim data path does not exist: {dataPath}";
-                return;
-            }
-
-            StatusMessage = "Scanning for distribution files...";
-            _logger.Debug("Starting distribution file discovery in {DataPath}", dataPath);
-
-            var discovered = await _discoveryService.DiscoverAsync(dataPath);
-            _logger.Debug("Discovery service returned {Count} files", discovered.Count);
-
-            var outfitFiles = discovered
-                .Where(file => file.OutfitDistributionCount > 0)
-                .ToList();
-
-            _logger.Debug("Filtered to {Count} files with outfit distributions", outfitFiles.Count);
-
-            var viewModels = outfitFiles
-                .Select(file => new DistributionFileViewModel(file))
-                .ToList();
-
-            // Update collection in place to maintain bindings
-            Files.Clear();
-            foreach (var vm in viewModels)
-            {
-                Files.Add(vm);
-            }
-
+            // Cache reload will trigger OnCacheLoaded which populates the files
             LineFilter = string.Empty;
-            var newSelectedFile = Files.FirstOrDefault();
-            SelectedFile = newSelectedFile;
-
-            // Explicitly notify that FilteredLines may have changed (in case SelectedFile didn't change reference)
-            this.RaisePropertyChanged(nameof(FilteredLines));
-
-            // Explicitly notify that Files collection changed (for WhenAnyValue subscribers)
-            this.RaisePropertyChanged(nameof(Files));
-
-            if (Files.Count == 0)
-            {
-                StatusMessage = discovered.Count == 0
-                    ? "No distribution files found. Check that your data path is correct and contains *_DISTR.ini files or SkyPatcher INI files."
-                    : $"Found {discovered.Count} distribution file(s), but none contain outfit distributions.";
-                _logger.Warning("No outfit distribution files found. Discovered {TotalCount} files total, but {OutfitCount} had outfit distributions",
-                    discovered.Count, outfitFiles.Count);
-            }
-            else
-            {
-                StatusMessage = $"Found {Files.Count} outfit distribution file(s).";
-                _logger.Information("Successfully loaded {Count} outfit distribution file(s)", Files.Count);
-            }
         }
         catch (Exception ex)
         {

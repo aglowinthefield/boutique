@@ -24,10 +24,10 @@ public class DistributionViewModel : ReactiveObject
     private readonly SettingsViewModel _settings;
 
     public DistributionViewModel(
-        DistributionDiscoveryService discoveryService,
         DistributionFileWriterService fileWriterService,
         NpcScanningService npcScanningService,
         NpcOutfitResolutionService npcOutfitResolutionService,
+        GameDataCacheService gameDataCache,
         SettingsViewModel settings,
         ArmorPreviewService armorPreviewService,
         MutagenService mutagenService,
@@ -38,27 +38,24 @@ public class DistributionViewModel : ReactiveObject
 
         // Create tab ViewModels
         FilesTab = new DistributionFilesTabViewModel(
-            discoveryService,
             armorPreviewService,
             mutagenService,
+            gameDataCache,
             settings,
             logger);
 
         EditTab = new DistributionEditTabViewModel(
             fileWriterService,
-            npcScanningService,
             armorPreviewService,
             mutagenService,
+            gameDataCache,
             settings,
             logger);
 
         NpcsTab = new DistributionNpcsTabViewModel(
-            npcScanningService,
-            npcOutfitResolutionService,
-            discoveryService,
             armorPreviewService,
             mutagenService,
-            settings,
+            gameDataCache,
             logger);
 
         OutfitsTab = new DistributionOutfitsTabViewModel(
@@ -99,7 +96,6 @@ public class DistributionViewModel : ReactiveObject
                 var fileList = files.ToList();
                 EditTab.SetDistributionFiles(fileList);
                 EditTab.SetDistributionFilesInternal(fileList);
-                NpcsTab.SetDistributionFilesInternal(fileList);
                 OutfitsTab.SetDistributionFilesInternal(fileList);
                 // Notify parent bindings that Files collection changed
                 this.RaisePropertyChanged(nameof(Files));
@@ -111,7 +107,6 @@ public class DistributionViewModel : ReactiveObject
             var fileList = FilesTab.Files.ToList();
             EditTab.SetDistributionFiles(fileList);
             EditTab.SetDistributionFilesInternal(fileList);
-            NpcsTab.SetDistributionFilesInternal(fileList);
             OutfitsTab.SetDistributionFilesInternal(fileList);
             // Notify parent bindings that Files collection changed
             this.RaisePropertyChanged(nameof(Files));
@@ -173,6 +168,34 @@ public class DistributionViewModel : ReactiveObject
         NpcsTab.WhenAnyValue(vm => vm.SelectedNpcOutfitContents)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcOutfitContents)));
 
+        // Forward SPID filter property changes from NpcsTab
+        NpcsTab.WhenAnyValue(vm => vm.SelectedGenderFilter)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedGenderFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedUniqueFilter)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedUniqueFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedTemplatedFilter)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTemplatedFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedChildFilter)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedChildFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedFaction)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedFactionForNpcFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedRace)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedRaceForNpcFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.SelectedKeyword)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedKeywordForNpcFilter)));
+        NpcsTab.WhenAnyValue(vm => vm.GeneratedSpidSyntax)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSpidSyntax)));
+        NpcsTab.WhenAnyValue(vm => vm.GeneratedSkyPatcherSyntax)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSkyPatcherSyntax)));
+        NpcsTab.WhenAnyValue(vm => vm.FilterDescription)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(FilterDescription)));
+        NpcsTab.WhenAnyValue(vm => vm.HasActiveFilters)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(HasActiveFilters)));
+        NpcsTab.WhenAnyValue(vm => vm.FilteredCount)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredCount)));
+        NpcsTab.WhenAnyValue(vm => vm.TotalCount)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(TotalCount)));
+
         // Wire up Edit tab file save to refresh Files tab
         EditTab.FileSaved += async _ =>
         {
@@ -199,6 +222,12 @@ public class DistributionViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NpcOutfitAssignments));
         NpcsTab.FilteredNpcOutfitAssignments.CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments));
+        NpcsTab.AvailableFactions.CollectionChanged += (sender, e) =>
+            this.RaisePropertyChanged(nameof(AvailableFactionsForNpcFilter));
+        NpcsTab.AvailableRaces.CollectionChanged += (sender, e) =>
+            this.RaisePropertyChanged(nameof(AvailableRacesForNpcFilter));
+        NpcsTab.AvailableKeywords.CollectionChanged += (sender, e) =>
+            this.RaisePropertyChanged(nameof(AvailableKeywordsForNpcFilter));
 
         // Forward search text changes
         EditTab.WhenAnyValue(vm => vm.NpcSearchText)
@@ -278,15 +307,8 @@ public class DistributionViewModel : ReactiveObject
                 }
                 else if (index == (int)DistributionTab.Npcs)
                 {
-                    // Update NPCs tab with files from Files tab
-                    NpcsTab.SetDistributionFilesInternal(FilesTab.Files.ToList());
-
-                    // Auto-scan NPC outfits when NPCs tab is selected (if not already scanned)
-                    if (NpcsTab.NpcOutfitAssignments.Count == 0 && !NpcsTab.IsLoading)
-                    {
-                        _logger.Debug("NPCs tab selected, triggering auto-scan");
-                        _ = NpcsTab.ScanNpcOutfitsCommand.Execute();
-                    }
+                    // NPCs tab is populated automatically from cache when loaded
+                    // No additional action needed here
                 }
                 else if (index == (int)DistributionTab.Outfits)
                 {
@@ -572,6 +594,99 @@ public class DistributionViewModel : ReactiveObject
 
     /// <summary>UI: "Preview Outfit" button in NPCs tab detail panel to show 3D outfit preview.</summary>
     public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand => NpcsTab.PreviewNpcOutfitCommand;
+
+    // SPID-Style Filter Properties
+
+    /// <summary>UI: Gender filter dropdown options.</summary>
+    public IReadOnlyList<string> GenderFilterOptions => NpcsTab.GenderFilterOptions;
+
+    /// <summary>UI: Selected gender filter value.</summary>
+    public string SelectedGenderFilter
+    {
+        get => NpcsTab.SelectedGenderFilter;
+        set => NpcsTab.SelectedGenderFilter = value;
+    }
+
+    /// <summary>UI: Unique filter dropdown options.</summary>
+    public IReadOnlyList<string> UniqueFilterOptions => NpcsTab.UniqueFilterOptions;
+
+    /// <summary>UI: Selected unique filter value.</summary>
+    public string SelectedUniqueFilter
+    {
+        get => NpcsTab.SelectedUniqueFilter;
+        set => NpcsTab.SelectedUniqueFilter = value;
+    }
+
+    /// <summary>UI: Templated filter dropdown options.</summary>
+    public IReadOnlyList<string> TemplatedFilterOptions => NpcsTab.TemplatedFilterOptions;
+
+    /// <summary>UI: Selected templated filter value.</summary>
+    public string SelectedTemplatedFilter
+    {
+        get => NpcsTab.SelectedTemplatedFilter;
+        set => NpcsTab.SelectedTemplatedFilter = value;
+    }
+
+    /// <summary>UI: Child filter dropdown options.</summary>
+    public IReadOnlyList<string> ChildFilterOptions => NpcsTab.ChildFilterOptions;
+
+    /// <summary>UI: Selected child filter value.</summary>
+    public string SelectedChildFilter
+    {
+        get => NpcsTab.SelectedChildFilter;
+        set => NpcsTab.SelectedChildFilter = value;
+    }
+
+    /// <summary>UI: Available factions for filtering.</summary>
+    public ObservableCollection<FactionRecordViewModel> AvailableFactionsForNpcFilter => NpcsTab.AvailableFactions;
+
+    /// <summary>UI: Selected faction for filtering.</summary>
+    public FactionRecordViewModel? SelectedFactionForNpcFilter
+    {
+        get => NpcsTab.SelectedFaction;
+        set => NpcsTab.SelectedFaction = value;
+    }
+
+    /// <summary>UI: Available races for filtering.</summary>
+    public ObservableCollection<RaceRecordViewModel> AvailableRacesForNpcFilter => NpcsTab.AvailableRaces;
+
+    /// <summary>UI: Selected race for filtering.</summary>
+    public RaceRecordViewModel? SelectedRaceForNpcFilter
+    {
+        get => NpcsTab.SelectedRace;
+        set => NpcsTab.SelectedRace = value;
+    }
+
+    /// <summary>UI: Available keywords for filtering.</summary>
+    public ObservableCollection<KeywordRecordViewModel> AvailableKeywordsForNpcFilter => NpcsTab.AvailableKeywords;
+
+    /// <summary>UI: Selected keyword for filtering.</summary>
+    public KeywordRecordViewModel? SelectedKeywordForNpcFilter
+    {
+        get => NpcsTab.SelectedKeyword;
+        set => NpcsTab.SelectedKeyword = value;
+    }
+
+    /// <summary>UI: Clear filters button command.</summary>
+    public ReactiveCommand<Unit, Unit> ClearFiltersCommand => NpcsTab.ClearFiltersCommand;
+
+    /// <summary>UI: Generated SPID syntax preview.</summary>
+    public string GeneratedSpidSyntax => NpcsTab.GeneratedSpidSyntax;
+
+    /// <summary>UI: Generated SkyPatcher syntax preview.</summary>
+    public string GeneratedSkyPatcherSyntax => NpcsTab.GeneratedSkyPatcherSyntax;
+
+    /// <summary>UI: Human-readable description of active filters.</summary>
+    public string FilterDescription => NpcsTab.FilterDescription;
+
+    /// <summary>UI: Whether any filters are active.</summary>
+    public bool HasActiveFilters => NpcsTab.HasActiveFilters;
+
+    /// <summary>UI: Count of NPCs matching current filters.</summary>
+    public int FilteredCount => NpcsTab.FilteredCount;
+
+    /// <summary>UI: Total count of NPCs before filtering.</summary>
+    public int TotalCount => NpcsTab.TotalCount;
 
     // ============================================================================
     // OUTFITS TAB PROPERTIES

@@ -50,6 +50,7 @@ public partial class App
         builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
         builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
         builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
+        builder.RegisterType<GameDataCacheService>().SingleInstance();
 
         // Register ViewModels
         builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();

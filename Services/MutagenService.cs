@@ -15,6 +15,9 @@ public class MutagenService(ILoggingService loggingService)
 
     public event EventHandler? PluginsChanged;
 
+    /// <summary>Raised when the service is initialized (after LinkCache is ready).</summary>
+    public event EventHandler? Initialized;
+
     public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
     public string? DataFolderPath { get; private set; }
@@ -40,6 +43,9 @@ public class MutagenService(ILoggingService loggingService)
                     $"Could not initialize Skyrim environment. Ensure Skyrim SE is installed and the data path is correct: {dataFolderPath}");
             }
         });
+
+        // Notify listeners that initialization is complete
+        Initialized?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task<IEnumerable<string>> GetAvailablePluginsAsync()
