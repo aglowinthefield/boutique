@@ -15,6 +15,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -48,12 +49,24 @@
                     <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}" Foreground="Gray"
                                Margin="0,0,0,2" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:" Margin="0,0,4,0"
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:" Margin="0,0,4,2"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
                                Text="{Binding Settings.DetectionSource}"
                                FontStyle="Italic"
-                               Foreground="Green" />
+                               Foreground="Green"
+                               Margin="0,0,0,2" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Data Cache:" Margin="0,0,4,0"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="4" Grid.Column="1"
+                               Text="{Binding Settings.CacheStatus}"
+                               VerticalAlignment="Center"
+                               Foreground="Gray" />
+                    <Button Grid.Row="4" Grid.Column="2" Content="Clear Cache"
+                            Command="{Binding Settings.ClearCacheCommand}"
+                            IsEnabled="{Binding Settings.HasCache}"
+                            MinWidth="80" />
                 </Grid>
             </Border>
         </Expander>

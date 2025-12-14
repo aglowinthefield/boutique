@@ -34,7 +34,9 @@ public class DistributionFilesTabViewModel : ReactiveObject
         _logger = logger.ForContext<DistributionFilesTabViewModel>();
 
         var notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
-        RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
+        // ForceRefreshAsync invalidates cache; RefreshAsync uses cached data if available
+        RefreshCommand = ReactiveCommand.CreateFromTask(ForceRefreshAsync);
+        EnsureLoadedCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
         PreviewLineCommand = ReactiveCommand.CreateFromTask<DistributionLine>(PreviewLineAsync, notLoading);
 
         // Update FilteredLines when SelectedFile or LineFilter changes
@@ -104,6 +106,12 @@ public class DistributionFilesTabViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
+    /// <summary>
+    /// Command to ensure files are loaded (uses cache if available, doesn't force refresh).
+    /// Use for auto-load on startup.
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> EnsureLoadedCommand { get; }
+
     public ReactiveCommand<DistributionLine, Unit> PreviewLineCommand { get; }
 
     public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
@@ -134,12 +142,44 @@ public class DistributionFilesTabViewModel : ReactiveObject
         try
         {
             IsLoading = true;
+            StatusMessage = "Loading distribution files...";
+
+            // Wait for cache to load (uses cached data if available, doesn't invalidate)
+            await _cache.EnsureLoadedAsync();
+
+            // Cache load will trigger OnCacheLoaded which populates the files
+            LineFilter = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to load distribution files.");
+            Files.Clear();
+            SelectedFile = null;
+            StatusMessage = $"Error loading distribution files: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Forces a reload of distribution files, invalidating the cache.
+    /// Use when user explicitly wants to re-scan files from disk.
+    /// </summary>
+    public async Task ForceRefreshAsync()
+    {
+        if (IsLoading)
+            return;
+
+        try
+        {
+            IsLoading = true;
             StatusMessage = "Refreshing distribution files...";
 
-            // Reload the cache which will re-discover files
+            // Force reload (invalidates cache and re-scans from disk)
             await _cache.ReloadAsync();
 
-            // Cache reload will trigger OnCacheLoaded which populates the files
             LineFilter = string.Empty;
         }
         catch (Exception ex)

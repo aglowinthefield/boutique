@@ -206,6 +206,9 @@ public class DistributionNpcsTabViewModel : ReactiveObject
 
     public bool IsInitialized => _mutagenService.IsInitialized;
 
+    /// <summary>
+    /// Ensures NPC outfit data is loaded (uses cache if available).
+    /// </summary>
     public async Task ScanNpcOutfitsAsync()
     {
         _logger.Debug("ScanNpcOutfitsAsync started");
@@ -213,17 +216,43 @@ public class DistributionNpcsTabViewModel : ReactiveObject
         try
         {
             IsLoading = true;
-            StatusMessage = "Refreshing NPC outfit data...";
+            StatusMessage = "Loading NPC outfit data...";
 
-            // Reload the cache which will re-scan everything
-            await _cache.ReloadAsync();
+            // Wait for cache to load (uses cached data if available)
+            await _cache.EnsureLoadedAsync();
 
-            // Cache reload triggers OnCacheLoaded which populates the assignments
+            // Cache load triggers OnCacheLoaded which populates the assignments
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to scan NPC outfits.");
-            StatusMessage = $"Error scanning NPC outfits: {ex.Message}";
+            _logger.Error(ex, "Failed to load NPC outfits.");
+            StatusMessage = $"Error loading NPC outfits: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Forces a refresh of NPC outfit data, invalidating the cache.
+    /// </summary>
+    public async Task ForceRefreshNpcOutfitsAsync()
+    {
+        _logger.Debug("ForceRefreshNpcOutfitsAsync started");
+
+        try
+        {
+            IsLoading = true;
+            StatusMessage = "Refreshing NPC outfit data...";
+
+            // Force reload (invalidates cache and re-scans)
+            await _cache.ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to refresh NPC outfits.");
+            StatusMessage = $"Error refreshing NPC outfits: {ex.Message}";
         }
         finally
         {

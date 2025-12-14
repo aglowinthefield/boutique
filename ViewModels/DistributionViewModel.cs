@@ -300,11 +300,12 @@ public class DistributionViewModel : ReactiveObject
                 }
                 else if (index == (int)DistributionTab.Files)
                 {
-                    // Auto-refresh Files tab when selected if files haven't been loaded yet
+                    // Auto-load Files tab when selected if files haven't been loaded yet
+                    // Uses EnsureLoadedCommand to avoid invalidating the cross-session cache
                     if (FilesTab.Files.Count == 0 && !FilesTab.IsLoading && !string.IsNullOrWhiteSpace(_settings.SkyrimDataPath))
                     {
-                        _logger.Debug("Files tab selected, triggering auto-refresh");
-                        _ = FilesTab.RefreshCommand.Execute();
+                        _logger.Debug("Files tab selected, triggering auto-load");
+                        _ = FilesTab.EnsureLoadedCommand.Execute();
                     }
                 }
                 else if (index == (int)DistributionTab.Npcs)

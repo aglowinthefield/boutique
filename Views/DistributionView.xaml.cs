@@ -63,26 +63,26 @@ public partial class DistributionView
 
     private static void TriggerInitialLoadIfNeeded(DistributionViewModel viewModel)
     {
-        // First, refresh distribution files if they haven't been loaded yet
+        // First, ensure distribution files are loaded (uses cache, doesn't force refresh)
         if (viewModel.Files.Count == 0 && !viewModel.IsLoading)
         {
-            // Start refresh and subscribe to wait for it to complete
-            _ = viewModel.RefreshCommand.Execute();
+            // Use EnsureLoadedCommand which doesn't invalidate the cross-session cache
+            _ = viewModel.FilesTab.EnsureLoadedCommand.Execute();
 
-            // Subscribe to wait for refresh to complete, then trigger NPC scan
+            // Subscribe to wait for loading to complete, then trigger NPC scan
             viewModel.WhenAnyValue(vm => vm.IsLoading)
                 .Where(isLoading => !isLoading) // Wait for loading to complete
                 .Take(1) // Only take the first completion
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ =>
                 {
-                    // Now trigger NPC scan after refresh completes
+                    // Now trigger NPC scan after load completes
                     TriggerNpcScanIfNeeded(viewModel);
                 });
         }
         else
         {
-            // If refresh isn't needed, trigger NPC scan immediately
+            // If files already loaded, trigger NPC scan immediately
             TriggerNpcScanIfNeeded(viewModel);
         }
     }

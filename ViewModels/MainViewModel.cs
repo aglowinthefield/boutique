@@ -771,8 +771,8 @@ public class MainViewModel : ReactiveObject
             _logger.Information("Loaded {PluginCount} plugins from {DataPath}", AvailablePlugins.Count,
                 Settings.SkyrimDataPath);
 
-            // Refresh distribution files
-            await Distribution.FilesTab.RefreshCommand.Execute();
+            // GameDataCacheService automatically loads when MutagenService.Initialized fires
+            // No need to manually trigger refresh here - it would invalidate the cross-session cache
         }
         catch (Exception ex)
         {
