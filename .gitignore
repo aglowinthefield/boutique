@@ -98,3 +98,5 @@ UpgradeLog*.htm
 .dotnet/
 .idea/
 .vscode/
+CLAUDE.md
+.nuget/
