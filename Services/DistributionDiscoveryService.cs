@@ -38,8 +38,6 @@ public class DistributionDiscoveryService(ILogger logger)
         {
             _logger.Debug("Starting distribution file discovery in {DataPath}", dataFolderPath);
 
-            // SPID files are almost always in the root Data folder (not nested)
-            // Do a fast non-recursive search first - this covers 99% of cases
             var spidEnumSw = System.Diagnostics.Stopwatch.StartNew();
             var nonRecursiveOptions = new EnumerationOptions
             {
@@ -70,7 +68,7 @@ public class DistributionDiscoveryService(ILogger logger)
                 var skyEnumSw = System.Diagnostics.Stopwatch.StartNew();
                 var skyPatcherOptions = new EnumerationOptions
                 {
-                    RecurseSubdirectories = true,  // SkyPatcher files can be in subfolders
+                    RecurseSubdirectories = true,
                     ReturnSpecialDirectories = false,
                     IgnoreInaccessible = true,
                     MatchCasing = MatchCasing.CaseInsensitive
@@ -301,14 +299,6 @@ public class DistributionDiscoveryService(ILogger logger)
         if (string.IsNullOrWhiteSpace(valuePortion))
             return [];
 
-        // SPID format: OutfitIdentifier|StringFilters|FormFilters|LevelFilters|Traits|IdxOrCount|Chance
-        // The identifier can be:
-        // - EditorID: 1_Obi_Druchii
-        // - FormKey with tilde: 0x12345~Plugin.esp
-        // - FormKey with pipe: Plugin.esp|0x12345
-        // We need to extract just the outfit identifier(s), not the filter parameters.
-
-        // Handle comma-separated multiple outfit identifiers
         var tokens = valuePortion.Split([','], StringSplitOptions.RemoveEmptyEntries);
         var results = new List<string>();
 

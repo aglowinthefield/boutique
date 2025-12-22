@@ -32,7 +32,6 @@ public class MutagenService(ILoggingService loggingService)
         {
             DataFolderPath = dataFolderPath;
 
-            // Try to create game environment
             try
             {
                 var envSw = System.Diagnostics.Stopwatch.StartNew();
@@ -52,8 +51,6 @@ public class MutagenService(ILoggingService loggingService)
         });
 
         _logger.Information("[PERF] MutagenService.InitializeAsync total: {ElapsedMs}ms", sw.ElapsedMilliseconds);
-
-        // Notify listeners that initialization is complete
         Initialized?.Invoke(this, EventArgs.Empty);
     }
 
@@ -122,10 +119,7 @@ public class MutagenService(ILoggingService loggingService)
 
             try
             {
-                // Use binary overlay for efficient read-only access
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
-
-                // Convert to list to materialize before disposing
                 return mod.Armors.ToList();
             }
             catch (Exception)
@@ -169,9 +163,7 @@ public class MutagenService(ILoggingService loggingService)
 
         await Task.Run(() =>
         {
-            // Dispose old environment before creating a new one
             _environment?.Dispose();
-
             _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
             LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
         });
@@ -183,7 +175,6 @@ public class MutagenService(ILoggingService loggingService)
         _logger.Information("LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
             previousCount, newCount, diffText);
 
-        // Verify the expected plugin exists on disk (it may not be in the load order if not enabled in plugins.txt)
         if (!string.IsNullOrEmpty(expectedPlugin) && !string.IsNullOrEmpty(DataFolderPath))
         {
             var pluginPath = Path.Combine(DataFolderPath, expectedPlugin);
@@ -195,7 +186,6 @@ public class MutagenService(ILoggingService loggingService)
                 _logger.Information("Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
                     expectedPlugin, fileInfo.Length, fileInfo.LastWriteTime);
 
-                // Check if it's also in the active load order (enabled in plugins.txt)
                 var inLoadOrder = _environment?.LoadOrder
                     .Any(entry => string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
 
@@ -208,7 +198,6 @@ public class MutagenService(ILoggingService loggingService)
             }
         }
 
-        // Notify subscribers that the plugin list may have changed
         PluginsChanged?.Invoke(this, EventArgs.Empty);
     }
 

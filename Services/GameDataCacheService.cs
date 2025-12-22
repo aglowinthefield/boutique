@@ -38,8 +38,6 @@ public class GameDataCacheService
         _crossSessionCache = crossSessionCache;
         _settings = settings;
         _logger = logger.ForContext<GameDataCacheService>();
-
-        // Subscribe to MutagenService initialization to auto-load cache
         _mutagenService.Initialized += OnMutagenInitialized;
     }
 
@@ -137,8 +135,6 @@ public class GameDataCacheService
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var dataPath = _settings.SkyrimDataPath;
-
-            // Try to load expensive data from cross-session cache
             List<NpcFilterData>? cachedNpcData = null;
             List<DistributionFile>? cachedDistributionFiles = null;
             var usedCrossSessionCache = false;
@@ -155,7 +151,6 @@ public class GameDataCacheService
                 }
             }
 
-            // Load data - use cache for NPCs if available, otherwise load from Mutagen
             List<NpcFilterData> npcFilterDataList;
             List<NpcRecordViewModel> npcRecordsList;
 
@@ -174,7 +169,6 @@ public class GameDataCacheService
             }
             else
             {
-                // Load NPCs from Mutagen
                 _logger.Information("*** FRESH LOAD: No valid cache, loading NPCs from Mutagen (this may take a while) ***");
                 var npcsResult = await Task.Run(() =>
                 {
@@ -186,7 +180,6 @@ public class GameDataCacheService
                 (npcFilterDataList, npcRecordsList) = npcsResult;
             }
 
-            // Load factions, races, keywords, outfits from Mutagen (fast enough, not cached)
             var factionsTask = Task.Run(() =>
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -223,11 +216,9 @@ public class GameDataCacheService
             var keywordsList = await keywordsTask;
             var outfitsList = await outfitsTask;
 
-            // Populate collections on UI thread
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                // NPCs
-                AllNpcs.Clear();
+                    AllNpcs.Clear();
                 NpcsByFormKey.Clear();
                 AllNpcRecords.Clear();
                 foreach (var npc in npcFilterDataList)
@@ -240,7 +231,6 @@ public class GameDataCacheService
                     AllNpcRecords.Add(npc);
                 }
 
-                // Factions
                 AllFactions.Clear();
                 FactionsByFormKey.Clear();
                 foreach (var faction in factionsList)
@@ -249,7 +239,6 @@ public class GameDataCacheService
                     FactionsByFormKey[faction.FormKey] = faction;
                 }
 
-                // Races
                 AllRaces.Clear();
                 RacesByFormKey.Clear();
                 foreach (var race in racesList)
@@ -258,7 +247,6 @@ public class GameDataCacheService
                     RacesByFormKey[race.FormKey] = race;
                 }
 
-                // Keywords
                 AllKeywords.Clear();
                 KeywordsByFormKey.Clear();
                 foreach (var keyword in keywordsList)
@@ -267,7 +255,6 @@ public class GameDataCacheService
                     KeywordsByFormKey[keyword.FormKey] = keyword;
                 }
 
-                // Outfits
                 AllOutfits.Clear();
                 foreach (var outfit in outfitsList)
                 {
@@ -275,7 +262,6 @@ public class GameDataCacheService
                 }
             });
 
-            // Load distribution data - use cache if available
             List<DistributionFile> distributionFilesForCache;
             if (cachedDistributionFiles != null)
             {
@@ -287,7 +273,6 @@ public class GameDataCacheService
                 distributionFilesForCache = await LoadDistributionDataAsync(npcFilterDataList);
             }
 
-            // Save to cross-session cache if we didn't use it (i.e., we loaded fresh data)
             if (!usedCrossSessionCache && !string.IsNullOrWhiteSpace(dataPath))
             {
                 _ = Task.Run(async () =>
@@ -485,13 +470,10 @@ public class GameDataCacheService
         _logger.Information("[PERF] LoadNpcs enumeration: {ElapsedMs}ms ({Count} total NPCs)", enumSw.ElapsedMilliseconds, allNpcs.Count);
 
         var processSw = System.Diagnostics.Stopwatch.StartNew();
-
-        // Filter to valid NPCs first
         var validNpcs = allNpcs
             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
             .ToList();
 
-        // Use parallel processing for building filter data (LinkCache is thread-safe for reads)
         var filterDataBag = new System.Collections.Concurrent.ConcurrentBag<NpcFilterData>();
         var recordsBag = new System.Collections.Concurrent.ConcurrentBag<NpcRecordViewModel>();
 
@@ -499,17 +481,13 @@ public class GameDataCacheService
         {
             try
             {
-                // Use FormKey.ModKey directly (no expensive FindOriginalMaster)
                 var originalModKey = npc.FormKey.ModKey;
-
-                // Build NpcFilterData
                 var filterData = BuildNpcFilterData(npc, linkCache, originalModKey);
                 if (filterData != null)
                 {
                     filterDataBag.Add(filterData);
                 }
 
-                // Build simple NpcRecordViewModel
                 var record = new NpcRecord(
                     npc.FormKey,
                     npc.EditorID,
@@ -519,7 +497,6 @@ public class GameDataCacheService
             }
             catch
             {
-                // Silently skip failed NPCs
             }
         });
 

@@ -114,15 +114,12 @@ public class NpcSpidFilter
     /// </summary>
     public bool Matches(NpcFilterData npc)
     {
-        // Gender check
         if (IsFemale.HasValue && npc.IsFemale != IsFemale.Value)
             return false;
 
-        // Unique check
         if (IsUnique.HasValue && npc.IsUnique != IsUnique.Value)
             return false;
 
-        // Templated check (has template = templated)
         if (IsTemplated.HasValue)
         {
             var isTemplated = npc.TemplateFormKey.HasValue;
@@ -130,19 +127,15 @@ public class NpcSpidFilter
                 return false;
         }
 
-        // Child check
         if (IsChild.HasValue && npc.IsChild != IsChild.Value)
             return false;
 
-        // Summonable check
         if (IsSummonable.HasValue && npc.IsSummonable != IsSummonable.Value)
             return false;
 
-        // Leveled check
         if (IsLeveled.HasValue && npc.IsLeveled != IsLeveled.Value)
             return false;
 
-        // Faction check (AND logic - must be in ALL selected factions)
         if (Factions.Count > 0)
         {
             var npcFactionKeys = npc.Factions.Select(f => f.FactionFormKey).ToHashSet();
@@ -150,24 +143,17 @@ public class NpcSpidFilter
                 return false;
         }
 
-        // Race check (OR logic - must match ANY selected race, or single race if only one selected)
         if (Races.Count > 0)
         {
             if (!npc.RaceFormKey.HasValue || !Races.Contains(npc.RaceFormKey.Value))
                 return false;
         }
 
-        // Keyword check (AND logic - must have ALL selected keywords)
+        // Keyword matching requires LinkCache - handled in ViewModel
         if (Keywords.Count > 0)
         {
-            // NpcFilterData.Keywords is a set of EditorIDs, but we have FormKeys
-            // We need to check if the NPC has keywords matching the FormKeys
-            // For now, we'll need the keyword EditorIDs - this requires LinkCache access
-            // This will be handled in the ViewModel where we have access to LinkCache
-            // Here we just return true and let the caller handle keyword matching
         }
 
-        // Level check
         if (MinLevel.HasValue && npc.Level < MinLevel.Value)
             return false;
 

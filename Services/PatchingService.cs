@@ -95,7 +95,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     var sourceName = match.SourceArmor.Name?.String ?? match.SourceArmor.EditorID ?? "Unknown";
                     progress?.Report((current, total, $"Patching {sourceName}..."));
 
-                    // Create a new armor record as override of source
                     var patchedArmor = patchMod.Armors.GetOrAddAsOverride(match.SourceArmor);
 
                     requiredMasters.Add(match.SourceArmor.FormKey.ModKey);
@@ -108,16 +107,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     var targetArmor = match.TargetArmor!;
                     requiredMasters.Add(targetArmor.FormKey.ModKey);
 
-                    // Copy stats from target
                     CopyArmorStats(patchedArmor, targetArmor);
-
-                    // Copy keywords from target
                     CopyKeywords(patchedArmor, targetArmor);
-
-                    // Copy enchantment from target
                     CopyEnchantment(patchedArmor, targetArmor);
-
-                    // Note: Tempering recipes are separate records (COBJ) and are handled separately
                 }
 
                 //// Handle tempering recipes (temporarily disabled while we investigate freeze issues)
@@ -126,13 +118,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 EnsureMasters(patchMod, requiredMasters);
 
-                // Auto-ESL if under record limit
                 TryApplyEslFlag(patchMod);
 
-                // Write patch to file
                 progress?.Report((total, total, "Writing patch file..."));
-
-                // Release any file handles held by the environment before writing
                 mutagenService.ReleaseLinkCache();
 
                 var writeParameters = new BinaryWriteParameters
@@ -252,13 +240,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 }
 
                 EnsureMasters(patchMod, requiredMasters);
-
-                // Auto-ESL if under record limit
                 TryApplyEslFlag(patchMod);
 
                 progress?.Report((total, total, "Writing patch file..."));
-
-                // Release any file handles held by the environment before writing
                 mutagenService.ReleaseLinkCache();
 
                 var writeParameters = new BinaryWriteParameters
@@ -305,7 +289,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     private static void CopyArmorStats(Armor target, IArmorGetter source)
     {
-        // Copy core stats
         target.ArmorRating = source.ArmorRating;
         target.Value = source.Value;
         target.Weight = source.Weight;
@@ -313,7 +296,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     private static void CopyKeywords(Armor target, IArmorGetter source)
     {
-        // Clear existing keywords and copy from source
         if (source.Keywords == null)
             return;
         target.Keywords = [];
@@ -324,13 +306,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     private static void CopyEnchantment(Armor target, IArmorGetter source)
     {
-        // Copy enchantment reference (ObjectEffect in Mutagen)
         if (source.ObjectEffect.FormKey != FormKey.Null)
             target.ObjectEffect.SetTo(source.ObjectEffect);
         else
             target.ObjectEffect.Clear();
 
-        // Copy enchantment amount if present
         target.EnchantmentAmount = source.EnchantmentAmount;
     }
 

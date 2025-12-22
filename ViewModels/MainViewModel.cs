@@ -59,14 +59,12 @@ public class MainViewModel : ReactiveObject
         Distribution = distributionViewModel;
         _logger = loggingService.ForContext<MainViewModel>();
 
-        // Forward Distribution tab preview requests to our central ShowPreview interaction
         Distribution.ShowPreview.RegisterHandler(async interaction =>
         {
             await ShowPreview.Handle(interaction.Input);
             interaction.SetOutput(Unit.Default);
         });
 
-        // Subscribe to plugin list changes so we can refresh the available plugins dropdown
         _mutagenService.PluginsChanged += OnPluginsChanged;
 
         ConfigureSourceArmorsView();
@@ -80,11 +78,9 @@ public class MainViewModel : ReactiveObject
         HasExistingPluginOutfits = _existingOutfits.Count > 0;
         _existingOutfits.CollectionChanged += (_, _) => HasExistingPluginOutfits = _existingOutfits.Count > 0;
 
-        // Update IsProgressActive when IsPatching or IsCreatingOutfits changes
         this.WhenAnyValue(x => x.IsPatching, x => x.IsCreatingOutfits)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(IsProgressActive)));
 
-        // Refresh views when search text changes
         this.WhenAnyValue(x => x.SourceSearchText)
             .Subscribe(_ => SourceArmorsView?.Refresh());
         this.WhenAnyValue(x => x.TargetSearchText)
@@ -94,7 +90,6 @@ public class MainViewModel : ReactiveObject
         this.WhenAnyValue(x => x.OutfitPluginSearchText)
             .Subscribe(_ => FilteredOutfitPlugins?.Refresh());
 
-        // Reconfigure filtered plugins view when available plugins change
         this.WhenAnyValue(x => x.AvailablePlugins)
             .Subscribe(_ => ConfigureFilteredOutfitPluginsView());
 
@@ -129,11 +124,10 @@ public class MainViewModel : ReactiveObject
         var canCopyExistingOutfits = this.WhenAnyValue(x => x.HasExistingPluginOutfits);
         CopyExistingOutfitsCommand = ReactiveCommand.Create(CopyExistingOutfits, canCopyExistingOutfits);
 
-        // Auto-load outfits from output plugin when PatchFileName changes (after initialization)
         Settings.WhenAnyValue(x => x.PatchFileName)
-            .Skip(1) // Skip initial value
-            .Where(_ => AvailablePlugins.Count > 0) // Only after plugins are loaded
-            .Throttle(TimeSpan.FromMilliseconds(500)) // Debounce rapid changes
+            .Skip(1)
+            .Where(_ => AvailablePlugins.Count > 0)
+            .Throttle(TimeSpan.FromMilliseconds(500))
             .ObserveOn(RxApp.MainThreadScheduler)
             .SelectMany(_ => LoadOutfitsFromOutputPluginAsync().ToObservable())
             .Subscribe();
@@ -382,7 +376,6 @@ public class MainViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> SaveOutfitsCommand { get; }
 
-    /// <summary>Command to load outfit plugin.</summary>
     public ReactiveCommand<Unit, Unit> LoadOutfitPluginCommand { get; }
     public ReactiveCommand<Unit, Unit> CopyExistingOutfitsCommand { get; }
 
@@ -547,10 +540,6 @@ public class MainViewModel : ReactiveObject
         }
     }
 
-    /// <summary>
-    /// Loads existing outfits from the output plugin (if it exists in the load order) into the drafts pane.
-    /// This allows users to continue editing outfits from previous sessions.
-    /// </summary>
     private async Task LoadOutfitsFromOutputPluginAsync()
     {
         var outputPlugin = Settings.PatchFileName;
@@ -582,11 +571,9 @@ public class MainViewModel : ReactiveObject
 
         foreach (var outfit in outfits)
         {
-            // Only load outfits that originate from this plugin (not overrides)
             if (outfit.FormKey.ModKey != pluginModKey)
                 continue;
 
-            // Skip if already in drafts
             if (_outfitDrafts.Any(d => d.FormKey.HasValue && d.FormKey.Value == outfit.FormKey))
             {
                 _logger.Debug("Skipping outfit {EditorId} - already in drafts.", outfit.EditorID);
@@ -926,10 +913,6 @@ public class MainViewModel : ReactiveObject
             _logger.Information("Loaded {PluginCount} plugins from {DataPath}", AvailablePlugins.Count,
                 Settings.SkyrimDataPath);
 
-            // GameDataCacheService automatically loads when MutagenService.Initialized fires
-            // No need to manually trigger refresh here - it would invalidate the cross-session cache
-
-            // Auto-load existing outfits from output plugin if it exists in the load order
             await LoadOutfitsFromOutputPluginAsync();
         }
         catch (Exception ex)
@@ -1122,7 +1105,6 @@ public class MainViewModel : ReactiveObject
             if (mask == 0)
                 continue;
 
-            // Use cached enum values instead of calling Enum.GetValues repeatedly
             foreach (var flag in BipedObjectFlags)
             {
                 if (!mask.HasFlag(flag))
@@ -1197,7 +1179,6 @@ public class MainViewModel : ReactiveObject
 
     public async Task CreateOutfitFromPiecesAsync(IReadOnlyList<ArmorRecordViewModel> pieces)
     {
-        // Move validation to background thread to avoid blocking UI
         var (distinctPieces, isValid, validationMessage) = await Task.Run(() =>
         {
             var distinct = DistinctArmorPieces(pieces);

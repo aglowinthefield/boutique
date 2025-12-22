@@ -45,7 +45,6 @@ public class DistributionEntryViewModel : ReactiveObject
         UseChance = entry.Chance.HasValue;
         Chance = entry.Chance ?? 100;
 
-        // Initialize trait filters from entry
         Gender = entry.TraitFilters.IsFemale switch
         {
             true => GenderFilter.Female,
@@ -60,7 +59,6 @@ public class DistributionEntryViewModel : ReactiveObject
         };
         IsChild = entry.TraitFilters.IsChild;
 
-        // Initialize selected NPCs from entry
         if (entry.NpcFormKeys.Count > 0)
         {
             var npcVms = entry.NpcFormKeys
@@ -69,13 +67,10 @@ public class DistributionEntryViewModel : ReactiveObject
 
             foreach (var npcVm in npcVms)
             {
-                // Don't set IsSelected - that's only for temporary picker selection state
-                // The NPC is tracked by being in the SelectedNpcs collection
                 _selectedNpcs.Add(npcVm);
             }
         }
 
-        // Initialize selected Factions from entry
         if (entry.FactionFormKeys.Count > 0)
         {
             var factionVms = entry.FactionFormKeys
@@ -88,7 +83,6 @@ public class DistributionEntryViewModel : ReactiveObject
             }
         }
 
-        // Initialize selected Keywords from entry
         if (entry.KeywordFormKeys.Count > 0)
         {
             var keywordVms = entry.KeywordFormKeys
@@ -101,7 +95,6 @@ public class DistributionEntryViewModel : ReactiveObject
             }
         }
 
-        // Initialize selected Races from entry
         if (entry.RaceFormKeys.Count > 0)
         {
             var raceVms = entry.RaceFormKeys
@@ -114,11 +107,9 @@ public class DistributionEntryViewModel : ReactiveObject
             }
         }
 
-        // Sync SelectedOutfit changes back to Entry
         this.WhenAnyValue(x => x.SelectedOutfit)
             .Subscribe(outfit => Entry.Outfit = outfit);
 
-        // Sync trait filters back to Entry
         this.WhenAnyValue(x => x.Gender)
             .Skip(1)
             .Subscribe(gender =>
@@ -153,22 +144,18 @@ public class DistributionEntryViewModel : ReactiveObject
             .Skip(1)
             .Subscribe(isChild => Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild });
 
-        // Sync UseChance and Chance changes back to Entry
-        // Show warning when enabling chance-based distribution (only if format change is needed)
         var previousUseChance = UseChance;
         this.WhenAnyValue(x => x.UseChance)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(useChance =>
             {
                 var wasEnabled = previousUseChance;
-                previousUseChance = useChance; // Update for next time
+                previousUseChance = useChance;
 
                 if (useChance && !wasEnabled && isFormatChangingToSpid != null)
                 {
-                    // Check if format change is actually needed (i.e., currently SkyPatcher)
                     if (isFormatChangingToSpid())
                     {
-                        // User is enabling chance and format will change - show warning
                         var result = System.Windows.MessageBox.Show(
                             "Enabling chance-based distribution will change the file format to SPID.\n\n" +
                             "SkyPatcher does not support chance-based outfit distribution. " +
@@ -180,20 +167,18 @@ public class DistributionEntryViewModel : ReactiveObject
 
                         if (result == System.Windows.MessageBoxResult.No)
                         {
-                            // Revert the change
-                            previousUseChance = false; // Reset tracking
+                            previousUseChance = false;
                             UseChance = false;
                             return;
                         }
                     }
-                    // Format change confirmed or not needed - proceed
                 }
 
                 Entry.Chance = useChance ? Chance : null;
             });
 
         this.WhenAnyValue(x => x.Chance)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(chance =>
             {
                 if (UseChance)
@@ -332,11 +317,8 @@ public class DistributionEntryViewModel : ReactiveObject
 
     public void AddNpc(NpcRecordViewModel npc)
     {
-        // Check if NPC is already in the list by FormKey
         if (!_selectedNpcs.Any(existing => existing.FormKey == npc.FormKey))
         {
-            // Don't set IsSelected - that's only for temporary picker selection state
-            // The NPC is tracked by being in the SelectedNpcs collection
             _selectedNpcs.Add(npc);
             UpdateEntryNpcs();
         }
@@ -346,7 +328,6 @@ public class DistributionEntryViewModel : ReactiveObject
     {
         if (_selectedNpcs.Remove(npc))
         {
-            // Don't modify IsSelected - that's only for temporary picker selection state
             UpdateEntryNpcs();
         }
     }

@@ -38,17 +38,13 @@ public class NpcScanningService
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // Filter out invalid NPCs
                     if (npc.FormKey == FormKey.Null)
                         continue;
 
-                    // Skip NPCs without EditorID (likely invalid)
                     if (string.IsNullOrWhiteSpace(npc.EditorID))
                         continue;
 
                     var name = NpcDataExtractor.GetName(npc);
-
-                    // Find the original master (topmost in load order) that first introduced this NPC
                     var originalModKey = FindOriginalMaster(linkCache, npc.FormKey);
 
                     var npcRecord = new NpcRecord(
@@ -95,11 +91,9 @@ public class NpcScanningService
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // Filter out invalid NPCs
                     if (npc.FormKey == FormKey.Null)
                         continue;
 
-                    // Skip NPCs without EditorID (likely invalid)
                     if (string.IsNullOrWhiteSpace(npc.EditorID))
                         continue;
 
@@ -130,8 +124,6 @@ public class NpcScanningService
         try
         {
             var originalModKey = FindOriginalMaster(linkCache, npc.FormKey);
-
-            // Extract all NPC data using the utility
             var keywords = NpcDataExtractor.ExtractKeywords(npc, linkCache);
             var factions = NpcDataExtractor.ExtractFactions(npc, linkCache);
             var (raceFormKey, raceEditorId) = NpcDataExtractor.ExtractRace(npc, linkCache);
@@ -179,19 +171,11 @@ public class NpcScanningService
         }
     }
 
-    /// <summary>
-    /// Finds the original master mod (topmost in load order) that first introduced the NPC,
-    /// rather than the leaf-most mod that last edited it.
-    /// </summary>
     private ModKey FindOriginalMaster(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, FormKey formKey)
     {
         try
         {
-            // Resolve all contexts for this FormKey - they are returned in load order
-            // The first context is the original master that first introduced the record
             var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(formKey);
-
-            // Get the first context (original master)
             var firstContext = contexts.FirstOrDefault();
             if (firstContext != null)
             {
@@ -203,7 +187,6 @@ public class NpcScanningService
             _logger.Debug(ex, "Failed to resolve contexts for FormKey {FormKey}, falling back to FormKey.ModKey", formKey);
         }
 
-        // Fallback to FormKey.ModKey if context resolution fails
         return formKey.ModKey;
     }
 }

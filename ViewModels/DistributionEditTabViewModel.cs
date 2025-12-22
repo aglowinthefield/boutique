@@ -44,13 +44,9 @@ public class DistributionEditTabViewModel : ReactiveObject
         _settings = settings;
         _logger = logger.ForContext<DistributionEditTabViewModel>();
 
-        // Subscribe to plugin changes so we refresh the available outfits list
         _mutagenService.PluginsChanged += OnPluginsChanged;
-
-        // Subscribe to cache loaded event to populate filtered lists automatically
         _cache.CacheLoaded += OnCacheLoaded;
 
-        // If cache is already loaded, populate filtered lists immediately
         if (_cache.IsLoaded)
         {
             UpdateFilteredNpcs();
@@ -59,14 +55,12 @@ public class DistributionEditTabViewModel : ReactiveObject
             UpdateFilteredRaces();
         }
 
-        // Subscribe to collection changes to update computed count property
         _distributionEntries.CollectionChanged += OnDistributionEntriesChanged;
 
         AddDistributionEntryCommand = ReactiveCommand.Create(AddDistributionEntry);
         RemoveDistributionEntryCommand = ReactiveCommand.Create<DistributionEntryViewModel>(RemoveDistributionEntry);
         SelectEntryCommand = ReactiveCommand.Create<DistributionEntryViewModel>(SelectEntry);
 
-        // Simple canExecute observables for commands
         var hasEntries = this.WhenAnyValue(vm => vm.DistributionEntriesCount, count => count > 0);
         AddSelectedNpcsToEntryCommand = ReactiveCommand.Create(AddSelectedNpcsToEntry, hasEntries);
         AddSelectedFactionsToEntryCommand = ReactiveCommand.Create(AddSelectedFactionsToEntry, hasEntries);
@@ -95,7 +89,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             (hasCopied, entry) => hasCopied && entry != null);
         PasteFilterToEntryCommand = ReactiveCommand.Create(PasteFilterToEntry, canPaste);
 
-        // Notify HasCopiedFilter when CopiedFilter changes
         this.WhenAnyValue(vm => vm.CopiedFilter)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
 
@@ -108,12 +101,10 @@ public class DistributionEditTabViewModel : ReactiveObject
         this.WhenAnyValue(vm => vm.RaceSearchText)
             .Subscribe(_ => UpdateFilteredRaces());
 
-        // Watch for format changes to update preview
         this.WhenAnyValue(vm => vm.DistributionFormat)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(_ => UpdateDistributionPreview());
 
-        // When creating a new file, reset format to SkyPatcher
         this.WhenAnyValue(vm => vm.IsCreatingNewFile)
             .Where(isNew => isNew)
             .Subscribe(_ => DistributionFormat = DistributionFileType.SkyPatcher);
@@ -149,12 +140,8 @@ public class DistributionEditTabViewModel : ReactiveObject
         get => field;
         set
         {
-            // Clear previous selection
             field?.IsSelected = false;
-
             this.RaiseAndSetIfChanged(ref field, value);
-
-            // Set new selection
             value?.IsSelected = true;
         }
     }
@@ -373,17 +360,14 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     private void OnDistributionEntriesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        // Skip expensive operations during bulk loading
         if (_isBulkLoading)
             return;
 
         _logger.Debug("OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}",
             e.Action, e.NewItems?.Count ?? 0, e.OldItems?.Count ?? 0);
 
-        // Raise PropertyChanged synchronously - this is fast and necessary for bindings
         this.RaisePropertyChanged(nameof(DistributionEntriesCount));
 
-        // Subscribe to property changes on new entries
         if (e.NewItems != null)
         {
             foreach (DistributionEntryViewModel entry in e.NewItems)
@@ -392,7 +376,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Update preview whenever entries change
         UpdateDistributionPreview();
 
         _logger.Debug("OnDistributionEntriesChanged completed");
@@ -400,7 +383,6 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
     {
-        // Debounce preview updates to avoid excessive calls during rapid changes
         var previewUpdateSubject = new System.Reactive.Subjects.Subject<Unit>();
         previewUpdateSubject
             .Throttle(TimeSpan.FromMilliseconds(300))
@@ -408,17 +390,17 @@ public class DistributionEditTabViewModel : ReactiveObject
             .Subscribe(_ => UpdateDistributionPreview());
 
         entry.WhenAnyValue(evm => evm.SelectedOutfit)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
         entry.WhenAnyValue(evm => evm.SelectedNpcs)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
         entry.SelectedNpcs.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
         entry.SelectedFactions.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
         entry.SelectedKeywords.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
         entry.SelectedRaces.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
         entry.WhenAnyValue(evm => evm.UseChance, evm => evm.Chance)
-            .Skip(1) // Skip initial value
+            .Skip(1)
             .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
     }
 
@@ -457,7 +439,6 @@ public class DistributionEditTabViewModel : ReactiveObject
     {
         if (SelectedEntry == null)
         {
-            // If no entry is selected, use the first one or create a new one
             SelectedEntry = DistributionEntries.FirstOrDefault();
             if (SelectedEntry == null)
             {
@@ -466,8 +447,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Get all NPCs that are checked - check FilteredNpcs first since that's what the user sees
-        // The instances are the same, but we want to check what's actually visible in the DataGrid
         var selectedNpcs = FilteredNpcs
             .Where(npc => npc.IsSelected)
             .ToList();
@@ -486,7 +465,6 @@ public class DistributionEditTabViewModel : ReactiveObject
         var addedCount = 0;
         foreach (var npc in selectedNpcs)
         {
-            // Check if NPC is already in this entry
             if (!SelectedEntry.SelectedNpcs.Any(existing => existing.FormKey == npc.FormKey))
             {
                 SelectedEntry.AddNpc(npc);
@@ -494,9 +472,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Clear the selection state in the NPC picker after adding to entry
-        // This prevents previously selected NPCs from being added to the next entry
-        // The IsSelected property in the picker is only for selection, not for tracking entries
         foreach (var npc in selectedNpcs)
         {
             npc.IsSelected = false;
@@ -671,7 +646,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             if (SelectedEntry == null)
             {
                 AddDistributionEntry();
-                // Wait for entry to be created, then try again
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (SelectedEntry != null)
@@ -690,7 +664,6 @@ public class DistributionEditTabViewModel : ReactiveObject
     {
         var addedItems = new List<string>();
 
-        // Add factions from the filter
         foreach (var factionFormKey in filter.Factions)
         {
             var factionVm = ResolveFactionFormKey(factionFormKey);
@@ -701,7 +674,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Add races from the filter
         foreach (var raceFormKey in filter.Races)
         {
             var raceVm = ResolveRaceFormKey(raceFormKey);
@@ -712,7 +684,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Add keywords from the filter
         foreach (var keywordFormKey in filter.Keywords)
         {
             var keywordVm = ResolveKeywordFormKey(keywordFormKey);
@@ -723,10 +694,8 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        // Apply trait filters if using SPID format
         if (filter.HasTraitFilters && DistributionFormat == DistributionFileType.Spid)
         {
-            // Create new TraitFilters instance with the copied values
             entry.Entry.TraitFilters = new SpidTraitFilters
             {
                 IsFemale = filter.IsFemale,
@@ -747,7 +716,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = $"Pasted filter to entry: added {addedItems.Count} filter(s)";
             _logger.Debug("Pasted filter to entry: {Items}", string.Join(", ", addedItems));
 
-            // Trigger preview update
             UpdateDistributionPreview();
         }
         else
@@ -788,13 +756,11 @@ public class DistributionEditTabViewModel : ReactiveObject
             return;
         }
 
-        // Detect conflicts before saving
         DetectConflicts();
 
         var finalFilePath = DistributionFilePath;
         var finalFileName = Path.GetFileName(DistributionFilePath);
 
-        // If creating a new file with conflicts, show confirmation with suggested filename
         if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
         {
             var sb = new System.Text.StringBuilder();
@@ -824,7 +790,6 @@ public class DistributionEditTabViewModel : ReactiveObject
 
             if (result == System.Windows.MessageBoxResult.Yes)
             {
-                // Use the suggested filename
                 var directory = Path.GetDirectoryName(DistributionFilePath);
                 finalFileName = SuggestedFileName;
                 if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
@@ -835,13 +800,10 @@ public class DistributionEditTabViewModel : ReactiveObject
                     ? Path.Combine(directory, finalFileName)
                     : finalFileName;
 
-                // Update the NewFileName to reflect the change
                 NewFileName = finalFileName;
             }
-            // If No, continue with original filename
         }
 
-        // Check if file exists and prompt for overwrite confirmation (before showing loading state)
         if (File.Exists(finalFilePath))
         {
             var result = System.Windows.MessageBox.Show(
@@ -866,7 +828,6 @@ public class DistributionEditTabViewModel : ReactiveObject
                 .Select(evm => evm.Entry)
                 .ToList();
 
-            // Auto-detect format: if any entry uses chance, use SPID format
             var anyEntryUsesChance = entries.Any(e => e.Chance.HasValue);
             var effectiveFormat = anyEntryUsesChance ? DistributionFileType.Spid : DistributionFormat;
 
@@ -875,7 +836,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
             _logger.Information("Saved distribution file: {FilePath}", finalFilePath);
 
-            // Notify parent that file was saved (for refreshing file list)
             FileSaved?.Invoke(finalFilePath);
         }
         catch (Exception ex)
@@ -912,7 +872,6 @@ public class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = "Loading distribution file...";
             _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
 
-            // Load file and detect format
             var (entries, detectedFormat) = await ((DistributionFileWriterService)_fileWriterService).LoadDistributionFileWithFormatAsync(
                 DistributionFilePath);
 

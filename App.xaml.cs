@@ -28,16 +28,12 @@ public partial class App
         ConfigureExceptionLogging();
         Log.Information("Application startup invoked.");
 
-        // Configure dependency injection
         var builder = new ContainerBuilder();
 
         builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
         builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
 
-        // Register models
         builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
-
-        // Register services
         builder.RegisterType<MutagenService>().SingleInstance();
         builder.RegisterType<GameAssetLocator>().SingleInstance();
         builder.RegisterType<PatchingService>().SingleInstance();
@@ -53,21 +49,17 @@ public partial class App
         builder.RegisterType<GameDataCacheService>().SingleInstance();
         builder.RegisterType<ThemeService>().SingleInstance();
 
-        // Register ViewModels
         builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
         builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
         builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();
 
-        // Register Views
         builder.RegisterType<MainWindow>().AsSelf();
 
         _container = builder.Build();
 
-        // Initialize theme service before showing window
         var themeService = _container.Resolve<ThemeService>();
         themeService.Initialize();
 
-        // Show main window
         try
         {
             var mainWindow = _container.Resolve<MainWindow>();
@@ -80,10 +72,9 @@ public partial class App
             throw;
         }
 
-        // Check for updates (deferred so the window renders first)
         _ = Task.Run(async () =>
         {
-            await Task.Delay(1500); // Let the UI render and initialize
+            await Task.Delay(1500);
             Current.Dispatcher.Invoke(CheckForUpdates);
         });
     }
@@ -92,17 +83,13 @@ public partial class App
     {
         try
         {
-            // Configure AutoUpdater
             AutoUpdater.ShowSkipButton = true;
             AutoUpdater.ShowRemindLaterButton = true;
-            AutoUpdater.ReportErrors = false; // Fail silently if no internet connection
+            AutoUpdater.ReportErrors = false;
             AutoUpdater.RunUpdateAsAdmin = false;
-            AutoUpdater.HttpUserAgent = "Boutique-Updater"; // Required for GitHub API
+            AutoUpdater.HttpUserAgent = "Boutique-Updater";
 
-            // Use custom parser for GitHub releases API
             AutoUpdater.ParseUpdateInfoEvent += ParseGitHubRelease;
-
-            // GitHub releases API endpoint
             const string updateUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases/latest";
 
             AutoUpdater.Start(updateUrl);
@@ -110,7 +97,6 @@ public partial class App
         }
         catch (Exception ex)
         {
-            // Don't crash the app if update check fails
             Log.Warning(ex, "Failed to check for updates.");
         }
     }
@@ -122,14 +108,10 @@ public partial class App
             using var doc = JsonDocument.Parse(args.RemoteData);
             var root = doc.RootElement;
 
-            // Get tag name (e.g., "0.0.1-alpha2" or "v1.0.0")
             var tagName = root.GetProperty("tag_name").GetString() ?? "";
             var version = tagName.TrimStart('v');
-
-            // Get changelog URL
             var changelogUrl = root.GetProperty("html_url").GetString() ?? "";
 
-            // Find the zip asset in the release
             string? downloadUrl = null;
             if (root.TryGetProperty("assets", out var assets))
             {
@@ -150,7 +132,6 @@ public partial class App
                 return;
             }
 
-            // Parse version - handle semantic versioning with pre-release tags
             var parsedVersion = ParseSemanticVersion(version);
             if (parsedVersion == null)
             {
@@ -174,16 +155,9 @@ public partial class App
         }
     }
 
-    /// <summary>
-    /// Parses semantic version strings like "1.0.0", "0.0.1-alpha2", "v2.1.0-beta.1"
-    /// Returns a Version object for comparison (pre-release info is stripped for comparison)
-    /// </summary>
     private static Version? ParseSemanticVersion(string versionString)
     {
-        // Remove 'v' prefix if present
         versionString = versionString.TrimStart('v');
-
-        // Extract just the numeric part (before any hyphen for pre-release)
         var match = Regex.Match(versionString, @"^(\d+)\.(\d+)\.(\d+)");
         if (!match.Success)
             return null;

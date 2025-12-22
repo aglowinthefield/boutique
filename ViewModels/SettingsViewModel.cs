@@ -42,17 +42,13 @@ public class SettingsViewModel : ReactiveObject
         _cacheService = cacheService;
         _themeService = themeService;
 
-        // Initialize from settings
         SkyrimDataPath = settings.SkyrimDataPath;
         OutputPatchPath = settings.OutputPatchPath;
         PatchFileName = settings.PatchFileName;
-
-        // Initialize theme from service
         SelectedTheme = (ThemeOption)_themeService.CurrentThemeSetting;
 
-        // Sync property changes back to the settings model
         this.WhenAnyValue(x => x.SkyrimDataPath)
-            .Skip(1) // Skip initial value to avoid double-setting
+            .Skip(1)
             .Subscribe(v => _settings.SkyrimDataPath = v);
 
         this.WhenAnyValue(x => x.OutputPatchPath)
@@ -63,22 +59,18 @@ public class SettingsViewModel : ReactiveObject
             .Skip(1)
             .Subscribe(v => _settings.PatchFileName = v);
 
-        // Theme change subscription
         this.WhenAnyValue(x => x.SelectedTheme)
             .Skip(1)
             .Subscribe(theme => _themeService.SetTheme((AppTheme)theme));
 
-        // Use simple RelayCommand instead of ReactiveCommand to avoid threading issues
         BrowseDataPathCommand = new RelayCommand(BrowseDataPath);
         BrowseOutputPathCommand = new RelayCommand(BrowseOutputPath);
         AutoDetectPathCommand = new RelayCommand(AutoDetectPath);
         ClearCacheCommand = new RelayCommand(ClearCache);
 
-        // Auto-detect on creation if path is empty
         if (string.IsNullOrEmpty(SkyrimDataPath))
             AutoDetectPath();
 
-        // Initialize cache status
         RefreshCacheStatus();
     }
 
@@ -140,8 +132,6 @@ public class SettingsViewModel : ReactiveObject
 
     private void AutoDetectPath()
     {
-        // PRIORITY 1: Check for Mod Organizer 2 environment variables
-        // MO2 sets these when launching executables
         var mo2DataPath = Environment.GetEnvironmentVariable("MO_DATAPATH");
         if (!string.IsNullOrEmpty(mo2DataPath) && Directory.Exists(mo2DataPath))
         {
@@ -152,7 +142,6 @@ public class SettingsViewModel : ReactiveObject
             return;
         }
 
-        // Alternative: Try MO_GAMEPATH and append Data
         var mo2GamePath = Environment.GetEnvironmentVariable("MO_GAMEPATH");
         if (!string.IsNullOrEmpty(mo2GamePath))
         {
@@ -167,7 +156,6 @@ public class SettingsViewModel : ReactiveObject
             }
         }
 
-        // PRIORITY 2: Try common Skyrim SE installation paths
         var commonPaths = new[]
         {
             @"C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data",
@@ -188,7 +176,6 @@ public class SettingsViewModel : ReactiveObject
                 return;
             }
 
-        // PRIORITY 3: Try reading from registry
         try
         {
             using var key =
@@ -211,7 +198,6 @@ public class SettingsViewModel : ReactiveObject
         }
         catch
         {
-            // Registry read failed, ignore
             IsRunningFromMO2 = false;
             DetectionSource = "Auto-detection failed - please set manually";
         }
@@ -223,9 +209,6 @@ public class SettingsViewModel : ReactiveObject
         RefreshCacheStatus();
     }
 
-    /// <summary>
-    /// Refreshes the cache status display.
-    /// </summary>
     public void RefreshCacheStatus()
     {
         var info = _cacheService.GetCacheInfo();

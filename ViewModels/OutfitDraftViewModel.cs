@@ -40,7 +40,6 @@ public class OutfitDraftViewModel : ReactiveObject
         _pieces.CollectionChanged += PiecesOnCollectionChanged;
         Pieces = new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
 
-        // Update computed properties when FormKey changes
         this.WhenAnyValue(x => x.FormKey)
             .Subscribe(_ =>
             {
