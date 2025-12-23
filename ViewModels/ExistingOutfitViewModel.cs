@@ -10,7 +10,7 @@ public class ExistingOutfitViewModel
         string displayName,
         string editorId,
         FormKey formKey,
-        IEnumerable<IArmorGetter> pieces)
+        IEnumerable<IArmorGetter>? pieces)
     {
         DisplayName = displayName;
         EditorId = editorId;

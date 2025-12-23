@@ -5,7 +5,7 @@ using ReactiveUI.Fody.Helpers;
 
 namespace Boutique.ViewModels;
 
-public class FactionRecordViewModel : ReactiveObject
+public class FactionRecordViewModel : ReactiveObject, ISelectableRecordViewModel
 {
     private readonly string _searchCache;
 

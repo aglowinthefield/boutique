@@ -383,25 +383,11 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
     {
-        var previewUpdateSubject = new System.Reactive.Subjects.Subject<Unit>();
-        previewUpdateSubject
+        // Subscribe to the entry's change event with throttling
+        Observable.FromEventPattern(entry, nameof(entry.EntryChanged))
             .Throttle(TimeSpan.FromMilliseconds(300))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => UpdateDistributionPreview());
-
-        entry.WhenAnyValue(evm => evm.SelectedOutfit)
-            .Skip(1)
-            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
-        entry.WhenAnyValue(evm => evm.SelectedNpcs)
-            .Skip(1)
-            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
-        entry.SelectedNpcs.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
-        entry.SelectedFactions.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
-        entry.SelectedKeywords.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
-        entry.SelectedRaces.CollectionChanged += (s, args) => previewUpdateSubject.OnNext(Unit.Default);
-        entry.WhenAnyValue(evm => evm.UseChance, evm => evm.Chance)
-            .Skip(1)
-            .Subscribe(_ => previewUpdateSubject.OnNext(Unit.Default));
     }
 
     private void AddDistributionEntry()
@@ -435,7 +421,20 @@ public class DistributionEditTabViewModel : ReactiveObject
         }
     }
 
-    private void AddSelectedNpcsToEntry()
+    /// <summary>
+    /// Generic method to add selected criteria to the current entry.
+    /// </summary>
+    /// <typeparam name="T">The type of record view model.</typeparam>
+    /// <param name="filteredItems">The filtered collection to get selected items from.</param>
+    /// <param name="getTargetCollection">Function to get the target collection from the entry.</param>
+    /// <param name="addToEntry">Action to add an item to the entry.</param>
+    /// <param name="itemTypeName">The display name for the item type (e.g., "NPC", "faction").</param>
+    private void AddSelectedCriteriaToEntry<T>(
+        ObservableCollection<T> filteredItems,
+        Func<DistributionEntryViewModel, ObservableCollection<T>> getTargetCollection,
+        Action<DistributionEntryViewModel, T> addToEntry,
+        string itemTypeName)
+        where T : ISelectableRecordViewModel
     {
         if (SelectedEntry == null)
         {
@@ -447,190 +446,70 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        var selectedNpcs = FilteredNpcs
-            .Where(npc => npc.IsSelected)
+        var selectedItems = filteredItems
+            .Where(item => item.IsSelected)
             .ToList();
 
-        _logger.Debug("AddSelectedNpcsToEntry: Total NPCs={Total}, Filtered={Filtered}, Selected={Selected}",
-            AvailableNpcs.Count,
-            FilteredNpcs.Count,
-            selectedNpcs.Count);
-
-        if (selectedNpcs.Count == 0)
+        if (selectedItems.Count == 0)
         {
-            StatusMessage = "No NPCs selected. Check the boxes next to NPCs you want to add.";
+            StatusMessage = $"No {itemTypeName}s selected. Check the boxes next to {itemTypeName}s you want to add.";
             return;
         }
 
+        var targetCollection = getTargetCollection(SelectedEntry);
         var addedCount = 0;
-        foreach (var npc in selectedNpcs)
+        foreach (var item in selectedItems)
         {
-            if (!SelectedEntry.SelectedNpcs.Any(existing => existing.FormKey == npc.FormKey))
+            if (!targetCollection.Any(existing => existing.FormKey == item.FormKey))
             {
-                SelectedEntry.AddNpc(npc);
+                addToEntry(SelectedEntry, item);
                 addedCount++;
             }
         }
 
-        foreach (var npc in selectedNpcs)
+        foreach (var item in selectedItems)
         {
-            npc.IsSelected = false;
+            item.IsSelected = false;
         }
 
         if (addedCount > 0)
         {
-            StatusMessage = $"Added {addedCount} NPC(s) to entry: {SelectedEntry.SelectedOutfit?.EditorID ?? "(No outfit)"}";
-            _logger.Debug("Added {Count} NPCs to entry", addedCount);
+            StatusMessage = $"Added {addedCount} {itemTypeName}(s) to entry: {SelectedEntry.SelectedOutfit?.EditorID ?? "(No outfit)"}";
+            _logger.Debug("Added {Count} {ItemType}s to entry", addedCount, itemTypeName);
         }
         else
         {
-            StatusMessage = "All selected NPCs are already in this entry.";
+            StatusMessage = $"All selected {itemTypeName}s are already in this entry.";
         }
     }
 
-    private void AddSelectedFactionsToEntry()
-    {
-        if (SelectedEntry == null)
-        {
-            SelectedEntry = DistributionEntries.FirstOrDefault();
-            if (SelectedEntry == null)
-            {
-                AddDistributionEntry();
-                return;
-            }
-        }
+    private void AddSelectedNpcsToEntry() =>
+        AddSelectedCriteriaToEntry(
+            FilteredNpcs,
+            entry => entry.SelectedNpcs,
+            (entry, npc) => entry.AddNpc(npc),
+            "NPC");
 
-        var selectedFactions = FilteredFactions
-            .Where(faction => faction.IsSelected)
-            .ToList();
+    private void AddSelectedFactionsToEntry() =>
+        AddSelectedCriteriaToEntry(
+            FilteredFactions,
+            entry => entry.SelectedFactions,
+            (entry, faction) => entry.AddFaction(faction),
+            "faction");
 
-        if (selectedFactions.Count == 0)
-        {
-            StatusMessage = "No factions selected. Check the boxes next to factions you want to add.";
-            return;
-        }
+    private void AddSelectedKeywordsToEntry() =>
+        AddSelectedCriteriaToEntry(
+            FilteredKeywords,
+            entry => entry.SelectedKeywords,
+            (entry, keyword) => entry.AddKeyword(keyword),
+            "keyword");
 
-        var addedCount = 0;
-        foreach (var faction in selectedFactions)
-        {
-            if (!SelectedEntry.SelectedFactions.Any(existing => existing.FormKey == faction.FormKey))
-            {
-                SelectedEntry.AddFaction(faction);
-                addedCount++;
-            }
-        }
-
-        foreach (var faction in selectedFactions)
-        {
-            faction.IsSelected = false;
-        }
-
-        if (addedCount > 0)
-        {
-            StatusMessage = $"Added {addedCount} faction(s) to entry: {SelectedEntry.SelectedOutfit?.EditorID ?? "(No outfit)"}";
-            _logger.Debug("Added {Count} factions to entry", addedCount);
-        }
-        else
-        {
-            StatusMessage = "All selected factions are already in this entry.";
-        }
-    }
-
-    private void AddSelectedKeywordsToEntry()
-    {
-        if (SelectedEntry == null)
-        {
-            SelectedEntry = DistributionEntries.FirstOrDefault();
-            if (SelectedEntry == null)
-            {
-                AddDistributionEntry();
-                return;
-            }
-        }
-
-        var selectedKeywords = FilteredKeywords
-            .Where(keyword => keyword.IsSelected)
-            .ToList();
-
-        if (selectedKeywords.Count == 0)
-        {
-            StatusMessage = "No keywords selected. Check the boxes next to keywords you want to add.";
-            return;
-        }
-
-        var addedCount = 0;
-        foreach (var keyword in selectedKeywords)
-        {
-            if (!SelectedEntry.SelectedKeywords.Any(existing => existing.FormKey == keyword.FormKey))
-            {
-                SelectedEntry.AddKeyword(keyword);
-                addedCount++;
-            }
-        }
-
-        foreach (var keyword in selectedKeywords)
-        {
-            keyword.IsSelected = false;
-        }
-
-        if (addedCount > 0)
-        {
-            StatusMessage = $"Added {addedCount} keyword(s) to entry: {SelectedEntry.SelectedOutfit?.EditorID ?? "(No outfit)"}";
-            _logger.Debug("Added {Count} keywords to entry", addedCount);
-        }
-        else
-        {
-            StatusMessage = "All selected keywords are already in this entry.";
-        }
-    }
-
-    private void AddSelectedRacesToEntry()
-    {
-        if (SelectedEntry == null)
-        {
-            SelectedEntry = DistributionEntries.FirstOrDefault();
-            if (SelectedEntry == null)
-            {
-                AddDistributionEntry();
-                return;
-            }
-        }
-
-        var selectedRaces = FilteredRaces
-            .Where(race => race.IsSelected)
-            .ToList();
-
-        if (selectedRaces.Count == 0)
-        {
-            StatusMessage = "No races selected. Check the boxes next to races you want to add.";
-            return;
-        }
-
-        var addedCount = 0;
-        foreach (var race in selectedRaces)
-        {
-            if (!SelectedEntry.SelectedRaces.Any(existing => existing.FormKey == race.FormKey))
-            {
-                SelectedEntry.AddRace(race);
-                addedCount++;
-            }
-        }
-
-        foreach (var race in selectedRaces)
-        {
-            race.IsSelected = false;
-        }
-
-        if (addedCount > 0)
-        {
-            StatusMessage = $"Added {addedCount} race(s) to entry: {SelectedEntry.SelectedOutfit?.EditorID ?? "(No outfit)"}";
-            _logger.Debug("Added {Count} races to entry", addedCount);
-        }
-        else
-        {
-            StatusMessage = "All selected races are already in this entry.";
-        }
-    }
+    private void AddSelectedRacesToEntry() =>
+        AddSelectedCriteriaToEntry(
+            FilteredRaces,
+            entry => entry.SelectedRaces,
+            (entry, race) => entry.AddRace(race),
+            "race");
 
     private void PasteFilterToEntry()
     {
@@ -1265,6 +1144,13 @@ public class DistributionEditTabViewModel : ReactiveObject
                             .ToList();
                         var raceList = string.Join(",", raceFormKeys);
                         filterParts.Add($"filterByRaces={raceList}");
+                    }
+
+                    // Add gender filter if present
+                    if (entryVm.Gender != GenderFilter.Any)
+                    {
+                        var genderValue = entryVm.Gender == GenderFilter.Female ? "female" : "male";
+                        filterParts.Add($"filterByGender={genderValue}");
                     }
 
                     // Add outfit

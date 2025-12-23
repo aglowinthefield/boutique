@@ -35,6 +35,13 @@ public class DistributionEntryViewModel : ReactiveObject
     private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
     private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
 
+    /// <summary>
+    /// Event raised when any property that affects the distribution output changes.
+    /// </summary>
+    public event EventHandler? EntryChanged;
+
+    private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
+
     public DistributionEntryViewModel(
         DistributionEntry entry,
         System.Action<DistributionEntryViewModel>? removeAction = null,
@@ -108,7 +115,12 @@ public class DistributionEntryViewModel : ReactiveObject
         }
 
         this.WhenAnyValue(x => x.SelectedOutfit)
-            .Subscribe(outfit => Entry.Outfit = outfit);
+            .Skip(1)
+            .Subscribe(outfit =>
+            {
+                Entry.Outfit = outfit;
+                RaiseEntryChanged();
+            });
 
         this.WhenAnyValue(x => x.Gender)
             .Skip(1)
@@ -123,6 +135,7 @@ public class DistributionEntryViewModel : ReactiveObject
                         _ => null
                     }
                 };
+                RaiseEntryChanged();
             });
 
         this.WhenAnyValue(x => x.Unique)
@@ -138,11 +151,16 @@ public class DistributionEntryViewModel : ReactiveObject
                         _ => null
                     }
                 };
+                RaiseEntryChanged();
             });
 
         this.WhenAnyValue(x => x.IsChild)
             .Skip(1)
-            .Subscribe(isChild => Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild });
+            .Subscribe(isChild =>
+            {
+                Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild };
+                RaiseEntryChanged();
+            });
 
         var previousUseChance = UseChance;
         this.WhenAnyValue(x => x.UseChance)
@@ -175,6 +193,7 @@ public class DistributionEntryViewModel : ReactiveObject
                 }
 
                 Entry.Chance = useChance ? Chance : null;
+                RaiseEntryChanged();
             });
 
         this.WhenAnyValue(x => x.Chance)
@@ -184,6 +203,7 @@ public class DistributionEntryViewModel : ReactiveObject
                 if (UseChance)
                 {
                     Entry.Chance = chance;
+                    RaiseEntryChanged();
                 }
             });
 
@@ -285,6 +305,7 @@ public class DistributionEntryViewModel : ReactiveObject
         {
             Entry.NpcFormKeys.Clear();
             Entry.NpcFormKeys.AddRange(SelectedNpcs.Select(npc => npc.FormKey));
+            RaiseEntryChanged();
         }
     }
 
@@ -294,6 +315,7 @@ public class DistributionEntryViewModel : ReactiveObject
         {
             Entry.FactionFormKeys.Clear();
             Entry.FactionFormKeys.AddRange(SelectedFactions.Select(faction => faction.FormKey));
+            RaiseEntryChanged();
         }
     }
 
@@ -303,6 +325,7 @@ public class DistributionEntryViewModel : ReactiveObject
         {
             Entry.KeywordFormKeys.Clear();
             Entry.KeywordFormKeys.AddRange(SelectedKeywords.Select(keyword => keyword.FormKey));
+            RaiseEntryChanged();
         }
     }
 
@@ -312,74 +335,56 @@ public class DistributionEntryViewModel : ReactiveObject
         {
             Entry.RaceFormKeys.Clear();
             Entry.RaceFormKeys.AddRange(SelectedRaces.Select(race => race.FormKey));
+            RaiseEntryChanged();
         }
     }
 
-    public void AddNpc(NpcRecordViewModel npc)
+    /// <summary>
+    /// Generic method to add a criterion to a collection if it doesn't already exist.
+    /// </summary>
+    /// <typeparam name="T">The type of record view model.</typeparam>
+    /// <param name="item">The item to add.</param>
+    /// <param name="collection">The target collection.</param>
+    /// <param name="updateAction">Action to call after adding (e.g., UpdateEntryNpcs).</param>
+    /// <returns>True if the item was added, false if it already existed.</returns>
+    public bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
+        where T : ISelectableRecordViewModel
     {
-        if (!_selectedNpcs.Any(existing => existing.FormKey == npc.FormKey))
-        {
-            _selectedNpcs.Add(npc);
-            UpdateEntryNpcs();
-        }
+        if (collection.Any(existing => existing.FormKey == item.FormKey))
+            return false;
+
+        collection.Add(item);
+        updateAction();
+        return true;
     }
 
-    public void RemoveNpc(NpcRecordViewModel npc)
+    /// <summary>
+    /// Generic method to remove a criterion from a collection.
+    /// </summary>
+    /// <typeparam name="T">The type of record view model.</typeparam>
+    /// <param name="item">The item to remove.</param>
+    /// <param name="collection">The target collection.</param>
+    /// <param name="updateAction">Action to call after removing.</param>
+    /// <returns>True if the item was removed, false otherwise.</returns>
+    public bool RemoveCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
+        where T : class
     {
-        if (_selectedNpcs.Remove(npc))
-        {
-            UpdateEntryNpcs();
-        }
+        if (!collection.Remove(item))
+            return false;
+
+        updateAction();
+        return true;
     }
 
-    public void AddFaction(FactionRecordViewModel faction)
-    {
-        if (!_selectedFactions.Any(existing => existing.FormKey == faction.FormKey))
-        {
-            _selectedFactions.Add(faction);
-            UpdateEntryFactions();
-        }
-    }
+    public void AddNpc(NpcRecordViewModel npc) => AddCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
+    public void RemoveNpc(NpcRecordViewModel npc) => RemoveCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
 
-    public void RemoveFaction(FactionRecordViewModel faction)
-    {
-        if (_selectedFactions.Remove(faction))
-        {
-            UpdateEntryFactions();
-        }
-    }
+    public void AddFaction(FactionRecordViewModel faction) => AddCriterion(faction, _selectedFactions, UpdateEntryFactions);
+    public void RemoveFaction(FactionRecordViewModel faction) => RemoveCriterion(faction, _selectedFactions, UpdateEntryFactions);
 
-    public void AddKeyword(KeywordRecordViewModel keyword)
-    {
-        if (!_selectedKeywords.Any(existing => existing.FormKey == keyword.FormKey))
-        {
-            _selectedKeywords.Add(keyword);
-            UpdateEntryKeywords();
-        }
-    }
+    public void AddKeyword(KeywordRecordViewModel keyword) => AddCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
+    public void RemoveKeyword(KeywordRecordViewModel keyword) => RemoveCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
 
-    public void RemoveKeyword(KeywordRecordViewModel keyword)
-    {
-        if (_selectedKeywords.Remove(keyword))
-        {
-            UpdateEntryKeywords();
-        }
-    }
-
-    public void AddRace(RaceRecordViewModel race)
-    {
-        if (!_selectedRaces.Any(existing => existing.FormKey == race.FormKey))
-        {
-            _selectedRaces.Add(race);
-            UpdateEntryRaces();
-        }
-    }
-
-    public void RemoveRace(RaceRecordViewModel race)
-    {
-        if (_selectedRaces.Remove(race))
-        {
-            UpdateEntryRaces();
-        }
-    }
+    public void AddRace(RaceRecordViewModel race) => AddCriterion(race, _selectedRaces, UpdateEntryRaces);
+    public void RemoveRace(RaceRecordViewModel race) => RemoveCriterion(race, _selectedRaces, UpdateEntryRaces);
 }

@@ -24,11 +24,6 @@
                 <views:DistributionCreateTabView DataContext="{Binding EditTab}" />
             </TabItem>
 
-            <!-- FILES TAB - Disabled, may remove later
-            <TabItem Header="Files">
-                <views:DistributionFilesTabView DataContext="{Binding FilesTab}" />
-            </TabItem>
-            -->
 
             <!-- NPCs TAB -->
             <TabItem Header="NPCs">

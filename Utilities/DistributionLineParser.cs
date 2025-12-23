@@ -131,6 +131,63 @@ public static class DistributionLineParser
     }
 
     /// <summary>
+    /// Checks if a distribution line targets all NPCs (has no NPC-filtering criteria).
+    /// </summary>
+    /// <param name="file">The distribution file containing the line</param>
+    /// <param name="line">The distribution line to check</param>
+    /// <returns>True if the line targets all NPCs (no filters), false otherwise</returns>
+    public static bool LineTargetsAllNpcs(DistributionFileViewModel file, DistributionLine line)
+    {
+        return file.TypeDisplay switch
+        {
+            "SPID" => SpidLineTargetsAllNpcs(line.RawText),
+            "SkyPatcher" => SkyPatcherLineTargetsAllNpcs(line.RawText),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Checks if a SPID line targets all NPCs.
+    /// </summary>
+    private static bool SpidLineTargetsAllNpcs(string rawText)
+    {
+        if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null)
+            return false;
+
+        return filter.TargetsAllNpcs;
+    }
+
+    /// <summary>
+    /// Checks if a SkyPatcher line targets all NPCs.
+    /// A SkyPatcher line targets all NPCs if it has an outfit assignment but no NPC-related filters.
+    /// </summary>
+    private static bool SkyPatcherLineTargetsAllNpcs(string rawText)
+    {
+        var trimmed = rawText.Trim();
+
+        // Must have an outfit assignment
+        var hasOutfitDefault = trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase) ||
+                               trimmed.Contains("outfitSleep=", StringComparison.OrdinalIgnoreCase);
+        if (!hasOutfitDefault)
+            return false;
+
+        // Check for any NPC-specific filters - if none present, it targets all NPCs
+        var hasNpcFilter = trimmed.Contains("filterByNpcs=", StringComparison.OrdinalIgnoreCase) ||
+                           trimmed.Contains("filterByNpcsExcluded=", StringComparison.OrdinalIgnoreCase);
+        var hasFactionFilter = trimmed.Contains("filterByFactions", StringComparison.OrdinalIgnoreCase);
+        var hasRaceFilter = trimmed.Contains("filterByRaces", StringComparison.OrdinalIgnoreCase);
+        var hasKeywordFilter = trimmed.Contains("filterByKeywords", StringComparison.OrdinalIgnoreCase);
+        var hasEditorIdFilter = trimmed.Contains("filterByEditorIdContains", StringComparison.OrdinalIgnoreCase);
+        var hasGenderFilter = trimmed.Contains("filterByGender=", StringComparison.OrdinalIgnoreCase);
+        var hasDefaultOutfitFilter = trimmed.Contains("filterByDefaultOutfits=", StringComparison.OrdinalIgnoreCase);
+        var hasModNameFilter = trimmed.Contains("filterByModNames=", StringComparison.OrdinalIgnoreCase);
+
+        // If no NPC-related filters are present, it targets all NPCs
+        return !hasNpcFilter && !hasFactionFilter && !hasRaceFilter && !hasKeywordFilter &&
+               !hasEditorIdFilter && !hasGenderFilter && !hasDefaultOutfitFilter && !hasModNameFilter;
+    }
+
+    /// <summary>
     /// Extracts outfit name from a distribution line.
     /// </summary>
     /// <param name="line">The distribution line to parse</param>

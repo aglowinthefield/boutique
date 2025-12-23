@@ -13,9 +13,8 @@ namespace Boutique.ViewModels;
 public enum DistributionTab
 {
     Create = 0,
-    Files = 1,
-    Npcs = 2,
-    Outfits = 3
+    Npcs = 1,
+    Outfits = 2
 }
 
 public class DistributionViewModel : ReactiveObject
@@ -37,10 +36,7 @@ public class DistributionViewModel : ReactiveObject
         _logger = logger.ForContext<DistributionViewModel>();
 
         FilesTab = new DistributionFilesTabViewModel(
-            armorPreviewService,
-            mutagenService,
             gameDataCache,
-            settings,
             logger);
 
         EditTab = new DistributionEditTabViewModel(
@@ -66,11 +62,6 @@ public class DistributionViewModel : ReactiveObject
             settings,
             logger);
 
-        FilesTab.ShowPreview.RegisterHandler(async interaction =>
-        {
-            await ShowPreview.Handle(interaction.Input);
-            interaction.SetOutput(Unit.Default);
-        });
         EditTab.ShowPreview.RegisterHandler(async interaction =>
         {
             await ShowPreview.Handle(interaction.Input);
@@ -105,19 +96,6 @@ public class DistributionViewModel : ReactiveObject
             OutfitsTab.SetDistributionFilesInternal(fileList);
                 this.RaisePropertyChanged(nameof(Files));
         };
-
-        FilesTab.WhenAnyValue(vm => vm.SelectedFile)
-            .Subscribe(_ =>
-            {
-                this.RaisePropertyChanged(nameof(SelectedFile));
-                this.RaisePropertyChanged(nameof(FilteredLines));
-            });
-        FilesTab.WhenAnyValue(vm => vm.LineFilter)
-            .Subscribe(_ =>
-            {
-                this.RaisePropertyChanged(nameof(LineFilter));
-                this.RaisePropertyChanged(nameof(FilteredLines));
-            });
 
         EditTab.WhenAnyValue(vm => vm.DistributionFilePath)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFilePath)));
@@ -273,40 +251,38 @@ public class DistributionViewModel : ReactiveObject
             {
                 this.RaisePropertyChanged(nameof(IsEditMode));
 
-                if (index == (int)DistributionTab.Create)
+                switch (index)
                 {
-                    var fileList = FilesTab.Files.ToList();
-                    EditTab.SetDistributionFiles(fileList);
-                    EditTab.SetDistributionFilesInternal(fileList);
-
-                    if (EditTab.SelectedDistributionFile == null)
+                    case (int)DistributionTab.Create:
                     {
-                        var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-                        if (newFileItem != null)
+                        var fileList = FilesTab.Files.ToList();
+                        EditTab.SetDistributionFiles(fileList);
+                        EditTab.SetDistributionFilesInternal(fileList);
+
+                        if (EditTab.SelectedDistributionFile == null)
                         {
-                            EditTab.SelectedDistributionFile = newFileItem;
+                            var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+                            if (newFileItem != null)
+                            {
+                                EditTab.SelectedDistributionFile = newFileItem;
+                            }
                         }
-                    }
-                }
-                else if (index == (int)DistributionTab.Files)
-                {
-                    if (FilesTab.Files.Count == 0 && !FilesTab.IsLoading && !string.IsNullOrWhiteSpace(_settings.SkyrimDataPath))
-                    {
-                        _logger.Debug("Files tab selected, triggering auto-load");
-                        _ = FilesTab.EnsureLoadedCommand.Execute();
-                    }
-                }
-                else if (index == (int)DistributionTab.Npcs)
-                {
-                }
-                else if (index == (int)DistributionTab.Outfits)
-                {
-                    OutfitsTab.SetDistributionFilesInternal(FilesTab.Files.ToList());
 
-                    if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
+                        break;
+                    }
+                    case (int)DistributionTab.Npcs:
+                        break;
+                    case (int)DistributionTab.Outfits:
                     {
-                        _logger.Debug("Outfits tab selected, triggering auto-load");
-                        _ = OutfitsTab.LoadOutfitsCommand.Execute();
+                        OutfitsTab.SetDistributionFilesInternal(FilesTab.Files.ToList());
+
+                        if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
+                        {
+                            _logger.Debug("Outfits tab selected, triggering auto-load");
+                            _ = OutfitsTab.LoadOutfitsCommand.Execute();
+                        }
+
+                        break;
                     }
                 }
             });
@@ -353,31 +329,11 @@ public class DistributionViewModel : ReactiveObject
 
     #region Files Tab Properties
 
-    /// <summary>UI: DataGrid in Files tab showing discovered distribution files.</summary>
+    /// <summary>All discovered distribution files.</summary>
     public ObservableCollection<DistributionFileViewModel> Files => FilesTab.Files;
 
-    /// <summary>UI: Selected file in Files tab DataGrid, used to show preview.</summary>
-    public DistributionFileViewModel? SelectedFile
-    {
-        get => FilesTab.SelectedFile;
-        set => FilesTab.SelectedFile = value;
-    }
-
-    /// <summary>UI: TextBox in Files tab for filtering preview lines.</summary>
-    public string LineFilter
-    {
-        get => FilesTab.LineFilter;
-        set => FilesTab.LineFilter = value;
-    }
-
-    /// <summary>UI: Filtered lines shown in Files tab preview based on LineFilter.</summary>
-    public IEnumerable<DistributionLine> FilteredLines => FilesTab.FilteredLines;
-
-    /// <summary>UI: "Refresh" button in Files tab to reload distribution files.</summary>
+    /// <summary>UI: "Refresh" button to reload distribution files.</summary>
     public ReactiveCommand<Unit, Unit> RefreshCommand => FilesTab.RefreshCommand;
-
-    /// <summary>UI: Eye icon button on each preview line to show outfit preview.</summary>
-    public ReactiveCommand<DistributionLine, Unit> PreviewLineCommand => FilesTab.PreviewLineCommand;
 
     #endregion
 
