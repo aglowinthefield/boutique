@@ -8,11 +8,6 @@ using Serilog;
 
 namespace Boutique.Services;
 
-/// <summary>
-/// Centralized cache for game data (NPCs, factions, races, keywords, outfits, distribution files, outfit assignments).
-/// Loads all data once at app startup and makes it available to all ViewModels.
-/// Supports cross-session caching for expensive data (NPCs, distribution files).
-/// </summary>
 public class GameDataCacheService
 {
     private readonly MutagenService _mutagenService;
@@ -41,62 +36,23 @@ public class GameDataCacheService
         _mutagenService.Initialized += OnMutagenInitialized;
     }
 
-    /// <summary>Whether the cache has been loaded.</summary>
     public bool IsLoaded => _isLoaded;
-
-    /// <summary>Whether the cache is currently loading.</summary>
     public bool IsLoading => _isLoading;
-
-    /// <summary>Event raised when cache loading completes.</summary>
     public event EventHandler? CacheLoaded;
 
-    // ============================================================================
-    // CACHED COLLECTIONS - Bind directly to these in ViewModels
-    // ============================================================================
-
-    /// <summary>All NPCs with full filter data for SPID-style matching.</summary>
     public ObservableCollection<NpcFilterData> AllNpcs { get; } = [];
-
-    /// <summary>All factions from the load order.</summary>
     public ObservableCollection<FactionRecordViewModel> AllFactions { get; } = [];
-
-    /// <summary>All races from the load order.</summary>
     public ObservableCollection<RaceRecordViewModel> AllRaces { get; } = [];
-
-    /// <summary>All keywords from the load order (filtered to NPC-relevant ones).</summary>
     public ObservableCollection<KeywordRecordViewModel> AllKeywords { get; } = [];
-
-    /// <summary>All outfits from the load order.</summary>
     public ObservableCollection<IOutfitGetter> AllOutfits { get; } = [];
-
-    /// <summary>Simple NPC records (for distribution entry NPC selection).</summary>
     public ObservableCollection<NpcRecordViewModel> AllNpcRecords { get; } = [];
-
-    /// <summary>All discovered distribution files (SPID/SkyPatcher INIs).</summary>
     public ObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; } = [];
-
-    /// <summary>All resolved NPC outfit assignments from distribution files.</summary>
     public ObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; } = [];
 
-    // ============================================================================
-    // LOOKUP DICTIONARIES - Fast access by FormKey
-    // ============================================================================
-
-    /// <summary>NPC filter data by FormKey for fast SPID matching.</summary>
     public Dictionary<FormKey, NpcFilterData> NpcsByFormKey { get; } = [];
-
-    /// <summary>Factions by FormKey.</summary>
     public Dictionary<FormKey, FactionRecordViewModel> FactionsByFormKey { get; } = [];
-
-    /// <summary>Races by FormKey.</summary>
     public Dictionary<FormKey, RaceRecordViewModel> RacesByFormKey { get; } = [];
-
-    /// <summary>Keywords by FormKey.</summary>
     public Dictionary<FormKey, KeywordRecordViewModel> KeywordsByFormKey { get; } = [];
-
-    // ============================================================================
-    // LOADING
-    // ============================================================================
 
     private async void OnMutagenInitialized(object? sender, EventArgs e)
     {
@@ -104,10 +60,6 @@ public class GameDataCacheService
         await LoadAsync();
     }
 
-    /// <summary>
-    /// Loads all game data into the cache. Called automatically when MutagenService initializes.
-    /// Tries to load expensive data (NPCs, distribution files) from cross-session cache first.
-    /// </summary>
     public async Task LoadAsync()
     {
         if (_isLoading)
@@ -307,10 +259,6 @@ public class GameDataCacheService
         }
     }
 
-    /// <summary>
-    /// Reloads the cache. Use after plugins change.
-    /// Invalidates the cross-session cache to force a fresh load.
-    /// </summary>
     public async Task ReloadAsync()
     {
         _isLoaded = false;
@@ -318,12 +266,6 @@ public class GameDataCacheService
         await LoadAsync();
     }
 
-    /// <summary>
-    /// Ensures the cache is loaded. If already loaded, returns immediately.
-    /// If currently loading, waits for completion. Does NOT invalidate the cache.
-    /// Use this for initial startup when you want to use cached data if available.
-    /// Will initialize MutagenService if not already initialized.
-    /// </summary>
     public async Task EnsureLoadedAsync()
     {
         if (_isLoaded)
@@ -331,13 +273,11 @@ public class GameDataCacheService
 
         if (_isLoading)
         {
-            // Wait for current load to complete
             while (_isLoading)
                 await Task.Delay(50);
             return;
         }
 
-        // Initialize MutagenService if not already initialized
         if (!_mutagenService.IsInitialized)
         {
             var dataPath = _settings.SkyrimDataPath;
@@ -351,25 +291,12 @@ public class GameDataCacheService
             await _mutagenService.InitializeAsync(dataPath);
         }
 
-        // Not loaded and not loading - start a load
         await LoadAsync();
     }
 
-    /// <summary>
-    /// Invalidates (clears) the cross-session cache.
-    /// The next load will rebuild the cache from scratch.
-    /// </summary>
     public void InvalidateCrossSessionCache() => _crossSessionCache.InvalidateCache();
-
-    /// <summary>
-    /// Gets information about the cross-session cache.
-    /// </summary>
     public CacheInfo? GetCrossSessionCacheInfo() => _crossSessionCache.GetCacheInfo();
 
-    /// <summary>
-    /// Loads distribution files and resolves NPC outfit assignments.
-    /// Returns the list of distribution files for caching.
-    /// </summary>
     private async Task<List<DistributionFile>> LoadDistributionDataAsync(List<NpcFilterData> npcFilterDataList)
     {
         var dataPath = _settings.SkyrimDataPath;
@@ -381,7 +308,6 @@ public class GameDataCacheService
 
         try
         {
-            // Discover distribution files
             var discoverSw = System.Diagnostics.Stopwatch.StartNew();
             _logger.Debug("Discovering distribution files in {DataPath}...", dataPath);
             var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
@@ -393,12 +319,10 @@ public class GameDataCacheService
 
             _logger.Debug("Found {Count} distribution files with outfit distributions.", outfitFiles.Count);
 
-            // Create ViewModels for the files
             var fileViewModels = outfitFiles
                 .Select(f => new DistributionFileViewModel(f))
                 .ToList();
 
-            // Resolve NPC outfit assignments
             var resolveSw = System.Diagnostics.Stopwatch.StartNew();
             _logger.Debug("Resolving NPC outfit assignments...");
             var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
@@ -433,21 +357,16 @@ public class GameDataCacheService
         }
     }
 
-    /// <summary>
-    /// Loads distribution data from cached distribution files.
-    /// </summary>
     private async Task LoadDistributionDataFromCacheAsync(List<DistributionFile> cachedFiles, List<NpcFilterData> npcFilterDataList)
     {
         try
         {
             _logger.Information("[PERF] Using {Count} cached distribution files", cachedFiles.Count);
 
-            // Create ViewModels for the files
             var fileViewModels = cachedFiles
                 .Select(f => new DistributionFileViewModel(f))
                 .ToList();
 
-            // Resolve NPC outfit assignments using cached distribution files
             var resolveSw = System.Diagnostics.Stopwatch.StartNew();
             _logger.Debug("Resolving NPC outfit assignments from cached distribution files...");
             var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
@@ -456,7 +375,6 @@ public class GameDataCacheService
             _logger.Information("[PERF] ResolveNpcOutfitsWithFiltersAsync (cached): {ElapsedMs}ms ({Count} assignments)",
                 resolveSw.ElapsedMilliseconds, assignments.Count);
 
-            // Update collections on UI thread
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 AllDistributionFiles.Clear();
@@ -521,7 +439,7 @@ public class GameDataCacheService
         return ([.. filterDataBag], [.. recordsBag]);
     }
 
-    private NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, ModKey originalModKey)
+    private static NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, ModKey originalModKey)
     {
         try
         {
@@ -571,7 +489,7 @@ public class GameDataCacheService
         }
     }
 
-    private List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private static List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         return linkCache.WinningOverrides<IFactionGetter>()
             .Where(f => !string.IsNullOrWhiteSpace(f.EditorID))
@@ -584,7 +502,7 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private static List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         return linkCache.WinningOverrides<IRaceGetter>()
             .Where(r => !string.IsNullOrWhiteSpace(r.EditorID))
@@ -597,7 +515,7 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private static List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         return linkCache.WinningOverrides<IKeywordGetter>()
             .Where(k => !string.IsNullOrWhiteSpace(k.EditorID))
@@ -609,5 +527,5 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) => linkCache.WinningOverrides<IOutfitGetter>().ToList();
+    private static List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) => linkCache.WinningOverrides<IOutfitGetter>().ToList();
 }

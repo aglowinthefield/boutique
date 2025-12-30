@@ -61,7 +61,11 @@ public class SettingsViewModel : ReactiveObject
 
         this.WhenAnyValue(x => x.SelectedTheme)
             .Skip(1)
-            .Subscribe(theme => _themeService.SetTheme((AppTheme)theme));
+            .Subscribe(theme =>
+            {
+                _themeService.SetTheme((AppTheme)theme);
+                ShowRestartDialog();
+            });
 
         BrowseDataPathCommand = new RelayCommand(BrowseDataPath);
         BrowseOutputPathCommand = new RelayCommand(BrowseOutputPath);
@@ -222,5 +226,17 @@ public class SettingsViewModel : ReactiveObject
             CacheStatus = $"Cache: {info.FileSizeFormatted}, updated {info.LastModifiedFormatted}";
             HasCache = true;
         }
+    }
+
+    private void ShowRestartDialog()
+    {
+        var dialog = new Views.RestartDialog
+        {
+            Owner = System.Windows.Application.Current.MainWindow
+        };
+        dialog.ShowDialog();
+
+        if (dialog.QuitNow)
+            System.Windows.Application.Current.Shutdown();
     }
 }

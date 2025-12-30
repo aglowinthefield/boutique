@@ -1,0 +1,37 @@
+<Window x:Class="Boutique.Views.RestartDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Restart Required"
+        Width="400" Height="180"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStyle="ToolWindow"
+        Background="{StaticResource Brush.PrimaryBackground}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="To apply the color scheme change, you need to quit and reopen Boutique."
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"
+                   FontSize="14"
+                   Foreground="{StaticResource Brush.PrimaryForeground}" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="I'll do it later!"
+                    Click="LaterButton_Click"
+                    MinWidth="110"
+                    Margin="0,0,10,0"
+                    Padding="12,6" />
+            <Button Content="Quit Now"
+                    Click="QuitButton_Click"
+                    MinWidth="90"
+                    Padding="12,6" />
+        </StackPanel>
+    </Grid>
+</Window>

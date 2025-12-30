@@ -8,10 +8,6 @@ using ReactiveUI.Fody.Helpers;
 
 namespace Boutique.ViewModels;
 
-/// <summary>
-/// Represents an outfit record's constituent parts. Used in the outfit builder on the
-/// right side, to preview, rename the editorID, and add/remove pieces via drag n drop.
-/// </summary>
 public class OutfitDraftViewModel : ReactiveObject
 {
     private readonly ObservableCollection<ArmorRecordViewModel> _pieces;

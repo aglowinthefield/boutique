@@ -440,10 +440,8 @@ public class NpcOutfitResolutionService
                 })
                 .ToList();
 
-            // Get the winning distribution
             var winner = distributionsToUse[winnerIndex];
 
-            // Get NPC info from filter data
             string? editorId = null;
             string? name = null;
             ModKey sourceMod = npcFormKey.ModKey;
@@ -679,7 +677,6 @@ public class NpcOutfitResolutionService
             }
         }
 
-        // Create results for each NPC-outfit combination
         _logger.Debug("SkyPatcher parse result: {NpcCount} NPCs, outfit={OutfitFormKey}",
             npcFormKeys.Count, outfitFormKey?.ToString() ?? "null");
 
@@ -756,7 +753,6 @@ public class NpcOutfitResolutionService
             return;
         }
 
-        // Create FormKey for the outfit
         var outfitFormKey = new FormKey(modKey, formId);
         _logger.Debug("Parsed outfit FormKey: {FormKey}", outfitFormKey);
 
@@ -837,7 +833,6 @@ public class NpcOutfitResolutionService
                 npcDistributions[npcFormKey] = distributions;
             }
 
-            // Get the plugin that defines this NPC
             var sourcePlugin = npcFormKey.ModKey.FileName;
 
             distributions.Add(new OutfitDistribution(
@@ -889,7 +884,6 @@ public class NpcOutfitResolutionService
                 npcDistributions[npcFormKey] = distributions;
             }
 
-            // Get the plugin that defines this NPC
             var sourcePlugin = npcData.SourceMod.FileName;
 
             distributions.Add(new OutfitDistribution(
@@ -953,10 +947,8 @@ public class NpcOutfitResolutionService
                 })
                 .ToList();
 
-            // Get the winning distribution
             var winner = distributionsToUse[winnerIndex];
 
-            // Get NPC info
             string? editorId = null;
             string? name = null;
             ModKey sourceMod = npcFormKey.ModKey;
@@ -966,20 +958,14 @@ public class NpcOutfitResolutionService
                 editorId = npc.EditorID;
                 name = npc.Name?.String;
 
-                // Find original master
                 try
                 {
                     var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(npcFormKey);
                     var firstContext = contexts.FirstOrDefault();
                     if (firstContext != null)
-                    {
                         sourceMod = firstContext.ModKey;
-                    }
                 }
-                catch
-                {
-                    // Fallback to FormKey.ModKey
-                }
+                catch { }
             }
 
             // Only count conflicts between INI files, not ESP vs INI

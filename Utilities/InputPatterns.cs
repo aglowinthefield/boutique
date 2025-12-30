@@ -38,11 +38,4 @@ public static partial class InputPatterns
 
     [GeneratedRegex("[^A-Za-z0-9_]")]
     private static partial Regex IdentifierSanitizerRegex();
-
-    // Filename: alphanumeric + underscore + hyphen + period
-    [GeneratedRegex(@"^[A-Za-z0-9_\-\.]+$")]
-    private static partial Regex FilenameValidatorRegex();
-
-    [GeneratedRegex(@"[^A-Za-z0-9_\-\.]")]
-    private static partial Regex FilenameSanitizerRegex();
 }

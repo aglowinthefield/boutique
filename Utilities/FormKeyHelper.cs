@@ -4,22 +4,10 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
 
-/// <summary>
-/// Helper methods for parsing and formatting FormKeys, ModKeys, and related identifiers.
-/// </summary>
 public static class FormKeyHelper
 {
-    /// <summary>
-    /// Formats a FormKey as "ModKey|FormID" for SkyPatcher format.
-    /// </summary>
-    public static string Format(FormKey formKey)
-    {
-        return $"{formKey.ModKey.FileName}|{formKey.ID:X8}";
-    }
+    public static string Format(FormKey formKey) => $"{formKey.ModKey.FileName}|{formKey.ID:X8}";
 
-    /// <summary>
-    /// Tries to create a FormKey from a string like "ModKey|FormID" or "FormID~ModKey".
-    /// </summary>
     public static bool TryParse(string text, out FormKey formKey)
     {
         formKey = FormKey.Null;
@@ -57,9 +45,6 @@ public static class FormKeyHelper
         return true;
     }
 
-    /// <summary>
-    /// Tries to parse a ModKey from a string like "Skyrim.esm".
-    /// </summary>
     public static bool TryParseModKey(string input, out ModKey modKey)
     {
         try
@@ -74,9 +59,6 @@ public static class FormKeyHelper
         }
     }
 
-    /// <summary>
-    /// Tries to parse a FormID from a string, handling "0x" prefix.
-    /// </summary>
     public static bool TryParseFormId(string text, out uint id)
     {
         id = 0;
@@ -90,10 +72,6 @@ public static class FormKeyHelper
         return uint.TryParse(trimmed, System.Globalization.NumberStyles.HexNumber, null, out id);
     }
 
-    /// <summary>
-    /// Parses an EditorID reference that may include a mod specifier.
-    /// Supports formats like "EditorID", "EditorID|ModKey", "ModKey|EditorID", "EditorID~ModKey".
-    /// </summary>
     public static bool TryParseEditorIdReference(string identifier, out ModKey? modKey, out string editorId)
     {
         modKey = null;
@@ -164,25 +142,16 @@ public static class FormKeyHelper
         return true;
     }
 
-    /// <summary>
-    /// Formats a FormKey as "0x{FormID}~{ModKey}" for SPID format.
-    /// </summary>
     public static string FormatForSpid(FormKey formKey) => $"0x{formKey.ID:X}~{formKey.ModKey.FileName}";
 
-    /// <summary>
-    /// Resolves an outfit identifier to a FormKey.
-    /// Supports: tilde format (0x800~Plugin.esp), pipe format (Plugin.esp|0x800), or EditorID lookup.
-    /// </summary>
     public static FormKey? ResolveOutfit(string identifier, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (string.IsNullOrWhiteSpace(identifier))
             return null;
 
-        // Try FormKey formats first
         if (TryParse(identifier, out var formKey))
             return formKey;
 
-        // Try to resolve by EditorID
         var outfit = linkCache.WinningOverrides<IOutfitGetter>()
             .FirstOrDefault(o => !string.IsNullOrWhiteSpace(o.EditorID) &&
                                  o.EditorID.Equals(identifier, StringComparison.OrdinalIgnoreCase));

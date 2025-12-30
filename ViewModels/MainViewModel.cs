@@ -667,8 +667,7 @@ public class MainViewModel : ReactiveObject
     private void ConfigureFilteredOutfitPluginsView()
     {
         var view = CollectionViewSource.GetDefaultView(AvailablePlugins);
-        if (view != null)
-            view.Filter = OutfitPluginFilter;
+        view?.Filter = OutfitPluginFilter;
         FilteredOutfitPlugins = view;
     }
 

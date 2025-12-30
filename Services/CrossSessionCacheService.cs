@@ -8,10 +8,6 @@ using Serilog;
 
 namespace Boutique.Services;
 
-/// <summary>
-/// Handles cross-session caching of expensive game data using MessagePack serialization.
-/// Provides automatic invalidation based on load order and distribution file changes.
-/// </summary>
 public class CrossSessionCacheService
 {
     private readonly ILogger _logger;
@@ -22,28 +18,15 @@ public class CrossSessionCacheService
     {
         _logger = logger.ForContext<CrossSessionCacheService>();
 
-        // Store cache in %LOCALAPPDATA%\Boutique\cache\
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         _cacheDirectory = Path.Combine(localAppData, "Boutique", "cache");
     }
 
-    /// <summary>
-    /// Gets the full path to the cache file.
-    /// </summary>
     public string CacheFilePath => Path.Combine(_cacheDirectory, CacheFileName);
 
-    /// <summary>
-    /// Gets the current application version.
-    /// </summary>
     public static string AppVersion =>
         Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
 
-    /// <summary>
-    /// Attempts to load cached game data. Returns null if cache is invalid or doesn't exist.
-    /// </summary>
-    /// <param name="dataPath">Current Skyrim data path for validation.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Cached data if valid, null otherwise.</returns>
     public async Task<GameDataCache?> TryLoadCacheAsync(string dataPath, CancellationToken cancellationToken = default)
     {
         var cacheFile = CacheFilePath;
@@ -58,7 +41,6 @@ public class CrossSessionCacheService
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-            // Read the cache file
             var bytes = await File.ReadAllBytesAsync(cacheFile, cancellationToken);
             var cache = MessagePackSerializer.Deserialize<GameDataCache>(bytes, cancellationToken: cancellationToken);
 
@@ -66,7 +48,6 @@ public class CrossSessionCacheService
             _logger.Information("[PERF] Cache file loaded and deserialized in {ElapsedMs}ms ({Size:N0} bytes)",
                 stopwatch.ElapsedMilliseconds, bytes.Length);
 
-            // Validate the cache
             if (!ValidateCache(cache, dataPath))
             {
                 _logger.Information("Cache validation failed, will reload data.");
@@ -85,13 +66,6 @@ public class CrossSessionCacheService
         }
     }
 
-    /// <summary>
-    /// Saves game data to the cache.
-    /// </summary>
-    /// <param name="npcData">NPC filter data to cache.</param>
-    /// <param name="distributionFiles">Distribution files to cache.</param>
-    /// <param name="dataPath">Skyrim data path for signature computation.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task SaveCacheAsync(
         IReadOnlyList<NpcFilterData> npcData,
         IReadOnlyList<DistributionFile> distributionFiles,
@@ -102,10 +76,8 @@ public class CrossSessionCacheService
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-            // Ensure directory exists
             Directory.CreateDirectory(_cacheDirectory);
 
-            // Create metadata
             var metadata = new CacheMetadata
             {
                 AppVersion = AppVersion,
@@ -115,7 +87,6 @@ public class CrossSessionCacheService
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Create cache object
             var cache = new GameDataCache
             {
                 Metadata = metadata,
@@ -123,7 +94,6 @@ public class CrossSessionCacheService
                 DistributionFiles = distributionFiles.Select(f => f.ToDto()).ToList()
             };
 
-            // Serialize and write
             var bytes = MessagePackSerializer.Serialize(cache, cancellationToken: cancellationToken);
             await File.WriteAllBytesAsync(CacheFilePath, bytes, cancellationToken);
 
@@ -137,9 +107,6 @@ public class CrossSessionCacheService
         }
     }
 
-    /// <summary>
-    /// Invalidates (deletes) the cache file.
-    /// </summary>
     public void InvalidateCache()
     {
         try
@@ -161,10 +128,6 @@ public class CrossSessionCacheService
         }
     }
 
-    /// <summary>
-    /// Gets information about the current cache file.
-    /// </summary>
-    /// <returns>Cache info or null if no cache exists.</returns>
     public CacheInfo? GetCacheInfo()
     {
         var cacheFile = CacheFilePath;
@@ -187,14 +150,10 @@ public class CrossSessionCacheService
         }
     }
 
-    /// <summary>
-    /// Validates the cache against the current environment.
-    /// </summary>
     private bool ValidateCache(GameDataCache cache, string dataPath)
     {
         var metadata = cache.Metadata;
 
-        // Check app version
         if (metadata.AppVersion != AppVersion)
         {
             _logger.Information("Cross-session cache INVALIDATED: app version changed ({CacheVersion} -> {CurrentVersion})",
@@ -202,7 +161,6 @@ public class CrossSessionCacheService
             return false;
         }
 
-        // Check data path
         var currentDataPathHash = ComputeHash(dataPath);
         if (metadata.DataPathHash != currentDataPathHash)
         {
@@ -210,7 +168,6 @@ public class CrossSessionCacheService
             return false;
         }
 
-        // Check load order signature
         var currentLoadOrderSig = ComputeLoadOrderSignature(dataPath);
         if (metadata.LoadOrderSignature != currentLoadOrderSig)
         {
@@ -218,7 +175,6 @@ public class CrossSessionCacheService
             return false;
         }
 
-        // Check distribution files signature
         var currentDistSig = ComputeDistributionFilesSignature(dataPath);
         if (metadata.DistributionFilesSignature != currentDistSig)
         {
@@ -230,16 +186,12 @@ public class CrossSessionCacheService
         return true;
     }
 
-    /// <summary>
-    /// Computes a signature for the load order based on plugins.txt and plugin file timestamps.
-    /// </summary>
     public string ComputeLoadOrderSignature(string dataPath)
     {
         try
         {
             var sb = new StringBuilder();
 
-            // Try to read plugins.txt
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var pluginsPath = Path.Combine(localAppData, "Skyrim Special Edition", "plugins.txt");
 
@@ -251,9 +203,8 @@ public class CrossSessionCacheService
                 sb.Append(pluginsFileInfo.LastWriteTimeUtc.Ticks);
             }
 
-            // Also include a hash of plugin files in the data folder (to catch MO2 virtual filesystem changes)
             var pluginFiles = GetPluginFiles(dataPath);
-            foreach (var plugin in pluginFiles.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).Take(100)) // Limit to first 100 for performance
+            foreach (var plugin in pluginFiles.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).Take(100))
             {
                 sb.Append(Path.GetFileName(plugin));
                 try
@@ -262,10 +213,7 @@ public class CrossSessionCacheService
                     sb.Append(info.LastWriteTimeUtc.Ticks);
                     sb.Append(info.Length);
                 }
-                catch
-                {
-                    // Skip files we can't access
-                }
+                catch { }
             }
 
             return ComputeHash(sb.ToString());
@@ -277,23 +225,18 @@ public class CrossSessionCacheService
         }
     }
 
-    /// <summary>
-    /// Computes a signature for distribution files based on paths and timestamps.
-    /// </summary>
     public string ComputeDistributionFilesSignature(string dataPath)
     {
         try
         {
             var sb = new StringBuilder();
 
-            // SPID files in root Data folder
             var spidFiles = Directory.EnumerateFiles(dataPath, "*_DISTR.ini", SearchOption.TopDirectoryOnly);
             foreach (var file in spidFiles.OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
             {
                 AppendFileSignature(sb, file);
             }
 
-            // SkyPatcher files
             var skyPatcherRoot = Path.Combine(dataPath, "skse", "plugins", "SkyPatcher");
             if (Directory.Exists(skyPatcherRoot))
             {
@@ -322,10 +265,7 @@ public class CrossSessionCacheService
             sb.Append(info.LastWriteTimeUtc.Ticks);
             sb.Append(info.Length);
         }
-        catch
-        {
-            // Skip files we can't access
-        }
+        catch { }
     }
 
     private static IEnumerable<string> GetPluginFiles(string dataPath)
@@ -353,13 +293,10 @@ public class CrossSessionCacheService
     private static string ComputeHash(string input)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        return Convert.ToHexString(bytes)[..16]; // First 16 chars is enough for our purposes
+        return Convert.ToHexString(bytes)[..16];
     }
 }
 
-/// <summary>
-/// Information about the cache file.
-/// </summary>
 public sealed class CacheInfo
 {
     public required string FilePath { get; init; }
