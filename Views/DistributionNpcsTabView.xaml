@@ -54,9 +54,9 @@
                 </Grid.RowDefinitions>
 
                 <!-- Filter Controls Row -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <WrapPanel Grid.Row="0" Orientation="Horizontal">
                     <!-- Gender Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding GenderFilterOptions}"
                                   SelectedItem="{Binding SelectedGenderFilter}"
@@ -65,7 +65,7 @@
                     </StackPanel>
 
                     <!-- Unique Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding UniqueFilterOptions}"
                                   SelectedItem="{Binding SelectedUniqueFilter}"
@@ -74,7 +74,7 @@
                     </StackPanel>
 
                     <!-- Templated Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Templated:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding TemplatedFilterOptions}"
                                   SelectedItem="{Binding SelectedTemplatedFilter}"
@@ -83,7 +83,7 @@
                     </StackPanel>
 
                     <!-- Child Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Age:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding ChildFilterOptions}"
                                   SelectedItem="{Binding SelectedChildFilter}"
@@ -92,7 +92,7 @@
                     </StackPanel>
 
                     <!-- Faction Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Faction:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableFactions}"
                                   SelectedItem="{Binding SelectedFaction}"
@@ -104,7 +104,7 @@
                     </StackPanel>
 
                     <!-- Race Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Race:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableRaces}"
                                   SelectedItem="{Binding SelectedRace}"
@@ -116,7 +116,7 @@
                     </StackPanel>
 
                     <!-- Keyword Filter -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Keyword:" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableKeywords}"
                                   SelectedItem="{Binding SelectedKeyword}"
@@ -132,7 +132,7 @@
                             Command="{Binding ClearFiltersCommand}"
                             Padding="8,2"
                             VerticalAlignment="Center"
-                            Margin="0,0,6,0"
+                            Margin="0,2,6,2"
                             ToolTip="Reset all filters to default" />
 
                     <!-- Copy Filter Button -->
@@ -140,14 +140,15 @@
                             Command="{Binding CopyFilterCommand}"
                             Padding="8,2"
                             VerticalAlignment="Center"
+                            Margin="0,2,0,2"
                             ToolTip="Copy current filter to paste in Create tab" />
-                </StackPanel>
+                </WrapPanel>
 
                 <!-- Filter Status Row -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Text="{Binding FilterDescription}"
                                FontStyle="Italic"
-                               Foreground="#0066CC"
+                               Foreground="#8EC07C"
                                VerticalAlignment="Center" />
                     <TextBlock Margin="12,0,0,0"
                                VerticalAlignment="Center">
@@ -189,7 +190,7 @@
                         <Style.Triggers>
                             <!-- Highlight conflicting rows -->
                             <DataTrigger Binding="{Binding HasConflict}" Value="True">
-                                <Setter Property="Background" Value="#30FF8C00" />
+                                <Setter Property="Background" Value="#18FFD090" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                 <Setter Property="Background" Value="#400078D4" />
@@ -221,14 +222,15 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="FormKey"
-                                        Binding="{Binding FormKeyString}"
-                                        Width="130"
-                                        CanUserSort="True">
+                    <DataGridTextColumn Header="Distributor"
+                                        Binding="{Binding WinningFileName}"
+                                        Width="150"
+                                        CanUserSort="True"
+                                        ToolTipService.ToolTip="The distribution file determining this NPC's outfit">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="FontFamily" Value="Consolas" />
                                 <Setter Property="FontSize" Value="10" />
+                                <Setter Property="Foreground" Value="#B8BB26" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -239,7 +241,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="10" />
-                                <Setter Property="Foreground" Value="#0066CC" />
+                                <Setter Property="Foreground" Value="#8EC07C" />
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -349,7 +351,7 @@
                                                        Margin="0,2,0,0" />
                                             <TextBlock Grid.Row="2"
                                                        Text="{Binding TargetingDescription}"
-                                                       Foreground="#0066CC"
+                                                       Foreground="#8EC07C"
                                                        FontSize="10"
                                                        TextWrapping="Wrap"
                                                        Margin="0,2,0,0">
@@ -483,7 +485,7 @@
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                 <TextBlock Text="Traits:" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Unique" FontSize="10" Foreground="#0066CC" Margin="0,0,6,0">
+                                    <TextBlock Text="Unique" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -495,7 +497,7 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="Summonable" FontSize="10" Foreground="#0066CC" Margin="0,0,6,0">
+                                    <TextBlock Text="Summonable" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -507,7 +509,7 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="Child" FontSize="10" Foreground="#0066CC" Margin="0,0,6,0">
+                                    <TextBlock Text="Child" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -519,7 +521,7 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="Leveled" FontSize="10" Foreground="#0066CC" Margin="0,0,6,0">
+                                    <TextBlock Text="Leveled" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed" />

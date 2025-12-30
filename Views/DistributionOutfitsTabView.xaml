@@ -236,7 +236,7 @@
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                                 <TextBlock Text="{Binding TargetingDescription}"
-                                                                           Foreground="#0066CC"
+                                                                           Foreground="#8EC07C"
                                                                            FontSize="10"
                                                                            TextWrapping="Wrap"
                                                                            Margin="0,2,0,0">
