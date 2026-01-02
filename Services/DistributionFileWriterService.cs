@@ -313,11 +313,6 @@ public class DistributionFileWriterService
         return new FormKey(modKey, formId);
     }
 
-    /// <summary>
-    /// Formats a DistributionEntry as a SPID line.
-    /// SPID syntax: Outfit = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
-    /// Trailing NONE/100 values can be omitted, but intermediate NONEs must be preserved.
-    /// </summary>
     private static string FormatSpidLine(DistributionEntry entry, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         // Position 1: Outfit identifier
@@ -399,9 +394,6 @@ public class DistributionFileWriterService
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Formats trait filters for SPID output.
-    /// </summary>
     private static string? FormatTraitFilters(Models.SpidTraitFilters traits)
     {
         if (traits.IsEmpty)

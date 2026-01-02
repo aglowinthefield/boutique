@@ -8,9 +8,6 @@ using ReactiveUI.Fody.Helpers;
 
 namespace Boutique.ViewModels;
 
-/// <summary>
-/// Options for gender filter in SPID trait filters.
-/// </summary>
 public enum GenderFilter
 {
     Any,
@@ -18,9 +15,6 @@ public enum GenderFilter
     Male
 }
 
-/// <summary>
-/// Options for unique NPC filter in SPID trait filters.
-/// </summary>
 public enum UniqueFilter
 {
     Any,
@@ -35,9 +29,6 @@ public class DistributionEntryViewModel : ReactiveObject
     private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
     private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
 
-    /// <summary>
-    /// Event raised when any property that affects the distribution output changes.
-    /// </summary>
     public event EventHandler? EntryChanged;
 
     private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
@@ -214,45 +205,15 @@ public class DistributionEntryViewModel : ReactiveObject
 
     [Reactive] public IOutfitGetter? SelectedOutfit { get; set; }
 
-    /// <summary>
-    /// Whether chance-based distribution is enabled for this entry.
-    /// </summary>
     [Reactive] public bool UseChance { get; set; }
-
-    /// <summary>
-    /// Chance percentage (0-100) for distribution. Only used if UseChance is true.
-    /// Defaults to 100.
-    /// </summary>
     [Reactive] public int Chance { get; set; } = 100;
-
-    /// <summary>
-    /// Gender filter for this distribution entry.
-    /// </summary>
     [Reactive] public GenderFilter Gender { get; set; } = GenderFilter.Any;
-
-    /// <summary>
-    /// Unique NPC filter for this distribution entry.
-    /// </summary>
     [Reactive] public UniqueFilter Unique { get; set; } = UniqueFilter.Any;
-
-    /// <summary>
-    /// Child filter for this distribution entry. Null = any, true = children only, false = adults only.
-    /// </summary>
     [Reactive] public bool? IsChild { get; set; }
 
-    /// <summary>
-    /// Available gender filter options for UI binding.
-    /// </summary>
     public static GenderFilter[] GenderOptions { get; } = [GenderFilter.Any, GenderFilter.Female, GenderFilter.Male];
-
-    /// <summary>
-    /// Available unique filter options for UI binding.
-    /// </summary>
     public static UniqueFilter[] UniqueOptions { get; } = [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
 
-    /// <summary>
-    /// Returns true if any trait filters are set (non-default values).
-    /// </summary>
     public bool HasTraitFilters => Gender != GenderFilter.Any || Unique != UniqueFilter.Any || IsChild.HasValue;
 
     public ObservableCollection<NpcRecordViewModel> SelectedNpcs
@@ -301,52 +262,32 @@ public class DistributionEntryViewModel : ReactiveObject
 
     public void UpdateEntryNpcs()
     {
-        if (Entry != null)
-        {
-            Entry.NpcFormKeys.Clear();
-            Entry.NpcFormKeys.AddRange(SelectedNpcs.Select(npc => npc.FormKey));
-            RaiseEntryChanged();
-        }
+        Entry.NpcFormKeys.Clear();
+        Entry.NpcFormKeys.AddRange(SelectedNpcs.Select(npc => npc.FormKey));
+        RaiseEntryChanged();
     }
 
     public void UpdateEntryFactions()
     {
-        if (Entry != null)
-        {
-            Entry.FactionFormKeys.Clear();
-            Entry.FactionFormKeys.AddRange(SelectedFactions.Select(faction => faction.FormKey));
-            RaiseEntryChanged();
-        }
+        Entry.FactionFormKeys.Clear();
+        Entry.FactionFormKeys.AddRange(SelectedFactions.Select(faction => faction.FormKey));
+        RaiseEntryChanged();
     }
 
     public void UpdateEntryKeywords()
     {
-        if (Entry != null)
-        {
-            Entry.KeywordFormKeys.Clear();
-            Entry.KeywordFormKeys.AddRange(SelectedKeywords.Select(keyword => keyword.FormKey));
-            RaiseEntryChanged();
-        }
+        Entry.KeywordFormKeys.Clear();
+        Entry.KeywordFormKeys.AddRange(SelectedKeywords.Select(keyword => keyword.FormKey));
+        RaiseEntryChanged();
     }
 
     public void UpdateEntryRaces()
     {
-        if (Entry != null)
-        {
-            Entry.RaceFormKeys.Clear();
-            Entry.RaceFormKeys.AddRange(SelectedRaces.Select(race => race.FormKey));
-            RaiseEntryChanged();
-        }
+        Entry.RaceFormKeys.Clear();
+        Entry.RaceFormKeys.AddRange(SelectedRaces.Select(race => race.FormKey));
+        RaiseEntryChanged();
     }
 
-    /// <summary>
-    /// Generic method to add a criterion to a collection if it doesn't already exist.
-    /// </summary>
-    /// <typeparam name="T">The type of record view model.</typeparam>
-    /// <param name="item">The item to add.</param>
-    /// <param name="collection">The target collection.</param>
-    /// <param name="updateAction">Action to call after adding (e.g., UpdateEntryNpcs).</param>
-    /// <returns>True if the item was added, false if it already existed.</returns>
     public bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
         where T : ISelectableRecordViewModel
     {
@@ -358,14 +299,6 @@ public class DistributionEntryViewModel : ReactiveObject
         return true;
     }
 
-    /// <summary>
-    /// Generic method to remove a criterion from a collection.
-    /// </summary>
-    /// <typeparam name="T">The type of record view model.</typeparam>
-    /// <param name="item">The item to remove.</param>
-    /// <param name="collection">The target collection.</param>
-    /// <param name="updateAction">Action to call after removing.</param>
-    /// <returns>True if the item was removed, false otherwise.</returns>
     public bool RemoveCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
         where T : class
     {

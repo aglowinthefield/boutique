@@ -3,11 +3,6 @@ using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
 
-/// <summary>
-/// Service for matching NPCs against SPID distribution filters.
-/// Implements the full SPID filter matching logic including string filters,
-/// form filters, level filters, and trait filters.
-/// </summary>
 public class SpidFilterMatchingService
 {
     private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter)
@@ -47,10 +42,6 @@ public class SpidFilterMatchingService
         return allNpcs.AsParallel().Where(npc => NpcMatchesFilter(npc, filter)).ToList();
     }
 
-    /// <summary>
-    /// Matches string filters against NPC name, EditorID, and keywords.
-    /// String filters use OR logic between expressions, AND logic within + combined expressions.
-    /// </summary>
     private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters)
     {
         if (filters.IsEmpty)
@@ -66,9 +57,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    /// <summary>
-    /// Matches a single string expression (which may have AND-combined parts).
-    /// </summary>
     private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression)
     {
         // AND logic: all parts must match
@@ -81,11 +69,6 @@ public class SpidFilterMatchingService
         return true;
     }
 
-    /// <summary>
-    /// Matches a single string filter part against NPC data.
-    /// Checks: NPC name, EditorID, keywords, and race keywords.
-    /// Supports wildcards (*) and negation (-).
-    /// </summary>
     private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part)
     {
         var value = part.Value;
@@ -109,9 +92,6 @@ public class SpidFilterMatchingService
         return part.IsNegated ? !matches : matches;
     }
 
-    /// <summary>
-    /// Checks if value exactly matches NPC name, EditorID, or any keyword.
-    /// </summary>
     private static bool ExactMatchesNpcStrings(NpcFilterData npc, string value)
     {
         // Check NPC name
@@ -136,9 +116,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    /// <summary>
-    /// Checks if value partially matches NPC name, EditorID, or any keyword.
-    /// </summary>
     private static bool PartialMatchesNpcStrings(NpcFilterData npc, string value)
     {
         // Check NPC name
@@ -166,9 +143,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    /// <summary>
-    /// Matches form filters against NPC race, class, faction, combat style, outfit, voice type, etc.
-    /// </summary>
     private static bool MatchesFormFilters(NpcFilterData npc, SpidFilterSection filters)
     {
         if (filters.IsEmpty)
@@ -184,9 +158,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    /// <summary>
-    /// Matches a single form expression (which may have AND-combined parts).
-    /// </summary>
     private static bool MatchesFormExpression(NpcFilterData npc, SpidFilterExpression expression)
     {
         // AND logic: all parts must match
@@ -199,10 +170,6 @@ public class SpidFilterMatchingService
         return true;
     }
 
-    /// <summary>
-    /// Matches a single form filter part against NPC data.
-    /// Checks: race, class, faction, combat style, outfit, voice type, specific NPC, plugin.
-    /// </summary>
     private static bool MatchesFormPart(NpcFilterData npc, SpidFilterPart part)
     {
         var value = part.Value;
@@ -213,9 +180,6 @@ public class SpidFilterMatchingService
         return part.IsNegated ? !matches : matches;
     }
 
-    /// <summary>
-    /// Checks if the value matches any of the NPC's form properties.
-    /// </summary>
     private static bool MatchesFormValue(NpcFilterData npc, string value)
     {
         // Check if it's a plugin filter (ends with .esp/.esm/.esl)
@@ -362,9 +326,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    /// <summary>
-    /// Matches level filters against NPC level.
-    /// </summary>
     private static bool MatchesLevelFilters(NpcFilterData npc, string? levelFilters)
     {
         if (string.IsNullOrWhiteSpace(levelFilters) ||
@@ -425,9 +386,6 @@ public class SpidFilterMatchingService
         return true;
     }
 
-    /// <summary>
-    /// Matches trait filters against NPC traits.
-    /// </summary>
     private static bool MatchesTraitFilters(NpcFilterData npc, SpidTraitFilters traits)
     {
         if (traits.IsEmpty)

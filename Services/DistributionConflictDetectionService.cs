@@ -146,9 +146,6 @@ public class DistributionConflictDetectionService
             Conflicts: conflicts);
     }
 
-    /// <summary>
-    /// Checks if the given filename would alphabetically load after all the conflicting filenames.
-    /// </summary>
     private static bool DoesFileLoadAfterAll(string fileName, HashSet<string> conflictingFileNames)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -170,10 +167,6 @@ public class DistributionConflictDetectionService
         return true;
     }
 
-    /// <summary>
-    /// Builds a map of NPC FormKey to existing distribution info from loaded distribution files.
-    /// Also returns a list of distributions that target ALL NPCs (no filters).
-    /// </summary>
     private static (Dictionary<FormKey, (string FileName, string? OutfitName)> SpecificNpcDistributions,
                     List<(string FileName, string? OutfitName)> AllNpcsDistributions)
         BuildExistingDistributionMap(
@@ -236,9 +229,6 @@ public class DistributionConflictDetectionService
         return (map, allNpcsDistributions);
     }
 
-    /// <summary>
-    /// Calculates a Z-prefixed filename that will load after all conflicting files.
-    /// </summary>
     private static string CalculateZPrefixedFileName(string newFileName, HashSet<string> conflictingFileNames)
     {
         if (string.IsNullOrWhiteSpace(newFileName) || conflictingFileNames.Count == 0)

@@ -6,21 +6,8 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
 
-/// <summary>
-/// Utility class for parsing distribution file lines to extract NPC FormKeys and outfit information.
-/// Handles both SPID and SkyPatcher formats, delegating SPID parsing to SpidLineParser.
-/// </summary>
 public static class DistributionLineParser
 {
-    /// <summary>
-    /// Extracts NPC FormKeys from a distribution line.
-    /// </summary>
-    /// <param name="file">The distribution file containing the line</param>
-    /// <param name="line">The distribution line to parse</param>
-    /// <param name="linkCache">LinkCache for resolving NPCs by EditorID or name</param>
-    /// <param name="npcByEditorId">Optional pre-built dictionary of NPCs by EditorID (for SPID files)</param>
-    /// <param name="npcByName">Optional pre-built dictionary of NPCs by name (for SPID files)</param>
-    /// <returns>List of NPC FormKeys found in the line</returns>
     public static List<FormKey> ExtractNpcFormKeysFromLine(
         DistributionFileViewModel file,
         DistributionLine line,
@@ -36,9 +23,6 @@ public static class DistributionLineParser
         };
     }
 
-    /// <summary>
-    /// Extracts NPC FormKeys from a SkyPatcher distribution line.
-    /// </summary>
     private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText)
     {
         var results = new List<FormKey>();
@@ -70,9 +54,6 @@ public static class DistributionLineParser
         return results;
     }
 
-    /// <summary>
-    /// Extracts NPC FormKeys from a SPID distribution line using SpidLineParser.
-    /// </summary>
     private static List<FormKey> ExtractNpcFormKeysFromSpidLine(
         string rawText,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
@@ -130,12 +111,6 @@ public static class DistributionLineParser
         return results;
     }
 
-    /// <summary>
-    /// Checks if a distribution line targets all NPCs (has no NPC-filtering criteria).
-    /// </summary>
-    /// <param name="file">The distribution file containing the line</param>
-    /// <param name="line">The distribution line to check</param>
-    /// <returns>True if the line targets all NPCs (no filters), false otherwise</returns>
     public static bool LineTargetsAllNpcs(DistributionFileViewModel file, DistributionLine line)
     {
         return file.TypeDisplay switch
@@ -146,9 +121,6 @@ public static class DistributionLineParser
         };
     }
 
-    /// <summary>
-    /// Checks if a SPID line targets all NPCs.
-    /// </summary>
     private static bool SpidLineTargetsAllNpcs(string rawText)
     {
         if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null)
@@ -157,10 +129,6 @@ public static class DistributionLineParser
         return filter.TargetsAllNpcs;
     }
 
-    /// <summary>
-    /// Checks if a SkyPatcher line targets all NPCs.
-    /// A SkyPatcher line targets all NPCs if it has an outfit assignment but no NPC-related filters.
-    /// </summary>
     private static bool SkyPatcherLineTargetsAllNpcs(string rawText)
     {
         var trimmed = rawText.Trim();
@@ -187,12 +155,6 @@ public static class DistributionLineParser
                !hasEditorIdFilter && !hasGenderFilter && !hasDefaultOutfitFilter && !hasModNameFilter;
     }
 
-    /// <summary>
-    /// Extracts outfit name from a distribution line.
-    /// </summary>
-    /// <param name="line">The distribution line to parse</param>
-    /// <param name="linkCache">LinkCache for resolving outfit FormKeys</param>
-    /// <returns>The outfit's EditorID or FormKey string, or null if not found</returns>
     public static string? ExtractOutfitNameFromLine(
         DistributionLine line,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
@@ -208,11 +170,6 @@ public static class DistributionLineParser
         return null;
     }
 
-    /// <summary>
-    /// Tries to parse a FormKey from a string in the format "ModKey|FormID" or "ModKey|0xFormID".
-    /// </summary>
-    /// <param name="text">The text to parse</param>
-    /// <returns>The parsed FormKey, or null if parsing failed</returns>
     private static FormKey? TryParseFormKey(string text)
     {
         if (string.IsNullOrWhiteSpace(text))

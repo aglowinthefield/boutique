@@ -15,7 +15,6 @@ public class MutagenService(ILoggingService loggingService)
 
     public event EventHandler? PluginsChanged;
 
-    /// <summary>Raised when the service is initialized (after LinkCache is ready).</summary>
     public event EventHandler? Initialized;
 
     public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }

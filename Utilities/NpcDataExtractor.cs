@@ -6,15 +6,8 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
 
-/// <summary>
-/// Static utility methods for extracting data from NPC records.
-/// All methods are pure functions with no side effects.
-/// </summary>
 public static class NpcDataExtractor
 {
-    /// <summary>
-    /// Extracts keywords from an NPC and its race.
-    /// </summary>
     public static HashSet<string> ExtractKeywords(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -46,9 +39,6 @@ public static class NpcDataExtractor
         return keywords;
     }
 
-    /// <summary>
-    /// Extracts faction memberships from an NPC.
-    /// </summary>
     public static List<FactionMembership> ExtractFactions(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var factions = new List<FactionMembership>();
@@ -75,9 +65,6 @@ public static class NpcDataExtractor
         return factions;
     }
 
-    /// <summary>
-    /// Extracts the NPC's race FormKey and EditorID.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractRace(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Race.IsNull)
@@ -94,9 +81,6 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Extracts the NPC's class FormKey and EditorID.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractClass(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Class.IsNull)
@@ -113,9 +97,6 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Extracts the NPC's combat style FormKey and EditorID.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.CombatStyle.IsNull)
@@ -132,9 +113,6 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Extracts the NPC's voice type FormKey and EditorID.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Voice.IsNull)
@@ -151,9 +129,6 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Extracts the NPC's default outfit FormKey and EditorID.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.DefaultOutfit.IsNull)
@@ -170,10 +145,6 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Extracts the NPC's template FormKey and EditorID.
-    /// Template can be either an NPC or a LeveledNpc.
-    /// </summary>
     public static (FormKey? FormKey, string? EditorId) ExtractTemplate(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Template.IsNull)
@@ -195,14 +166,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    /// <summary>
-    /// Gets the NPC's display name.
-    /// </summary>
     public static string? GetName(INpcGetter npc) => npc.Name?.String;
 
-    /// <summary>
-    /// Checks if a race is a child race based on EditorID patterns.
-    /// </summary>
     public static bool IsChildRace(string? raceEditorId)
     {
         if (string.IsNullOrWhiteSpace(raceEditorId))
@@ -213,14 +178,8 @@ public static class NpcDataExtractor
                raceEditorId.Contains("DA13", StringComparison.OrdinalIgnoreCase); // Daedric child form
     }
 
-    /// <summary>
-    /// Extracts the NPC's level. Returns 1 if using PC level mult.
-    /// </summary>
     public static short ExtractLevel(INpcGetter npc) => npc.Configuration.Level is NpcLevel npcLevel ? npcLevel.Level : (short)1;
 
-    /// <summary>
-    /// Extracts NPC trait flags.
-    /// </summary>
     public static (bool IsFemale, bool IsUnique, bool IsSummonable, bool IsLeveled) ExtractTraits(INpcGetter npc)
     {
         var config = npc.Configuration;

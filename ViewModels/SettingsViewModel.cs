@@ -16,9 +16,6 @@ public enum ThemeOption
     Dark
 }
 
-/// <summary>
-/// Simple relay command that doesn't use ReactiveUI to avoid threading issues with WPF dialogs.
-/// </summary>
 public class RelayCommand(Action execute) : ICommand
 {
     private readonly Action _execute = execute;
@@ -192,7 +189,7 @@ public class SettingsViewModel : ReactiveObject
         {
             using var key =
                 Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Skyrim Special Edition");
-            if (key != null)
+            if (key is not null)
             {
                 var installPath = key.GetValue("installed path") as string;
                 if (!string.IsNullOrEmpty(installPath))
@@ -230,7 +227,7 @@ public class SettingsViewModel : ReactiveObject
     public void RefreshCacheStatus()
     {
         var info = _cacheService.GetCacheInfo();
-        if (info == null)
+        if (info is null)
         {
             CacheStatus = "No cache";
             HasCache = false;
@@ -242,7 +239,7 @@ public class SettingsViewModel : ReactiveObject
         }
     }
 
-    private void ShowRestartDialog()
+    private static void ShowRestartDialog()
     {
         var dialog = new Views.RestartDialog
         {

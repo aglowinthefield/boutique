@@ -35,9 +35,6 @@ public class ThemeService
     private AppTheme _currentThemeSetting = AppTheme.System;
     private bool _isCurrentlyDark = true;
 
-    /// <summary>
-    /// Gets the current ThemeService instance. Set during Initialize().
-    /// </summary>
     public static ThemeService? Current { get; private set; }
 
     public ThemeService(ILogger logger)
@@ -48,14 +45,8 @@ public class ThemeService
     public AppTheme CurrentThemeSetting => _currentThemeSetting;
     public bool IsCurrentlyDark => _isCurrentlyDark;
 
-    /// <summary>
-    /// Event raised when the theme changes.
-    /// </summary>
     public event EventHandler<bool>? ThemeChanged;
 
-    /// <summary>
-    /// Initializes the theme service and applies the saved or default theme.
-    /// </summary>
     public void Initialize()
     {
         Current = this;
@@ -66,9 +57,6 @@ public class ThemeService
         SystemEvents.UserPreferenceChanged += OnSystemPreferenceChanged;
     }
 
-    /// <summary>
-    /// Sets and applies a new theme.
-    /// </summary>
     public void SetTheme(AppTheme theme)
     {
         _currentThemeSetting = theme;
@@ -76,9 +64,6 @@ public class ThemeService
         SaveThemeSetting(theme);
     }
 
-    /// <summary>
-    /// Toggles between light and dark themes (skips System mode).
-    /// </summary>
     public void ToggleTheme()
     {
         var newTheme = _isCurrentlyDark ? AppTheme.Light : AppTheme.Dark;
@@ -132,10 +117,6 @@ public class ThemeService
         }
     }
 
-    /// <summary>
-    /// Applies dark or light title bar to a window based on the current theme.
-    /// Call this from Window.SourceInitialized event.
-    /// </summary>
     public void ApplyTitleBarTheme(Window window)
     {
         var hwnd = new WindowInteropHelper(window).Handle;
@@ -150,9 +131,6 @@ public class ThemeService
         _ = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(uint));
     }
 
-    /// <summary>
-    /// Applies dark or light title bar to a window handle.
-    /// </summary>
     public static void ApplyTitleBarTheme(IntPtr hwnd, bool isDark)
     {
         if (hwnd == IntPtr.Zero) return;

@@ -2,18 +2,8 @@ using Boutique.Models;
 
 namespace Boutique.Utilities;
 
-/// <summary>
-/// Parser for SPID (Spell Perk Item Distributor) outfit distribution lines.
-/// SPID syntax: FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
-/// </summary>
 public static class SpidLineParser
 {
-    /// <summary>
-    /// Attempts to parse a SPID outfit distribution line.
-    /// </summary>
-    /// <param name="line">The raw line text.</param>
-    /// <param name="result">The parsed filter if successful.</param>
-    /// <returns>True if parsing succeeded.</returns>
     public static bool TryParse(string line, out SpidDistributionFilter? result)
     {
         result = null;
@@ -85,10 +75,6 @@ public static class SpidLineParser
         };
     }
 
-    /// <summary>
-    /// Extracts the outfit identifier from the value part, handling FormKey formats.
-    /// Returns the identifier and the remaining filter sections.
-    /// </summary>
     private static (string Identifier, string Remainder) ExtractOutfitIdentifier(string valuePart)
     {
         // Check for tilde format: 0x800~Plugin.esp or 0x800~Plugin.esp|filters
@@ -340,10 +326,6 @@ public static class SpidLineParser
         return text.Trim();
     }
 
-    /// <summary>
-    /// Gets all identifiers from the string filters that look like specific NPC names/EditorIDs
-    /// (not keywords or patterns).
-    /// </summary>
     public static IReadOnlyList<string> GetSpecificNpcIdentifiers(SpidDistributionFilter filter)
     {
         var results = new List<string>();
@@ -363,9 +345,6 @@ public static class SpidLineParser
         return results;
     }
 
-    /// <summary>
-    /// Gets all keyword identifiers from the string filters.
-    /// </summary>
     public static IReadOnlyList<string> GetKeywordIdentifiers(SpidDistributionFilter filter)
     {
         var results = new List<string>();
@@ -384,9 +363,6 @@ public static class SpidLineParser
         return results;
     }
 
-    /// <summary>
-    /// Gets all faction identifiers from the form filters.
-    /// </summary>
     public static IReadOnlyList<string> GetFactionIdentifiers(SpidDistributionFilter filter)
     {
         var results = new List<string>();
@@ -405,9 +381,6 @@ public static class SpidLineParser
         return results;
     }
 
-    /// <summary>
-    /// Gets all race identifiers from the form filters.
-    /// </summary>
     public static IReadOnlyList<string> GetRaceIdentifiers(SpidDistributionFilter filter)
     {
         var results = new List<string>();

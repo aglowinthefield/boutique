@@ -7,21 +7,8 @@ using Serilog;
 
 namespace Boutique.Utilities;
 
-/// <summary>
-/// Resolves parsed SPID filters to DistributionEntry objects using the game's LinkCache.
-/// Converts EditorIDs and FormKey strings to actual game records.
-/// </summary>
 public static class SpidFilterResolver
 {
-    /// <summary>
-    /// Resolves a parsed SpidDistributionFilter to a DistributionEntry.
-    /// </summary>
-    /// <param name="filter">The parsed SPID filter.</param>
-    /// <param name="linkCache">The game's LinkCache for resolving records.</param>
-    /// <param name="cachedNpcs">Pre-cached list of NPCs for efficient lookups.</param>
-    /// <param name="cachedOutfits">Pre-cached list of outfits for efficient lookups.</param>
-    /// <param name="logger">Optional logger for debug output.</param>
-    /// <returns>A DistributionEntry if resolution succeeded, null otherwise.</returns>
     public static DistributionEntry? Resolve(
         SpidDistributionFilter filter,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
@@ -82,10 +69,6 @@ public static class SpidFilterResolver
         }
     }
 
-    /// <summary>
-    /// Resolves an outfit identifier to an IOutfitGetter.
-    /// Supports tilde format (0x800~Plugin.esp), pipe format (Plugin.esp|0x800), and EditorID.
-    /// </summary>
     public static IOutfitGetter? ResolveOutfit(
         string outfitIdentifier,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,

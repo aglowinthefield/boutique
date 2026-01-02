@@ -335,10 +335,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             string.Join(", ", masterList.Select(m => m.Master.FileName)));
     }
 
-    /// <summary>
-    /// Attempts to ESL-flag the patch if it's safe to do so (under 2048 new records).
-    /// Override records don't count against this limit since they reuse existing FormIDs.
-    /// </summary>
     private void TryApplyEslFlag(SkyrimMod patchMod)
     {
         // ESL plugins can have at most 2048 new records (FormIDs 0x000-0x7FF in light master range)

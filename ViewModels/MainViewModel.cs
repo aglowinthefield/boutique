@@ -102,7 +102,7 @@ public class MainViewModel : ReactiveObject
             this.WhenAnyValue(
                 x => x.SelectedSourceArmors,
                 x => x.SelectedTargetArmor,
-                (sources, target) => sources.OfType<ArmorRecordViewModel>().Any() && target != null));
+                (sources, target) => sources.OfType<ArmorRecordViewModel>().Any() && target is not null));
         MapGlamOnlyCommand = ReactiveCommand.Create(MapSelectedAsGlamOnly,
             this.WhenAnyValue(
                 x => x.SelectedSourceArmors,
@@ -265,14 +265,14 @@ public class MainViewModel : ReactiveObject
             var primary = SelectedSourceArmor;
             UpdateTargetSlotCompatibility();
 
-            if (_targetArmors.Count == 0 || primary == null)
+            if (_targetArmors.Count == 0 || primary is null)
             {
                 SelectedTargetArmor = null;
                 return;
             }
 
             var existing = Matches.FirstOrDefault(m => m.Source.Armor.FormKey == primary.Armor.FormKey);
-            if (existing?.Target != null)
+            if (existing?.Target is not null)
                 SelectedTargetArmor =
                     _targetArmors.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
             else
@@ -383,7 +383,7 @@ public class MainViewModel : ReactiveObject
     {
         _existingOutfits.Clear();
 
-        if (_mutagenService.LinkCache == null)
+        if (_mutagenService.LinkCache is null)
         {
             _logger.Warning("Link cache unavailable; skipping outfit discovery for {Plugin}.", plugin);
             return 0;
@@ -408,7 +408,7 @@ public class MainViewModel : ReactiveObject
 
             foreach (var entry in itemLinks)
             {
-                if (entry == null)
+                if (entry is null)
                     continue;
 
                 var formKeyNullable = entry.FormKeyNullable;
@@ -470,7 +470,7 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        if (_mutagenService.LinkCache == null)
+        if (_mutagenService.LinkCache is null)
         {
             StatusMessage = "Initialize Skyrim data path before copying outfits.";
             _logger.Warning("CopyExistingOutfits attempted without an active link cache.");
@@ -569,7 +569,7 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        if (_mutagenService.LinkCache == null)
+        if (_mutagenService.LinkCache is null)
         {
             _logger.Warning("Link cache unavailable; skipping auto-load of outfits from {Plugin}.", outputPlugin);
             return;
@@ -597,7 +597,7 @@ public class MainViewModel : ReactiveObject
 
             foreach (var entry in itemLinks)
             {
-                if (entry == null)
+                if (entry is null)
                     continue;
 
                 var formKeyNullable = entry.FormKeyNullable;
@@ -661,7 +661,7 @@ public class MainViewModel : ReactiveObject
     private void ConfigureTargetArmorsView()
     {
         TargetArmorsView = CollectionViewSource.GetDefaultView(_targetArmors);
-        if (TargetArmorsView != null)
+        if (TargetArmorsView is not null)
         {
             TargetArmorsView.Filter = TargetArmorsFilter;
             ApplyTargetSort();
@@ -740,11 +740,11 @@ public class MainViewModel : ReactiveObject
         var sources = SelectedSourceArmors.OfType<ArmorRecordViewModel>().ToList();
         var target = SelectedTargetArmor;
 
-        if (sources.Count == 0 || target == null)
+        if (sources.Count == 0 || target is null)
         {
             _logger.Debug(
                 "MapSelected invoked without valid selections. SourceCount={SourceCount}, HasTarget={HasTarget}",
-                sources.Count, target != null);
+                sources.Count, target is not null);
             return;
         }
 
@@ -753,7 +753,7 @@ public class MainViewModel : ReactiveObject
             foreach (var source in sources)
             {
                 var existing = Matches.FirstOrDefault(m => m.Source.Armor.FormKey == source.Armor.FormKey);
-                if (existing != null)
+                if (existing is not null)
                 {
                     existing.ApplyManualTarget(target);
                 }
@@ -794,7 +794,7 @@ public class MainViewModel : ReactiveObject
             foreach (var source in sources)
             {
                 var existing = Matches.FirstOrDefault(m => m.Source.Armor.FormKey == source.Armor.FormKey);
-                if (existing != null)
+                if (existing is not null)
                 {
                     existing.ApplyGlamOnly();
                 }
@@ -983,7 +983,7 @@ public class MainViewModel : ReactiveObject
             SourceArmorsView?.Refresh();
 
             var firstSource = SourceArmors.FirstOrDefault();
-            SelectedSourceArmors = firstSource != null
+            SelectedSourceArmors = firstSource is not null
                 ? new List<ArmorRecordViewModel> { firstSource }
                 : Array.Empty<ArmorRecordViewModel>();
 
@@ -1029,7 +1029,7 @@ public class MainViewModel : ReactiveObject
             TargetSearchText = string.Empty;
             TargetArmorsView?.Refresh();
             var primary = SelectedSourceArmor;
-            SelectedTargetArmor = primary != null
+            SelectedTargetArmor = primary is not null
                 ? TargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
                 : TargetArmors.FirstOrDefault();
 
@@ -1302,7 +1302,7 @@ public class MainViewModel : ReactiveObject
         foreach (var piece in distinctPieces)
         {
             var existingConflict = existingPieces.FirstOrDefault(ep => piece.ConflictsWithSlot(ep));
-            if (existingConflict != null)
+            if (existingConflict is not null)
             {
                 var overlap = piece.SlotMask & existingConflict.SlotMask;
                 var slot = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
@@ -1314,7 +1314,7 @@ public class MainViewModel : ReactiveObject
             }
 
             var stagedConflict = stagedPieces.FirstOrDefault(sp => piece.ConflictsWithSlot(sp));
-            if (stagedConflict != null)
+            if (stagedConflict is not null)
             {
                 var overlap = piece.SlotMask & stagedConflict.SlotMask;
                 var slot = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
@@ -1497,7 +1497,7 @@ public class MainViewModel : ReactiveObject
             });
 
             var matchesToPatch = Matches
-                .Where(m => m.Match.TargetArmor != null || m.Match.IsGlamOnly)
+                .Where(m => m.Match.TargetArmor is not null || m.Match.IsGlamOnly)
                 .Select(m => m.Match)
                 .ToList();
 
@@ -1566,7 +1566,7 @@ public class ArmorMatchViewModel : ReactiveObject
         Match = match;
         Source = source;
 
-        if (target != null)
+        if (target is not null)
             ApplyAutoTarget(target);
         else if (match.IsGlamOnly)
             ApplyGlamOnly();
@@ -1579,7 +1579,7 @@ public class ArmorMatchViewModel : ReactiveObject
 
     [Reactive] public ArmorRecordViewModel? Target { get; private set; }
 
-    public bool HasTarget => Match.IsGlamOnly || Target != null;
+    public bool HasTarget => Match.IsGlamOnly || Target is not null;
     public bool IsGlamOnly => Match.IsGlamOnly;
     public string SourceSummary => Source.SummaryLine;
 
@@ -1589,7 +1589,7 @@ public class ArmorMatchViewModel : ReactiveObject
         {
             if (Match.IsGlamOnly)
                 return "✨ Glam-only (armor rating set to 0)";
-            if (Target != null)
+            if (Target is not null)
                 return Target.SummaryLine;
             return "Not mapped";
         }

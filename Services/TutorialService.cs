@@ -65,11 +65,9 @@ public class TutorialService
     private void OnTutorialCompleted()
     {
         CompleteTutorial();
-        if (_currentManager != null)
-        {
-            _currentManager.OnGuideLineListCompleted -= OnTutorialCompleted;
-            _currentManager = null;
-        }
+        if (_currentManager is null) return;
+        _currentManager.OnGuideLineListCompleted -= OnTutorialCompleted;
+        _currentManager = null;
     }
 
     public void CompleteTutorial()
