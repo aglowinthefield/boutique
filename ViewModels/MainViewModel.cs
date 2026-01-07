@@ -28,6 +28,7 @@ public class MainViewModel : ReactiveObject
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = [];
+    private readonly List<string> _pendingOutfitDeletions = [];
     private readonly PatchingService _patchingService;
     private readonly ArmorPreviewService _previewService;
     private int _activeLoadingOperations;
@@ -110,8 +111,11 @@ public class MainViewModel : ReactiveObject
         RemoveMappingCommand = ReactiveCommand.Create<ArmorMatchViewModel>(RemoveMapping);
 
         var canCreateOutfit = this.WhenAnyValue(x => x.SelectedOutfitArmorCount, count => count > 0);
-        var canSaveOutfits = this.WhenAnyValue(x => x.HasOutfitDrafts, x => x.IsCreatingOutfits,
-            (hasDrafts, isBusy) => hasDrafts && !isBusy);
+        var canSaveOutfits = this.WhenAnyValue(
+            x => x.HasOutfitDrafts,
+            x => x.HasPendingOutfitDeletions,
+            x => x.IsCreatingOutfits,
+            (hasDrafts, hasDeletions, isBusy) => (hasDrafts || hasDeletions) && !isBusy);
 
         CreateOutfitCommand = ReactiveCommand.CreateFromTask(CreateOutfitAsync, canCreateOutfit);
         SaveOutfitsCommand = ReactiveCommand.CreateFromTask(SaveOutfitsAsync, canSaveOutfits);
@@ -248,6 +252,8 @@ public class MainViewModel : ReactiveObject
     [Reactive] public bool IsCreatingOutfits { get; private set; }
 
     [Reactive] public bool HasOutfitDrafts { get; private set; }
+
+    [Reactive] public bool HasPendingOutfitDeletions { get; private set; }
 
     [Reactive] public bool HasExistingPluginOutfits { get; private set; }
 
@@ -1386,8 +1392,19 @@ public class MainViewModel : ReactiveObject
 
         if (!_outfitDrafts.Remove(draft))
             return;
-        StatusMessage = $"Removed outfit '{draft.EditorId}'.";
-        _logger.Information("Removed outfit draft {EditorId}.", draft.EditorId);
+
+        if (draft.FormKey.HasValue)
+        {
+            _pendingOutfitDeletions.Add(draft.EditorId);
+            HasPendingOutfitDeletions = true;
+            StatusMessage = $"Removed outfit '{draft.EditorId}'. Will be deleted from patch on save.";
+            _logger.Information("Queued outfit {EditorId} for deletion.", draft.EditorId);
+        }
+        else
+        {
+            StatusMessage = $"Removed outfit '{draft.EditorId}'.";
+            _logger.Information("Removed outfit draft {EditorId}.", draft.EditorId);
+        }
     }
 
     private void RemoveOutfitPiece(OutfitDraftViewModel draft, ArmorRecordViewModel piece)
@@ -1399,18 +1416,13 @@ public class MainViewModel : ReactiveObject
 
     private async Task SaveOutfitsAsync()
     {
-        if (_outfitDrafts.Count == 0)
-        {
-            StatusMessage = "No outfits queued for creation.";
-            _logger.Debug("SaveOutfitsAsync invoked with no drafts.");
-            return;
-        }
-
         var populatedDrafts = _outfitDrafts.Where(d => d.HasPieces).ToList();
-        if (populatedDrafts.Count == 0)
+        var deletionCount = _pendingOutfitDeletions.Count;
+
+        if (populatedDrafts.Count == 0 && deletionCount == 0)
         {
-            StatusMessage = "All queued outfits are empty.";
-            _logger.Warning("SaveOutfitsAsync found no outfit drafts with pieces.");
+            StatusMessage = "No outfits to save or delete.";
+            _logger.Debug("SaveOutfitsAsync invoked with no drafts or deletions.");
             return;
         }
 
@@ -1419,7 +1431,7 @@ public class MainViewModel : ReactiveObject
         try
         {
             ProgressCurrent = 0;
-            ProgressTotal = populatedDrafts.Count;
+            ProgressTotal = populatedDrafts.Count + deletionCount;
 
             var requests = populatedDrafts
                 .Select(d => new OutfitCreationRequest(
@@ -1427,6 +1439,9 @@ public class MainViewModel : ReactiveObject
                     d.EditorId,
                     d.GetPieces().Select(p => p.Armor).ToList()))
                 .ToList();
+
+            foreach (var editorId in _pendingOutfitDeletions)
+                requests.Add(new OutfitCreationRequest(editorId, editorId, []));
 
             var progress = new Progress<(int current, int total, string message)>(p =>
             {
@@ -1445,14 +1460,20 @@ public class MainViewModel : ReactiveObject
 
             StatusMessage = message;
 
-            if (success && results.Count > 0)
+            if (success)
+            {
+                _pendingOutfitDeletions.Clear();
+                HasPendingOutfitDeletions = false;
+
                 foreach (var result in results)
                 {
                     var draft = _outfitDrafts.FirstOrDefault(d =>
                         string.Equals(d.EditorId, result.EditorId, StringComparison.OrdinalIgnoreCase));
 
-                    draft?.FormKey = result.FormKey;
+                    if (draft != null)
+                        draft.FormKey = result.FormKey;
                 }
+            }
         }
         catch (Exception ex)
         {

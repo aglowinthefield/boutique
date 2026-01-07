@@ -207,6 +207,21 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         .FirstOrDefault(o =>
                             string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
+                    if (pieces.Count == 0)
+                    {
+                        if (existing != null)
+                        {
+                            patchMod.Outfits.Remove(existing);
+                            _logger.Information("Deleted outfit {EditorId}.", editorId);
+                            results.Add(new OutfitCreationResult(editorId, existing.FormKey));
+                        }
+                        else
+                        {
+                            _logger.Debug("Skipping deletion of {EditorId} — not in patch.", editorId);
+                        }
+                        continue;
+                    }
+
                     Outfit outfit;
                     if (existing != null)
                     {
@@ -220,12 +235,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         outfit.EditorID = editorId;
                         _logger.Information("Creating new outfit {EditorId} with {PieceCount} piece(s).",
                             editorId, pieces.Count);
-                    }
-
-                    if (pieces.Count == 0)
-                    {
-                        _logger.Warning("Skipping outfit {EditorId} because it has no armor pieces.", editorId);
-                        continue;
                     }
 
                     var items = outfit.Items ??= [];
