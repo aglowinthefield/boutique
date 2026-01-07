@@ -128,7 +128,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
                 };
 
-                patchMod.WriteToBinary(outputPath, writeParameters);
+                WritePatchWithRetry(patchMod, outputPath, writeParameters);
 
                 _logger.Information("Patch successfully written to {OutputPath}", outputPath);
 
@@ -250,17 +250,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
                 };
 
-                try
-                {
-                    patchMod.WriteToBinary(outputPath, writeParameters);
-                }
-                catch (IOException ioEx)
-                {
-                    var lockedMessage =
-                        $"Unable to write to {outputPath}. It appears to be locked by another application (Mod Organizer, xEdit, or the Skyrim launcher). Close the application that has the file open, or pick a different output path, then try again.";
-                    _logger.Error(ioEx, lockedMessage);
-                    return (false, lockedMessage, (IReadOnlyList<OutfitCreationResult>)[]);
-                }
+                WritePatchWithRetry(patchMod, outputPath, writeParameters);
 
                 _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
 
@@ -333,6 +323,41 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
         _logger.Information("Patch master list: {Masters}",
             string.Join(", ", masterList.Select(m => m.Master.FileName)));
+    }
+
+    private void WritePatchWithRetry(SkyrimMod patchMod, string outputPath, BinaryWriteParameters writeParameters)
+    {
+        var tempPath = outputPath + ".tmp";
+
+        var tempWriteParameters = writeParameters with
+        {
+            ModKey = ModKeyOption.NoCheck
+        };
+        patchMod.WriteToBinary(tempPath, tempWriteParameters);
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        const int maxRetries = 10;
+        const int initialDelayMs = 50;
+
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                File.Move(tempPath, outputPath, overwrite: true);
+                return;
+            }
+            catch (IOException) when (attempt < maxRetries)
+            {
+                var delay = initialDelayMs * attempt;
+                _logger.Debug("File replace attempt {Attempt}/{Max} failed, retrying in {Delay}ms...",
+                    attempt, maxRetries, delay);
+                Thread.Sleep(delay);
+            }
+        }
+
+        File.Move(tempPath, outputPath, overwrite: true);
     }
 
     private void TryApplyEslFlag(SkyrimMod patchMod)
