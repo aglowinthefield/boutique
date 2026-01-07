@@ -73,15 +73,21 @@ public partial class App
             throw;
         }
 
-        _ = Task.Run(async () =>
+        if (FeatureFlags.AutoUpdateEnabled)
         {
-            await Task.Delay(1500);
-            Current.Dispatcher.Invoke(CheckForUpdates);
-        });
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(1500);
+                Current.Dispatcher.Invoke(CheckForUpdates);
+            });
+        }
     }
 
     private static void CheckForUpdates()
     {
+        if (!FeatureFlags.AutoUpdateEnabled)
+            return;
+
         try
         {
             AutoUpdater.ShowSkipButton = true;

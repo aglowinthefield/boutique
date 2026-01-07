@@ -90,11 +90,13 @@
                       SelectedItem="{Binding Settings.SelectedTheme}"
                       Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 6: Tutorial -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center" />
+            <!-- Row 6: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
+                       Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
             <Button Grid.Row="6" Grid.Column="1" Content="Restart Tutorial"
                     Command="{Binding Settings.RestartTutorialCommand}"
-                    HorizontalAlignment="Left" MinWidth="120" />
+                    HorizontalAlignment="Left" MinWidth="120"
+                    Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
         </Grid>
     </Grid>
 </UserControl>

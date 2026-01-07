@@ -133,7 +133,7 @@ public partial class MainWindow : Window
             _initialized = true;
         }
 
-        if (!_tutorialService.HasCompletedTutorial)
+        if (FeatureFlags.TutorialEnabled && !_tutorialService.HasCompletedTutorial)
         {
             Dispatcher.BeginInvoke(() => _tutorialService.StartTutorial(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
@@ -141,6 +141,9 @@ public partial class MainWindow : Window
 
     private void MainGuideline_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (!FeatureFlags.TutorialEnabled)
+            return;
+
         if (sender is not GuideLine_View { DataContext: GuideLineManager manager })
             return;
 
@@ -162,5 +165,9 @@ public partial class MainWindow : Window
         }
     }
 
-    public void StartTutorial() => _tutorialService.StartTutorial();
+    public void StartTutorial()
+    {
+        if (FeatureFlags.TutorialEnabled)
+            _tutorialService.StartTutorial();
+    }
 }

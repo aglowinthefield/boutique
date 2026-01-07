@@ -101,6 +101,8 @@ public class SettingsViewModel : ReactiveObject
     public ICommand ClearCacheCommand { get; }
     public ICommand RestartTutorialCommand { get; }
 
+    public static bool IsTutorialEnabled => FeatureFlags.TutorialEnabled;
+
     private void BrowseDataPath()
     {
         var dialog = new OpenFileDialog
@@ -220,6 +222,9 @@ public class SettingsViewModel : ReactiveObject
 
     private void RestartTutorial()
     {
+        if (!FeatureFlags.TutorialEnabled)
+            return;
+
         _tutorialService.ResetTutorial();
         _tutorialService.StartTutorial();
     }

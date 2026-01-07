@@ -1,6 +1,6 @@
 # Boutique
 
-A WPF application for managing Skyrim Special Edition outfit distributions and armor mods. Boutique helps you create and manage outfit distribution files for SPID (Spell Perk Item Distributor) and SkyPatcher, browse NPCs and their outfit assignments, create custom outfit records, and sync armor stats between mods.
+Boutique helps you create and manage outfit distribution files for SPID and SkyPatcher, browse NPCs and their outfit assignments, create custom outfit records, and sync armor stats between mods.
 
 ## Features
 
@@ -54,26 +54,6 @@ A WPF application for managing Skyrim Special Edition outfit distributions and a
 1. Download the latest release from the Releases page
 2. Extract to a folder of your choice
 3. Run `Boutique.exe`
-
-## Running from Mod Organizer 2 (Recommended)
-
-The best way to use Boutique is to run it directly from Mod Organizer 2. It will automatically detect your Skyrim data path and see all your mods!
-
-### Setup in MO2
-
-1. In Mod Organizer 2, click the **gears icon** (⚙️) next to the "Run" button
-2. Click the **+** button to add a new executable
-3. Fill in:
-    - **Title**: `Boutique`
-    - **Binary**: Browse to `Boutique.exe`
-4. Click **OK**
-
-### Benefits of Running from MO2
-
--   ✅ Automatically detects the correct Skyrim data path
--   ✅ Sees all plugins and files as they appear in your virtual filesystem
--   ✅ Output files are automatically placed in your MO2 overwrite folder
--   ✅ No manual path configuration needed
 
 ## Quick Start
 
@@ -161,30 +141,6 @@ filterByFactions=Skyrim.esm|0001BCC0:filterByGender=female:outfitDefault=MyMod.e
 
 Boutique can generate both formats from the same filter configuration.
 
-## Troubleshooting
-
-### "No plugins found"
-
--   Ensure Skyrim Data Path is correct
--   Click "Auto-Detect" or manually browse to the Data folder
--   The Data folder should contain `Skyrim.esm` and other plugin files
-
-### Distribution files not showing up
-
--   Make sure SPID files end with `_DISTR.ini`
--   SkyPatcher files should be in the appropriate `skse/plugins/SkyPatcher/` subdirectory
--   Click the Refresh button on the Files tab
-
-### NPC outfit assignments not updating
-
--   Click the refresh button on the NPCs tab to rescan distribution files
--   Ensure your distribution files are saved and in the correct location
-
-### 3D Preview not working
-
--   The preview requires mesh (NIF) files to be accessible
--   Make sure BSA archives are extracted or accessible via MO2's virtual filesystem
-
 ## License
 
 This project uses the following libraries:
@@ -201,10 +157,6 @@ This project uses the following libraries:
 -   **SPID** by powerofthree
 -   **SkyPatcher** by SkyPatcher team
 -   Skyrim modding community
-
-## Support
-
-For issues, questions, or feature requests, please open an issue on the GitHub repository.
 
 ## Disclaimer
 
