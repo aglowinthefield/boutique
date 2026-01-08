@@ -27,6 +27,7 @@ public partial class App
         _loggingService = new LoggingService();
         ConfigureExceptionLogging();
         Log.Information("Application startup invoked.");
+        LogMO2Environment();
 
         var builder = new ContainerBuilder();
 
@@ -174,6 +175,30 @@ public partial class App
         var patch = int.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
 
         return new Version(major, minor, patch);
+    }
+
+    private static void LogMO2Environment()
+    {
+        var mo2Vars = new[]
+        {
+            "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR",
+            "MO_MODSDIR", "USVFS_LOGFILE", "VIRTUAL_STORE"
+        };
+
+        var detected = mo2Vars
+            .Select(v => (Name: v, Value: Environment.GetEnvironmentVariable(v)))
+            .Where(x => !string.IsNullOrEmpty(x.Value))
+            .ToList();
+
+        if (detected.Count > 0)
+        {
+            Log.Information("MO2 environment detected: {Variables}",
+                string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
+        }
+        else
+        {
+            Log.Debug("No MO2 environment variables detected - running standalone or MO2 env vars not set");
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

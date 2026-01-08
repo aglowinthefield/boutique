@@ -6,6 +6,7 @@ using Boutique.Services;
 using Microsoft.Win32;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Serilog;
 
 namespace Boutique.ViewModels;
 
@@ -48,7 +49,8 @@ public class SettingsViewModel : ReactiveObject
         _themeService = themeService;
         _tutorialService = tutorialService;
 
-        SkyrimDataPath = !string.IsNullOrEmpty(guiSettings.SkyrimDataPath) ? guiSettings.SkyrimDataPath : settings.SkyrimDataPath;
+        var savedDataPath = !string.IsNullOrEmpty(guiSettings.SkyrimDataPath) ? guiSettings.SkyrimDataPath : settings.SkyrimDataPath;
+        SkyrimDataPath = NormalizeDataPath(savedDataPath);
         OutputPatchPath = !string.IsNullOrEmpty(guiSettings.OutputPatchPath) ? guiSettings.OutputPatchPath : settings.OutputPatchPath;
         PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName) ? guiSettings.PatchFileName : settings.PatchFileName;
         SelectedTheme = (ThemeOption)_themeService.CurrentThemeSetting;
@@ -57,8 +59,17 @@ public class SettingsViewModel : ReactiveObject
             .Skip(1)
             .Subscribe(v =>
             {
+                var previousPath = _settings.SkyrimDataPath;
                 _settings.SkyrimDataPath = v;
                 _guiSettings.SkyrimDataPath = v;
+
+                // Invalidate cache when data path changes - cached data is path-specific
+                if (!string.Equals(previousPath, v, StringComparison.OrdinalIgnoreCase))
+                {
+                    Log.Information("Data path changed from {OldPath} to {NewPath}, invalidating cache", previousPath, v);
+                    _cacheService.InvalidateCache();
+                    RefreshCacheStatus();
+                }
             });
 
         this.WhenAnyValue(x => x.OutputPatchPath)
@@ -133,8 +144,40 @@ public class SettingsViewModel : ReactiveObject
         {
             var folder = Path.GetDirectoryName(dialog.FileName);
             if (!string.IsNullOrEmpty(folder))
-                SkyrimDataPath = folder;
+                SkyrimDataPath = NormalizeDataPath(folder);
         }
+    }
+
+    private static string NormalizeDataPath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            return path ?? "";
+
+        // Check if the current path has plugins
+        var hasPlugins = Directory.EnumerateFiles(path, "*.esp").Any() ||
+                         Directory.EnumerateFiles(path, "*.esm").Any();
+
+        if (hasPlugins)
+            return path;
+
+        // Common mistake: user selected "Game Root" instead of "Game Root\Data"
+        // This is common with Wabbajack modlists
+        var dataSubfolder = Path.Combine(path, "Data");
+        if (Directory.Exists(dataSubfolder))
+        {
+            var subfolderHasPlugins = Directory.EnumerateFiles(dataSubfolder, "*.esp").Any() ||
+                                      Directory.EnumerateFiles(dataSubfolder, "*.esm").Any();
+            if (subfolderHasPlugins)
+            {
+                Log.Information("Auto-corrected data path: {Original} -> {Corrected} (found Data subfolder with plugins)",
+                    path, dataSubfolder);
+                return dataSubfolder;
+            }
+        }
+
+        Log.Warning("Data path {Path} contains no .esp/.esm files and no Data subfolder was found. " +
+                    "Plugins may not load correctly. For Wabbajack modlists, select the 'Game Root\\Data' folder.", path);
+        return path;
     }
 
     private void BrowseOutputPath()
@@ -158,13 +201,14 @@ public class SettingsViewModel : ReactiveObject
 
     private void AutoDetectPath()
     {
+        // Try various MO2 environment variables - different MO2 versions/configs set different ones
         var mo2DataPath = Environment.GetEnvironmentVariable("MO_DATAPATH");
         if (!string.IsNullOrEmpty(mo2DataPath) && Directory.Exists(mo2DataPath))
         {
             SkyrimDataPath = mo2DataPath;
             OutputPatchPath = mo2DataPath;
             IsRunningFromMO2 = true;
-            DetectionSource = "Detected from Mod Organizer 2";
+            DetectionSource = "Detected from Mod Organizer 2 (MO_DATAPATH)";
             return;
         }
 
@@ -177,9 +221,32 @@ public class SettingsViewModel : ReactiveObject
                 SkyrimDataPath = dataPath;
                 OutputPatchPath = dataPath;
                 IsRunningFromMO2 = true;
-                DetectionSource = "Detected from Mod Organizer 2 (Game Path)";
+                DetectionSource = "Detected from Mod Organizer 2 (MO_GAMEPATH)";
                 return;
             }
+        }
+
+        // MO2 2.5+ may use different variable names
+        var mo2VirtualPath = Environment.GetEnvironmentVariable("VIRTUAL_STORE");
+        if (!string.IsNullOrEmpty(mo2VirtualPath) && Directory.Exists(mo2VirtualPath))
+        {
+            SkyrimDataPath = mo2VirtualPath;
+            OutputPatchPath = mo2VirtualPath;
+            IsRunningFromMO2 = true;
+            DetectionSource = "Detected from Mod Organizer 2 (VIRTUAL_STORE)";
+            return;
+        }
+
+        // Check if running under USVFS (MO2's virtual filesystem hook)
+        var usvfsLog = Environment.GetEnvironmentVariable("USVFS_LOGFILE");
+        var mo2Profile = Environment.GetEnvironmentVariable("MO_PROFILE");
+        if (!string.IsNullOrEmpty(usvfsLog) || !string.IsNullOrEmpty(mo2Profile))
+        {
+            // We're running under MO2's USVFS but didn't get the data path
+            // Log this for debugging - the VFS should make the Data folder work
+            IsRunningFromMO2 = true;
+            DetectionSource = "Running under Mod Organizer 2 USVFS (data path not explicitly set)";
+            // Don't return - fall through to find the game's Data folder which USVFS will virtualize
         }
 
         var commonPaths = new[]
