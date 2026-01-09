@@ -141,6 +141,7 @@ public class MainViewModel : ReactiveObject
     public Interaction<string, bool> ConfirmOverwritePatch { get; } = new();
     public Interaction<string, string?> RequestOutfitName { get; } = new();
     public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
+    public Interaction<MissingMastersResult, bool> HandleMissingMasters { get; } = new();
 
     public SettingsViewModel Settings { get; }
     public DistributionViewModel Distribution { get; }
@@ -568,11 +569,45 @@ public class MainViewModel : ReactiveObject
                 _outfitDrafts.Remove(draft);
         }
 
-        // Check if the output plugin exists in the load order
-        if (!AvailablePlugins.Contains(outputPlugin, StringComparer.OrdinalIgnoreCase))
+        var patchPath = Settings.FullOutputPath;
+        if (string.IsNullOrEmpty(patchPath) || !File.Exists(patchPath))
         {
-            _logger.Debug("Output plugin {Plugin} not found in load order, skipping auto-load.", outputPlugin);
+            _logger.Debug("Patch file does not exist at {Path}, skipping auto-load.", patchPath);
             return;
+        }
+
+        var missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
+        if (missingMastersResult.HasMissingMasters)
+        {
+            _logger.Warning("Missing masters detected in patch {Plugin}: {Masters}",
+                outputPlugin,
+                string.Join(", ", missingMastersResult.MissingMasters.Select(m => m.MissingMaster.FileName)));
+
+            var shouldClean = await HandleMissingMasters.Handle(missingMastersResult);
+            if (shouldClean)
+            {
+                var (success, message) = await _patchingService.CleanPatchMissingMastersAsync(
+                    patchPath, missingMastersResult.AllAffectedOutfits);
+
+                if (success)
+                {
+                    StatusMessage = message;
+                    _logger.Information("Patch cleaned: {Message}", message);
+                    await _mutagenService.RefreshLinkCacheAsync(outputPlugin);
+                }
+                else
+                {
+                    StatusMessage = $"Failed to clean patch: {message}";
+                    _logger.Error("Failed to clean patch: {Message}", message);
+                    return;
+                }
+            }
+            else
+            {
+                StatusMessage = "Missing masters detected. Add the master plugin(s) back to your load order and restart Boutique.";
+                _logger.Information("User chose to add masters back instead of cleaning patch.");
+                return;
+            }
         }
 
         if (_mutagenService.LinkCache is null)
@@ -581,7 +616,7 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        _logger.Information("Output plugin {Plugin} exists in load order, loading existing outfits for editing...", outputPlugin);
+        _logger.Information("Output plugin {Plugin} exists, loading existing outfits for editing...", outputPlugin);
 
         var outfits = (await _mutagenService.LoadOutfitsFromPluginAsync(outputPlugin)).ToList();
         var linkCache = _mutagenService.LinkCache;

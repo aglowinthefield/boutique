@@ -77,6 +77,22 @@ public partial class MainWindow : Window
         });
         _bindings.Add(previewDisposable);
 
+        var missingMastersDisposable = viewModel.HandleMissingMasters.RegisterHandler(async interaction =>
+        {
+            var result = interaction.Input;
+            var shouldClean = await Dispatcher.InvokeAsync(() =>
+            {
+                var dialog = new MissingMastersDialog(result)
+                {
+                    Owner = this
+                };
+                dialog.ShowDialog();
+                return dialog.CleanPatch;
+            });
+            interaction.SetOutput(shouldClean);
+        });
+        _bindings.Add(missingMastersDisposable);
+
         Closed += (_, _) =>
         {
             _bindings.Dispose();

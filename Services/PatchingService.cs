@@ -391,4 +391,231 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 newRecordCount, eslRecordLimit);
         }
     }
+
+    public async Task<MissingMastersResult> CheckMissingMastersAsync(string patchPath)
+    {
+        return await Task.Run(() =>
+        {
+            if (!File.Exists(patchPath))
+            {
+                _logger.Debug("Patch file does not exist at {Path}, no missing masters check needed.", patchPath);
+                return new MissingMastersResult(false, [], [], []);
+            }
+
+            try
+            {
+                using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath, SkyrimRelease.SkyrimSE);
+                var dataFolder = Path.GetDirectoryName(patchPath) ?? string.Empty;
+
+                var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
+                var missingMasters = new List<ModKey>();
+
+                foreach (var master in masterRefs)
+                {
+                    var masterPath = Path.Combine(dataFolder, master.FileName);
+                    if (!File.Exists(masterPath))
+                    {
+                        missingMasters.Add(master);
+                        _logger.Warning("Missing master detected: {Master}", master.FileName);
+                    }
+                }
+
+                if (missingMasters.Count == 0)
+                {
+                    _logger.Debug("All masters present for patch {Patch}.", patchPath);
+                    var validOutfits = patchMod.Outfits.ToList();
+                    return new MissingMastersResult(false, [], [], validOutfits);
+                }
+
+                var missingMasterSet = missingMasters.ToHashSet();
+                var affectedOutfitsByMaster = new Dictionary<ModKey, List<AffectedOutfitInfo>>();
+                var validOutfitsList = new List<IOutfitGetter>();
+
+                foreach (var outfit in patchMod.Outfits)
+                {
+                    var orphanedFormKeys = new List<FormKey>();
+                    var affectingMasters = new HashSet<ModKey>();
+
+                    if (outfit.Items != null)
+                    {
+                        foreach (var itemLink in outfit.Items)
+                        {
+                            var formKeyNullable = itemLink?.FormKeyNullable;
+                            if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                                continue;
+
+                            var itemModKey = formKeyNullable.Value.ModKey;
+                            if (missingMasterSet.Contains(itemModKey))
+                            {
+                                orphanedFormKeys.Add(formKeyNullable.Value);
+                                affectingMasters.Add(itemModKey);
+                            }
+                        }
+                    }
+
+                    if (orphanedFormKeys.Count > 0)
+                    {
+                        var affectedInfo = new AffectedOutfitInfo(
+                            outfit.FormKey,
+                            outfit.EditorID,
+                            orphanedFormKeys);
+
+                        foreach (var master in affectingMasters)
+                        {
+                            if (!affectedOutfitsByMaster.TryGetValue(master, out var list))
+                            {
+                                list = [];
+                                affectedOutfitsByMaster[master] = list;
+                            }
+                            list.Add(affectedInfo);
+                        }
+                    }
+                    else
+                    {
+                        validOutfitsList.Add(outfit);
+                    }
+                }
+
+                var missingMasterInfos = missingMasters
+                    .Select(m => new MissingMasterInfo(
+                        m,
+                        affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
+                    .ToList();
+
+                var allAffectedOutfits = affectedOutfitsByMaster
+                    .SelectMany(kvp => kvp.Value)
+                    .DistinctBy(a => a.FormKey)
+                    .ToList();
+
+                _logger.Information(
+                    "Missing masters check complete: {MissingCount} missing master(s), {AffectedCount} affected outfit(s).",
+                    missingMasters.Count, allAffectedOutfits.Count);
+
+                return new MissingMastersResult(true, missingMasterInfos, allAffectedOutfits, validOutfitsList);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error checking missing masters for patch {Path}.", patchPath);
+                return new MissingMastersResult(false, [], [], []);
+            }
+        });
+    }
+
+    public async Task<(bool success, string message)> CleanPatchMissingMastersAsync(
+        string patchPath,
+        IReadOnlyList<AffectedOutfitInfo> outfitsToRemove)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (!File.Exists(patchPath))
+                    return (false, "Patch file does not exist.");
+
+                _logger.Information("Cleaning patch {Path}: removing {Count} outfit(s) with missing masters.",
+                    patchPath, outfitsToRemove.Count);
+
+                var patchMod = SkyrimMod.CreateFromBinary(patchPath, SkyrimRelease.SkyrimSE);
+                var outfitsToRemoveSet = outfitsToRemove.Select(o => o.FormKey).ToHashSet();
+
+                var removedCount = 0;
+                var outfitsToKeep = patchMod.Outfits
+                    .Where(o =>
+                    {
+                        if (outfitsToRemoveSet.Contains(o.FormKey))
+                        {
+                            _logger.Debug("Removing outfit {EditorId} ({FormKey}) due to missing masters.",
+                                o.EditorID, o.FormKey);
+                            removedCount++;
+                            return false;
+                        }
+                        return true;
+                    })
+                    .ToList();
+
+                patchMod.Outfits.Clear();
+                foreach (var outfit in outfitsToKeep)
+                    patchMod.Outfits.Add(outfit);
+
+                var remainingMasters = CollectRequiredMasters(patchMod, outfitsToRemoveSet);
+                CleanupMasterReferences(patchMod, remainingMasters);
+
+                TryApplyEslFlag(patchMod);
+
+                mutagenService.ReleaseLinkCache();
+
+                var writeParameters = new BinaryWriteParameters
+                {
+                    LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
+                };
+
+                WritePatchWithRetry(patchMod, patchPath, writeParameters);
+
+                _logger.Information("Patch cleaned successfully. Removed {Count} outfit(s).", removedCount);
+                return (true, $"Successfully removed {removedCount} outfit(s) with missing masters.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error cleaning patch {Path}.", patchPath);
+                return (false, $"Error cleaning patch: {ex.Message}");
+            }
+        });
+    }
+
+    private static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
+    {
+        var requiredMasters = new HashSet<ModKey>();
+
+        foreach (var record in patchMod.EnumerateMajorRecords())
+        {
+            if (record is IOutfitGetter outfit && excludedOutfits.Contains(outfit.FormKey))
+                continue;
+
+            requiredMasters.Add(record.FormKey.ModKey);
+
+            if (record is IOutfitGetter outfitRecord && outfitRecord.Items != null)
+            {
+                foreach (var item in outfitRecord.Items)
+                {
+                    var formKey = item?.FormKeyNullable;
+                    if (formKey.HasValue && formKey.Value != FormKey.Null)
+                        requiredMasters.Add(formKey.Value.ModKey);
+                }
+            }
+
+            if (record is IArmorGetter armor)
+            {
+                if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
+                    requiredMasters.Add(enchantKey.ModKey);
+
+                if (armor.Keywords != null)
+                {
+                    foreach (var keyword in armor.Keywords)
+                    {
+                        if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+                            requiredMasters.Add(keywordKey.ModKey);
+                    }
+                }
+            }
+        }
+
+        return requiredMasters;
+    }
+
+    private void CleanupMasterReferences(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
+    {
+        var masterList = patchMod.ModHeader.MasterReferences;
+        var mastersToRemove = masterList
+            .Where(m => !requiredMasters.Contains(m.Master) && m.Master != patchMod.ModKey)
+            .ToList();
+
+        foreach (var master in mastersToRemove)
+        {
+            masterList.Remove(master);
+            _logger.Debug("Removed unused master {Master} from patch header.", master.Master.FileName);
+        }
+
+        _logger.Information("Cleaned master list: {Masters}",
+            string.Join(", ", masterList.Select(m => m.Master.FileName)));
+    }
 }
