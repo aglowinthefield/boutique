@@ -24,6 +24,25 @@ public class MutagenService(ILoggingService loggingService)
 
     public bool IsInitialized => _environment != null;
 
+    private bool IsSkyrimVR(string dataFolderPath)
+    {
+        if (string.IsNullOrWhiteSpace(dataFolderPath) || !Directory.Exists(dataFolderPath))
+            return false;
+
+        var skyrimVrEsm = Path.Combine(dataFolderPath, "SkyrimVR.esm");
+        return File.Exists(skyrimVrEsm);
+    }
+
+    private GameRelease GetGameRelease(string dataFolderPath)
+    {
+        return IsSkyrimVR(dataFolderPath) ? GameRelease.SkyrimVR : GameRelease.SkyrimSE;
+    }
+
+    private SkyrimRelease GetSkyrimRelease(string dataFolderPath)
+    {
+        return IsSkyrimVR(dataFolderPath) ? SkyrimRelease.SkyrimVR : SkyrimRelease.SkyrimSE;
+    }
+
     public async Task InitializeAsync(string dataFolderPath)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -59,8 +78,11 @@ public class MutagenService(ILoggingService loggingService)
     {
         try
         {
+            var gameRelease = GetGameRelease(dataFolderPath);
+            _logger.Information("Detected game release: {GameRelease}", gameRelease);
+
             var envSw = System.Diagnostics.Stopwatch.StartNew();
-            _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GameRelease.SkyrimSE)
+            _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(gameRelease)
                 .WithTargetDataFolder(new DirectoryPath(dataFolderPath))
                 .Build();
             _logger.Information("[PERF] GameEnvironment built with explicit path: {ElapsedMs}ms", envSw.ElapsedMilliseconds);
@@ -80,8 +102,11 @@ public class MutagenService(ILoggingService loggingService)
     {
         try
         {
+            var skyrimRelease = GetSkyrimRelease(dataFolderPath);
+            _logger.Information("Detected Skyrim release: {SkyrimRelease}", skyrimRelease);
+
             var envSw = System.Diagnostics.Stopwatch.StartNew();
-            _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
+            _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
             _logger.Information("[PERF] GameEnvironment.Typical.Skyrim (auto-detect): {ElapsedMs}ms", envSw.ElapsedMilliseconds);
 
             var cacheSw = System.Diagnostics.Stopwatch.StartNew();
@@ -119,11 +144,13 @@ public class MutagenService(ILoggingService loggingService)
             var armorPlugins = new List<string>();
             var scannedCount = 0;
 
+            var skyrimRelease = GetSkyrimRelease(DataFolderPath);
+
             foreach (var pluginPath in pluginFiles)
             {
                 try
                 {
-                    using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+                    using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
 
                     if (mod.Armors.Count <= 0 && mod.Outfits.Count <= 0)
                         continue;
@@ -164,7 +191,8 @@ public class MutagenService(ILoggingService loggingService)
 
             try
             {
-                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+                var skyrimRelease = GetSkyrimRelease(DataFolderPath);
+                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
                 return mod.Armors.ToList();
             }
             catch (Exception)
@@ -188,7 +216,8 @@ public class MutagenService(ILoggingService loggingService)
 
             try
             {
-                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, SkyrimRelease.SkyrimSE);
+                var skyrimRelease = GetSkyrimRelease(DataFolderPath);
+                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
                 return mod.Outfits.ToList();
             }
             catch (Exception)
@@ -219,18 +248,21 @@ public class MutagenService(ILoggingService loggingService)
             {
                 try
                 {
-                    _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GameRelease.SkyrimSE)
+                    var gameRelease = GetGameRelease(DataFolderPath);
+                    _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(gameRelease)
                         .WithTargetDataFolder(new DirectoryPath(DataFolderPath!))
                         .Build();
                 }
                 catch
                 {
-                    _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
+                    var skyrimRelease = GetSkyrimRelease(DataFolderPath);
+                    _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
                 }
             }
             else
             {
-                _environment = GameEnvironment.Typical.Skyrim(SkyrimRelease.SkyrimSE);
+                var skyrimRelease = GetSkyrimRelease(DataFolderPath);
+                _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
             }
 
             LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
