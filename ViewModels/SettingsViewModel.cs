@@ -4,6 +4,9 @@ using System.Windows.Input;
 using Boutique.Models;
 using Boutique.Services;
 using Microsoft.Win32;
+using Mutagen.Bethesda;
+using Mutagen.Bethesda.Installs;
+using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -53,6 +56,7 @@ public class SettingsViewModel : ReactiveObject
         SkyrimDataPath = NormalizeDataPath(savedDataPath);
         OutputPatchPath = !string.IsNullOrEmpty(guiSettings.OutputPatchPath) ? guiSettings.OutputPatchPath : settings.OutputPatchPath;
         PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName) ? guiSettings.PatchFileName : settings.PatchFileName;
+        SelectedSkyrimRelease = settings.SelectedSkyrimRelease;
         SelectedTheme = (ThemeOption)_themeService.CurrentThemeSetting;
 
         this.WhenAnyValue(x => x.SkyrimDataPath)
@@ -88,6 +92,13 @@ public class SettingsViewModel : ReactiveObject
                 _guiSettings.PatchFileName = v;
             });
 
+        this.WhenAnyValue(x => x.SelectedSkyrimRelease)
+            .Skip(1)
+            .Subscribe(release =>
+            {
+                _settings.SelectedSkyrimRelease = release;
+            });
+
         this.WhenAnyValue(x => x.SelectedTheme)
             .Skip(1)
             .Subscribe(theme =>
@@ -110,13 +121,21 @@ public class SettingsViewModel : ReactiveObject
 
     [Reactive] public bool IsRunningFromMO2 { get; set; }
     [Reactive] public string DetectionSource { get; set; } = "";
+    [Reactive] public bool DetectionFailed { get; set; }
     [Reactive] public string SkyrimDataPath { get; set; } = "";
     [Reactive] public string OutputPatchPath { get; set; } = "";
     [Reactive] public string PatchFileName { get; set; } = "";
     [Reactive] public string CacheStatus { get; set; } = "No cache";
     [Reactive] public bool HasCache { get; set; }
+    [Reactive] public SkyrimRelease SelectedSkyrimRelease { get; set; }
     [Reactive] public ThemeOption SelectedTheme { get; set; }
 
+    public IReadOnlyList<SkyrimRelease> SkyrimReleaseOptions { get; } = new[]
+    {
+        SkyrimRelease.SkyrimSE,
+        SkyrimRelease.SkyrimVR,
+        SkyrimRelease.SkyrimSEGog
+    };
     public IReadOnlyList<ThemeOption> ThemeOptions { get; } = Enum.GetValues<ThemeOption>();
 
     public string FullOutputPath => Path.Combine(OutputPatchPath, PatchFileName);
@@ -209,6 +228,7 @@ public class SettingsViewModel : ReactiveObject
             OutputPatchPath = mo2DataPath;
             IsRunningFromMO2 = true;
             DetectionSource = "Detected from Mod Organizer 2 (MO_DATAPATH)";
+            DetectionFailed = false;
             return;
         }
 
@@ -222,6 +242,7 @@ public class SettingsViewModel : ReactiveObject
                 OutputPatchPath = dataPath;
                 IsRunningFromMO2 = true;
                 DetectionSource = "Detected from Mod Organizer 2 (MO_GAMEPATH)";
+                DetectionFailed = false;
                 return;
             }
         }
@@ -234,6 +255,7 @@ public class SettingsViewModel : ReactiveObject
             OutputPatchPath = mo2VirtualPath;
             IsRunningFromMO2 = true;
             DetectionSource = "Detected from Mod Organizer 2 (VIRTUAL_STORE)";
+            DetectionFailed = false;
             return;
         }
 
@@ -246,54 +268,39 @@ public class SettingsViewModel : ReactiveObject
             // Log this for debugging - the VFS should make the Data folder work
             IsRunningFromMO2 = true;
             DetectionSource = "Running under Mod Organizer 2 USVFS (data path not explicitly set)";
+            DetectionFailed = false;
             // Don't return - fall through to find the game's Data folder which USVFS will virtualize
         }
 
-        var commonPaths = new[]
+        // Convert SkyrimRelease to GameRelease for Mutagen API
+        var gameRelease = SelectedSkyrimRelease switch
         {
-            @"C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data",
-            @"C:\Program Files\Steam\steamapps\common\Skyrim Special Edition\Data",
-            @"D:\Steam\steamapps\common\Skyrim Special Edition\Data",
-            @"E:\Steam\steamapps\common\Skyrim Special Edition\Data",
-            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) +
-            @"\Steam\steamapps\common\Skyrim Special Edition\Data"
+            SkyrimRelease.SkyrimSE => GameRelease.SkyrimSE,
+            SkyrimRelease.SkyrimVR => GameRelease.SkyrimVR,
+            SkyrimRelease.SkyrimSEGog => GameRelease.SkyrimSEGog,
+            _ => GameRelease.SkyrimSE
         };
 
-        foreach (var path in commonPaths)
-            if (Directory.Exists(path))
-            {
-                SkyrimDataPath = path;
-                OutputPatchPath = path;
-                IsRunningFromMO2 = false;
-                DetectionSource = "Detected from common installation path";
-                return;
-            }
+        var gameName = SelectedSkyrimRelease switch
+        {
+            SkyrimRelease.SkyrimVR => "Skyrim VR",
+            SkyrimRelease.SkyrimSEGog => "Skyrim SE (GOG)",
+            _ => "Skyrim SE"
+        };
 
-        try
+        if (GameLocations.TryGetDataFolder(gameRelease, out var dataFolder))
         {
-            using var key =
-                Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Skyrim Special Edition");
-            if (key is not null)
-            {
-                var installPath = key.GetValue("installed path") as string;
-                if (!string.IsNullOrEmpty(installPath))
-                {
-                    var dataPath = Path.Combine(installPath, "Data");
-                    if (Directory.Exists(dataPath))
-                    {
-                        SkyrimDataPath = dataPath;
-                        OutputPatchPath = dataPath;
-                        IsRunningFromMO2 = false;
-                        DetectionSource = "Detected from Windows Registry";
-                    }
-                }
-            }
-        }
-        catch
-        {
+            SkyrimDataPath = dataFolder.Path;
+            OutputPatchPath = dataFolder.Path;
             IsRunningFromMO2 = false;
-            DetectionSource = "Auto-detection failed - please set manually";
+            DetectionSource = $"Detected {gameName} using Mutagen";
+            DetectionFailed = false;
+            return;
         }
+
+        IsRunningFromMO2 = false;
+        DetectionSource = $"Auto-detection failed for {gameName} - please set manually";
+        DetectionFailed = true;
     }
 
     private void ClearCache()

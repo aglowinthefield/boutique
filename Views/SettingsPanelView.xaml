@@ -39,6 +39,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="140" />
@@ -46,54 +47,72 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Row 0: Skyrim Data Path -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Skyrim Data Path:" Style="{StaticResource SettingsLabelStyle}" />
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,12,12"
+            <!-- Row 0: Skyrim Release -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Skyrim Release:" Style="{StaticResource SettingsLabelStyle}" />
+            <ComboBox Grid.Row="0" Grid.Column="1"
+                      ItemsSource="{Binding Settings.SkyrimReleaseOptions}"
+                      SelectedItem="{Binding Settings.SelectedSkyrimRelease}"
+                      Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+
+            <!-- Row 1: Skyrim Data Path -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Skyrim Data Path:" Style="{StaticResource SettingsLabelStyle}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
                      Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
-            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
                 <Button Content="Browse..." Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0" MinWidth="80" />
                 <Button Content="Auto-Detect" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
             </StackPanel>
 
-            <!-- Row 1: Output Path -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Output Path:" Style="{StaticResource SettingsLabelStyle}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
+            <!-- Row 2: Output Path -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Output Path:" Style="{StaticResource SettingsLabelStyle}" />
+            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,12,12"
                      Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Margin="0,0,0,12"
+            <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Margin="0,0,0,12"
                     Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
 
-            <!-- Row 2: Patch File Name -->
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Patch File Name:" Style="{StaticResource SettingsLabelStyle}" />
-            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,12,12"
+            <!-- Row 3: Patch File Name -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Patch File Name:" Style="{StaticResource SettingsLabelStyle}" />
+            <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,12,12"
                      Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
+            <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
                        Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" Margin="0,0,0,12" />
 
-            <!-- Row 3: Detection -->
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Detection:" Style="{StaticResource SettingsLabelStyle}" />
-            <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+            <!-- Row 4: Detection -->
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Detection:" Style="{StaticResource SettingsLabelStyle}" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
                        Text="{Binding Settings.DetectionSource}"
-                       FontStyle="Italic" Foreground="Green" VerticalAlignment="Center" Margin="0,0,0,12" />
+                       FontStyle="Italic" VerticalAlignment="Center" Margin="0,0,0,12">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="Green" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Settings.DetectionFailed}" Value="True">
+                                <Setter Property="Foreground" Value="Red" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
 
-            <!-- Row 4: Data Cache -->
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Data Cache:" Style="{StaticResource SettingsLabelStyle}" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Settings.CacheStatus}"
+            <!-- Row 5: Data Cache -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Data Cache:" Style="{StaticResource SettingsLabelStyle}" />
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Settings.CacheStatus}"
                        Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" Margin="0,0,0,12" />
-            <Button Grid.Row="4" Grid.Column="2" Content="Clear Cache"
+            <Button Grid.Row="5" Grid.Column="2" Content="Clear Cache"
                     Command="{Binding Settings.ClearCacheCommand}"
                     IsEnabled="{Binding Settings.HasCache}" MinWidth="80" Margin="0,0,0,12" />
 
-            <!-- Row 5: Theme -->
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Theme:" Style="{StaticResource SettingsLabelStyle}" />
-            <ComboBox Grid.Row="5" Grid.Column="1"
+            <!-- Row 6: Theme -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Theme:" Style="{StaticResource SettingsLabelStyle}" />
+            <ComboBox Grid.Row="6" Grid.Column="1"
                       ItemsSource="{Binding Settings.ThemeOptions}"
                       SelectedItem="{Binding Settings.SelectedTheme}"
                       Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 6: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
+            <!-- Row 7: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
                        Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="6" Grid.Column="1" Content="Restart Tutorial"
+            <Button Grid.Row="7" Grid.Column="1" Content="Restart Tutorial"
                     Command="{Binding Settings.RestartTutorialCommand}"
                     HorizontalAlignment="Left" MinWidth="120"
                     Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
