@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Boutique.Models;
 using Boutique.Services;
+using Boutique.Utilities;
 using Microsoft.Win32;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -154,8 +155,7 @@ public class SettingsViewModel : ReactiveObject
             return path ?? "";
 
         // Check if the current path has plugins
-        var hasPlugins = Directory.EnumerateFiles(path, "*.esp").Any() ||
-                         Directory.EnumerateFiles(path, "*.esm").Any();
+        var hasPlugins = PathUtilities.HasPluginFiles(path);
 
         if (hasPlugins)
             return path;
@@ -165,8 +165,7 @@ public class SettingsViewModel : ReactiveObject
         var dataSubfolder = Path.Combine(path, "Data");
         if (Directory.Exists(dataSubfolder))
         {
-            var subfolderHasPlugins = Directory.EnumerateFiles(dataSubfolder, "*.esp").Any() ||
-                                      Directory.EnumerateFiles(dataSubfolder, "*.esm").Any();
+            var subfolderHasPlugins = PathUtilities.HasPluginFiles(dataSubfolder);
             if (subfolderHasPlugins)
             {
                 Log.Information("Auto-corrected data path: {Original} -> {Corrected} (found Data subfolder with plugins)",

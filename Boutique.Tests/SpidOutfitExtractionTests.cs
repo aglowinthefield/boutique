@@ -1,4 +1,5 @@
 using Boutique.Services;
+using Boutique.Utilities;
 using Xunit;
 
 namespace Boutique.Tests;
@@ -198,7 +199,7 @@ public class SpidOutfitExtractionTests
     [InlineData("ActorTypeNPC", false)]
     public void IsModKeyFileName_VariousInputs_ReturnsCorrectly(string input, bool expected)
     {
-        var result = DistributionDiscoveryService.IsModKeyFileName(input);
+        var result = FormKeyHelper.IsModKeyFileName(input);
         Assert.Equal(expected, result);
     }
 
@@ -216,7 +217,7 @@ public class SpidOutfitExtractionTests
     [InlineData("", false)]
     public void LooksLikeFormId_VariousInputs_ReturnsCorrectly(string input, bool expected)
     {
-        var result = DistributionDiscoveryService.LooksLikeFormId(input);
+        var result = FormKeyHelper.LooksLikeFormId(input);
         Assert.Equal(expected, result);
     }
 

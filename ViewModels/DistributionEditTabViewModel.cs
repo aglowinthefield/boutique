@@ -853,7 +853,7 @@ public class DistributionEditTabViewModel : ReactiveObject
         var dataPath = _settings.SkyrimDataPath;
         if (!string.IsNullOrWhiteSpace(dataPath) && Directory.Exists(dataPath))
         {
-            var defaultDir = Path.Combine(dataPath, "skse", "plugins", "SkyPatcher", "npc");
+            var defaultDir = PathUtilities.GetSkyPatcherNpcPath(dataPath);
             if (Directory.Exists(defaultDir))
             {
                 dialog.InitialDirectory = defaultDir;
@@ -981,7 +981,7 @@ public class DistributionEditTabViewModel : ReactiveObject
         else
         {
             // SkyPatcher files go in skse/plugins/SkyPatcher/npc/
-            return Path.Combine(dataPath, "skse", "plugins", "SkyPatcher", "npc", $"{baseName}.ini");
+            return Path.Combine(PathUtilities.GetSkyPatcherNpcPath(dataPath), $"{baseName}.ini");
         }
     }
 

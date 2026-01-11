@@ -1,6 +1,7 @@
 using System.IO;
 using System.Numerics;
 using Boutique.Models;
+using Boutique.Utilities;
 using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -116,7 +117,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
         // Always add baseline body mesh
         var bodyRelative = GetBodyRelativePath(gender);
-        var bodyAssetKey = NormalizeAssetPath(bodyRelative);
+        var bodyAssetKey = PathUtilities.NormalizeAssetPath(bodyRelative);
         var bodyPath = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
         if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
         {
@@ -164,7 +165,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                     continue;
                 }
 
-                var meshAssetKey = NormalizeAssetPath(modelPath);
+                var meshAssetKey = PathUtilities.NormalizeAssetPath(modelPath);
                 var fullPath = assetLocator.ResolveAssetPath(meshAssetKey, addon.FormKey.ModKey);
                 if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
                 {
@@ -572,7 +573,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 return candidate;
             }
 
-            var normalized = NormalizeAssetPath(candidate);
+            var normalized = PathUtilities.NormalizeAssetPath(candidate);
             var resolved = assetLocator.ResolveAssetPath(normalized, ownerModKey);
             if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
             {
@@ -680,27 +681,19 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var file = model.File;
 
         if (!string.IsNullOrWhiteSpace(file.DataRelativePath.Path))
-            return NormalizeAssetPath(file.DataRelativePath.Path);
+            return PathUtilities.NormalizeAssetPath(file.DataRelativePath.Path);
 
-        return !string.IsNullOrWhiteSpace(file.GivenPath) ? NormalizeAssetPath(file.GivenPath) : null;
+        return !string.IsNullOrWhiteSpace(file.GivenPath) ? PathUtilities.NormalizeAssetPath(file.GivenPath) : null;
     }
 
     private static string GetBodyRelativePath(GenderedModelVariant gender) => gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
-
-    private static string NormalizeAssetPath(string path)
-    {
-        var normalized = path.Replace('\\', '/').Trim();
-        while ("/".StartsWith(normalized, StringComparison.OrdinalIgnoreCase))
-            normalized = normalized[1..];
-        return normalized;
-    }
 
     private static string FormatExpectedPath(string dataPath, string assetKey)
     {
         if (Path.IsPathRooted(assetKey))
             return assetKey;
 
-        var systemRelative = assetKey.Replace('/', Path.DirectorySeparatorChar);
+        var systemRelative = PathUtilities.ToSystemPath(assetKey);
         return Path.Combine(dataPath, systemRelative);
     }
 

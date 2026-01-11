@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Text;
+using Boutique.Utilities;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Archives;
 using Mutagen.Bethesda.Plugins;
@@ -55,7 +56,7 @@ public class GameAssetLocator
         if (Path.IsPathRooted(relativePath))
             return File.Exists(relativePath) ? relativePath : null;
 
-        var normalized = NormalizeAssetPath(relativePath);
+        var normalized = PathUtilities.NormalizeAssetPath(relativePath);
         var dataPath = _mutagenService.DataFolderPath;
 
         if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
@@ -70,7 +71,7 @@ public class GameAssetLocator
         if (_extractedAssets.TryGetValue(normalized, out var cached) && File.Exists(cached))
             return cached;
 
-        var systemRelative = ToSystemPath(normalized);
+        var systemRelative = PathUtilities.ToSystemPath(normalized);
         var looseCandidate = Path.Combine(dataPath, systemRelative);
 
         if (File.Exists(looseCandidate))
@@ -229,7 +230,7 @@ public class GameAssetLocator
 
     private string? ExtractFile(string assetKey, IArchiveFile file)
     {
-        var targetPath = Path.Combine(_extractionRoot, ToSystemPath(assetKey));
+        var targetPath = Path.Combine(_extractionRoot, PathUtilities.ToSystemPath(assetKey));
         var directory = Path.GetDirectoryName(targetPath);
 
         if (!string.IsNullOrWhiteSpace(directory))
@@ -267,16 +268,6 @@ public class GameAssetLocator
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
     }
-
-    private static string NormalizeAssetPath(string path)
-    {
-        var normalized = path.Replace('\\', '/').Trim();
-        while (normalized.StartsWith('/'))
-            normalized = normalized[1..];
-        return normalized;
-    }
-
-    private static string ToSystemPath(string normalized) => normalized.Replace('/', Path.DirectorySeparatorChar);
 
     private static string ComputePathHash(string dataPath)
     {
@@ -320,7 +311,7 @@ public class GameAssetLocator
                     if (string.IsNullOrWhiteSpace(path))
                         continue;
 
-                    var key = NormalizeAssetPath(path);
+                    var key = PathUtilities.NormalizeAssetPath(path);
                     dict[key] = file;
                 }
             }

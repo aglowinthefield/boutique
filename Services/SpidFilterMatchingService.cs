@@ -1,4 +1,5 @@
 using Boutique.Models;
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
@@ -183,7 +184,7 @@ public class SpidFilterMatchingService
     private static bool MatchesFormValue(NpcFilterData npc, string value)
     {
         // Check if it's a plugin filter (ends with .esp/.esm/.esl)
-        if (IsPluginFilter(value))
+        if (FormKeyHelper.IsModKeyFileName(value))
         {
             return string.Equals(npc.SourceMod.FileName, value, StringComparison.OrdinalIgnoreCase);
         }
@@ -271,13 +272,6 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    private static bool IsPluginFilter(string value)
-    {
-        return value.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
-               value.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
-               value.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static bool TryParseAsFormKey(string value, out FormKey formKey)
     {
         formKey = FormKey.Null;
@@ -285,45 +279,12 @@ public class SpidFilterMatchingService
         if (string.IsNullOrWhiteSpace(value))
             return false;
 
-        // Try to parse as FormKey directly
+        // Try Mutagen's built-in parser first
         if (FormKey.TryFactory(value, out formKey))
             return true;
 
-        // Try ModKey|FormID format
-        var pipeIndex = value.IndexOf('|');
-        if (pipeIndex > 0)
-        {
-            var modPart = value[..pipeIndex];
-            var formIdPart = value[(pipeIndex + 1)..];
-
-            if (ModKey.TryFromNameAndExtension(modPart, out var modKey))
-            {
-                formIdPart = formIdPart.Replace("0x", "").Replace("0X", "");
-                if (uint.TryParse(formIdPart, System.Globalization.NumberStyles.HexNumber, null, out var formId))
-                {
-                    formKey = new FormKey(modKey, formId);
-                    return true;
-                }
-            }
-        }
-
-        // Try 0x12345~Plugin.esp format
-        var tildeIndex = value.IndexOf('~');
-        if (tildeIndex > 0)
-        {
-            var formIdPart = value[..tildeIndex];
-            var modPart = value[(tildeIndex + 1)..];
-
-            formIdPart = formIdPart.Replace("0x", "").Replace("0X", "");
-            if (uint.TryParse(formIdPart, System.Globalization.NumberStyles.HexNumber, null, out var formId) &&
-                ModKey.TryFromNameAndExtension(modPart, out var modKey))
-            {
-                formKey = new FormKey(modKey, formId);
-                return true;
-            }
-        }
-
-        return false;
+        // Fall back to our helper which handles pipe and tilde formats
+        return FormKeyHelper.TryParse(value, out formKey);
     }
 
     private static bool MatchesLevelFilters(NpcFilterData npc, string? levelFilters)

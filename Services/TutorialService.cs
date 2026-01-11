@@ -1,4 +1,5 @@
 using System.IO;
+using Boutique.Utilities;
 using GuideLine.Core;
 using GuideLine.Core.Elements;
 using GuideLine.WPF.View;
@@ -8,8 +9,7 @@ namespace Boutique.Services;
 
 public class TutorialService
 {
-    private static readonly string SettingsDirectory =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Boutique");
+    private static readonly string SettingsDirectory = PathUtilities.GetBoutiqueAppDataPath();
     private static readonly string TutorialCompletedFile = Path.Combine(SettingsDirectory, ".tutorial_completed");
 
     private readonly ILogger _logger;

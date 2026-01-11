@@ -170,26 +170,6 @@ public static class DistributionLineParser
         return null;
     }
 
-    private static FormKey? TryParseFormKey(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return null;
-
-        var trimmed = text.Trim();
-        var pipeIndex = trimmed.IndexOf('|');
-        if (pipeIndex < 0)
-            return null;
-
-        var modKeyString = trimmed[..pipeIndex].Trim();
-        var formIdString = trimmed[(pipeIndex + 1)..].Trim();
-
-        if (!ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
-            return null;
-
-        formIdString = formIdString.Replace("0x", "").Replace("0X", "");
-        if (!uint.TryParse(formIdString, System.Globalization.NumberStyles.HexNumber, null, out var formId))
-            return null;
-
-        return new FormKey(modKey, formId);
-    }
+    private static FormKey? TryParseFormKey(string text) =>
+        FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
 }

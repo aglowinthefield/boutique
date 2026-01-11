@@ -1,15 +1,14 @@
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using Boutique.Models;
+using Boutique.Utilities;
 using Serilog;
 
 namespace Boutique.Services;
 
 public class DistributionDiscoveryService(ILogger logger)
 {
-    private static readonly SearchValues<char> CommentChars = SearchValues.Create([';', '#']);
     private readonly ILogger _logger = logger.ForContext<DistributionDiscoveryService>();
 
     public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(string dataFolderPath,
@@ -60,7 +59,7 @@ public class DistributionDiscoveryService(ILogger logger)
 
             _logger.Debug("Found {Count} SPID distribution files (*_DISTR.ini)", spidFileCount);
 
-            var skyPatcherRoot = Path.Combine(dataFolderPath, "skse", "plugins", "SkyPatcher");
+            var skyPatcherRoot = PathUtilities.GetSkyPatcherRoot(dataFolderPath);
             if (Directory.Exists(skyPatcherRoot))
             {
                 _logger.Debug("SkyPatcher directory exists: {Path}", skyPatcherRoot);
@@ -317,7 +316,7 @@ public class DistributionDiscoveryService(ILogger logger)
         if (string.IsNullOrWhiteSpace(token))
             return string.Empty;
 
-        var cleaned = RemoveInlineComment(token);
+        var cleaned = StringUtilities.RemoveInlineComment(token);
         if (string.IsNullOrWhiteSpace(cleaned))
             return string.Empty;
 
@@ -330,11 +329,11 @@ public class DistributionDiscoveryService(ILogger logger)
             if (pipeAfterMod >= 0)
             {
                 var modPart = afterTilde[..pipeAfterMod];
-                if (IsModKeyFileName(modPart))
+                if (FormKeyHelper.IsModKeyFileName(modPart))
                     return cleaned[..(tildeIndex + 1 + pipeAfterMod)];
             }
 
-            var endOfModKey = FindEndOfModKey(afterTilde);
+            var endOfModKey = FormKeyHelper.FindModKeyEnd(afterTilde);
             if (endOfModKey > 0)
                 return cleaned[..(tildeIndex + 1 + endOfModKey)];
 
@@ -346,7 +345,7 @@ public class DistributionDiscoveryService(ILogger logger)
         {
             var firstPart = cleaned[..pipeIndex];
 
-            if (IsModKeyFileName(firstPart))
+            if (FormKeyHelper.IsModKeyFileName(firstPart))
             {
                 var afterFirstPipe = cleaned[(pipeIndex + 1)..];
                 var secondPipe = afterFirstPipe.IndexOf('|');
@@ -354,7 +353,7 @@ public class DistributionDiscoveryService(ILogger logger)
                 if (secondPipe >= 0)
                 {
                     var potentialFormId = afterFirstPipe[..secondPipe];
-                    if (LooksLikeFormId(potentialFormId))
+                    if (FormKeyHelper.LooksLikeFormId(potentialFormId))
                         return cleaned[..(pipeIndex + 1 + secondPipe)];
                 }
                 else
@@ -369,39 +368,6 @@ public class DistributionDiscoveryService(ILogger logger)
         return cleaned;
     }
 
-    internal static bool IsModKeyFileName(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
-               text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
-               text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static int FindEndOfModKey(string text)
-    {
-        var extensions = new[] { ".esp", ".esm", ".esl" };
-        foreach (var ext in extensions)
-        {
-            var idx = text.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
-            if (idx >= 0)
-                return idx + ext.Length;
-        }
-        return -1;
-    }
-
-    internal static bool LooksLikeFormId(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        var trimmed = text.Trim();
-        if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            trimmed = trimmed[2..];
-
-        return trimmed.Length >= 1 && trimmed.Length <= 8 && trimmed.All(char.IsAsciiHexDigit);
-    }
 
     internal static IReadOnlyList<string> ExtractSkyPatcherOutfitKeys(string trimmed)
     {
@@ -460,7 +426,7 @@ public class DistributionDiscoveryService(ILogger logger)
         if (string.IsNullOrWhiteSpace(token))
             return false;
 
-        var cleaned = RemoveInlineComment(token.Trim());
+        var cleaned = StringUtilities.RemoveInlineComment(token.Trim());
         if (string.IsNullOrWhiteSpace(cleaned))
             return false;
 
@@ -514,12 +480,4 @@ public class DistributionDiscoveryService(ILogger logger)
         return !string.IsNullOrEmpty(modPart) && !string.IsNullOrEmpty(formIdPart);
     }
 
-    private static string RemoveInlineComment(string text)
-    {
-        var commentIndex = text.AsSpan().IndexOfAny(CommentChars);
-        if (commentIndex >= 0)
-            text = text[..commentIndex];
-
-        return text.Trim();
-    }
 }

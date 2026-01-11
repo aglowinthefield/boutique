@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO;
+using Boutique.Utilities;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Environments;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -54,9 +55,7 @@ public class MutagenService(ILoggingService loggingService)
             // Determine if we should use explicit path or auto-detection
             // Use explicit path if: it's set, exists, and contains plugin files
             var useExplicitPath = !string.IsNullOrWhiteSpace(dataFolderPath) &&
-                                  Directory.Exists(dataFolderPath) &&
-                                  (Directory.EnumerateFiles(dataFolderPath, "*.esm").Any() ||
-                                   Directory.EnumerateFiles(dataFolderPath, "*.esp").Any());
+                                  PathUtilities.HasPluginFiles(dataFolderPath);
 
             if (useExplicitPath)
             {
@@ -133,9 +132,7 @@ public class MutagenService(ILoggingService loggingService)
             if (string.IsNullOrEmpty(DataFolderPath))
                 return Enumerable.Empty<string>();
 
-            var pluginFiles = Directory.GetFiles(DataFolderPath, "*.esp")
-                .Concat(Directory.GetFiles(DataFolderPath, "*.esm"))
-                .Concat(Directory.GetFiles(DataFolderPath, "*.esl"))
+            var pluginFiles = PathUtilities.EnumeratePluginFiles(DataFolderPath)
                 .OrderBy(Path.GetFileName)
                 .ToList();
 
@@ -240,9 +237,7 @@ public class MutagenService(ILoggingService loggingService)
             _environment?.Dispose();
 
             // Use explicit path if it exists and has plugins, otherwise auto-detect
-            var useExplicitPath = Directory.Exists(DataFolderPath) &&
-                                  (Directory.EnumerateFiles(DataFolderPath, "*.esm").Any() ||
-                                   Directory.EnumerateFiles(DataFolderPath, "*.esp").Any());
+            var useExplicitPath = PathUtilities.HasPluginFiles(DataFolderPath);
 
             if (useExplicitPath)
             {

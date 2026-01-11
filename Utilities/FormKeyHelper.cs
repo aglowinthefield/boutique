@@ -6,7 +6,51 @@ namespace Boutique.Utilities;
 
 public static class FormKeyHelper
 {
+    private static readonly string[] ModKeyExtensions = [".esp", ".esm", ".esl"];
+
     public static string Format(FormKey formKey) => $"{formKey.ModKey.FileName}|{formKey.ID:X8}";
+
+    public static bool IsModKeyFileName(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
+               text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
+               text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool LooksLikeFormId(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        var trimmed = text.Trim();
+        if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            trimmed = trimmed[2..];
+
+        return trimmed.Length >= 1 && trimmed.Length <= 8 && trimmed.All(char.IsAsciiHexDigit);
+    }
+
+    public static int FindModKeyEnd(string text)
+    {
+        foreach (var ext in ModKeyExtensions)
+        {
+            var idx = text.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+                return idx + ext.Length;
+        }
+        return -1;
+    }
+
+    public static string StripHexPrefix(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text ?? "";
+
+        var trimmed = text.Trim();
+        return trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? trimmed[2..] : trimmed;
+    }
 
     public static bool TryParse(string text, out FormKey formKey)
     {

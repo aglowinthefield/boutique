@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Boutique.Models;
+using Boutique.Utilities;
 using MessagePack;
 using Serilog;
 
@@ -18,8 +19,7 @@ public class CrossSessionCacheService
     {
         _logger = logger.ForContext<CrossSessionCacheService>();
 
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        _cacheDirectory = Path.Combine(localAppData, "Boutique", "cache");
+        _cacheDirectory = Path.Combine(PathUtilities.GetBoutiqueAppDataPath(), "cache");
     }
 
     public string CacheFilePath => Path.Combine(_cacheDirectory, CacheFileName);
@@ -203,7 +203,7 @@ public class CrossSessionCacheService
                 sb.Append(pluginsFileInfo.LastWriteTimeUtc.Ticks);
             }
 
-            var pluginFiles = GetPluginFiles(dataPath);
+            var pluginFiles = PathUtilities.EnumeratePluginFiles(dataPath);
             foreach (var plugin in pluginFiles.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).Take(100))
             {
                 sb.Append(Path.GetFileName(plugin));
@@ -237,7 +237,7 @@ public class CrossSessionCacheService
                 AppendFileSignature(sb, file);
             }
 
-            var skyPatcherRoot = Path.Combine(dataPath, "skse", "plugins", "SkyPatcher");
+            var skyPatcherRoot = PathUtilities.GetSkyPatcherRoot(dataPath);
             if (Directory.Exists(skyPatcherRoot))
             {
                 var skyPatcherFiles = Directory.EnumerateFiles(skyPatcherRoot, "*.ini*", SearchOption.AllDirectories);
@@ -266,28 +266,6 @@ public class CrossSessionCacheService
             sb.Append(info.Length);
         }
         catch { }
-    }
-
-    private static IEnumerable<string> GetPluginFiles(string dataPath)
-    {
-        var extensions = new[] { "*.esp", "*.esm", "*.esl" };
-        foreach (var ext in extensions)
-        {
-            IEnumerable<string> files;
-            try
-            {
-                files = Directory.EnumerateFiles(dataPath, ext, SearchOption.TopDirectoryOnly);
-            }
-            catch
-            {
-                continue;
-            }
-
-            foreach (var file in files)
-            {
-                yield return file;
-            }
-        }
     }
 
     private static string ComputeHash(string input)

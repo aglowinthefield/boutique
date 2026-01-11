@@ -84,7 +84,7 @@ public static class SpidFilterResolver
             var formIdString = outfitIdentifier[..tildeIndex].Trim();
             var modKeyString = outfitIdentifier[(tildeIndex + 1)..].Trim();
 
-            formIdString = formIdString.Replace("0x", "").Replace("0X", "");
+            formIdString = FormKeyHelper.StripHexPrefix(formIdString);
             if (uint.TryParse(formIdString, NumberStyles.HexNumber, null, out var formId) &&
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {
@@ -105,7 +105,7 @@ public static class SpidFilterResolver
             var modKeyString = outfitIdentifier[..pipeIndex].Trim();
             var formIdString = outfitIdentifier[(pipeIndex + 1)..].Trim();
 
-            formIdString = formIdString.Replace("0x", "").Replace("0X", "");
+            formIdString = FormKeyHelper.StripHexPrefix(formIdString);
             if (uint.TryParse(formIdString, NumberStyles.HexNumber, null, out var formId) &&
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {

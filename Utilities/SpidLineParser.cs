@@ -32,7 +32,7 @@ public static class SpidLineParser
             return false;
 
         // Remove inline comments
-        valuePart = RemoveInlineComment(valuePart);
+        valuePart = StringUtilities.RemoveInlineComment(valuePart);
         if (string.IsNullOrWhiteSpace(valuePart))
             return false;
 
@@ -83,7 +83,7 @@ public static class SpidLineParser
         {
             // Format: FormID~ModKey|filters
             var afterTilde = valuePart[(tildeIndex + 1)..];
-            var modEndIndex = FindModKeyEnd(afterTilde);
+            var modEndIndex = FormKeyHelper.FindModKeyEnd(afterTilde);
 
             if (modEndIndex > 0)
             {
@@ -102,7 +102,7 @@ public static class SpidLineParser
             var firstPart = valuePart[..firstPipe];
 
             // If first part is a mod key
-            if (IsModKeyFileName(firstPart))
+            if (FormKeyHelper.IsModKeyFileName(firstPart))
             {
                 var afterFirstPipe = valuePart[(firstPipe + 1)..];
                 var secondPipe = afterFirstPipe.IndexOf('|');
@@ -110,7 +110,7 @@ public static class SpidLineParser
                 if (secondPipe >= 0)
                 {
                     var potentialFormId = afterFirstPipe[..secondPipe];
-                    if (LooksLikeFormId(potentialFormId))
+                    if (FormKeyHelper.LooksLikeFormId(potentialFormId))
                     {
                         // This is ModKey|FormID|filters
                         var identifier = valuePart[..(firstPipe + 1 + secondPipe)];
@@ -121,7 +121,7 @@ public static class SpidLineParser
                 else
                 {
                     // Only one pipe: ModKey|FormID (no filters)
-                    if (LooksLikeFormId(afterFirstPipe))
+                    if (FormKeyHelper.LooksLikeFormId(afterFirstPipe))
                     {
                         return (valuePart, string.Empty);
                     }
@@ -136,40 +136,6 @@ public static class SpidLineParser
         return (valuePart, string.Empty);
     }
 
-    private static int FindModKeyEnd(string text)
-    {
-        var extensions = new[] { ".esp", ".esm", ".esl" };
-        foreach (var ext in extensions)
-        {
-            var idx = text.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
-            if (idx >= 0)
-                return idx + ext.Length;
-        }
-        return -1;
-    }
-
-    private static bool IsModKeyFileName(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
-               text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
-               text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool LooksLikeFormId(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return false;
-
-        var trimmed = text.Trim();
-        if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            trimmed = trimmed[2..];
-
-        return trimmed.Length >= 1 && trimmed.Length <= 8 &&
-               trimmed.All(char.IsAsciiHexDigit);
-    }
 
     private static string? GetSection(string[] sections, int index)
     {
@@ -315,15 +281,6 @@ public static class SpidLineParser
             return Math.Clamp(chance, 0, 100);
 
         return 100;
-    }
-
-    private static string RemoveInlineComment(string text)
-    {
-        var commentIndex = text.IndexOfAny([';', '#']);
-        if (commentIndex >= 0)
-            text = text[..commentIndex];
-
-        return text.Trim();
     }
 
     public static IReadOnlyList<string> GetSpecificNpcIdentifiers(SpidDistributionFilter filter)
