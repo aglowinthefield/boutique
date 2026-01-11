@@ -145,7 +145,7 @@ Boutique can generate both formats from the same filter configuration.
 
 This project uses the following libraries:
 
--   [Mutagen](https://github.com/Mutagen-Modding/Mutagen) - MIT License
+-   [Mutagen](https://github.com/Mutagen-Modding/Mutagen) - GPL3 License
 -   [ReactiveUI](https://github.com/reactiveui/ReactiveUI) - MIT License
 -   [Autofac](https://github.com/autofac/Autofac) - MIT License
 -   [NiflySharp](https://github.com/ousnius/NiflySharp) - For NIF mesh reading
