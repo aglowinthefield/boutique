@@ -4,6 +4,7 @@ using Boutique.Models;
 using Boutique.Utilities;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Environments;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
@@ -306,4 +307,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         _environment = null;
         LinkCache = null;
     }
+
+    public HashSet<ModKey> GetLoadOrderModKeys() =>
+        _environment?.LoadOrder
+            .Select(entry => entry.Key)
+            .ToHashSet() ?? [];
 }

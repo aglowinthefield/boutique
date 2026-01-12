@@ -405,15 +405,18 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             try
             {
                 using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath, SkyrimRelease.SkyrimSE);
-                var dataFolder = Path.GetDirectoryName(patchPath) ?? string.Empty;
 
+                var loadOrderModKeys = mutagenService.GetLoadOrderModKeys();
                 var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
                 var missingMasters = new List<ModKey>();
+                var patchModKey = patchMod.ModKey;
 
                 foreach (var master in masterRefs)
                 {
-                    var masterPath = Path.Combine(dataFolder, master.FileName);
-                    if (!File.Exists(masterPath))
+                    if (master == patchModKey)
+                        continue;
+
+                    if (!loadOrderModKeys.Contains(master))
                     {
                         missingMasters.Add(master);
                         _logger.Warning("Missing master detected: {Master}", master.FileName);
