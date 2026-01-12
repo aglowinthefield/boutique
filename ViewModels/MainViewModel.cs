@@ -32,6 +32,7 @@ public class MainViewModel : ReactiveObject
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = [];
     private readonly Subject<Unit> _autoSaveTrigger = new();
     private readonly List<string> _pendingOutfitDeletions = [];
+    private bool _suppressAutoSave;
     private readonly PatchingService _patchingService;
     private readonly ArmorPreviewService _previewService;
     private int _activeLoadingOperations;
@@ -82,7 +83,7 @@ public class MainViewModel : ReactiveObject
         _autoSaveTrigger
             .Throttle(TimeSpan.FromMilliseconds(1500))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Where(_ => HasOutfitDrafts && !IsCreatingOutfits)
+            .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
             .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
             .Subscribe();
 
@@ -633,67 +634,75 @@ public class MainViewModel : ReactiveObject
         var linkCache = _mutagenService.LinkCache;
         var loadedCount = 0;
 
-        foreach (var outfit in outfits)
+        _suppressAutoSave = true;
+        try
         {
-            if (outfit.FormKey.ModKey != targetModKey)
-                continue;
-
-            if (_outfitDrafts.Any(d => d.FormKey.HasValue && d.FormKey.Value == outfit.FormKey))
+            foreach (var outfit in outfits)
             {
-                _logger.Debug("Skipping outfit {EditorId} - already in drafts.", outfit.EditorID);
-                continue;
-            }
-
-            var itemLinks = outfit.Items ?? [];
-            var armorPieces = new List<IArmorGetter>();
-
-            foreach (var entry in itemLinks)
-            {
-                if (entry is null)
+                if (outfit.FormKey.ModKey != targetModKey)
                     continue;
 
-                var formKeyNullable = entry.FormKeyNullable;
-                if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                if (_outfitDrafts.Any(d => d.FormKey.HasValue && d.FormKey.Value == outfit.FormKey))
+                {
+                    _logger.Debug("Skipping outfit {EditorId} - already in drafts.", outfit.EditorID);
+                    continue;
+                }
+
+                var itemLinks = outfit.Items ?? [];
+                var armorPieces = new List<IArmorGetter>();
+
+                foreach (var entry in itemLinks)
+                {
+                    if (entry is null)
+                        continue;
+
+                    var formKeyNullable = entry.FormKeyNullable;
+                    if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                        continue;
+
+                    if (!linkCache.TryResolve<IItemGetter>(formKeyNullable.Value, out var item))
+                        continue;
+
+                    if (item is IArmorGetter armor)
+                        armorPieces.Add(armor);
+                }
+
+                var distinctPieces = armorPieces
+                    .GroupBy(p => p.FormKey)
+                    .Select(g => g.First())
+                    .ToList();
+
+                if (distinctPieces.Count == 0)
                     continue;
 
-                if (!linkCache.TryResolve<IItemGetter>(formKeyNullable.Value, out var item))
+                var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
+                var pieces = distinctPieces.Select(a => new ArmorRecordViewModel(a, linkCache)).ToList();
+
+                if (!ValidateOutfitPieces(pieces, out var validationMessage))
+                {
+                    _logger.Warning("Skipping outfit {EditorId} due to slot conflict: {Message}", editorId, validationMessage);
                     continue;
+                }
 
-                if (item is IArmorGetter armor)
-                    armorPieces.Add(armor);
+                var draft = new OutfitDraftViewModel(
+                    editorId,
+                    editorId,
+                    pieces,
+                    RemoveOutfitDraft,
+                    RemoveOutfitPiece,
+                    PreviewDraftAsync);
+
+                draft.FormKey = outfit.FormKey;
+                draft.PropertyChanged += OutfitDraftOnPropertyChanged;
+                _outfitDrafts.Add(draft);
+                loadedCount++;
+
+                _logger.Debug("Loaded existing outfit {EditorId} from output plugin {Plugin}.", editorId, outputPlugin);
             }
-
-            var distinctPieces = armorPieces
-                .GroupBy(p => p.FormKey)
-                .Select(g => g.First())
-                .ToList();
-
-            if (distinctPieces.Count == 0)
-                continue;
-
-            var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
-            var pieces = distinctPieces.Select(a => new ArmorRecordViewModel(a, linkCache)).ToList();
-
-            if (!ValidateOutfitPieces(pieces, out var validationMessage))
-            {
-                _logger.Warning("Skipping outfit {EditorId} due to slot conflict: {Message}", editorId, validationMessage);
-                continue;
-            }
-
-            var draft = new OutfitDraftViewModel(
-                editorId,
-                editorId,
-                pieces,
-                RemoveOutfitDraft,
-                RemoveOutfitPiece,
-                PreviewDraftAsync);
-
-            draft.FormKey = outfit.FormKey;
-            draft.PropertyChanged += OutfitDraftOnPropertyChanged;
-            _outfitDrafts.Add(draft);
-            loadedCount++;
-
-            _logger.Debug("Loaded existing outfit {EditorId} from output plugin {Plugin}.", editorId, outputPlugin);
+        }
+        finally
+        {
+            _suppressAutoSave = false;
         }
 
         if (loadedCount > 0)
@@ -1418,7 +1427,11 @@ public class MainViewModel : ReactiveObject
         TriggerAutoSave();
     }
 
-    private void TriggerAutoSave() => _autoSaveTrigger.OnNext(Unit.Default);
+    private void TriggerAutoSave()
+    {
+        if (!_suppressAutoSave)
+            _autoSaveTrigger.OnNext(Unit.Default);
+    }
 
     private void HandleOutfitDraftRename(OutfitDraftViewModel draft)
     {

@@ -348,7 +348,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         GC.WaitForPendingFinalizers();
 
         const int maxRetries = 10;
-        const int initialDelayMs = 50;
+        const int initialDelayMs = 100;
 
         for (var attempt = 1; attempt <= maxRetries; attempt++)
         {
@@ -357,11 +357,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 File.Move(tempPath, outputPath, overwrite: true);
                 return;
             }
-            catch (IOException) when (attempt < maxRetries)
+            catch (Exception ex) when ((ex is IOException or UnauthorizedAccessException) && attempt < maxRetries)
             {
                 var delay = initialDelayMs * attempt;
-                _logger.Debug("File replace attempt {Attempt}/{Max} failed, retrying in {Delay}ms...",
-                    attempt, maxRetries, delay);
+                _logger.Debug("File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
+                    attempt, maxRetries, ex.GetType().Name, delay);
                 Thread.Sleep(delay);
             }
         }
