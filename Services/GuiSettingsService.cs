@@ -9,9 +9,9 @@ public class GuiSettings
 {
     public bool IsFilePreviewExpanded { get; set; }
     public string? SkyrimDataPath { get; set; }
-    public string? OutputPatchPath { get; set; }
     public string? PatchFileName { get; set; }
     public SkyrimRelease SelectedSkyrimRelease { get; set; }
+    public string? LastDistributionFilePath { get; set; }
 }
 
 public class GuiSettingsService
@@ -56,18 +56,6 @@ public class GuiSettingsService
         }
     }
 
-    public string? OutputPatchPath
-    {
-        get => _settings.OutputPatchPath;
-        set
-        {
-            if (_settings.OutputPatchPath == value)
-                return;
-            _settings.OutputPatchPath = value;
-            SaveSettings();
-        }
-    }
-
     public string? PatchFileName
     {
         get => _settings.PatchFileName;
@@ -88,6 +76,18 @@ public class GuiSettingsService
             if (_settings.SelectedSkyrimRelease == value)
                 return;
             _settings.SelectedSkyrimRelease = value;
+            SaveSettings();
+        }
+    }
+
+    public string? LastDistributionFilePath
+    {
+        get => _settings.LastDistributionFilePath;
+        set
+        {
+            if (_settings.LastDistributionFilePath == value)
+                return;
+            _settings.LastDistributionFilePath = value;
             SaveSettings();
         }
     }

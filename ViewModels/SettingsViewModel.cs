@@ -55,7 +55,6 @@ public class SettingsViewModel : ReactiveObject
 
         var savedDataPath = !string.IsNullOrEmpty(guiSettings.SkyrimDataPath) ? guiSettings.SkyrimDataPath : settings.SkyrimDataPath;
         SkyrimDataPath = NormalizeDataPath(savedDataPath);
-        OutputPatchPath = !string.IsNullOrEmpty(guiSettings.OutputPatchPath) ? guiSettings.OutputPatchPath : settings.OutputPatchPath;
         PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName) ? guiSettings.PatchFileName : settings.PatchFileName;
         SelectedSkyrimRelease = guiSettings.SelectedSkyrimRelease != default ? guiSettings.SelectedSkyrimRelease : settings.SelectedSkyrimRelease;
         _settings.SelectedSkyrimRelease = SelectedSkyrimRelease;
@@ -77,14 +76,6 @@ public class SettingsViewModel : ReactiveObject
                     _cacheService.InvalidateCache();
                     RefreshCacheStatus();
                 }
-            });
-
-        this.WhenAnyValue(x => x.OutputPatchPath)
-            .Skip(1)
-            .Subscribe(v =>
-            {
-                _settings.OutputPatchPath = v;
-                _guiSettings.OutputPatchPath = v;
             });
 
         this.WhenAnyValue(x => x.PatchFileName)
@@ -112,7 +103,6 @@ public class SettingsViewModel : ReactiveObject
             });
 
         BrowseDataPathCommand = new RelayCommand(BrowseDataPath);
-        BrowseOutputPathCommand = new RelayCommand(BrowseOutputPath);
         AutoDetectPathCommand = new RelayCommand(AutoDetectPath);
         ClearCacheCommand = new RelayCommand(ClearCache);
         RestartTutorialCommand = new RelayCommand(RestartTutorial);
@@ -127,7 +117,6 @@ public class SettingsViewModel : ReactiveObject
     [Reactive] public string DetectionSource { get; set; } = "";
     [Reactive] public bool DetectionFailed { get; set; }
     [Reactive] public string SkyrimDataPath { get; set; } = "";
-    [Reactive] public string OutputPatchPath { get; set; } = "";
     [Reactive] public string PatchFileName { get; set; } = "";
     [Reactive] public string CacheStatus { get; set; } = "No cache";
     [Reactive] public bool HasCache { get; set; }
@@ -142,10 +131,9 @@ public class SettingsViewModel : ReactiveObject
     };
     public IReadOnlyList<ThemeOption> ThemeOptions { get; } = Enum.GetValues<ThemeOption>();
 
-    public string FullOutputPath => Path.Combine(OutputPatchPath, PatchFileName);
+    public string FullOutputPath => Path.Combine(SkyrimDataPath, PatchFileName);
 
     public ICommand BrowseDataPathCommand { get; }
-    public ICommand BrowseOutputPathCommand { get; }
     public ICommand AutoDetectPathCommand { get; }
     public ICommand ClearCacheCommand { get; }
     public ICommand RestartTutorialCommand { get; }
@@ -201,25 +189,6 @@ public class SettingsViewModel : ReactiveObject
         return path;
     }
 
-    private void BrowseOutputPath()
-    {
-        var dialog = new OpenFileDialog
-        {
-            Title = "Select Output Folder",
-            FileName = "Select Folder",
-            Filter = "Folder|*.none",
-            CheckFileExists = false,
-            CheckPathExists = true
-        };
-
-        if (dialog.ShowDialog() == true)
-        {
-            var folder = Path.GetDirectoryName(dialog.FileName);
-            if (!string.IsNullOrEmpty(folder))
-                OutputPatchPath = folder;
-        }
-    }
-
     private void AutoDetectPath()
     {
         // Try various MO2 environment variables - different MO2 versions/configs set different ones
@@ -227,7 +196,6 @@ public class SettingsViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(mo2DataPath) && Directory.Exists(mo2DataPath))
         {
             SkyrimDataPath = mo2DataPath;
-            OutputPatchPath = mo2DataPath;
             IsRunningFromMO2 = true;
             DetectionSource = "Detected from Mod Organizer 2 (MO_DATAPATH)";
             DetectionFailed = false;
@@ -241,7 +209,6 @@ public class SettingsViewModel : ReactiveObject
             if (Directory.Exists(dataPath))
             {
                 SkyrimDataPath = dataPath;
-                OutputPatchPath = dataPath;
                 IsRunningFromMO2 = true;
                 DetectionSource = "Detected from Mod Organizer 2 (MO_GAMEPATH)";
                 DetectionFailed = false;
@@ -254,7 +221,6 @@ public class SettingsViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(mo2VirtualPath) && Directory.Exists(mo2VirtualPath))
         {
             SkyrimDataPath = mo2VirtualPath;
-            OutputPatchPath = mo2VirtualPath;
             IsRunningFromMO2 = true;
             DetectionSource = "Detected from Mod Organizer 2 (VIRTUAL_STORE)";
             DetectionFailed = false;
@@ -293,7 +259,6 @@ public class SettingsViewModel : ReactiveObject
         if (GameLocations.TryGetDataFolder(gameRelease, out var dataFolder))
         {
             SkyrimDataPath = dataFolder.Path;
-            OutputPatchPath = dataFolder.Path;
             IsRunningFromMO2 = false;
             DetectionSource = $"Detected {gameName} using Mutagen";
             DetectionFailed = false;

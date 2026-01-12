@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:util="clr-namespace:Boutique.Utilities"
+             xmlns:controls="clr-namespace:Boutique.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionNpcsTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600"
@@ -82,40 +83,32 @@
                     <!-- Faction Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Faction:" Style="{StaticResource LabelTextStyle}" />
-                        <ComboBox ItemsSource="{Binding AvailableFactions}" SelectedItem="{Binding SelectedFaction}"
-                                  DisplayMemberPath="DisplayName" MinWidth="150"
-                                  IsEditable="True" IsTextSearchEnabled="False"
-                                  util:FilterableComboBoxBehavior.FilterPath="DisplayName"
+                        <controls:FilterableSelector ItemsSource="{Binding AvailableFactions}" SelectedItem="{Binding SelectedFaction}"
+                                  DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="150"
                                   ToolTip="Filter by faction membership (SPID FormFilter)" />
                     </StackPanel>
 
                     <!-- Race Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Race:" Style="{StaticResource LabelTextStyle}" />
-                        <ComboBox ItemsSource="{Binding AvailableRaces}" SelectedItem="{Binding SelectedRace}"
-                                  DisplayMemberPath="DisplayName" MinWidth="120"
-                                  IsEditable="True" IsTextSearchEnabled="False"
-                                  util:FilterableComboBoxBehavior.FilterPath="DisplayName"
+                        <controls:FilterableSelector ItemsSource="{Binding AvailableRaces}" SelectedItem="{Binding SelectedRace}"
+                                  DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="120"
                                   ToolTip="Filter by race (SPID FormFilter)" />
                     </StackPanel>
 
                     <!-- Class Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Class:" Style="{StaticResource LabelTextStyle}" />
-                        <ComboBox ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClass}"
-                                  DisplayMemberPath="DisplayName" MinWidth="130"
-                                  IsEditable="True" IsTextSearchEnabled="False"
-                                  util:FilterableComboBoxBehavior.FilterPath="DisplayName"
+                        <controls:FilterableSelector ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClass}"
+                                  DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="130"
                                   ToolTip="Filter by NPC class (SPID FormFilter)" />
                     </StackPanel>
 
                     <!-- Keyword Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
                         <TextBlock Text="Keyword:" Style="{StaticResource LabelTextStyle}" />
-                        <ComboBox ItemsSource="{Binding AvailableKeywords}" SelectedItem="{Binding SelectedKeyword}"
-                                  DisplayMemberPath="DisplayName" MinWidth="140"
-                                  IsEditable="True" IsTextSearchEnabled="False"
-                                  util:FilterableComboBoxBehavior.FilterPath="DisplayName"
+                        <controls:FilterableSelector ItemsSource="{Binding AvailableKeywords}" SelectedItem="{Binding SelectedKeyword}"
+                                  DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="140"
                                   ToolTip="Filter by keyword (SPID StringFilter)" />
                     </StackPanel>
 

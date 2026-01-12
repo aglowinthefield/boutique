@@ -239,9 +239,17 @@
             <TextBlock Grid.Column="0"
                        Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} outfit(s) queued'}"
                        VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Save Outfits" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
+            <Button Grid.Column="1" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
                     Style="{StaticResource PrimaryButtonStyle}"
-                    IsEnabled="{Binding HasOutfitDrafts}" />
+                    IsEnabled="{Binding HasOutfitDrafts}">
+                <Grid>
+                    <TextBlock Text="Save Outfits" Visibility="{Binding IsCreatingOutfits, Converter={StaticResource InverseBoolToVisConverter}}" />
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsCreatingOutfits, Converter={StaticResource BoolToVisConverter}}">
+                        <TextBlock Text="Saving..." Margin="0,0,8,0" />
+                        <ProgressBar IsIndeterminate="True" Width="60" Height="12" />
+                    </StackPanel>
+                </Grid>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

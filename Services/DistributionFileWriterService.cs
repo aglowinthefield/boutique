@@ -157,45 +157,57 @@ public class DistributionFileWriterService
         string filePath,
         CancellationToken cancellationToken = default)
     {
+        var (entries, detectedFormat, _) = await LoadDistributionFileWithErrorsAsync(filePath, cancellationToken);
+        return (entries, detectedFormat);
+    }
+
+    public async Task<(IReadOnlyList<DistributionEntry> Entries, DistributionFileType DetectedFormat, IReadOnlyList<DistributionParseError> ParseErrors)> LoadDistributionFileWithErrorsAsync(
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
         return await Task.Run(() =>
         {
             var entries = new List<DistributionEntry>();
+            var parseErrors = new List<DistributionParseError>();
             var hasSpidLines = false;
             DistributionFileType detectedFormat = DistributionFileType.SkyPatcher;
 
             if (!File.Exists(filePath))
             {
                 _logger.Warning("Distribution file does not exist: {FilePath}", filePath);
-                return (entries, detectedFormat);
+                return (entries, detectedFormat, parseErrors);
             }
 
             if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
                 _logger.Warning("LinkCache not available. Cannot load distribution file.");
-                return (entries, detectedFormat);
+                return (entries, detectedFormat, parseErrors);
             }
 
             try
             {
                 var lines = File.ReadAllLines(filePath, Encoding.UTF8);
 
-                // Pre-cache NPCs and Outfits for SPID parsing (only if we have SPID lines)
                 List<INpcGetter>? cachedNpcs = null;
                 List<IOutfitGetter>? cachedOutfits = null;
 
-                foreach (var line in lines)
+                for (var lineNumber = 0; lineNumber < lines.Length; lineNumber++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var line = lines[lineNumber];
                     var trimmed = line.Trim();
                     if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#'))
                         continue;
 
                     DistributionEntry? entry = null;
+                    string? parseFailureReason = null;
 
                     if (trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase))
                     {
                         entry = ParseDistributionLine(trimmed, linkCache);
+                        if (entry == null)
+                            parseFailureReason = "Could not resolve outfit or parse SkyPatcher syntax";
                     }
                     else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
                     {
@@ -203,16 +215,28 @@ public class DistributionFileWriterService
                         cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
                         cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
                         entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits, _logger);
+                        if (entry == null)
+                            parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
+                    }
+                    else
+                    {
+                        parseFailureReason = "Unrecognized distribution syntax";
                     }
 
                     if (entry != null)
+                    {
                         entries.Add(entry);
+                    }
+                    else if (parseFailureReason != null)
+                    {
+                        parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed, parseFailureReason));
+                    }
                 }
 
                 detectedFormat = hasSpidLines ? DistributionFileType.Spid : DistributionFileType.SkyPatcher;
 
-                _logger.Information("Loaded {Count} distribution entries from {FilePath} (detected format: {Format})",
-                    entries.Count, filePath, detectedFormat);
+                _logger.Information("Loaded {Count} distribution entries from {FilePath} (detected format: {Format}, {ErrorCount} parse errors)",
+                    entries.Count, filePath, detectedFormat, parseErrors.Count);
             }
             catch (OperationCanceledException)
             {
@@ -223,7 +247,7 @@ public class DistributionFileWriterService
                 _logger.Error(ex, "Failed to load distribution file: {FilePath}", filePath);
             }
 
-            return (entries, detectedFormat);
+            return (entries, detectedFormat, parseErrors);
         }, cancellationToken);
     }
 
@@ -372,33 +396,63 @@ public class DistributionFileWriterService
 
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;
 
-        // Position 3: FormFilters - Factions, Races, and Classes (AND with +)
+        // Position 3: FormFilters - all form filter types (AND with +)
         var formFilters = new List<string>();
         foreach (var factionFormKey in entry.FactionFormKeys)
         {
             if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) &&
                 !string.IsNullOrWhiteSpace(faction.EditorID))
-            {
                 formFilters.Add(faction.EditorID);
-            }
         }
         foreach (var raceFormKey in entry.RaceFormKeys)
         {
             if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
                 !string.IsNullOrWhiteSpace(race.EditorID))
-            {
                 formFilters.Add(race.EditorID);
-            }
         }
         foreach (var classFormKey in entry.ClassFormKeys)
         {
             if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
                 !string.IsNullOrWhiteSpace(classRecord.EditorID))
-            {
                 formFilters.Add(classRecord.EditorID);
-            }
         }
-        var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
+        foreach (var combatStyleFormKey in entry.CombatStyleFormKeys)
+        {
+            if (linkCache.TryResolve<ICombatStyleGetter>(combatStyleFormKey, out var combatStyle) &&
+                !string.IsNullOrWhiteSpace(combatStyle.EditorID))
+                formFilters.Add(combatStyle.EditorID);
+        }
+        foreach (var outfitFilterFormKey in entry.OutfitFilterFormKeys)
+        {
+            if (linkCache.TryResolve<IOutfitGetter>(outfitFilterFormKey, out var outfitFilter) &&
+                !string.IsNullOrWhiteSpace(outfitFilter.EditorID))
+                formFilters.Add(outfitFilter.EditorID);
+        }
+        foreach (var perkFormKey in entry.PerkFormKeys)
+        {
+            if (linkCache.TryResolve<IPerkGetter>(perkFormKey, out var perk) &&
+                !string.IsNullOrWhiteSpace(perk.EditorID))
+                formFilters.Add(perk.EditorID);
+        }
+        foreach (var voiceTypeFormKey in entry.VoiceTypeFormKeys)
+        {
+            if (linkCache.TryResolve<IVoiceTypeGetter>(voiceTypeFormKey, out var voiceType) &&
+                !string.IsNullOrWhiteSpace(voiceType.EditorID))
+                formFilters.Add(voiceType.EditorID);
+        }
+        foreach (var locationFormKey in entry.LocationFormKeys)
+        {
+            if (linkCache.TryResolve<ILocationGetter>(locationFormKey, out var location) &&
+                !string.IsNullOrWhiteSpace(location.EditorID))
+                formFilters.Add(location.EditorID);
+        }
+        foreach (var formListFormKey in entry.FormListFormKeys)
+        {
+            if (linkCache.TryResolve<IFormListGetter>(formListFormKey, out var formList) &&
+                !string.IsNullOrWhiteSpace(formList.EditorID))
+                formFilters.Add(formList.EditorID);
+        }
+        var formFiltersPart = formFilters.Count > 0 ? string.Join(",", formFilters) : null;
 
         // Position 4: LevelFilters - Not supported yet
         string? levelFiltersPart = null;

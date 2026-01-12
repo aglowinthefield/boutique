@@ -101,3 +101,5 @@ UpgradeLog*.htm
 CLAUDE.md
 .nuget/
 .cursor/
+tmp*
+nul

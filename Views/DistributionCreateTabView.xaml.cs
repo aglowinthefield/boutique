@@ -11,7 +11,7 @@ public partial class DistributionCreateTabView
         InitializeComponent();
     }
 
-    private void ComboBox_DropDownOpened(object sender, EventArgs e)
+    private void FilterableSelector_DropDownOpened(object? sender, EventArgs e)
     {
         if (DataContext is DistributionEditTabViewModel viewModel)
         {
