@@ -83,10 +83,10 @@ public class CopiedNpcFilter
             IsUnique = filter.IsUnique,
             IsTemplated = filter.IsTemplated,
             IsChild = filter.IsChild,
-            Factions = filter.Factions.ToList(),
-            Races = filter.Races.ToList(),
-            Keywords = filter.Keywords.ToList(),
-            Classes = filter.Classes.ToList(),
+            Factions = [.. filter.Factions],
+            Races = [.. filter.Races],
+            Keywords = [.. filter.Keywords],
+            Classes = [.. filter.Classes],
             Description = description
         };
     }

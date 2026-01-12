@@ -9,6 +9,7 @@ public class GuiSettings
 {
     public bool IsFilePreviewExpanded { get; set; }
     public string? SkyrimDataPath { get; set; }
+    public string? OutputPatchPath { get; set; }
     public string? PatchFileName { get; set; }
     public SkyrimRelease SelectedSkyrimRelease { get; set; }
     public string? LastDistributionFilePath { get; set; }
@@ -64,6 +65,18 @@ public class GuiSettingsService
             if (_settings.PatchFileName == value)
                 return;
             _settings.PatchFileName = value;
+            SaveSettings();
+        }
+    }
+
+    public string? OutputPatchPath
+    {
+        get => _settings.OutputPatchPath;
+        set
+        {
+            if (_settings.OutputPatchPath == value)
+                return;
+            _settings.OutputPatchPath = value;
             SaveSettings();
         }
     }

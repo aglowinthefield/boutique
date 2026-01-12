@@ -56,6 +56,7 @@ public class SettingsViewModel : ReactiveObject
         var savedDataPath = !string.IsNullOrEmpty(guiSettings.SkyrimDataPath) ? guiSettings.SkyrimDataPath : settings.SkyrimDataPath;
         SkyrimDataPath = NormalizeDataPath(savedDataPath);
         PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName) ? guiSettings.PatchFileName : settings.PatchFileName;
+        OutputPatchPath = guiSettings.OutputPatchPath ?? string.Empty;
         SelectedSkyrimRelease = guiSettings.SelectedSkyrimRelease != default ? guiSettings.SelectedSkyrimRelease : settings.SelectedSkyrimRelease;
         _settings.SelectedSkyrimRelease = SelectedSkyrimRelease;
 
@@ -68,6 +69,7 @@ public class SettingsViewModel : ReactiveObject
                 var previousPath = _settings.SkyrimDataPath;
                 _settings.SkyrimDataPath = v;
                 _guiSettings.SkyrimDataPath = v;
+                this.RaisePropertyChanged(nameof(FullOutputPath));
 
                 // Invalidate cache when data path changes - cached data is path-specific
                 if (!string.Equals(previousPath, v, StringComparison.OrdinalIgnoreCase))
@@ -84,6 +86,15 @@ public class SettingsViewModel : ReactiveObject
             {
                 _settings.PatchFileName = v;
                 _guiSettings.PatchFileName = v;
+                this.RaisePropertyChanged(nameof(FullOutputPath));
+            });
+
+        this.WhenAnyValue(x => x.OutputPatchPath)
+            .Skip(1)
+            .Subscribe(v =>
+            {
+                _guiSettings.OutputPatchPath = v;
+                this.RaisePropertyChanged(nameof(FullOutputPath));
             });
 
         this.WhenAnyValue(x => x.SelectedSkyrimRelease)
@@ -103,6 +114,7 @@ public class SettingsViewModel : ReactiveObject
             });
 
         BrowseDataPathCommand = new RelayCommand(BrowseDataPath);
+        BrowseOutputPathCommand = new RelayCommand(BrowseOutputPath);
         AutoDetectPathCommand = new RelayCommand(AutoDetectPath);
         ClearCacheCommand = new RelayCommand(ClearCache);
         RestartTutorialCommand = new RelayCommand(RestartTutorial);
@@ -117,6 +129,7 @@ public class SettingsViewModel : ReactiveObject
     [Reactive] public string DetectionSource { get; set; } = "";
     [Reactive] public bool DetectionFailed { get; set; }
     [Reactive] public string SkyrimDataPath { get; set; } = "";
+    [Reactive] public string OutputPatchPath { get; set; } = "";
     [Reactive] public string PatchFileName { get; set; } = "";
     [Reactive] public string CacheStatus { get; set; } = "No cache";
     [Reactive] public bool HasCache { get; set; }
@@ -131,9 +144,18 @@ public class SettingsViewModel : ReactiveObject
     };
     public IReadOnlyList<ThemeOption> ThemeOptions { get; } = Enum.GetValues<ThemeOption>();
 
-    public string FullOutputPath => Path.Combine(SkyrimDataPath, PatchFileName);
+    public string FullOutputPath
+    {
+        get
+        {
+            var folder = !string.IsNullOrWhiteSpace(OutputPatchPath) ? OutputPatchPath : SkyrimDataPath;
+            var fileName = string.IsNullOrWhiteSpace(PatchFileName) ? "BoutiquePatch.esp" : PatchFileName;
+            return string.IsNullOrWhiteSpace(folder) ? fileName : Path.Combine(folder, fileName);
+        }
+    }
 
     public ICommand BrowseDataPathCommand { get; }
+    public ICommand BrowseOutputPathCommand { get; }
     public ICommand AutoDetectPathCommand { get; }
     public ICommand ClearCacheCommand { get; }
     public ICommand RestartTutorialCommand { get; }
@@ -156,6 +178,30 @@ public class SettingsViewModel : ReactiveObject
             var folder = Path.GetDirectoryName(dialog.FileName);
             if (!string.IsNullOrEmpty(folder))
                 SkyrimDataPath = NormalizeDataPath(folder);
+        }
+    }
+
+    private void BrowseOutputPath()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Select Output Folder for Patch",
+            FileName = "Select Folder",
+            Filter = "Folder|*.none",
+            CheckFileExists = false,
+            CheckPathExists = true
+        };
+
+        if (!string.IsNullOrEmpty(OutputPatchPath) && Directory.Exists(OutputPatchPath))
+            dialog.InitialDirectory = OutputPatchPath;
+        else if (!string.IsNullOrEmpty(SkyrimDataPath) && Directory.Exists(SkyrimDataPath))
+            dialog.InitialDirectory = SkyrimDataPath;
+
+        if (dialog.ShowDialog() == true)
+        {
+            var folder = Path.GetDirectoryName(dialog.FileName);
+            if (!string.IsNullOrEmpty(folder))
+                OutputPatchPath = folder;
         }
     }
 
