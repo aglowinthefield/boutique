@@ -116,11 +116,18 @@ public class DistributionEditTabViewModel : ReactiveObject
         this.WhenAnyValue(vm => vm.IsCreatingNewFile)
             .Where(isNew => isNew)
             .Subscribe(_ => DistributionFormat = DistributionFileType.SkyPatcher);
+
+        this.WhenAnyValue(vm => vm.DistributionFilePath)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
     }
 
     [Reactive] public bool IsLoading { get; private set; }
 
     [Reactive] public string StatusMessage { get; private set; } = string.Empty;
+
+    [Reactive] public IReadOnlyList<DistributionParseError> ParseErrors { get; private set; } = [];
+
+    public bool HasParseErrors => ParseErrors.Count > 0;
 
     public bool IsFilePreviewExpanded
     {
@@ -213,6 +220,8 @@ public class DistributionEditTabViewModel : ReactiveObject
                         try
                         {
                             DistributionEntries.Clear();
+                            ParseErrors = [];
+                            this.RaisePropertyChanged(nameof(HasParseErrors));
                             HasConflicts = false;
                             ConflictsResolvedByFilename = false;
                             ConflictSummary = string.Empty;
@@ -261,6 +270,14 @@ public class DistributionEditTabViewModel : ReactiveObject
     }
 
     [Reactive] public string DistributionFilePath { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// The actual filename that will be saved (derived from DistributionFilePath).
+    /// For SPID format, this includes the _DISTR suffix.
+    /// </summary>
+    public string ActualFileName => !string.IsNullOrEmpty(DistributionFilePath)
+        ? Path.GetFileName(DistributionFilePath)
+        : string.Empty;
 
     [Reactive] public string NpcSearchText { get; set; } = string.Empty;
 
@@ -707,6 +724,7 @@ public class DistributionEditTabViewModel : ReactiveObject
 
             // Track the saved file path so RefreshAvailableDistributionFiles can select it
             _justSavedFilePath = finalFilePath;
+            _guiSettings.LastDistributionFilePath = finalFilePath;
             DistributionFilePath = finalFilePath;
 
             FileSaved?.Invoke(finalFilePath);
@@ -741,9 +759,12 @@ public class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = "Loading distribution file...";
             _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
 
-            var (entries, detectedFormat) = await ((DistributionFileWriterService)_fileWriterService).LoadDistributionFileWithFormatAsync(
+            var (entries, detectedFormat, parseErrors) = await ((DistributionFileWriterService)_fileWriterService).LoadDistributionFileWithErrorsAsync(
                 DistributionFilePath);
             DistributionFormat = detectedFormat;
+            ParseErrors = parseErrors;
+            this.RaisePropertyChanged(nameof(HasParseErrors));
+
             await LoadAvailableOutfitsAsync();
             _isBulkLoading = true;
             try
@@ -772,8 +793,12 @@ public class DistributionEditTabViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(DistributionEntriesCount));
             UpdateFileContent();
 
-            StatusMessage = $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
-            _logger.Information("Loaded distribution file: {FilePath} with {Count} entries", DistributionFilePath, entries.Count);
+            var statusMsg = $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
+            if (parseErrors.Count > 0)
+                statusMsg += $" ({parseErrors.Count} line(s) could not be parsed)";
+            StatusMessage = statusMsg;
+            _logger.Information("Loaded distribution file: {FilePath} with {Count} entries, {ErrorCount} parse errors",
+                DistributionFilePath, entries.Count, parseErrors.Count);
         }
         catch (Exception ex)
         {
@@ -924,21 +949,39 @@ public class DistributionEditTabViewModel : ReactiveObject
             if (previousSelected.IsNewFile)
             {
                 SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+                return;
             }
-            else if (previousSelected.File != null)
+
+            if (previousSelected.File != null)
             {
                 var matchingItem = AvailableDistributionFiles.FirstOrDefault(item =>
                     !item.IsNewFile && item.File?.FullPath == previousSelected.File.FullPath);
                 if (matchingItem != null)
                 {
                     SelectedDistributionFile = matchingItem;
-                }
-                else
-                {
-                    SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+                    return;
                 }
             }
         }
+
+        // Fall back to last saved file from settings
+        var lastFilePath = _guiSettings.LastDistributionFilePath;
+        if (!string.IsNullOrEmpty(lastFilePath))
+        {
+            var lastFileItem = AvailableDistributionFiles.FirstOrDefault(item =>
+                !item.IsNewFile && item.File != null &&
+                string.Equals(item.File.FullPath, lastFilePath, StringComparison.OrdinalIgnoreCase));
+
+            if (lastFileItem != null)
+            {
+                _logger.Debug("Selecting last saved file from settings: {Path}", lastFilePath);
+                SelectedDistributionFile = lastFileItem;
+                return;
+            }
+        }
+
+        // Default to "Create New File"
+        SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
     }
 
     private void UpdateDistributionFilePathForFormat()
@@ -1024,7 +1067,7 @@ public class DistributionEditTabViewModel : ReactiveObject
             _logger.Debug("UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, anyEntryUsesChance={UsesChance}",
                 DistributionEntries.Count, effectiveFormat, anyEntryUsesChance);
 
-            DistributionFileContent = DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat);
+            DistributionFileContent = DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat, ParseErrors);
 
             _logger.Debug("UpdateFileContent: Generated {LineCount} lines", DistributionFileContent.Split('\n').Length);
             DetectConflicts();
@@ -1161,17 +1204,23 @@ public class DistributionEditTabViewModel : ReactiveObject
             .Where(f => !f.IsNewFile && f.File != null)
             .Select(f => f.File!.FileName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var candidate = $"{baseName}.ini";
-        if (!existingFileNames.Contains(candidate))
-            return candidate;
+
+        if (IsBaseNameAvailable(baseName, existingFileNames))
+            return $"{baseName}.ini";
+
         for (var i = 2; i < 1000; i++)
         {
-            candidate = $"{baseName}_{i}.ini";
-            if (!existingFileNames.Contains(candidate))
-                return candidate;
+            var numberedBase = $"{baseName}_{i}";
+            if (IsBaseNameAvailable(numberedBase, existingFileNames))
+                return $"{numberedBase}.ini";
         }
+
         return $"{baseName}_{Guid.NewGuid():N}.ini";
     }
+
+    private static bool IsBaseNameAvailable(string baseName, HashSet<string> existingFileNames) =>
+        !existingFileNames.Contains($"{baseName}.ini") &&
+        !existingFileNames.Contains($"{baseName}_DISTR.ini");
 
     private async Task PreviewEntryAsync(DistributionEntryViewModel? entry)
     {

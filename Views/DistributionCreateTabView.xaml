@@ -54,6 +54,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- File Selector -->
@@ -79,6 +80,11 @@
                         <TextBlock Text="Filename:" Style="{StaticResource LabelTextStyle}" />
                         <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" MinWidth="200" Margin="0,0,6,0" />
                         <Button Content="Browse..." Command="{Binding SelectDistributionFilePathCommand}" Padding="8,2" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
+                                Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
+                        <TextBlock Text="Saves as:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                        <TextBlock Text="{Binding ActualFileName}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource Brush.TextSecondary}" />
                     </StackPanel>
                     <!-- Conflict Warning -->
                     <Border Style="{StaticResource WarningPanelStyle}" Margin="0,6,0,0"
@@ -286,8 +292,41 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
+                <!-- Parse Errors -->
+                <Expander Grid.Row="3" Header="{Binding ParseErrors.Count, StringFormat='{}{0} parse error(s) - these lines will be preserved on save'}"
+                          Visibility="{Binding HasParseErrors, Converter={StaticResource BoolToVisConverter}}"
+                          IsExpanded="True" Margin="0,6,0,0">
+                    <Border Padding="6" Background="#3C2A2A" BorderBrush="#8B4513" BorderThickness="1" CornerRadius="0,0,4,4">
+                        <ItemsControl ItemsSource="{Binding ParseErrors}" MaxHeight="150">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.Template>
+                                <ControlTemplate TargetType="ItemsControl">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,2">
+                                        <TextBlock FontFamily="Consolas" FontSize="11" Foreground="#FFB347">
+                                            <Run Text="Line " /><Run Text="{Binding LineNumber, Mode=OneWay}" /><Run Text=": " /><Run Text="{Binding Reason, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding LineContent}" FontFamily="Consolas" FontSize="10" Foreground="#999999"
+                                                   TextTrimming="CharacterEllipsis" ToolTip="{Binding LineContent}" Margin="12,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </Expander>
+
                 <!-- Preview (Collapsible) -->
-                <Expander Grid.Row="3" Header="File Preview" IsExpanded="{Binding IsFilePreviewExpanded, Mode=TwoWay}" Margin="0,6,0,0">
+                <Expander Grid.Row="4" Header="File Preview" IsExpanded="{Binding IsFilePreviewExpanded, Mode=TwoWay}" Margin="0,6,0,0">
                     <Border Padding="6" Background="{StaticResource Brush.CardBackground}"
                             BorderBrush="{StaticResource Brush.Border}" BorderThickness="1" CornerRadius="0,0,4,4">
                         <TextBox Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"

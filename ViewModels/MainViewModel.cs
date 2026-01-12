@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Windows.Data;
@@ -28,6 +30,7 @@ public class MainViewModel : ReactiveObject
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = [];
+    private readonly Subject<Unit> _autoSaveTrigger = new();
     private readonly List<string> _pendingOutfitDeletions = [];
     private readonly PatchingService _patchingService;
     private readonly ArmorPreviewService _previewService;
@@ -73,7 +76,15 @@ public class MainViewModel : ReactiveObject
         ConfigureOutfitArmorsView();
         OutfitDrafts = new ReadOnlyObservableCollection<OutfitDraftViewModel>(_outfitDrafts);
         HasOutfitDrafts = _outfitDrafts.Count > 0;
-        _outfitDrafts.CollectionChanged += (_, _) => HasOutfitDrafts = _outfitDrafts.Count > 0;
+        _outfitDrafts.CollectionChanged += OnOutfitDraftsCollectionChanged;
+
+        // Auto-save drafts with 1.5 second debounce
+        _autoSaveTrigger
+            .Throttle(TimeSpan.FromMilliseconds(1500))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Where(_ => HasOutfitDrafts && !IsCreatingOutfits)
+            .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
+            .Subscribe();
 
         ExistingOutfits = new ReadOnlyObservableCollection<ExistingOutfitViewModel>(_existingOutfits);
         HasExistingPluginOutfits = _existingOutfits.Count > 0;
@@ -1389,6 +1400,12 @@ public class MainViewModel : ReactiveObject
         return true;
     }
 
+    private void OnOutfitDraftsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        HasOutfitDrafts = _outfitDrafts.Count > 0;
+        TriggerAutoSave();
+    }
+
     private void OutfitDraftOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is not OutfitDraftViewModel draft)
@@ -1396,7 +1413,12 @@ public class MainViewModel : ReactiveObject
 
         if (e.PropertyName == nameof(OutfitDraftViewModel.Name))
             HandleOutfitDraftRename(draft);
+
+        // Trigger auto-save on any property change
+        TriggerAutoSave();
     }
+
+    private void TriggerAutoSave() => _autoSaveTrigger.OnNext(Unit.Default);
 
     private void HandleOutfitDraftRename(OutfitDraftViewModel draft)
     {

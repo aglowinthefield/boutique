@@ -21,3 +21,5 @@ public sealed class DistributionEntry
     public SpidTraitFilters TraitFilters { get; set; } = new();
     public int? Chance { get; set; }
 }
+
+public sealed record DistributionParseError(int LineNumber, string LineContent, string Reason);

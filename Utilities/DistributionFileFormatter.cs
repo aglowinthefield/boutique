@@ -16,7 +16,8 @@ public static class DistributionFileFormatter
     /// </summary>
     public static string GenerateFileContent(
         IEnumerable<DistributionEntryViewModel> entries,
-        DistributionFileType format)
+        DistributionFileType format,
+        IReadOnlyList<DistributionParseError>? unparsedLines = null)
     {
         var lines = new List<string>
         {
@@ -35,6 +36,16 @@ public static class DistributionFileFormatter
                 : FormatSkyPatcherLine(entry);
 
             lines.Add(line);
+        }
+
+        if (unparsedLines != null && unparsedLines.Count > 0)
+        {
+            lines.Add("");
+            lines.Add("; Lines that Boutique could not parse (preserved from original file)");
+            foreach (var error in unparsedLines)
+            {
+                lines.Add(error.LineContent);
+            }
         }
 
         return string.Join(Environment.NewLine, lines);
