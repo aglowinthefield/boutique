@@ -12,10 +12,11 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class MutagenService(ILoggingService loggingService, PatcherSettings settings)
+public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
 {
     private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
     private readonly PatcherSettings _settings = settings;
+    private readonly GuiSettingsService _guiSettings = guiSettings;
     private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
 
     public event EventHandler? PluginsChanged;
@@ -140,11 +141,14 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             if (string.IsNullOrEmpty(DataFolderPath))
                 return Enumerable.Empty<string>();
 
+            var blacklist = _guiSettings.BlacklistedPlugins;
+
             var pluginFiles = PathUtilities.EnumeratePluginFiles(DataFolderPath)
+                .Where(p => !blacklist.Contains(Path.GetFileName(p), StringComparer.OrdinalIgnoreCase))
                 .OrderBy(Path.GetFileName)
                 .ToList();
 
-            _logger.Information("[PERF] GetAvailablePluginsAsync: Found {Count} plugin files to scan", pluginFiles.Count);
+            _logger.Information("[PERF] GetAvailablePluginsAsync: Found {Count} plugin files to scan (after blacklist filter)", pluginFiles.Count);
 
             var armorPlugins = new List<string>();
             var scannedCount = 0;

@@ -13,6 +13,7 @@ public class GuiSettings
     public string? PatchFileName { get; set; }
     public SkyrimRelease SelectedSkyrimRelease { get; set; }
     public string? LastDistributionFilePath { get; set; }
+    public List<string> BlacklistedPlugins { get; set; } = [];
 }
 
 public class GuiSettingsService
@@ -104,6 +105,45 @@ public class GuiSettingsService
             SaveSettings();
         }
     }
+
+    public IReadOnlyList<string> BlacklistedPlugins => _settings.BlacklistedPlugins;
+
+    public event EventHandler? BlacklistChanged;
+
+    public void AddToBlacklist(string pluginName)
+    {
+        if (string.IsNullOrWhiteSpace(pluginName))
+            return;
+
+        var normalized = pluginName.Trim();
+        if (_settings.BlacklistedPlugins.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+            return;
+
+        _settings.BlacklistedPlugins.Add(normalized);
+        SaveSettings();
+        _logger.Information("Added plugin to blacklist: {Plugin}", normalized);
+        BlacklistChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveFromBlacklist(string pluginName)
+    {
+        if (string.IsNullOrWhiteSpace(pluginName))
+            return;
+
+        var toRemove = _settings.BlacklistedPlugins
+            .FirstOrDefault(p => string.Equals(p, pluginName, StringComparison.OrdinalIgnoreCase));
+
+        if (toRemove is null)
+            return;
+
+        _settings.BlacklistedPlugins.Remove(toRemove);
+        SaveSettings();
+        _logger.Information("Removed plugin from blacklist: {Plugin}", toRemove);
+        BlacklistChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool IsBlacklisted(string pluginName) =>
+        _settings.BlacklistedPlugins.Contains(pluginName, StringComparer.OrdinalIgnoreCase);
 
     private void LoadSettings()
     {

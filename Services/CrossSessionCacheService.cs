@@ -13,13 +13,15 @@ public class CrossSessionCacheService
 {
     private readonly ILogger _logger;
     private readonly PatcherSettings _settings;
+    private readonly GuiSettingsService _guiSettings;
     private readonly string _cacheDirectory;
     private const string CacheFileName = "game_data_cache.msgpack";
 
-    public CrossSessionCacheService(ILogger logger, PatcherSettings settings)
+    public CrossSessionCacheService(ILogger logger, PatcherSettings settings, GuiSettingsService guiSettings)
     {
         _logger = logger.ForContext<CrossSessionCacheService>();
         _settings = settings;
+        _guiSettings = guiSettings;
 
         _cacheDirectory = Path.Combine(PathUtilities.GetBoutiqueAppDataPath(), "cache");
     }
@@ -98,6 +100,7 @@ public class CrossSessionCacheService
                 DataPathHash = ComputeHash(dataPath),
                 LoadOrderSignature = ComputeLoadOrderSignature(dataPath),
                 DistributionFilesSignature = ComputeDistributionFilesSignature(dataPath),
+                BlacklistSignature = ComputeBlacklistSignature(),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -196,6 +199,13 @@ public class CrossSessionCacheService
             return false;
         }
 
+        var currentBlacklistSig = ComputeBlacklistSignature();
+        if (metadata.BlacklistSignature != currentBlacklistSig)
+        {
+            _logger.Information("Cross-session cache INVALIDATED: plugin blacklist changed");
+            return false;
+        }
+
         _logger.Information("Cross-session cache VALID (created {CreatedAt:g})", metadata.CreatedAt.ToLocalTime());
         return true;
     }
@@ -285,6 +295,16 @@ public class CrossSessionCacheService
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(bytes)[..16];
+    }
+
+    private string ComputeBlacklistSignature()
+    {
+        var blacklist = _guiSettings.BlacklistedPlugins;
+        if (blacklist.Count == 0)
+            return string.Empty;
+
+        var sorted = blacklist.OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
+        return ComputeHash(string.Join("|", sorted));
     }
 }
 

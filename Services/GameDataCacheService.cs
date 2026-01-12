@@ -14,6 +14,7 @@ public class GameDataCacheService
     private readonly DistributionDiscoveryService _discoveryService;
     private readonly NpcOutfitResolutionService _outfitResolutionService;
     private readonly CrossSessionCacheService _crossSessionCache;
+    private readonly GuiSettingsService _guiSettings;
     private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
     private bool _isLoaded;
@@ -24,6 +25,7 @@ public class GameDataCacheService
         DistributionDiscoveryService discoveryService,
         NpcOutfitResolutionService outfitResolutionService,
         CrossSessionCacheService crossSessionCache,
+        GuiSettingsService guiSettings,
         SettingsViewModel settings,
         ILogger logger)
     {
@@ -31,6 +33,7 @@ public class GameDataCacheService
         _discoveryService = discoveryService;
         _outfitResolutionService = outfitResolutionService;
         _crossSessionCache = crossSessionCache;
+        _guiSettings = guiSettings;
         _settings = settings;
         _logger = logger.ForContext<GameDataCacheService>();
         _mutagenService.Initialized += OnMutagenInitialized;
@@ -418,13 +421,16 @@ public class GameDataCacheService
 
     private (List<NpcFilterData>, List<NpcRecordViewModel>) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
+        var blacklist = _guiSettings.BlacklistedPlugins;
         var enumSw = System.Diagnostics.Stopwatch.StartNew();
         var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
         _logger.Information("[PERF] LoadNpcs enumeration: {ElapsedMs}ms ({Count} total NPCs)", enumSw.ElapsedMilliseconds, allNpcs.Count);
 
         var processSw = System.Diagnostics.Stopwatch.StartNew();
         var validNpcs = allNpcs
-            .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
+            .Where(npc => npc.FormKey != FormKey.Null &&
+                          !string.IsNullOrWhiteSpace(npc.EditorID) &&
+                          !blacklist.Any(b => string.Equals(b, npc.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         var filterDataBag = new System.Collections.Concurrent.ConcurrentBag<NpcFilterData>();
@@ -509,10 +515,12 @@ public class GameDataCacheService
         }
     }
 
-    private static List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
+        var blacklist = _guiSettings.BlacklistedPlugins;
         return linkCache.WinningOverrides<IFactionGetter>()
-            .Where(f => !string.IsNullOrWhiteSpace(f.EditorID))
+            .Where(f => !string.IsNullOrWhiteSpace(f.EditorID) &&
+                        !blacklist.Any(b => string.Equals(b, f.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
             .Select(f => new FactionRecordViewModel(new FactionRecord(
                 f.FormKey,
                 f.EditorID,
@@ -522,10 +530,12 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private static List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
+        var blacklist = _guiSettings.BlacklistedPlugins;
         return linkCache.WinningOverrides<IRaceGetter>()
-            .Where(r => !string.IsNullOrWhiteSpace(r.EditorID))
+            .Where(r => !string.IsNullOrWhiteSpace(r.EditorID) &&
+                        !blacklist.Any(b => string.Equals(b, r.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
             .Select(r => new RaceRecordViewModel(new RaceRecord(
                 r.FormKey,
                 r.EditorID,
@@ -535,10 +545,12 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private static List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
+        var blacklist = _guiSettings.BlacklistedPlugins;
         return linkCache.WinningOverrides<IKeywordGetter>()
-            .Where(k => !string.IsNullOrWhiteSpace(k.EditorID))
+            .Where(k => !string.IsNullOrWhiteSpace(k.EditorID) &&
+                        !blacklist.Any(b => string.Equals(b, k.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
             .Select(k => new KeywordRecordViewModel(new KeywordRecord(
                 k.FormKey,
                 k.EditorID,
@@ -547,10 +559,12 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private static List<ClassRecordViewModel> LoadClasses(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<ClassRecordViewModel> LoadClasses(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
+        var blacklist = _guiSettings.BlacklistedPlugins;
         return linkCache.WinningOverrides<IClassGetter>()
-            .Where(c => !string.IsNullOrWhiteSpace(c.EditorID))
+            .Where(c => !string.IsNullOrWhiteSpace(c.EditorID) &&
+                        !blacklist.Any(b => string.Equals(b, c.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
             .Select(c => new ClassRecordViewModel(new ClassRecord(
                 c.FormKey,
                 c.EditorID,
@@ -560,5 +574,11 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private static List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) => linkCache.WinningOverrides<IOutfitGetter>().ToList();
+    private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var blacklist = _guiSettings.BlacklistedPlugins;
+        return linkCache.WinningOverrides<IOutfitGetter>()
+            .Where(o => !blacklist.Any(b => string.Equals(b, o.FormKey.ModKey.FileName, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+    }
 }

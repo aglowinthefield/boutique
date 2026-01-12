@@ -40,6 +40,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="140" />
@@ -110,10 +111,42 @@
                       SelectedItem="{Binding Settings.SelectedTheme}"
                       Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 7: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
+            <!-- Row 7: Blacklisted Plugins -->
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="Blacklisted Plugins:" Style="{StaticResource SettingsLabelStyle}"
+                       VerticalAlignment="Top" Margin="0,4,12,12"
+                       ToolTip="Plugins in this list will be ignored when loading data. Changes trigger a full data reload." />
+            <Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Input row -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBox Width="250" Margin="0,0,6,0"
+                             Text="{Binding Settings.BlacklistPluginInput, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Enter plugin filename (e.g. MyMod.esp)" />
+                    <Button Content="Add" MinWidth="60"
+                            Command="{Binding Settings.AddToBlacklistCommand}"
+                            ToolTip="Add plugin to blacklist" />
+                </StackPanel>
+
+                <!-- List and remove button -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <ListBox Width="250" Height="80" Margin="0,0,6,0"
+                             ItemsSource="{Binding Settings.BlacklistedPlugins}"
+                             SelectedItem="{Binding Settings.SelectedBlacklistPlugin}"
+                             ToolTip="Currently blacklisted plugins" />
+                    <Button Content="Remove" MinWidth="60" VerticalAlignment="Top"
+                            Command="{Binding Settings.RemoveFromBlacklistCommand}"
+                            ToolTip="Remove selected plugin from blacklist" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Row 8: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
                        Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="7" Grid.Column="1" Content="Restart Tutorial"
+            <Button Grid.Row="8" Grid.Column="1" Content="Restart Tutorial"
                     Command="{Binding Settings.RestartTutorialCommand}"
                     HorizontalAlignment="Left" MinWidth="120"
                     Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />

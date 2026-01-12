@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -118,6 +119,11 @@ public class SettingsViewModel : ReactiveObject
         AutoDetectPathCommand = new RelayCommand(AutoDetectPath);
         ClearCacheCommand = new RelayCommand(ClearCache);
         RestartTutorialCommand = new RelayCommand(RestartTutorial);
+        AddToBlacklistCommand = new RelayCommand(AddToBlacklist);
+        RemoveFromBlacklistCommand = new RelayCommand(RemoveFromBlacklist);
+
+        foreach (var plugin in guiSettings.BlacklistedPlugins)
+            BlacklistedPlugins.Add(plugin);
 
         if (string.IsNullOrEmpty(SkyrimDataPath))
             AutoDetectPath();
@@ -135,6 +141,12 @@ public class SettingsViewModel : ReactiveObject
     [Reactive] public bool HasCache { get; set; }
     [Reactive] public SkyrimRelease SelectedSkyrimRelease { get; set; }
     [Reactive] public ThemeOption SelectedTheme { get; set; }
+
+    public ObservableCollection<string> BlacklistedPlugins { get; } = [];
+    [Reactive] public string? SelectedBlacklistPlugin { get; set; }
+    [Reactive] public string BlacklistPluginInput { get; set; } = "";
+
+    public event EventHandler? BlacklistChanged;
 
     public IReadOnlyList<SkyrimRelease> SkyrimReleaseOptions { get; } = new[]
     {
@@ -159,6 +171,8 @@ public class SettingsViewModel : ReactiveObject
     public ICommand AutoDetectPathCommand { get; }
     public ICommand ClearCacheCommand { get; }
     public ICommand RestartTutorialCommand { get; }
+    public ICommand AddToBlacklistCommand { get; }
+    public ICommand RemoveFromBlacklistCommand { get; }
 
     public static bool IsTutorialEnabled => FeatureFlags.TutorialEnabled;
 
@@ -320,6 +334,39 @@ public class SettingsViewModel : ReactiveObject
     {
         _cacheService.InvalidateCache();
         RefreshCacheStatus();
+    }
+
+    private void AddToBlacklist()
+    {
+        var plugin = BlacklistPluginInput?.Trim();
+        if (string.IsNullOrWhiteSpace(plugin))
+            return;
+
+        if (BlacklistedPlugins.Contains(plugin, StringComparer.OrdinalIgnoreCase))
+            return;
+
+        _guiSettings.AddToBlacklist(plugin);
+        BlacklistedPlugins.Add(plugin);
+        BlacklistPluginInput = "";
+
+        _cacheService.InvalidateCache();
+        RefreshCacheStatus();
+        BlacklistChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RemoveFromBlacklist()
+    {
+        var plugin = SelectedBlacklistPlugin;
+        if (string.IsNullOrWhiteSpace(plugin))
+            return;
+
+        _guiSettings.RemoveFromBlacklist(plugin);
+        BlacklistedPlugins.Remove(plugin);
+        SelectedBlacklistPlugin = null;
+
+        _cacheService.InvalidateCache();
+        RefreshCacheStatus();
+        BlacklistChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void RestartTutorial()

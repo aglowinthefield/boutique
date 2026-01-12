@@ -24,6 +24,10 @@ public sealed class CacheMetadata
     [Key(3)]
     public required string DistributionFilesSignature { get; init; }
 
+    /// <summary>Signature of the plugin blacklist.</summary>
+    [Key(5)]
+    public string BlacklistSignature { get; init; } = string.Empty;
+
     /// <summary>When the cache was created.</summary>
     [Key(4)]
     public required DateTime CreatedAt { get; init; }

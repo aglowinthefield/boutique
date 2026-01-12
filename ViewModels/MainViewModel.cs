@@ -71,6 +71,7 @@ public class MainViewModel : ReactiveObject
         });
 
         _mutagenService.PluginsChanged += OnPluginsChanged;
+        Settings.BlacklistChanged += OnBlacklistChanged;
 
         ConfigureSourceArmorsView();
         ConfigureTargetArmorsView();
@@ -1016,6 +1017,34 @@ public class MainViewModel : ReactiveObject
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to refresh available plugins list.");
+        }
+    }
+
+    private async void OnBlacklistChanged(object? sender, EventArgs e)
+    {
+        _logger.Information("Plugin blacklist changed, reinitializing...");
+
+        try
+        {
+            SelectedSourcePlugin = null;
+            SelectedTargetPlugin = null;
+            SelectedOutfitPlugin = null;
+            SourceArmors = [];
+            TargetArmors = [];
+            OutfitArmors = [];
+            ClearMappingsInternal();
+            _existingOutfits.Clear();
+            _outfitDrafts.Clear();
+            AvailablePlugins.Clear();
+
+            await InitializeAsync();
+
+            StatusMessage = "Data reloaded after blacklist change.";
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to reinitialize after blacklist change.");
+            StatusMessage = $"Error reinitializing: {ex.Message}";
         }
     }
 
