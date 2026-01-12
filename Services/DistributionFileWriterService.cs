@@ -372,33 +372,63 @@ public class DistributionFileWriterService
 
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;
 
-        // Position 3: FormFilters - Factions, Races, and Classes (AND with +)
+        // Position 3: FormFilters - all form filter types (AND with +)
         var formFilters = new List<string>();
         foreach (var factionFormKey in entry.FactionFormKeys)
         {
             if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) &&
                 !string.IsNullOrWhiteSpace(faction.EditorID))
-            {
                 formFilters.Add(faction.EditorID);
-            }
         }
         foreach (var raceFormKey in entry.RaceFormKeys)
         {
             if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
                 !string.IsNullOrWhiteSpace(race.EditorID))
-            {
                 formFilters.Add(race.EditorID);
-            }
         }
         foreach (var classFormKey in entry.ClassFormKeys)
         {
             if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
                 !string.IsNullOrWhiteSpace(classRecord.EditorID))
-            {
                 formFilters.Add(classRecord.EditorID);
-            }
         }
-        var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
+        foreach (var combatStyleFormKey in entry.CombatStyleFormKeys)
+        {
+            if (linkCache.TryResolve<ICombatStyleGetter>(combatStyleFormKey, out var combatStyle) &&
+                !string.IsNullOrWhiteSpace(combatStyle.EditorID))
+                formFilters.Add(combatStyle.EditorID);
+        }
+        foreach (var outfitFilterFormKey in entry.OutfitFilterFormKeys)
+        {
+            if (linkCache.TryResolve<IOutfitGetter>(outfitFilterFormKey, out var outfitFilter) &&
+                !string.IsNullOrWhiteSpace(outfitFilter.EditorID))
+                formFilters.Add(outfitFilter.EditorID);
+        }
+        foreach (var perkFormKey in entry.PerkFormKeys)
+        {
+            if (linkCache.TryResolve<IPerkGetter>(perkFormKey, out var perk) &&
+                !string.IsNullOrWhiteSpace(perk.EditorID))
+                formFilters.Add(perk.EditorID);
+        }
+        foreach (var voiceTypeFormKey in entry.VoiceTypeFormKeys)
+        {
+            if (linkCache.TryResolve<IVoiceTypeGetter>(voiceTypeFormKey, out var voiceType) &&
+                !string.IsNullOrWhiteSpace(voiceType.EditorID))
+                formFilters.Add(voiceType.EditorID);
+        }
+        foreach (var locationFormKey in entry.LocationFormKeys)
+        {
+            if (linkCache.TryResolve<ILocationGetter>(locationFormKey, out var location) &&
+                !string.IsNullOrWhiteSpace(location.EditorID))
+                formFilters.Add(location.EditorID);
+        }
+        foreach (var formListFormKey in entry.FormListFormKeys)
+        {
+            if (linkCache.TryResolve<IFormListGetter>(formListFormKey, out var formList) &&
+                !string.IsNullOrWhiteSpace(formList.EditorID))
+                formFilters.Add(formList.EditorID);
+        }
+        var formFiltersPart = formFilters.Count > 0 ? string.Join(",", formFilters) : null;
 
         // Position 4: LevelFilters - Not supported yet
         string? levelFiltersPart = null;
