@@ -191,6 +191,9 @@ public class DistributionFileWriterService
                 List<INpcGetter>? cachedNpcs = null;
                 List<IOutfitGetter>? cachedOutfits = null;
 
+                // Build outfit lookup for fast EditorID resolution
+                var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
+
                 for (var lineNumber = 0; lineNumber < lines.Length; lineNumber++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -205,7 +208,7 @@ public class DistributionFileWriterService
 
                     if (trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase))
                     {
-                        entry = ParseDistributionLine(trimmed, linkCache);
+                        entry = ParseDistributionLine(trimmed, linkCache, outfitByEditorId);
                         if (entry == null)
                             parseFailureReason = "Could not resolve outfit or parse SkyPatcher syntax";
                     }
@@ -251,7 +254,10 @@ public class DistributionFileWriterService
         }, cancellationToken);
     }
 
-    private DistributionEntry? ParseDistributionLine(string line, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private DistributionEntry? ParseDistributionLine(
+        string line,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        IReadOnlyDictionary<string, FormKey> outfitByEditorId)
     {
         try
         {
@@ -271,14 +277,19 @@ public class DistributionFileWriterService
             var outfitString = outfitEnd >= 0
                 ? line.Substring(outfitStart, outfitEnd - outfitStart).Trim()
                 : line.Substring(outfitStart).Trim();
-            var outfitFormKey = TryParseFormKey(outfitString);
+
+            // Resolve outfit - supports both FormKey format and EditorID
+            var outfitFormKey = FormKeyHelper.ResolveOutfit(outfitString, linkCache, outfitByEditorId);
 
             if (!outfitFormKey.HasValue)
+            {
+                _logger.Debug("Could not resolve outfit identifier: {Identifier}", outfitString);
                 return null;
+            }
 
             if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
             {
-                _logger.Debug("Could not resolve outfit: {FormKey}", outfitFormKey.Value);
+                _logger.Debug("Could not resolve outfit FormKey: {FormKey}", outfitFormKey.Value);
                 return null;
             }
 

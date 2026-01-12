@@ -202,4 +202,27 @@ public static class FormKeyHelper
 
         return outfit?.FormKey;
     }
+
+    public static FormKey? ResolveOutfit(
+        string identifier,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> _,
+        IReadOnlyDictionary<string, FormKey> outfitByEditorId)
+    {
+        if (string.IsNullOrWhiteSpace(identifier))
+            return null;
+
+        if (TryParse(identifier, out var formKey))
+            return formKey;
+
+        return outfitByEditorId.TryGetValue(identifier, out var resolvedFormKey)
+            ? resolvedFormKey
+            : null;
+    }
+
+    public static IReadOnlyDictionary<string, FormKey> BuildOutfitEditorIdLookup(
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        linkCache.WinningOverrides<IOutfitGetter>()
+            .Where(o => !string.IsNullOrWhiteSpace(o.EditorID))
+            .GroupBy(o => o.EditorID!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().FormKey, StringComparer.OrdinalIgnoreCase);
 }

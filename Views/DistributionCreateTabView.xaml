@@ -308,9 +308,15 @@
                 </ListBox>
 
                 <!-- Parse Errors -->
-                <Expander Grid.Row="3" Header="{Binding ParseErrors.Count, StringFormat='{}{0} parse error(s) - these lines will be preserved on save'}"
+                <Expander Grid.Row="3"
                           Visibility="{Binding HasParseErrors, Converter={StaticResource BoolToVisConverter}}"
                           IsExpanded="True" Margin="0,6,0,0">
+                    <Expander.Header>
+                        <TextBlock>
+                            <Run Text="{Binding ParseErrors.Count, Mode=OneWay}" />
+                            <Run Text=" parsing error(s) - these lines will be preserved on save" />
+                        </TextBlock>
+                    </Expander.Header>
                     <Border Padding="6" Background="#3C2A2A" BorderBrush="#8B4513" BorderThickness="1" CornerRadius="0,0,4,4">
                         <ItemsControl ItemsSource="{Binding ParseErrors}" MaxHeight="150">
                             <ItemsControl.ItemsPanel>
