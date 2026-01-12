@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -23,6 +24,10 @@ public partial class App
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Register legacy code pages (e.g., Windows-1251 for Russian/Cyrillic) that .NET Core doesn't include by default.
+        // This is required for proper display of non-UTF8 strings in Skyrim plugins, especially for Russian locale mods.
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         _loggingService = new LoggingService();
         ConfigureExceptionLogging();

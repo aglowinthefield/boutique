@@ -63,7 +63,7 @@ public class ArmorRecordViewModel : ReactiveObject
     {
         get
         {
-            if (Armor.Keywords == null || !Armor.Keywords.Any())
+            if (Armor.Keywords?.Any() != true)
                 return "(No Keywords)";
 
             if (_linkCache == null)
