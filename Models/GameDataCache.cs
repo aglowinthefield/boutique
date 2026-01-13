@@ -169,6 +169,9 @@ public sealed class DistributionFileDto
 
     [Key(5)]
     public required int OutfitDistributionCount { get; init; }
+
+    [Key(6)]
+    public required int KeywordDistributionCount { get; init; }
 }
 
 /// <summary>
@@ -201,4 +204,10 @@ public sealed class DistributionLineDto
 
     [Key(7)]
     public required List<string> OutfitFormKeys { get; init; }
+
+    [Key(8)]
+    public required bool IsKeywordDistribution { get; init; }
+
+    [Key(9)]
+    public required string? KeywordIdentifier { get; init; }
 }

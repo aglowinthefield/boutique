@@ -192,14 +192,55 @@ public static class SpidLineParser
 
         foreach (var expr in expressions)
         {
-            var expression = ParseFilterExpression(expr.Trim());
-            if (expression.Parts.Count > 0)
+            var trimmedExpr = expr.Trim();
+            if (string.IsNullOrEmpty(trimmedExpr))
+                continue;
+
+            // Check if this expression is purely negated (starts with -)
+            // In SPID, negated items after a comma are AND conditions attached to the previous expression
+            // e.g., "A+B,-C,-D" means "(A AND B AND NOT C AND NOT D)", not "(A AND B) OR (NOT C) OR (NOT D)"
+            var isPurelyNegated = trimmedExpr.StartsWith('-') && !trimmedExpr.Contains('+');
+
+            if (isPurelyNegated && section.Expressions.Count > 0)
             {
-                section.Expressions.Add(expression);
+                // Attach to previous expression as additional AND condition
+                var previousExpr = section.Expressions[^1];
+                var part = ParseFilterPart(trimmedExpr);
+                if (part != null)
+                {
+                    previousExpr.Parts.Add(part);
+                }
+            }
+            else
+            {
+                var expression = ParseFilterExpression(trimmedExpr);
+                if (expression.Parts.Count > 0)
+                {
+                    section.Expressions.Add(expression);
+                }
             }
         }
 
         return section;
+    }
+
+    private static SpidFilterPart? ParseFilterPart(string partText)
+    {
+        var trimmedPart = partText.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedPart))
+            return null;
+
+        var isNegated = trimmedPart.StartsWith('-');
+        var value = isNegated ? trimmedPart[1..].Trim() : trimmedPart;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return new SpidFilterPart
+        {
+            Value = value,
+            IsNegated = isNegated
+        };
     }
 
     private static SpidFilterExpression ParseFilterExpression(string exprText)

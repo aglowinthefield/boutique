@@ -150,7 +150,6 @@ public class NpcOutfitResolutionService
                 _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
 
                 // Simulate SPID keyword distributions before processing outfit lines
-                _logger.Debug("Simulating SPID keyword distributions...");
                 var keywordEntries = _keywordResolver.ParseKeywordDistributions(sortedFiles);
                 var (sortedKeywords, cyclicKeywords) = _keywordResolver.TopologicalSort(keywordEntries);
 
@@ -161,8 +160,8 @@ public class NpcOutfitResolutionService
                 }
 
                 var simulatedKeywords = _keywordResolver.SimulateKeywordDistribution(sortedKeywords, npcFilterData);
-                _logger.Information("Keyword simulation complete: {KeywordCount} keyword types distributed to {NpcCount} NPCs",
-                    sortedKeywords.Count, simulatedKeywords.Count);
+                _logger.Debug("Keyword simulation: {KeywordCount} keyword types, {NpcCount} NPCs with assignments",
+                    sortedKeywords.Count, simulatedKeywords.Count(kvp => kvp.Value.Count > 0));
 
                 // First, add ESP-provided outfits (processing order 0, so INI files win)
                 _logger.Debug("Scanning NPCs for ESP-provided default outfits...");

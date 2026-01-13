@@ -1432,9 +1432,8 @@ public class MainViewModel : ReactiveObject
 
     private void TriggerAutoSave()
     {
-        // Auto-save disabled - user must manually save outfits
-        // if (!_suppressAutoSave)
-        //     _autoSaveTrigger.OnNext(Unit.Default);
+        if (!_suppressAutoSave)
+            _autoSaveTrigger.OnNext(Unit.Default);
     }
 
     private void HandleOutfitDraftRename(OutfitDraftViewModel draft)

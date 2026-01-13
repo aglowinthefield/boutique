@@ -110,7 +110,8 @@ public static class CacheExtensions
             RelativePath = file.RelativePath,
             Type = (int)file.Type,
             Lines = file.Lines.Select(l => l.ToDto()).ToList(),
-            OutfitDistributionCount = file.OutfitDistributionCount
+            OutfitDistributionCount = file.OutfitDistributionCount,
+            KeywordDistributionCount = file.KeywordDistributionCount
         };
     }
 
@@ -122,7 +123,8 @@ public static class CacheExtensions
             dto.RelativePath,
             (DistributionFileType)dto.Type,
             dto.Lines.Select(l => l.FromDto()).ToList(),
-            dto.OutfitDistributionCount);
+            dto.OutfitDistributionCount,
+            dto.KeywordDistributionCount);
     }
 
     // ========================================================================
@@ -140,7 +142,9 @@ public static class CacheExtensions
             Key = line.Key,
             Value = line.Value,
             IsOutfitDistribution = line.IsOutfitDistribution,
-            OutfitFormKeys = line.OutfitFormKeys.ToList()
+            OutfitFormKeys = line.OutfitFormKeys.ToList(),
+            IsKeywordDistribution = line.IsKeywordDistribution,
+            KeywordIdentifier = line.KeywordIdentifier
         };
     }
 
@@ -154,7 +158,9 @@ public static class CacheExtensions
             dto.Key,
             dto.Value,
             dto.IsOutfitDistribution,
-            dto.OutfitFormKeys);
+            dto.OutfitFormKeys,
+            dto.IsKeywordDistribution,
+            dto.KeywordIdentifier);
     }
 
     // ========================================================================
