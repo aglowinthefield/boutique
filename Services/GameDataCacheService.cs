@@ -13,7 +13,6 @@ public class GameDataCacheService
     private readonly MutagenService _mutagenService;
     private readonly DistributionDiscoveryService _discoveryService;
     private readonly NpcOutfitResolutionService _outfitResolutionService;
-    private readonly CrossSessionCacheService _crossSessionCache;
     private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
     private bool _isLoaded;
@@ -23,14 +22,12 @@ public class GameDataCacheService
         MutagenService mutagenService,
         DistributionDiscoveryService discoveryService,
         NpcOutfitResolutionService outfitResolutionService,
-        CrossSessionCacheService crossSessionCache,
         SettingsViewModel settings,
         ILogger logger)
     {
         _mutagenService = mutagenService;
         _discoveryService = discoveryService;
         _outfitResolutionService = outfitResolutionService;
-        _crossSessionCache = crossSessionCache;
         _settings = settings;
         _logger = logger.ForContext<GameDataCacheService>();
         _mutagenService.Initialized += OnMutagenInitialized;
@@ -88,51 +85,15 @@ public class GameDataCacheService
             _logger.Information("Loading game data cache...");
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var dataPath = _settings.SkyrimDataPath;
-            List<NpcFilterData>? cachedNpcData = null;
-            List<DistributionFile>? cachedDistributionFiles = null;
-            var usedCrossSessionCache = false;
 
-            if (!string.IsNullOrWhiteSpace(dataPath))
+            var npcsResult = await Task.Run(() =>
             {
-                var crossSessionData = await _crossSessionCache.TryLoadCacheAsync(dataPath);
-                if (crossSessionData != null)
-                {
-                    _logger.Information("Using cross-session cache for NPCs and distribution files.");
-                    cachedNpcData = crossSessionData.NpcFilterData.Select(dto => dto.FromDto()).ToList();
-                    cachedDistributionFiles = crossSessionData.DistributionFiles.Select(dto => dto.FromDto()).ToList();
-                    usedCrossSessionCache = true;
-                }
-            }
-
-            List<NpcFilterData> npcFilterDataList;
-            List<NpcRecordViewModel> npcRecordsList;
-
-            if (cachedNpcData != null)
-            {
-                npcFilterDataList = cachedNpcData;
-                // Build NpcRecordViewModel from cached data
-                npcRecordsList = cachedNpcData
-                    .Select(npc => new NpcRecordViewModel(new NpcRecord(
-                        npc.FormKey,
-                        npc.EditorId,
-                        npc.Name,
-                        npc.SourceMod)))
-                    .ToList();
-                _logger.Information("*** USING CROSS-SESSION CACHE: Loaded {Count} NPCs (skipped Mutagen scan) ***", npcFilterDataList.Count);
-            }
-            else
-            {
-                _logger.Information("*** FRESH LOAD: No valid cache, loading NPCs from Mutagen (this may take a while) ***");
-                var npcsResult = await Task.Run(() =>
-                {
-                    var sw = System.Diagnostics.Stopwatch.StartNew();
-                    var result = LoadNpcs(linkCache);
-                    _logger.Information("[PERF] LoadNpcs: {ElapsedMs}ms ({Count} NPCs)", sw.ElapsedMilliseconds, result.Item1.Count);
-                    return result;
-                });
-                (npcFilterDataList, npcRecordsList) = npcsResult;
-            }
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var result = LoadNpcs(linkCache);
+                _logger.Information("[PERF] LoadNpcs: {ElapsedMs}ms ({Count} NPCs)", sw.ElapsedMilliseconds, result.Item1.Count);
+                return result;
+            });
+            var (npcFilterDataList, npcRecordsList) = npcsResult;
 
             var factionsTask = Task.Run(() =>
             {
@@ -180,7 +141,7 @@ public class GameDataCacheService
 
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                    AllNpcs.Clear();
+                AllNpcs.Clear();
                 NpcsByFormKey.Clear();
                 AllNpcRecords.Clear();
                 foreach (var npc in npcFilterDataList)
@@ -232,31 +193,13 @@ public class GameDataCacheService
                 }
             });
 
-            List<DistributionFile> distributionFilesForCache;
-            if (cachedDistributionFiles != null)
-            {
-                distributionFilesForCache = cachedDistributionFiles;
-                await LoadDistributionDataFromCacheAsync(cachedDistributionFiles, npcFilterDataList);
-            }
-            else
-            {
-                distributionFilesForCache = await LoadDistributionDataAsync(npcFilterDataList);
-            }
-
-            if (!usedCrossSessionCache && !string.IsNullOrWhiteSpace(dataPath))
-            {
-                _ = Task.Run(async () =>
-                {
-                    await _crossSessionCache.SaveCacheAsync(npcFilterDataList, distributionFilesForCache, dataPath);
-                });
-            }
+            await LoadDistributionDataAsync(npcFilterDataList);
 
             stopwatch.Stop();
             _isLoaded = true;
             _logger.Information(
-                "Game data cache loaded in {ElapsedMs}ms{CacheNote}: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
+                "Game data cache loaded in {ElapsedMs}ms: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
                 stopwatch.ElapsedMilliseconds,
-                usedCrossSessionCache ? " (from cross-session cache)" : "",
                 npcFilterDataList.Count,
                 factionsList.Count,
                 racesList.Count,
@@ -281,7 +224,6 @@ public class GameDataCacheService
     public async Task ReloadAsync()
     {
         _isLoaded = false;
-        _crossSessionCache.InvalidateCache();
         await _mutagenService.RefreshLinkCacheAsync(_settings.PatchFileName);
         await LoadAsync();
     }
@@ -346,16 +288,13 @@ public class GameDataCacheService
         await LoadAsync();
     }
 
-    public void InvalidateCrossSessionCache() => _crossSessionCache.InvalidateCache();
-    public CacheInfo? GetCrossSessionCacheInfo() => _crossSessionCache.GetCacheInfo();
-
-    private async Task<List<DistributionFile>> LoadDistributionDataAsync(List<NpcFilterData> npcFilterDataList)
+    private async Task LoadDistributionDataAsync(List<NpcFilterData> npcFilterDataList)
     {
         var dataPath = _settings.SkyrimDataPath;
         if (string.IsNullOrWhiteSpace(dataPath) || !System.IO.Directory.Exists(dataPath))
         {
             _logger.Warning("Cannot load distribution data - Skyrim data path not set or doesn't exist.");
-            return [];
+            return;
         }
 
         try
@@ -384,7 +323,6 @@ public class GameDataCacheService
 
             _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
 
-            // Update collections on UI thread
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 AllDistributionFiles.Clear();
@@ -399,52 +337,10 @@ public class GameDataCacheService
                     AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
                 }
             });
-
-            return outfitFiles;
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to load distribution data.");
-            return [];
-        }
-    }
-
-    private async Task LoadDistributionDataFromCacheAsync(List<DistributionFile> cachedFiles, List<NpcFilterData> npcFilterDataList)
-    {
-        try
-        {
-            _logger.Information("[PERF] Using {Count} cached distribution files", cachedFiles.Count);
-
-            var fileViewModels = cachedFiles
-                .Select(f => new DistributionFileViewModel(f))
-                .ToList();
-
-            var resolveSw = System.Diagnostics.Stopwatch.StartNew();
-            _logger.Debug("Resolving NPC outfit assignments from cached distribution files...");
-            var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
-                cachedFiles,
-                npcFilterDataList);
-            _logger.Information("[PERF] ResolveNpcOutfitsWithFiltersAsync (cached): {ElapsedMs}ms ({Count} assignments)",
-                resolveSw.ElapsedMilliseconds, assignments.Count);
-
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
-            {
-                AllDistributionFiles.Clear();
-                foreach (var file in fileViewModels)
-                {
-                    AllDistributionFiles.Add(file);
-                }
-
-                AllNpcOutfitAssignments.Clear();
-                foreach (var assignment in assignments)
-                {
-                    AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to load distribution data from cache.");
         }
     }
 

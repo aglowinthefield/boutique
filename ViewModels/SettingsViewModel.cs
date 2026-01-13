@@ -36,20 +36,17 @@ public class SettingsViewModel : ReactiveObject
 {
     private readonly PatcherSettings _settings;
     private readonly GuiSettingsService _guiSettings;
-    private readonly CrossSessionCacheService _cacheService;
     private readonly ThemeService _themeService;
     private readonly TutorialService _tutorialService;
 
     public SettingsViewModel(
         PatcherSettings settings,
         GuiSettingsService guiSettings,
-        CrossSessionCacheService cacheService,
         ThemeService themeService,
         TutorialService tutorialService)
     {
         _settings = settings;
         _guiSettings = guiSettings;
-        _cacheService = cacheService;
         _themeService = themeService;
         _tutorialService = tutorialService;
 
@@ -66,18 +63,9 @@ public class SettingsViewModel : ReactiveObject
             .Skip(1)
             .Subscribe(v =>
             {
-                var previousPath = _settings.SkyrimDataPath;
                 _settings.SkyrimDataPath = v;
                 _guiSettings.SkyrimDataPath = v;
                 this.RaisePropertyChanged(nameof(FullOutputPath));
-
-                // Invalidate cache when data path changes - cached data is path-specific
-                if (!string.Equals(previousPath, v, StringComparison.OrdinalIgnoreCase))
-                {
-                    Log.Information("Data path changed from {OldPath} to {NewPath}, invalidating cache", previousPath, v);
-                    _cacheService.InvalidateCache();
-                    RefreshCacheStatus();
-                }
             });
 
         this.WhenAnyValue(x => x.PatchFileName)
@@ -116,13 +104,10 @@ public class SettingsViewModel : ReactiveObject
         BrowseDataPathCommand = new RelayCommand(BrowseDataPath);
         BrowseOutputPathCommand = new RelayCommand(BrowseOutputPath);
         AutoDetectPathCommand = new RelayCommand(AutoDetectPath);
-        ClearCacheCommand = new RelayCommand(ClearCache);
         RestartTutorialCommand = new RelayCommand(RestartTutorial);
 
         if (string.IsNullOrEmpty(SkyrimDataPath))
             AutoDetectPath();
-
-        RefreshCacheStatus();
     }
 
     [Reactive] public bool IsRunningFromMO2 { get; set; }
@@ -131,8 +116,6 @@ public class SettingsViewModel : ReactiveObject
     [Reactive] public string SkyrimDataPath { get; set; } = "";
     [Reactive] public string OutputPatchPath { get; set; } = "";
     [Reactive] public string PatchFileName { get; set; } = "";
-    [Reactive] public string CacheStatus { get; set; } = "No cache";
-    [Reactive] public bool HasCache { get; set; }
     [Reactive] public SkyrimRelease SelectedSkyrimRelease { get; set; }
     [Reactive] public ThemeOption SelectedTheme { get; set; }
 
@@ -157,7 +140,6 @@ public class SettingsViewModel : ReactiveObject
     public ICommand BrowseDataPathCommand { get; }
     public ICommand BrowseOutputPathCommand { get; }
     public ICommand AutoDetectPathCommand { get; }
-    public ICommand ClearCacheCommand { get; }
     public ICommand RestartTutorialCommand { get; }
 
     public static bool IsTutorialEnabled => FeatureFlags.TutorialEnabled;
@@ -316,12 +298,6 @@ public class SettingsViewModel : ReactiveObject
         DetectionFailed = true;
     }
 
-    private void ClearCache()
-    {
-        _cacheService.InvalidateCache();
-        RefreshCacheStatus();
-    }
-
     private void RestartTutorial()
     {
         if (!FeatureFlags.TutorialEnabled)
@@ -329,21 +305,6 @@ public class SettingsViewModel : ReactiveObject
 
         _tutorialService.ResetTutorial();
         _tutorialService.StartTutorial();
-    }
-
-    public void RefreshCacheStatus()
-    {
-        var info = _cacheService.GetCacheInfo();
-        if (info is null)
-        {
-            CacheStatus = "No cache";
-            HasCache = false;
-        }
-        else
-        {
-            CacheStatus = $"Cache: {info.FileSizeFormatted}, updated {info.LastModifiedFormatted}";
-            HasCache = true;
-        }
     }
 
     private static void ShowRestartDialog()

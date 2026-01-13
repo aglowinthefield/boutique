@@ -30,7 +30,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="140" />
@@ -86,25 +85,17 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <!-- Row 5: Data Cache -->
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Data Cache:" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Settings.CacheStatus}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" VerticalAlignment="Center" Margin="0,0,0,12" />
-            <Button Grid.Row="5" Grid.Column="2" Content="Clear Cache"
-                    Command="{Binding Settings.ClearCacheCommand}"
-                    IsEnabled="{Binding Settings.HasCache}" MinWidth="80" Margin="0,0,0,12" />
-
-            <!-- Row 6: Theme -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Theme:" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <ComboBox Grid.Row="6" Grid.Column="1"
+            <!-- Row 5: Theme -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Theme:" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="5" Grid.Column="1"
                       ItemsSource="{Binding Settings.ThemeOptions}"
                       SelectedItem="{Binding Settings.SelectedTheme}"
                       Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 7: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
+            <!-- Row 6: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tutorial:" VerticalAlignment="Center"
                        Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="7" Grid.Column="1" Content="Restart Tutorial"
+            <Button Grid.Row="6" Grid.Column="1" Content="Restart Tutorial"
                     Command="{Binding Settings.RestartTutorialCommand}"
                     HorizontalAlignment="Left" MinWidth="120"
                     Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />

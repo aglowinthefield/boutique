@@ -51,7 +51,6 @@ public partial class App
         builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
         builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
         builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
-        builder.RegisterType<CrossSessionCacheService>().SingleInstance();
         builder.RegisterType<GameDataCacheService>().SingleInstance();
         builder.RegisterType<ThemeService>().SingleInstance();
         builder.RegisterType<TutorialService>().SingleInstance();
