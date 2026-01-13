@@ -30,6 +30,15 @@ public sealed class NpcFilterData
     public required FormKey? TemplateFormKey { get; init; }
     public required string? TemplateEditorId { get; init; }
 
+    /// <summary>
+    /// Skill values indexed by SPID skill index (6-23).
+    /// Indices: 6=OneHanded, 7=TwoHanded, 8=Marksman, 9=Block, 10=Smithing,
+    /// 11=HeavyArmor, 12=LightArmor, 13=Pickpocket, 14=Lockpicking, 15=Sneak,
+    /// 16=Alchemy, 17=Speechcraft, 18=Alteration, 19=Conjuration, 20=Destruction,
+    /// 21=Illusion, 22=Restoration, 23=Enchanting
+    /// </summary>
+    public byte[] SkillValues { get; init; } = new byte[24];
+
     public string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : EditorId ?? "(No EditorID)";
     public string FormKeyString => FormKey.ToString();
     public string ModDisplayName => SourceMod.FileName;

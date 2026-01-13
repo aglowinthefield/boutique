@@ -88,13 +88,19 @@ public class DistributionFileWriterService
                             filterParts.Add($"filterByFactions={factionList}");
                         }
 
-                        if (entry.KeywordFormKeys.Count > 0)
+                        if (entry.KeywordEditorIds.Count > 0 && linkCache != null)
                         {
-                            var keywordFormKeys = entry.KeywordFormKeys
-                                .Select(fk => FormatFormKey(fk))
+                            // SkyPatcher needs FormKeys, so resolve EditorIDs to FormKeys for game keywords
+                            var keywordFormKeys = entry.KeywordEditorIds
+                                .Select(editorId => ResolveKeywordEditorIdToFormKey(editorId, linkCache))
+                                .Where(fk => !fk.IsNull)
+                                .Select(FormatFormKey)
                                 .ToList();
-                            var keywordList = string.Join(",", keywordFormKeys);
-                            filterParts.Add($"filterByKeywords={keywordList}");
+                            if (keywordFormKeys.Count > 0)
+                            {
+                                var keywordList = string.Join(",", keywordFormKeys);
+                                filterParts.Add($"filterByKeywords={keywordList}");
+                            }
                         }
 
                         if (entry.RaceFormKeys.Count > 0)
@@ -215,11 +221,28 @@ public class DistributionFileWriterService
                     else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
                     {
                         hasSpidLines = true;
-                        cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                        cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                        entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits, _logger);
-                        if (entry == null)
-                            parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
+
+                        // Process Outfit and Keyword lines as distribution entries
+                        if (spidFilter.FormType == SpidFormType.Outfit)
+                        {
+                            cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                            cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
+                            entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits, _logger);
+                            if (entry == null)
+                                parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
+                        }
+                        else if (spidFilter.FormType == SpidFormType.Keyword)
+                        {
+                            cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                            entry = SpidFilterResolver.ResolveKeyword(spidFilter, linkCache, cachedNpcs, knownVirtualKeywords: null, _logger);
+                            if (entry == null)
+                                parseFailureReason = "Could not resolve keyword distribution filters from SPID syntax";
+                        }
+                        else
+                        {
+                            // Other SPID types (Spell, Perk, Item, Shout) - preserve unchanged
+                            parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed, $"{spidFilter.FormType} distribution (preserved)"));
+                        }
                     }
                     else
                     {
@@ -275,7 +298,7 @@ public class DistributionFileWriterService
             // Resolve to FormKeys - supports both FormKey format and EditorID
             var npcFormKeys = ResolveNpcIdentifiers(npcStrings, linkCache);
             var factionFormKeys = ResolveFactionIdentifiers(factionStrings, linkCache);
-            var keywordFormKeys = ResolveKeywordIdentifiers(keywordStrings, linkCache);
+            var keywordEditorIds = ResolveKeywordIdentifiersToEditorIds(keywordStrings, linkCache);
             var raceFormKeys = ResolveRaceIdentifiers(raceStrings, linkCache);
             var classFormKeys = ResolveClassIdentifiers(classStrings, linkCache);
 
@@ -306,7 +329,7 @@ public class DistributionFileWriterService
                 Outfit = outfit,
                 NpcFormKeys = npcFormKeys,
                 FactionFormKeys = factionFormKeys,
-                KeywordFormKeys = keywordFormKeys,
+                KeywordEditorIds = keywordEditorIds,
                 RaceFormKeys = raceFormKeys,
                 ClassFormKeys = classFormKeys
             };
@@ -392,30 +415,43 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<FormKey> ResolveKeywordIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<string> ResolveKeywordIdentifiersToEditorIds(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-        var results = new List<FormKey>();
+        var results = new List<string>();
         foreach (var id in identifiers)
         {
+            // If it's a FormKey, resolve to EditorID
             if (TryParseFormKey(id) is { } formKey)
             {
-                results.Add(formKey);
-                continue;
+                if (linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
+                    !string.IsNullOrWhiteSpace(keyword.EditorID))
+                {
+                    results.Add(keyword.EditorID);
+                    continue;
+                }
             }
 
-            var keyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
+            // Otherwise, try to resolve as EditorID to validate it exists
+            var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
                 .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
-            if (keyword != null)
+            if (resolvedKeyword != null)
             {
-                results.Add(keyword.FormKey);
-                _logger.Debug("Resolved Keyword EditorID '{Id}' to {FormKey}", id, keyword.FormKey);
+                results.Add(resolvedKeyword.EditorID ?? id);
             }
             else
             {
-                _logger.Warning("Could not resolve Keyword identifier: {Id}", id);
+                // Keep as-is (could be a virtual keyword)
+                results.Add(id);
             }
         }
         return results;
+    }
+
+    private static FormKey ResolveKeywordEditorIdToFormKey(string editorId, ILinkCache linkCache)
+    {
+        var keyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
+            .FirstOrDefault(k => string.Equals(k.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+        return keyword?.FormKey ?? FormKey.Null;
     }
 
     private List<FormKey> ResolveRaceIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
@@ -529,18 +565,10 @@ public class DistributionFileWriterService
         }
 
         // Add keywords (+ separated for AND logic)
-        var keywordEditorIds = new List<string>();
-        foreach (var keywordFormKey in entry.KeywordFormKeys)
+        // KeywordEditorIds already contains EditorIDs for both game and virtual keywords
+        if (entry.KeywordEditorIds.Count > 0)
         {
-            if (linkCache.TryResolve<IKeywordGetter>(keywordFormKey, out var keyword) &&
-                !string.IsNullOrWhiteSpace(keyword.EditorID))
-            {
-                keywordEditorIds.Add(keyword.EditorID);
-            }
-        }
-        if (keywordEditorIds.Count > 0)
-        {
-            stringFilters.Add(string.Join("+", keywordEditorIds));
+            stringFilters.Add(string.Join("+", entry.KeywordEditorIds));
         }
 
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;

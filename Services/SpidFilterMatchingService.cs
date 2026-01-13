@@ -6,13 +6,16 @@ namespace Boutique.Services;
 
 public class SpidFilterMatchingService
 {
-    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter)
+    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter) =>
+        NpcMatchesFilter(npc, filter, virtualKeywords: null);
+
+    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter, IReadOnlySet<string>? virtualKeywords)
     {
         // All filter sections are multiplicative (AND logic)
         // An empty/NONE filter section means "match all"
 
         // 1. Check string filters (keywords, names, EditorIDs)
-        if (!MatchesStringFilters(npc, filter.StringFilters))
+        if (!MatchesStringFilters(npc, filter.StringFilters, virtualKeywords))
             return false;
 
         // 2. Check form filters (race, class, faction, etc.)
@@ -43,7 +46,27 @@ public class SpidFilterMatchingService
         return allNpcs.AsParallel().Where(npc => NpcMatchesFilter(npc, filter)).ToList();
     }
 
-    private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters)
+    public static IReadOnlyList<NpcFilterData> GetMatchingNpcsWithVirtualKeywords(
+        IReadOnlyList<NpcFilterData> allNpcs,
+        SpidDistributionFilter filter,
+        Dictionary<FormKey, HashSet<string>> virtualKeywordsByNpc)
+    {
+        // Fast path: if filter targets all NPCs with no exclusions, return all
+        if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
+            filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
+        {
+            return allNpcs.ToList();
+        }
+
+        // Use PLINQ for parallel filtering of large NPC lists
+        return allNpcs.AsParallel().Where(npc =>
+        {
+            virtualKeywordsByNpc.TryGetValue(npc.FormKey, out var virtualKeywords);
+            return NpcMatchesFilter(npc, filter, virtualKeywords);
+        }).ToList();
+    }
+
+    private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters, IReadOnlySet<string>? virtualKeywords)
     {
         if (filters.IsEmpty)
             return true;
@@ -51,26 +74,26 @@ public class SpidFilterMatchingService
         // OR logic: at least one expression must match
         foreach (var expression in filters.Expressions)
         {
-            if (MatchesStringExpression(npc, expression))
+            if (MatchesStringExpression(npc, expression, virtualKeywords))
                 return true;
         }
 
         return false;
     }
 
-    private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression)
+    private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression, IReadOnlySet<string>? virtualKeywords)
     {
         // AND logic: all parts must match
         foreach (var part in expression.Parts)
         {
-            if (!MatchesStringPart(npc, part))
+            if (!MatchesStringPart(npc, part, virtualKeywords))
                 return false;
         }
 
         return true;
     }
 
-    private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part)
+    private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part, IReadOnlySet<string>? virtualKeywords)
     {
         var value = part.Value;
         var hasWildcard = part.HasWildcard;
@@ -81,19 +104,19 @@ public class SpidFilterMatchingService
         {
             // Partial match - remove * and check if any string contains the value
             var searchValue = value.Replace("*", "");
-            matches = PartialMatchesNpcStrings(npc, searchValue);
+            matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords);
         }
         else
         {
             // Exact match against name, EditorID, or keywords
-            matches = ExactMatchesNpcStrings(npc, value);
+            matches = ExactMatchesNpcStrings(npc, value, virtualKeywords);
         }
 
         // Apply negation if needed
         return part.IsNegated ? !matches : matches;
     }
 
-    private static bool ExactMatchesNpcStrings(NpcFilterData npc, string value)
+    private static bool ExactMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords)
     {
         // Check NPC name
         if (!string.IsNullOrWhiteSpace(npc.Name) &&
@@ -109,6 +132,10 @@ public class SpidFilterMatchingService
         if (npc.Keywords.Contains(value))
             return true;
 
+        // Check virtual keywords (SPID-distributed keywords)
+        if (virtualKeywords != null && virtualKeywords.Contains(value))
+            return true;
+
         // Check template EditorID
         if (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) &&
             npc.TemplateEditorId.Equals(value, StringComparison.OrdinalIgnoreCase))
@@ -117,7 +144,7 @@ public class SpidFilterMatchingService
         return false;
     }
 
-    private static bool PartialMatchesNpcStrings(NpcFilterData npc, string value)
+    private static bool PartialMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords)
     {
         // Check NPC name
         if (!string.IsNullOrWhiteSpace(npc.Name) &&
@@ -134,6 +161,16 @@ public class SpidFilterMatchingService
         {
             if (keyword.Contains(value, StringComparison.OrdinalIgnoreCase))
                 return true;
+        }
+
+        // Check virtual keywords (SPID-distributed keywords)
+        if (virtualKeywords != null)
+        {
+            foreach (var keyword in virtualKeywords)
+            {
+                if (keyword.Contains(value, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
         }
 
         // Check template EditorID
@@ -294,19 +331,22 @@ public class SpidFilterMatchingService
             return true;
 
         // Parse level filter: can be "min", "min/max", or "min/" (open-ended)
-        // Can also have skill filters like "14(50/50)"
-
-        // For now, just handle basic level range
+        // Can also have skill filters like "14(50/50)" meaning skill index 14 at level 50-50
         var parts = levelFilters.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var part in parts)
         {
             var trimmed = part.Trim();
 
-            // Skip skill filters for now (they have parentheses)
-            if (trimmed.Contains('('))
+            // Check for skill filter format: skillIndex(min/max)
+            if (TryParseSkillFilter(trimmed, out var skillIndex, out var minSkill, out var maxSkill))
+            {
+                if (!MatchesSkillFilter(npc, skillIndex, minSkill, maxSkill))
+                    return false;
                 continue;
+            }
 
+            // Basic level range
             if (!ParseLevelRange(trimmed, out var minLevel, out var maxLevel))
                 continue;
 
@@ -317,6 +357,47 @@ public class SpidFilterMatchingService
             if (maxLevel.HasValue && npc.Level > maxLevel.Value)
                 return false;
         }
+
+        return true;
+    }
+
+    private static bool TryParseSkillFilter(string value, out int skillIndex, out int minSkill, out int? maxSkill)
+    {
+        skillIndex = 0;
+        minSkill = 0;
+        maxSkill = null;
+
+        var openParen = value.IndexOf('(');
+        var closeParen = value.IndexOf(')');
+
+        if (openParen < 0 || closeParen < openParen)
+            return false;
+
+        var indexPart = value[..openParen].Trim();
+        var rangePart = value[(openParen + 1)..closeParen].Trim();
+
+        if (!int.TryParse(indexPart, out skillIndex))
+            return false;
+
+        // Validate skill index is in valid range (6-23 for SPID)
+        if (skillIndex < 6 || skillIndex > 23)
+            return false;
+
+        return ParseLevelRange(rangePart, out minSkill, out maxSkill);
+    }
+
+    private static bool MatchesSkillFilter(NpcFilterData npc, int skillIndex, int minSkill, int? maxSkill)
+    {
+        if (skillIndex < 0 || skillIndex >= npc.SkillValues.Length)
+            return true;
+
+        var skillValue = npc.SkillValues[skillIndex];
+
+        if (skillValue < minSkill)
+            return false;
+
+        if (maxSkill.HasValue && skillValue > maxSkill.Value)
+            return false;
 
         return true;
     }

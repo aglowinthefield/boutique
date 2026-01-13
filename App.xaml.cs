@@ -48,6 +48,7 @@ public partial class App
         builder.RegisterType<NpcScanningService>().SingleInstance();
         builder.RegisterType<DistributionFileWriterService>().SingleInstance();
         builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
+        builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
         builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
         builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
         builder.RegisterType<CrossSessionCacheService>().SingleInstance();

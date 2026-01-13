@@ -10,13 +10,16 @@ namespace Boutique.Services;
 public class NpcOutfitResolutionService
 {
     private readonly MutagenService _mutagenService;
+    private readonly KeywordDistributionResolver _keywordResolver;
     private readonly ILogger _logger;
 
     public NpcOutfitResolutionService(
         MutagenService mutagenService,
+        KeywordDistributionResolver keywordResolver,
         ILogger logger)
     {
         _mutagenService = mutagenService;
+        _keywordResolver = keywordResolver;
         _logger = logger.ForContext<NpcOutfitResolutionService>();
     }
 
@@ -146,6 +149,21 @@ public class NpcOutfitResolutionService
                 var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
                 _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
 
+                // Simulate SPID keyword distributions before processing outfit lines
+                _logger.Debug("Simulating SPID keyword distributions...");
+                var keywordEntries = _keywordResolver.ParseKeywordDistributions(sortedFiles);
+                var (sortedKeywords, cyclicKeywords) = _keywordResolver.TopologicalSort(keywordEntries);
+
+                if (cyclicKeywords.Count > 0)
+                {
+                    _logger.Warning("Skipping {Count} keywords with circular dependencies: {Keywords}",
+                        cyclicKeywords.Count, string.Join(", ", cyclicKeywords.Take(5)));
+                }
+
+                var simulatedKeywords = _keywordResolver.SimulateKeywordDistribution(sortedKeywords, npcFilterData);
+                _logger.Information("Keyword simulation complete: {KeywordCount} keyword types distributed to {NpcCount} NPCs",
+                    sortedKeywords.Count, simulatedKeywords.Count);
+
                 // First, add ESP-provided outfits (processing order 0, so INI files win)
                 _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
                 ProcessEspProvidedOutfitsFromFilterData(linkCache, npcFilterData, npcDistributions);
@@ -161,7 +179,7 @@ public class NpcOutfitResolutionService
                         fileIndex + 1, sortedFiles.Count, file.FileName);
 
                     // Processing order starts at 1 (ESP is 0)
-                    ProcessDistributionFileWithFilters(file, fileIndex + 1, linkCache, npcFilterData, outfitByEditorId, npcDistributions);
+                    ProcessDistributionFileWithFilters(file, fileIndex + 1, linkCache, npcFilterData, outfitByEditorId, npcDistributions, simulatedKeywords);
 
                     _logger.Debug("After processing {FileName}: {NpcCount} unique NPCs with distributions",
                         file.FileName, npcDistributions.Count);
@@ -194,7 +212,8 @@ public class NpcOutfitResolutionService
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyList<NpcFilterData> allNpcs,
         IReadOnlyDictionary<string, FormKey> outfitByEditorId,
-        Dictionary<FormKey, List<OutfitDistribution>> npcDistributions)
+        Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
+        Dictionary<FormKey, HashSet<string>> simulatedKeywords)
     {
         var outfitLineCount = 0;
         var matchedNpcCount = 0;
@@ -208,7 +227,7 @@ public class NpcOutfitResolutionService
 
             if (file.Type == DistributionFileType.Spid)
             {
-                ProcessSpidLineWithFilters(file, line, processingOrder, linkCache, allNpcs, npcDistributions, ref matchedNpcCount);
+                ProcessSpidLineWithFilters(file, line, processingOrder, linkCache, allNpcs, npcDistributions, simulatedKeywords, ref matchedNpcCount);
             }
             else if (file.Type == DistributionFileType.SkyPatcher)
             {
@@ -227,6 +246,7 @@ public class NpcOutfitResolutionService
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyList<NpcFilterData> allNpcs,
         Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
+        Dictionary<FormKey, HashSet<string>> simulatedKeywords,
         ref int matchedNpcCount)
     {
         // Parse the SPID line using the full parser
@@ -250,8 +270,8 @@ public class NpcOutfitResolutionService
             outfitEditorId = outfit.EditorID;
         }
 
-        // Find all matching NPCs using the filter matching service
-        var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcs(allNpcs, filter);
+        // Find all matching NPCs using the filter matching service with virtual keywords
+        var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, simulatedKeywords);
 
         _logger.Debug("SPID line matched {Count} NPCs: {Line}", matchingNpcs.Count,
             line.RawText.Length > 80 ? line.RawText[..80] + "..." : line.RawText);

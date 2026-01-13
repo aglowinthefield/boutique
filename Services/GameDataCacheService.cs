@@ -474,6 +474,7 @@ public class GameDataCacheService
             var (isFemale, isUnique, isSummonable, isLeveled) = Utilities.NpcDataExtractor.ExtractTraits(npc);
             var isChild = Utilities.NpcDataExtractor.IsChildRace(raceEditorId);
             var level = Utilities.NpcDataExtractor.ExtractLevel(npc);
+            var skillValues = Utilities.NpcDataExtractor.ExtractSkillValues(npc);
 
             return new NpcFilterData
             {
@@ -500,7 +501,8 @@ public class GameDataCacheService
                 IsLeveled = isLeveled,
                 Level = level,
                 TemplateFormKey = templateFormKey,
-                TemplateEditorId = templateEditorId
+                TemplateEditorId = templateEditorId,
+                SkillValues = skillValues
             };
         }
         catch

@@ -95,6 +95,14 @@
                                             <Setter Property="IsEnabled" Value="False" />
                                             <Setter Property="ToolTip" Value="SkyPatcher does not support chance-based distribution. Disable chance on all entries to use this format." />
                                         </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding}" Value="SkyPatcher" />
+                                                <Condition Binding="{Binding DataContext.HasKeywordDistributions, RelativeSource={RelativeSource AncestorType=ComboBox}}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="IsEnabled" Value="False" />
+                                            <Setter Property="ToolTip" Value="SkyPatcher does not support keyword distribution. Change all entries to Outfit type to use this format." />
+                                        </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </ComboBox.ItemContainerStyle>
@@ -156,26 +164,43 @@
                                     </Style>
                                 </Border.Resources>
                                 <StackPanel>
-                                    <!-- Header: Assign + Outfit + Chance + Preview + Remove -->
+                                    <!-- Header: Assign + Type + Outfit/Keyword + Chance + Preview + Remove -->
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                         <RadioButton Content="Assign" IsChecked="{Binding IsSelected}"
                                                      Command="{Binding DataContext.SelectEntryCommand, ElementName=Root}"
                                                      CommandParameter="{Binding}" Margin="0,0,8,0" FontWeight="Bold" VerticalAlignment="Center" />
-                                        <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <controls:FilterableSelector
-                                                  ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
-                                                  SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
-                                                  DisplayMemberPath="EditorID"
-                                                  FilterPath="EditorID"
-                                                  MinWidth="140" Margin="0,0,4,0"
-                                                  MaxDropDownHeight="300"
-                                                  DropDownOpened="FilterableSelector_DropDownOpened" />
+                                        <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.TypeOptions}"
+                                                  SelectedItem="{Binding Type, Mode=TwoWay}"
+                                                  MinWidth="70" Height="22" VerticalContentAlignment="Center" Margin="0,0,6,0" />
+                                        <!-- Outfit selector (visible when Type=Outfit) -->
+                                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="Outfit:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                            <controls:FilterableSelector
+                                                      ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
+                                                      SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
+                                                      DisplayMemberPath="EditorID"
+                                                      FilterPath="EditorID"
+                                                      MinWidth="140" Margin="0,0,4,0"
+                                                      MaxDropDownHeight="300"
+                                                      DropDownOpened="FilterableSelector_DropDownOpened" />
+                                        </StackPanel>
+                                        <!-- Keyword selector (visible when Type=Keyword) -->
+                                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsKeywordDistribution, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="Keyword:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                            <ComboBox ItemsSource="{Binding DataContext.AvailableKeywords, ElementName=Root}"
+                                                      Text="{Binding KeywordToDistribute, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      DisplayMemberPath="EditorID"
+                                                      IsEditable="True"
+                                                      MinWidth="160" Height="22" VerticalContentAlignment="Center" Margin="0,0,4,0"
+                                                      ToolTip="Select existing keyword or type a new EditorID for virtual keywords" />
+                                        </StackPanel>
                                         <CheckBox Content="%" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,2,0" ToolTip="Use Chance" />
                                         <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="32" Height="22"
                                                  IsEnabled="{Binding UseChance}" Margin="0,0,4,0" ToolTip="Chance (0-100)"
                                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="2,0" />
                                         <Button ToolTip="Preview Outfit" Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                                                Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}" CommandParameter="{Binding}">
+                                                Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}" CommandParameter="{Binding}"
+                                                Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
                                             <Image Source="pack://application:,,,/Assets/eye.png" Width="12" Height="12" />
                                         </Button>
                                         <Button Command="{Binding RemoveCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
@@ -321,12 +346,12 @@
                           IsExpanded="True" Margin="0,6,0,0">
                     <Expander.Header>
                         <TextBlock>
-                            <Run Text="{Binding ParseErrors.Count, Mode=OneWay}" />
+                            <Run Text="{Binding ActualParseErrors.Count, Mode=OneWay}" />
                             <Run Text=" parsing error(s) - these lines will be preserved on save" />
                         </TextBlock>
                     </Expander.Header>
                     <Border Padding="6" Background="{DynamicResource Brush.Error.Background}" BorderBrush="{DynamicResource Brush.Error.Border}" BorderThickness="1" CornerRadius="0,0,4,4">
-                        <ItemsControl ItemsSource="{Binding ParseErrors}" MaxHeight="150">
+                        <ItemsControl ItemsSource="{Binding ActualParseErrors}" MaxHeight="150">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VirtualizingStackPanel />

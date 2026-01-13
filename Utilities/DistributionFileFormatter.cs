@@ -28,23 +28,54 @@ public static class DistributionFileFormatter
 
         foreach (var entry in entries)
         {
-            if (entry.SelectedOutfit == null)
-                continue;
+            string? line = null;
 
-            var line = format == DistributionFileType.Spid
-                ? FormatSpidLine(entry)
-                : FormatSkyPatcherLine(entry);
+            if (entry.Type == DistributionType.Keyword)
+            {
+                if (!string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
+                {
+                    line = FormatSpidKeywordLine(entry);
+                }
+            }
+            else if (entry.SelectedOutfit != null)
+            {
+                line = format == DistributionFileType.Spid
+                    ? FormatSpidLine(entry)
+                    : FormatSkyPatcherLine(entry);
+            }
 
-            lines.Add(line);
+            if (line != null)
+            {
+                lines.Add(line);
+            }
         }
 
         if (unparsedLines != null && unparsedLines.Count > 0)
         {
-            lines.Add("");
-            lines.Add("; Lines that Boutique could not parse (preserved from original file)");
-            foreach (var error in unparsedLines)
+            // Separate preserved lines (other SPID types like Spell, Perk, etc.) from actual parse errors
+            var preservedLines = unparsedLines.Where(e => e.Reason.EndsWith("(preserved)", StringComparison.Ordinal)).ToList();
+            var errorLines = unparsedLines.Where(e => !e.Reason.EndsWith("(preserved)", StringComparison.Ordinal)).ToList();
+
+            // Add preserved lines first (other SPID distribution types)
+            if (preservedLines.Count > 0)
             {
-                lines.Add(error.LineContent);
+                lines.Add("");
+                lines.Add("; Other SPID distributions (preserved from original file)");
+                foreach (var preserved in preservedLines)
+                {
+                    lines.Add(preserved.LineContent);
+                }
+            }
+
+            // Add actual parse errors
+            if (errorLines.Count > 0)
+            {
+                lines.Add("");
+                lines.Add("; Lines that Boutique could not parse (preserved from original file)");
+                foreach (var error in errorLines)
+                {
+                    lines.Add(error.LineContent);
+                }
             }
         }
 
@@ -152,6 +183,112 @@ public static class DistributionFileFormatter
         var sb = new StringBuilder();
         sb.Append("Outfit = ");
         sb.Append(outfitIdentifier);
+
+        for (var i = 0; i <= lastNonNullIndex; i++)
+        {
+            sb.Append('|');
+            sb.Append(parts[i] ?? "NONE");
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Formats a single entry as a SPID keyword distribution line.
+    /// Format: Keyword = EditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|Count|Chance
+    /// </summary>
+    public static string FormatSpidKeywordLine(DistributionEntryViewModel entry)
+    {
+        if (string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
+            throw new ArgumentException("Entry must have a keyword to distribute", nameof(entry));
+
+        // Position 1: Keyword EditorID
+        var keywordIdentifier = entry.KeywordToDistribute;
+
+        // Position 2: StringFilters - NPC names (comma-separated) and Keywords (+ for AND)
+        var stringFilters = new List<string>();
+
+        var npcNames = entry.SelectedNpcs
+            .Where(npc => !string.IsNullOrWhiteSpace(npc.DisplayName))
+            .Select(npc => npc.DisplayName)
+            .ToList();
+        if (npcNames.Count > 0)
+        {
+            stringFilters.Add(string.Join(",", npcNames));
+        }
+
+        var keywordEditorIds = entry.SelectedKeywords
+            .Where(k => !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
+            .Select(k => k.EditorID)
+            .ToList();
+        if (keywordEditorIds.Count > 0)
+        {
+            stringFilters.Add(string.Join("+", keywordEditorIds));
+        }
+
+        var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;
+
+        // Position 3: FormFilters - Factions, Races, Classes (+ for AND)
+        var formFilters = new List<string>();
+
+        foreach (var faction in entry.SelectedFactions)
+        {
+            var editorId = faction.EditorID;
+            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+            {
+                formFilters.Add(editorId);
+            }
+        }
+
+        foreach (var race in entry.SelectedRaces)
+        {
+            var editorId = race.EditorID;
+            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+            {
+                formFilters.Add(editorId);
+            }
+        }
+
+        foreach (var classVm in entry.SelectedClasses)
+        {
+            var editorId = classVm.EditorID;
+            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+            {
+                formFilters.Add(editorId);
+            }
+        }
+
+        var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
+
+        // Position 4: LevelFilters - Not supported yet
+        string? levelFiltersPart = null;
+
+        // Position 5: TraitFilters
+        var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
+
+        // Position 6: CountOrPackageIdx - Not supported yet
+        string? countPart = null;
+
+        // Position 7: Chance
+        var chancePart = entry.UseChance && entry.Chance != 100
+            ? entry.Chance.ToString(CultureInfo.InvariantCulture)
+            : null;
+
+        var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
+
+        var lastNonNullIndex = -1;
+        for (var i = parts.Length - 1; i >= 0; i--)
+        {
+            if (parts[i] != null)
+            {
+                lastNonNullIndex = i;
+                break;
+            }
+        }
+
+        var sb = new StringBuilder();
+        sb.Append("Keyword = ");
+        sb.Append(keywordIdentifier);
 
         for (var i = 0; i <= lastNonNullIndex; i++)
         {

@@ -14,6 +14,15 @@ public static class SpidFilterResolver
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyList<INpcGetter> cachedNpcs,
         IReadOnlyList<IOutfitGetter> cachedOutfits,
+        ILogger? logger = null) =>
+        Resolve(filter, linkCache, cachedNpcs, cachedOutfits, knownVirtualKeywords: null, logger);
+
+    public static DistributionEntry? Resolve(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        IReadOnlyList<INpcGetter> cachedNpcs,
+        IReadOnlyList<IOutfitGetter> cachedOutfits,
+        IReadOnlySet<string>? knownVirtualKeywords,
         ILogger? logger = null)
     {
         try
@@ -27,7 +36,7 @@ public static class SpidFilterResolver
 
             var npcFormKeys = new List<FormKey>();
             var factionFormKeys = new List<FormKey>();
-            var keywordFormKeys = new List<FormKey>();
+            var keywordEditorIds = new List<string>();
             var raceFormKeys = new List<FormKey>();
             var classFormKeys = new List<FormKey>();
             var combatStyleFormKeys = new List<FormKey>();
@@ -38,14 +47,15 @@ public static class SpidFilterResolver
             var formListFormKeys = new List<FormKey>();
 
             // Process StringFilters - can contain NPC names, keywords, etc.
-            ProcessStringFilters(filter.StringFilters, linkCache, cachedNpcs, npcFormKeys, keywordFormKeys, logger);
+            ProcessStringFilters(filter.StringFilters, linkCache, cachedNpcs, npcFormKeys, keywordEditorIds,
+                knownVirtualKeywords, logger);
 
             // Process FormFilters - can contain factions, races, classes, combat styles, outfits, perks, voice types, locations, formlists
             ProcessFormFilters(filter.FormFilters, linkCache, factionFormKeys, raceFormKeys, classFormKeys,
                 combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys, formListFormKeys, logger);
 
             // Must have at least one filter
-            var hasAnyFilter = npcFormKeys.Count > 0 || factionFormKeys.Count > 0 || keywordFormKeys.Count > 0 ||
+            var hasAnyFilter = npcFormKeys.Count > 0 || factionFormKeys.Count > 0 || keywordEditorIds.Count > 0 ||
                                raceFormKeys.Count > 0 || classFormKeys.Count > 0 || combatStyleFormKeys.Count > 0 ||
                                outfitFilterFormKeys.Count > 0 || perkFormKeys.Count > 0 || voiceTypeFormKeys.Count > 0 ||
                                locationFormKeys.Count > 0 || formListFormKeys.Count > 0;
@@ -61,7 +71,7 @@ public static class SpidFilterResolver
                 Outfit = outfit,
                 NpcFormKeys = npcFormKeys,
                 FactionFormKeys = factionFormKeys,
-                KeywordFormKeys = keywordFormKeys,
+                KeywordEditorIds = keywordEditorIds,
                 RaceFormKeys = raceFormKeys,
                 ClassFormKeys = classFormKeys,
                 CombatStyleFormKeys = combatStyleFormKeys,
@@ -84,6 +94,72 @@ public static class SpidFilterResolver
         catch (Exception ex)
         {
             logger?.Debug(ex, "Failed to resolve SPID filter: {Line}", filter.RawLine);
+            return null;
+        }
+    }
+
+    public static DistributionEntry? ResolveKeyword(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        IReadOnlyList<INpcGetter> cachedNpcs,
+        IReadOnlySet<string>? knownVirtualKeywords = null,
+        ILogger? logger = null)
+    {
+        try
+        {
+            var keywordToDistribute = filter.FormIdentifier;
+            if (string.IsNullOrWhiteSpace(keywordToDistribute))
+            {
+                logger?.Debug("Empty keyword identifier in Keyword distribution line: {Line}", filter.RawLine);
+                return null;
+            }
+
+            var npcFormKeys = new List<FormKey>();
+            var factionFormKeys = new List<FormKey>();
+            var keywordEditorIds = new List<string>();
+            var raceFormKeys = new List<FormKey>();
+            var classFormKeys = new List<FormKey>();
+            var combatStyleFormKeys = new List<FormKey>();
+            var outfitFilterFormKeys = new List<FormKey>();
+            var perkFormKeys = new List<FormKey>();
+            var voiceTypeFormKeys = new List<FormKey>();
+            var locationFormKeys = new List<FormKey>();
+            var formListFormKeys = new List<FormKey>();
+
+            ProcessStringFilters(filter.StringFilters, linkCache, cachedNpcs, npcFormKeys, keywordEditorIds,
+                knownVirtualKeywords, logger);
+
+            ProcessFormFilters(filter.FormFilters, linkCache, factionFormKeys, raceFormKeys, classFormKeys,
+                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys, formListFormKeys, logger);
+
+            var entry = new DistributionEntry
+            {
+                Type = DistributionType.Keyword,
+                KeywordToDistribute = keywordToDistribute,
+                NpcFormKeys = npcFormKeys,
+                FactionFormKeys = factionFormKeys,
+                KeywordEditorIds = keywordEditorIds,
+                RaceFormKeys = raceFormKeys,
+                ClassFormKeys = classFormKeys,
+                CombatStyleFormKeys = combatStyleFormKeys,
+                OutfitFilterFormKeys = outfitFilterFormKeys,
+                PerkFormKeys = perkFormKeys,
+                VoiceTypeFormKeys = voiceTypeFormKeys,
+                LocationFormKeys = locationFormKeys,
+                FormListFormKeys = formListFormKeys,
+                TraitFilters = filter.TraitFilters
+            };
+
+            if (filter.Chance != 100)
+            {
+                entry.Chance = filter.Chance;
+            }
+
+            return entry;
+        }
+        catch (Exception ex)
+        {
+            logger?.Debug(ex, "Failed to resolve keyword SPID filter: {Line}", filter.RawLine);
             return null;
         }
     }
@@ -153,7 +229,8 @@ public static class SpidFilterResolver
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyList<INpcGetter> cachedNpcs,
         List<FormKey> npcFormKeys,
-        List<FormKey> keywordFormKeys,
+        List<string> keywordEditorIds,
+        IReadOnlySet<string>? knownVirtualKeywords,
         ILogger? logger)
     {
         foreach (var expr in stringFilters.Expressions)
@@ -163,12 +240,19 @@ public static class SpidFilterResolver
                 if (part.IsNegated || part.HasWildcard)
                     continue;
 
-                // Try to resolve as keyword first (keywords can have any EditorID)
+                // Try to resolve as game keyword first
                 var keyword = linkCache.WinningOverrides<IKeywordGetter>()
                     .FirstOrDefault(k => string.Equals(k.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (keyword != null)
                 {
-                    keywordFormKeys.Add(keyword.FormKey);
+                    keywordEditorIds.Add(keyword.EditorID ?? part.Value);
+                    continue;
+                }
+
+                // Check if it's a known virtual keyword (SPID-distributed keyword)
+                if (knownVirtualKeywords != null && knownVirtualKeywords.Contains(part.Value))
+                {
+                    keywordEditorIds.Add(part.Value);
                     continue;
                 }
 
@@ -179,13 +263,43 @@ public static class SpidFilterResolver
                 if (npc != null)
                 {
                     npcFormKeys.Add(npc.FormKey);
+                    continue;
+                }
+
+                // Treat any remaining unresolved string filter as a potential keyword
+                // (either virtual keyword from SPID or an unrecognized game keyword)
+                if (LooksLikeKeywordEditorId(part.Value))
+                {
+                    keywordEditorIds.Add(part.Value);
+                    logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
                 }
                 else
                 {
-                    logger?.Debug("Could not resolve string filter as keyword or NPC: {Value}", part.Value);
+                    logger?.Verbose("Could not resolve string filter: {Value}", part.Value);
                 }
             }
         }
+    }
+
+    private static bool LooksLikeKeywordEditorId(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        // Keywords typically contain underscores (prefix pattern like MODNAME_keywordId or ActorType_xxx)
+        if (value.Contains('_'))
+            return true;
+
+        // Also treat identifiers starting with common keyword prefixes
+        if (value.StartsWith("is", StringComparison.Ordinal) ||
+            value.StartsWith("has", StringComparison.Ordinal) ||
+            value.StartsWith("reach", StringComparison.Ordinal) ||
+            value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
+            value.StartsWith("Vampire", StringComparison.OrdinalIgnoreCase) ||
+            value.EndsWith("Keyword", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 
     private static void ProcessFormFilters(

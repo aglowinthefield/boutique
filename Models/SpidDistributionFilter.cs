@@ -1,5 +1,20 @@
 namespace Boutique.Models;
 
+public enum SpidFormType
+{
+    Outfit,
+    Keyword,
+    Spell,
+    Perk,
+    Item,
+    Shout,
+    Package,
+    Faction,
+    SleepOutfit,
+    Skin,
+    Unknown
+}
+
 /// <summary>
 /// Represents a parsed SPID distribution line with all filter sections.
 /// SPID syntax: FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
@@ -7,9 +22,19 @@ namespace Boutique.Models;
 public sealed class SpidDistributionFilter
 {
     /// <summary>
-    /// The outfit identifier - either an EditorID or FormKey string (0x800~Plugin.esp)
+    /// The type of form being distributed (Outfit, Keyword, Spell, etc.)
     /// </summary>
-    public string OutfitIdentifier { get; init; } = string.Empty;
+    public SpidFormType FormType { get; init; } = SpidFormType.Outfit;
+
+    /// <summary>
+    /// The form identifier - either an EditorID or FormKey string (0x800~Plugin.esp)
+    /// </summary>
+    public string FormIdentifier { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Alias for FormIdentifier for backward compatibility with outfit-specific code.
+    /// </summary>
+    public string OutfitIdentifier => FormIdentifier;
 
     /// <summary>
     /// String filters (position 2): NPC name, EditorID, or keyword filters.

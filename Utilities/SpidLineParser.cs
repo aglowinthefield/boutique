@@ -4,7 +4,30 @@ namespace Boutique.Utilities;
 
 public static class SpidLineParser
 {
-    public static bool TryParse(string line, out SpidDistributionFilter? result)
+    private static readonly Dictionary<string, SpidFormType> FormTypeMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Outfit"] = SpidFormType.Outfit,
+        ["Keyword"] = SpidFormType.Keyword,
+        ["Spell"] = SpidFormType.Spell,
+        ["Perk"] = SpidFormType.Perk,
+        ["Item"] = SpidFormType.Item,
+        ["Shout"] = SpidFormType.Shout,
+        ["Package"] = SpidFormType.Package,
+        ["Faction"] = SpidFormType.Faction,
+        ["SleepOutfit"] = SpidFormType.SleepOutfit,
+        ["Skin"] = SpidFormType.Skin
+    };
+
+    public static bool TryParse(string line, out SpidDistributionFilter? result) =>
+        TryParse(line, out result, formTypeFilter: null);
+
+    public static bool TryParseOutfit(string line, out SpidDistributionFilter? result) =>
+        TryParse(line, out result, formTypeFilter: SpidFormType.Outfit);
+
+    public static bool TryParseKeyword(string line, out SpidDistributionFilter? result) =>
+        TryParse(line, out result, formTypeFilter: SpidFormType.Keyword);
+
+    public static bool TryParse(string line, out SpidDistributionFilter? result, SpidFormType? formTypeFilter)
     {
         result = null;
 
@@ -13,18 +36,22 @@ public static class SpidLineParser
 
         var trimmed = line.Trim();
 
-        // Must start with "Outfit" (case-insensitive)
-        if (!trimmed.StartsWith("Outfit", StringComparison.OrdinalIgnoreCase))
-            return false;
-
         // Find the = sign
         var equalsIndex = trimmed.IndexOf('=');
         if (equalsIndex < 0)
             return false;
 
-        // Verify it's "Outfit =" or "Outfit="
+        // Extract the form type keyword before the equals sign
         var beforeEquals = trimmed[..equalsIndex].Trim();
-        if (!beforeEquals.Equals("Outfit", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(beforeEquals))
+            return false;
+
+        // Check if it's a recognized form type
+        if (!FormTypeMap.TryGetValue(beforeEquals, out var formType))
+            return false;
+
+        // If a filter is specified, only parse matching types
+        if (formTypeFilter.HasValue && formType != formTypeFilter.Value)
             return false;
 
         var valuePart = trimmed[(equalsIndex + 1)..].Trim();
@@ -36,17 +63,17 @@ public static class SpidLineParser
         if (string.IsNullOrWhiteSpace(valuePart))
             return false;
 
-        result = ParseValuePart(valuePart, trimmed);
+        result = ParseValuePart(valuePart, trimmed, formType);
         return result != null;
     }
 
-    private static SpidDistributionFilter? ParseValuePart(string valuePart, string rawLine)
+    private static SpidDistributionFilter? ParseValuePart(string valuePart, string rawLine, SpidFormType formType)
     {
         // Split by | to get all sections
-        // But first we need to extract the outfit identifier, which can itself contain | or ~
-        var (outfitIdentifier, remainder) = ExtractOutfitIdentifier(valuePart);
+        // But first we need to extract the form identifier, which can itself contain | or ~
+        var (formIdentifier, remainder) = ExtractFormIdentifier(valuePart);
 
-        if (string.IsNullOrWhiteSpace(outfitIdentifier))
+        if (string.IsNullOrWhiteSpace(formIdentifier))
             return null;
 
         // Now split the remainder by | to get filter sections
@@ -64,7 +91,8 @@ public static class SpidLineParser
 
         return new SpidDistributionFilter
         {
-            OutfitIdentifier = outfitIdentifier,
+            FormType = formType,
+            FormIdentifier = formIdentifier,
             StringFilters = stringFilters,
             FormFilters = formFilters,
             LevelFilters = IsNone(levelFilters) ? null : levelFilters,
@@ -75,7 +103,7 @@ public static class SpidLineParser
         };
     }
 
-    private static (string Identifier, string Remainder) ExtractOutfitIdentifier(string valuePart)
+    private static (string Identifier, string Remainder) ExtractFormIdentifier(string valuePart)
     {
         // Check for tilde format: 0x800~Plugin.esp or 0x800~Plugin.esp|filters
         var tildeIndex = valuePart.IndexOf('~');
@@ -372,5 +400,43 @@ public static class SpidLineParser
         }
 
         return results;
+    }
+
+    public static bool IsSpidLine(string line) =>
+        TryParse(line, out _, formTypeFilter: null);
+
+    public static bool IsOutfitLine(string line) =>
+        TryParse(line, out _, formTypeFilter: SpidFormType.Outfit);
+
+    public static bool IsKeywordLine(string line) =>
+        TryParse(line, out _, formTypeFilter: SpidFormType.Keyword);
+
+    public static SpidFormType? GetFormType(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return null;
+
+        var trimmed = line.Trim();
+        var equalsIndex = trimmed.IndexOf('=');
+        if (equalsIndex < 0)
+            return null;
+
+        var beforeEquals = trimmed[..equalsIndex].Trim();
+        return FormTypeMap.TryGetValue(beforeEquals, out var formType) ? formType : null;
+    }
+
+    public static IReadOnlyList<string> GetReferencedKeywords(SpidDistributionFilter filter)
+    {
+        var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var expr in filter.StringFilters.Expressions)
+        {
+            foreach (var part in expr.Parts)
+            {
+                results.Add(part.Value);
+            }
+        }
+
+        return results.ToList();
     }
 }

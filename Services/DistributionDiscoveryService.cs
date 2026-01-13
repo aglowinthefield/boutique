@@ -131,12 +131,13 @@ public class DistributionDiscoveryService(ILogger logger)
             {
                 files.Add(parsed);
                 parsedCount++;
-                _logger.Debug("Successfully parsed {Type} file: {Path} ({OutfitCount} outfit distributions)", type, path, parsed.OutfitDistributionCount);
+                _logger.Debug("Successfully parsed {Type} file: {Path} ({OutfitCount} outfit, {KeywordCount} keyword distributions)",
+                    type, path, parsed.OutfitDistributionCount, parsed.KeywordDistributionCount);
             }
             else
             {
                 skippedCount++;
-                _logger.Debug("Skipped {Type} file (no outfit distributions): {Path}", type, path);
+                _logger.Debug("Skipped {Type} file (no distributions): {Path}", type, path);
             }
         }
     }
@@ -169,6 +170,7 @@ public class DistributionDiscoveryService(ILogger logger)
             var lineNumber = 0;
 
             var outfitCount = 0;
+            var keywordCount = 0;
             var totalLines = 0;
 
             foreach (var raw in File.ReadLines(filePath, Encoding.UTF8))
@@ -211,7 +213,9 @@ public class DistributionDiscoveryService(ILogger logger)
                 }
 
                 var isOutfitDistribution = IsOutfitDistributionLine(type, kind, trimmed);
+                var isKeywordDistribution = IsKeywordDistributionLine(type, kind, trimmed);
                 IReadOnlyList<string> outfitFormKeys = [];
+                string? keywordIdentifier = null;
 
                 if (isOutfitDistribution)
                 {
@@ -220,18 +224,25 @@ public class DistributionDiscoveryService(ILogger logger)
                     _logger.Debug("Found outfit distribution line {LineNumber} in {Path}: {Line}", lineNumber, filePath, trimmed);
                 }
 
+                if (isKeywordDistribution)
+                {
+                    keywordCount++;
+                    keywordIdentifier = ExtractKeywordIdentifier(trimmed);
+                    _logger.Debug("Found keyword distribution line {LineNumber} in {Path}: {Keyword}", lineNumber, filePath, keywordIdentifier);
+                }
+
                 lines.Add(new DistributionLine(lineNumber, raw, kind, sectionName, key, value, isOutfitDistribution,
-                    outfitFormKeys));
+                    outfitFormKeys, isKeywordDistribution, keywordIdentifier));
             }
 
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
 
-            _logger.Debug("Parsed {Type} file {Path}: {TotalLines} total lines, {OutfitCount} outfit distributions",
-                type, filePath, totalLines, outfitCount);
+            _logger.Debug("Parsed {Type} file {Path}: {TotalLines} total lines, {OutfitCount} outfit distributions, {KeywordCount} keyword distributions",
+                type, filePath, totalLines, outfitCount, keywordCount);
 
-            if (outfitCount == 0)
+            if (outfitCount == 0 && keywordCount == 0)
             {
-                _logger.Debug("Skipping {Type} file {Path} - no outfit distributions found", type, filePath);
+                _logger.Debug("Skipping {Type} file {Path} - no outfit or keyword distributions found", type, filePath);
                 return null;
             }
 
@@ -241,7 +252,8 @@ public class DistributionDiscoveryService(ILogger logger)
                 relativePath,
                 type,
                 lines,
-                outfitCount);
+                outfitCount,
+                keywordCount);
         }
         catch (Exception ex)
         {
@@ -263,6 +275,14 @@ public class DistributionDiscoveryService(ILogger logger)
         };
     }
 
+    private static bool IsKeywordDistributionLine(DistributionFileType type, DistributionLineKind kind, string trimmed)
+    {
+        if (kind is DistributionLineKind.Comment or DistributionLineKind.Blank)
+            return false;
+
+        return type == DistributionFileType.Spid && IsSpidKeywordLine(trimmed);
+    }
+
     private static bool IsSpidOutfitLine(string trimmed)
     {
         if (!trimmed.StartsWith("Outfit", StringComparison.OrdinalIgnoreCase) || trimmed.Length <= 6)
@@ -270,6 +290,23 @@ public class DistributionDiscoveryService(ILogger logger)
 
         var remainder = trimmed[6..].TrimStart();
         return remainder.Length > 0 && remainder[0] == '=';
+    }
+
+    private static bool IsSpidKeywordLine(string trimmed)
+    {
+        if (!trimmed.StartsWith("Keyword", StringComparison.OrdinalIgnoreCase) || trimmed.Length <= 7)
+            return false;
+
+        var remainder = trimmed[7..].TrimStart();
+        return remainder.Length > 0 && remainder[0] == '=';
+    }
+
+    private static string? ExtractKeywordIdentifier(string trimmed)
+    {
+        if (!SpidLineParser.TryParseKeyword(trimmed, out var filter) || filter == null)
+            return null;
+
+        return filter.FormIdentifier;
     }
 
     private static bool IsSkyPatcherOutfitLine(string trimmed)

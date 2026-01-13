@@ -31,6 +31,7 @@ public class DistributionEditTabViewModel : ReactiveObject
     private bool _outfitsLoaded;
     private string? _justSavedFilePath;
     private readonly Dictionary<DistributionEntryViewModel, IDisposable> _useChanceSubscriptions = new();
+    private readonly Dictionary<DistributionEntryViewModel, IDisposable> _typeSubscriptions = new();
 
     public DistributionEditTabViewModel(
         DistributionFileWriterService fileWriterService,
@@ -127,7 +128,13 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     [Reactive] public IReadOnlyList<DistributionParseError> ParseErrors { get; private set; } = [];
 
-    public bool HasParseErrors => ParseErrors.Count > 0;
+    /// <summary>
+    /// Actual parse errors (excludes preserved lines like keyword distributions).
+    /// </summary>
+    public IReadOnlyList<DistributionParseError> ActualParseErrors =>
+        ParseErrors.Where(e => !e.Reason.EndsWith("(preserved)", StringComparison.Ordinal)).ToList();
+
+    public bool HasParseErrors => ActualParseErrors.Count > 0;
 
     public bool IsFilePreviewExpanded
     {
@@ -260,6 +267,7 @@ public class DistributionEditTabViewModel : ReactiveObject
                         {
                             DistributionEntries.Clear();
                             ParseErrors = [];
+                            this.RaisePropertyChanged(nameof(ActualParseErrors));
                             this.RaisePropertyChanged(nameof(HasParseErrors));
                             HasConflicts = false;
                             ConflictsResolvedByFilename = false;
@@ -274,6 +282,7 @@ public class DistributionEditTabViewModel : ReactiveObject
                         this.RaisePropertyChanged(nameof(DistributionEntriesCount));
                         UpdateFileContent();
                         UpdateHasChanceBasedEntries();
+                        UpdateHasKeywordDistributions();
                     }
                     if (string.IsNullOrWhiteSpace(NewFileName))
                     {
@@ -360,6 +369,12 @@ public class DistributionEditTabViewModel : ReactiveObject
     /// </summary>
     [Reactive] public bool HasChanceBasedEntries { get; private set; }
 
+    /// <summary>
+    /// True if any distribution entry is a keyword distribution.
+    /// When true, SkyPatcher format is not available (it doesn't support keyword distributions).
+    /// </summary>
+    [Reactive] public bool HasKeywordDistributions { get; private set; }
+
     [Reactive] public ObservableCollection<NpcRecordViewModel> FilteredNpcs { get; private set; } = [];
 
     [Reactive] public ObservableCollection<FactionRecordViewModel> FilteredFactions { get; private set; } = [];
@@ -423,6 +438,7 @@ public class DistributionEditTabViewModel : ReactiveObject
 
         UpdateFileContent();
         UpdateHasChanceBasedEntries();
+        UpdateHasKeywordDistributions();
 
         _logger.Debug("OnDistributionEntriesChanged completed");
     }
@@ -437,6 +453,10 @@ public class DistributionEditTabViewModel : ReactiveObject
         var useChanceSub = entry.WhenAnyValue(e => e.UseChance)
             .Subscribe(_ => UpdateHasChanceBasedEntries());
         _useChanceSubscriptions[entry] = useChanceSub;
+
+        var typeSub = entry.WhenAnyValue(e => e.Type)
+            .Subscribe(_ => UpdateHasKeywordDistributions());
+        _typeSubscriptions[entry] = typeSub;
     }
 
     private void UnsubscribeFromEntryChanges(DistributionEntryViewModel entry)
@@ -446,10 +466,18 @@ public class DistributionEditTabViewModel : ReactiveObject
             sub.Dispose();
             _useChanceSubscriptions.Remove(entry);
         }
+        if (_typeSubscriptions.TryGetValue(entry, out var typeSub))
+        {
+            typeSub.Dispose();
+            _typeSubscriptions.Remove(entry);
+        }
     }
 
     private void UpdateHasChanceBasedEntries() =>
         HasChanceBasedEntries = DistributionEntries.Any(e => e.UseChance);
+
+    private void UpdateHasKeywordDistributions() =>
+        HasKeywordDistributions = DistributionEntries.Any(e => e.Type == DistributionType.Keyword);
 
     private void AddDistributionEntry()
     {
@@ -628,8 +656,9 @@ public class DistributionEditTabViewModel : ReactiveObject
 
         foreach (var keywordFormKey in filter.Keywords)
         {
-            var keywordVm = ResolveKeywordFormKey(keywordFormKey);
-            if (keywordVm != null && !entry.SelectedKeywords.Any(k => k.FormKey == keywordFormKey))
+            var keywordVm = ResolveKeywordByFormKey(keywordFormKey);
+            if (keywordVm != null && !entry.SelectedKeywords.Any(k =>
+                string.Equals(k.KeywordRecord.EditorID, keywordVm.KeywordRecord.EditorID, StringComparison.OrdinalIgnoreCase)))
             {
                 entry.AddKeyword(keywordVm);
                 addedItems.Add($"keyword:{keywordVm.DisplayName}");
@@ -833,6 +862,7 @@ public class DistributionEditTabViewModel : ReactiveObject
                 DistributionFilePath);
             DistributionFormat = detectedFormat;
             ParseErrors = parseErrors;
+            this.RaisePropertyChanged(nameof(ActualParseErrors));
             this.RaisePropertyChanged(nameof(HasParseErrors));
 
             await LoadAvailableOutfitsAsync();
@@ -863,6 +893,7 @@ public class DistributionEditTabViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(DistributionEntriesCount));
             UpdateFileContent();
             UpdateHasChanceBasedEntries();
+            UpdateHasKeywordDistributions();
 
             var statusMsg = $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
             if (parseErrors.Count > 0)
@@ -1537,7 +1568,7 @@ public class DistributionEditTabViewModel : ReactiveObject
             entryVm.SelectedFactions = new ObservableCollection<FactionRecordViewModel>(factionVms);
             entryVm.UpdateEntryFactions();
         }
-        var keywordVms = ResolveKeywordFormKeys(entry.KeywordFormKeys);
+        var keywordVms = ResolveKeywordEditorIds(entry.KeywordEditorIds);
         if (keywordVms.Count > 0)
         {
             entryVm.SelectedKeywords = new ObservableCollection<KeywordRecordViewModel>(keywordVms);
@@ -1660,13 +1691,13 @@ public class DistributionEditTabViewModel : ReactiveObject
         return null;
     }
 
-    private List<KeywordRecordViewModel> ResolveKeywordFormKeys(IEnumerable<FormKey> formKeys)
+    private List<KeywordRecordViewModel> ResolveKeywordEditorIds(IEnumerable<string> editorIds)
     {
         var keywordVms = new List<KeywordRecordViewModel>();
 
-        foreach (var formKey in formKeys)
+        foreach (var editorId in editorIds)
         {
-            var keywordVm = ResolveKeywordFormKey(formKey);
+            var keywordVm = ResolveKeywordEditorId(editorId);
             if (keywordVm != null)
             {
                 keywordVms.Add(keywordVm);
@@ -1676,7 +1707,40 @@ public class DistributionEditTabViewModel : ReactiveObject
         return keywordVms;
     }
 
-    private KeywordRecordViewModel? ResolveKeywordFormKey(FormKey formKey)
+    private KeywordRecordViewModel? ResolveKeywordEditorId(string editorId)
+    {
+        if (string.IsNullOrWhiteSpace(editorId))
+            return null;
+
+        // Check if it's already in AvailableKeywords
+        var existingKeyword = AvailableKeywords.FirstOrDefault(k =>
+            string.Equals(k.KeywordRecord.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+        if (existingKeyword != null)
+        {
+            return existingKeyword;
+        }
+
+        // Try to resolve from LinkCache
+        if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        {
+            var keyword = linkCache.WinningOverrides<IKeywordGetter>()
+                .FirstOrDefault(k => string.Equals(k.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+            if (keyword != null)
+            {
+                var keywordRecord = new KeywordRecord(
+                    keyword.FormKey,
+                    keyword.EditorID,
+                    keyword.FormKey.ModKey);
+                return new KeywordRecordViewModel(keywordRecord);
+            }
+        }
+
+        // Create a virtual keyword record (for SPID-distributed keywords)
+        var virtualRecord = new KeywordRecord(FormKey.Null, editorId, ModKey.Null);
+        return new KeywordRecordViewModel(virtualRecord);
+    }
+
+    private KeywordRecordViewModel? ResolveKeywordByFormKey(FormKey formKey)
     {
         var existingKeyword = AvailableKeywords.FirstOrDefault(k => k.FormKey == formKey);
         if (existingKeyword != null)
