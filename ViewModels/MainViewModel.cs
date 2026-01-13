@@ -1432,8 +1432,9 @@ public class MainViewModel : ReactiveObject
 
     private void TriggerAutoSave()
     {
-        if (!_suppressAutoSave)
-            _autoSaveTrigger.OnNext(Unit.Default);
+        // Auto-save disabled - user must manually save outfits
+        // if (!_suppressAutoSave)
+        //     _autoSaveTrigger.OnNext(Unit.Default);
     }
 
     private void HandleOutfitDraftRename(OutfitDraftViewModel draft)
@@ -1547,8 +1548,8 @@ public class MainViewModel : ReactiveObject
                         draft.FormKey = result.FormKey;
                 }
 
-                StatusMessage = "Refreshing game data cache...";
-                await _gameDataCache.ReloadAsync();
+                StatusMessage = "Refreshing outfits...";
+                await _gameDataCache.RefreshOutfitsFromPatchAsync();
                 StatusMessage = message;
             }
         }

@@ -286,6 +286,38 @@ public class GameDataCacheService
         await LoadAsync();
     }
 
+    /// <summary>
+    /// Refreshes only the outfits from the output patch file without reloading the entire LinkCache.
+    /// Much faster than a full ReloadAsync when only outfit changes need to be reflected.
+    /// </summary>
+    public async Task RefreshOutfitsFromPatchAsync()
+    {
+        var patchFileName = _settings.PatchFileName;
+        if (string.IsNullOrEmpty(patchFileName))
+            return;
+
+        var patchOutfits = (await _mutagenService.LoadOutfitsFromPluginAsync(patchFileName)).ToList();
+        if (patchOutfits.Count == 0)
+            return;
+
+        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var patchModKey = Mutagen.Bethesda.Plugins.ModKey.FromFileName(patchFileName);
+            var existingPatchOutfits = AllOutfits.Where(o => o.FormKey.ModKey == patchModKey).ToList();
+            foreach (var outfit in existingPatchOutfits)
+            {
+                AllOutfits.Remove(outfit);
+            }
+
+            foreach (var outfit in patchOutfits)
+            {
+                AllOutfits.Add(outfit);
+            }
+        });
+
+        _logger.Information("Refreshed {Count} outfit(s) from patch file {Patch}.", patchOutfits.Count, patchFileName);
+    }
+
     public async Task EnsureLoadedAsync()
     {
         if (_isLoaded)
