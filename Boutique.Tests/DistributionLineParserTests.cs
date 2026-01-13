@@ -150,6 +150,28 @@ public class DistributionLineParserTests
     }
 
     [Fact]
+    public void SkyPatcherLine_WithEditorIdContainsOrFilter_DoesNotTargetAllNpcs()
+    {
+        var file = CreateSkyPatcherFileViewModel("test.ini");
+        var line = CreateLine("filterByEditorIdContainsOr=GuardWhiterun,GuardWindhelm:outfitDefault=Skyrim.esm|000DEF34", true);
+
+        var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void SkyPatcherLine_WithEditorIdContainsExcludedFilter_DoesNotTargetAllNpcs()
+    {
+        var file = CreateSkyPatcherFileViewModel("test.ini");
+        var line = CreateLine("filterByEditorIdContainsExcluded=Bandit:outfitDefault=Skyrim.esm|000DEF34", true);
+
+        var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public void SkyPatcherLine_WithModNameFilter_DoesNotTargetAllNpcs()
     {
         var file = CreateSkyPatcherFileViewModel("test.ini");

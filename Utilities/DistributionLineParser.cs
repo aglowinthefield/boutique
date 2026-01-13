@@ -17,32 +17,61 @@ public static class DistributionLineParser
     {
         return file.TypeDisplay switch
         {
-            "SkyPatcher" => ExtractNpcFormKeysFromSkyPatcherLine(line.RawText),
+            "SkyPatcher" => ExtractNpcFormKeysFromSkyPatcherLine(line.RawText, linkCache, npcByEditorId),
             "SPID" => ExtractNpcFormKeysFromSpidLine(line.RawText, linkCache, npcByEditorId, npcByName),
             _ => []
         };
     }
 
-    private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText)
+    private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(
+        string rawText,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        Dictionary<string, INpcGetter>? npcByEditorId = null)
     {
         var results = new List<FormKey>();
-
-        // SkyPatcher format: filterByNpcs=ModKey|FormID,ModKey|FormID:outfitDefault=ModKey|FormID
         var trimmed = rawText.Trim();
-        var filterByNpcsIndex = trimmed.IndexOf("filterByNpcs=", StringComparison.OrdinalIgnoreCase);
 
-        if (filterByNpcsIndex >= 0)
+        // Parse filterByNpcs= (explicit FormKeys)
+        results.AddRange(ExtractFormKeysFromFilter(trimmed, "filterByNpcs="));
+
+        // Parse filterByEditorIdContains/Or filters (partial EditorID matching)
+        var editorIdFilters = ExtractEditorIdFilters(trimmed);
+        if (editorIdFilters.IncludePatterns.Count > 0 || editorIdFilters.IncludeOrPatterns.Count > 0)
         {
-            var npcStart = filterByNpcsIndex + "filterByNpcs=".Length;
-            var npcEnd = trimmed.IndexOf(':', npcStart);
+            npcByEditorId ??= linkCache.WinningOverrides<INpcGetter>()
+                .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+                .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-            if (npcEnd > npcStart)
+            foreach (var (editorId, npc) in npcByEditorId)
             {
-                var npcString = trimmed.Substring(npcStart, npcEnd - npcStart);
-
-                foreach (var npcPart in npcString.Split(','))
+                if (NpcMatchesEditorIdFilters(editorId, editorIdFilters))
                 {
-                    var formKey = TryParseFormKey(npcPart.Trim());
+                    results.Add(npc.FormKey);
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private static List<FormKey> ExtractFormKeysFromFilter(string line, string filterName)
+    {
+        var results = new List<FormKey>();
+        var filterIndex = line.IndexOf(filterName, StringComparison.OrdinalIgnoreCase);
+
+        if (filterIndex >= 0)
+        {
+            var start = filterIndex + filterName.Length;
+            var end = line.IndexOf(':', start);
+            if (end < 0) end = line.Length;
+
+            if (end > start)
+            {
+                var filterValue = line.Substring(start, end - start);
+                foreach (var part in filterValue.Split(','))
+                {
+                    var formKey = TryParseFormKey(part.Trim());
                     if (formKey.HasValue)
                     {
                         results.Add(formKey.Value);
@@ -52,6 +81,97 @@ public static class DistributionLineParser
         }
 
         return results;
+    }
+
+    private record EditorIdFilterSet(
+        List<string> IncludePatterns,
+        List<string> IncludeOrPatterns,
+        List<string> ExcludePatterns);
+
+    private static EditorIdFilterSet ExtractEditorIdFilters(string line)
+    {
+        var includePatterns = new List<string>();
+        var includeOrPatterns = new List<string>();
+        var excludePatterns = new List<string>();
+
+        // filterByEditorIdContains= (AND logic)
+        includePatterns.AddRange(ExtractFilterValues(line, "filterByEditorIdContains="));
+
+        // filterByEditorIdContainsOr= (OR logic)
+        includeOrPatterns.AddRange(ExtractFilterValues(line, "filterByEditorIdContainsOr="));
+
+        // filterByEditorIdContainsExcluded= (exclusion)
+        excludePatterns.AddRange(ExtractFilterValues(line, "filterByEditorIdContainsExcluded="));
+
+        return new EditorIdFilterSet(includePatterns, includeOrPatterns, excludePatterns);
+    }
+
+    private static List<string> ExtractFilterValues(string line, string filterName)
+    {
+        var results = new List<string>();
+        var filterIndex = line.IndexOf(filterName, StringComparison.OrdinalIgnoreCase);
+
+        if (filterIndex >= 0)
+        {
+            var start = filterIndex + filterName.Length;
+            var end = line.IndexOf(':', start);
+            if (end < 0) end = line.Length;
+
+            if (end > start)
+            {
+                var filterValue = line.Substring(start, end - start);
+                foreach (var part in filterValue.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var trimmedPart = part.Trim();
+                    if (!string.IsNullOrEmpty(trimmedPart))
+                    {
+                        results.Add(trimmedPart);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+    private static bool NpcMatchesEditorIdFilters(string editorId, EditorIdFilterSet filters)
+    {
+        // Check exclusions first - if any match, NPC is excluded
+        foreach (var pattern in filters.ExcludePatterns)
+        {
+            if (editorId.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        // Check AND filters - all must match
+        if (filters.IncludePatterns.Count > 0)
+        {
+            foreach (var pattern in filters.IncludePatterns)
+            {
+                if (!editorId.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Check OR filters - at least one must match
+        if (filters.IncludeOrPatterns.Count > 0)
+        {
+            foreach (var pattern in filters.IncludeOrPatterns)
+            {
+                if (editorId.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return false;
     }
 
     private static List<FormKey> ExtractNpcFormKeysFromSpidLine(
