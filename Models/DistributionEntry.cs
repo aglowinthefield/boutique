@@ -33,6 +33,13 @@ public sealed class DistributionEntry
     public List<FormKey> FormListFormKeys { get; set; } = [];
 
     public SpidTraitFilters TraitFilters { get; set; } = new();
+
+    /// <summary>
+    /// SPID level filters (position 4). Supports level ranges (e.g., "5/20") and
+    /// skill filters (e.g., "12(85/999)" for Alteration skill 85+).
+    /// </summary>
+    public string? LevelFilters { get; set; }
+
     public int? Chance { get; set; }
 }
 

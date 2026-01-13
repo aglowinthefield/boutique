@@ -46,6 +46,7 @@ public class DistributionEntryViewModel : ReactiveObject
         KeywordToDistribute = entry.KeywordToDistribute ?? string.Empty;
         UseChance = entry.Chance.HasValue;
         Chance = entry.Chance ?? 100;
+        LevelFilters = entry.LevelFilters ?? string.Empty;
 
         Gender = entry.TraitFilters.IsFemale switch
         {
@@ -232,6 +233,14 @@ public class DistributionEntryViewModel : ReactiveObject
                 }
             });
 
+        this.WhenAnyValue(x => x.LevelFilters)
+            .Skip(1)
+            .Subscribe(levelFilters =>
+            {
+                Entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
+                RaiseEntryChanged();
+            });
+
         RemoveCommand = ReactiveCommand.Create(() => removeAction?.Invoke(this));
     }
 
@@ -248,6 +257,7 @@ public class DistributionEntryViewModel : ReactiveObject
 
     [Reactive] public bool UseChance { get; set; }
     [Reactive] public int Chance { get; set; } = 100;
+    [Reactive] public string LevelFilters { get; set; } = string.Empty;
     [Reactive] public GenderFilter Gender { get; set; } = GenderFilter.Any;
     [Reactive] public UniqueFilter Unique { get; set; } = UniqueFilter.Any;
     [Reactive] public bool? IsChild { get; set; }

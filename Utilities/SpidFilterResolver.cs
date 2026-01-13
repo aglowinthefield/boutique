@@ -80,7 +80,8 @@ public static class SpidFilterResolver
                 VoiceTypeFormKeys = voiceTypeFormKeys,
                 LocationFormKeys = locationFormKeys,
                 FormListFormKeys = formListFormKeys,
-                TraitFilters = filter.TraitFilters
+                TraitFilters = filter.TraitFilters,
+                LevelFilters = filter.LevelFilters
             };
 
             // Set chance if not 100%
@@ -147,7 +148,8 @@ public static class SpidFilterResolver
                 VoiceTypeFormKeys = voiceTypeFormKeys,
                 LocationFormKeys = locationFormKeys,
                 FormListFormKeys = formListFormKeys,
-                TraitFilters = filter.TraitFilters
+                TraitFilters = filter.TraitFilters,
+                LevelFilters = filter.LevelFilters
             };
 
             if (filter.Chance != 100)

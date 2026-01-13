@@ -332,7 +332,11 @@
                                         <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
                                         <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
                                                   SelectedItem="{Binding Unique, Mode=TwoWay}"
-                                                  MinWidth="100" Height="22" FontSize="11" VerticalContentAlignment="Center" />
+                                                  MinWidth="100" Height="22" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,12,0" />
+                                        <TextBlock Text="Level/Skill:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="100" Height="22" FontSize="11" VerticalContentAlignment="Center"
+                                                 ToolTip="SPID level/skill filters. Examples: 5/20 (level range), 12(85/999) (Alteration skill 85+)" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -530,5 +534,19 @@
                 </TabItem>
             </TabControl>
         </GroupBox>
+
+        <!-- Loading Overlay -->
+        <Border Grid.ColumnSpan="3"
+                Background="#AA000000"
+                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"
+                Panel.ZIndex="100">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,12" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="White"
+                           FontSize="14"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

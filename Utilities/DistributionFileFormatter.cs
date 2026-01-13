@@ -151,8 +151,8 @@ public static class DistributionFileFormatter
 
         var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
 
-        // Position 4: LevelFilters - Not supported yet
-        string? levelFiltersPart = null;
+        // Position 4: LevelFilters (skill filters like "12(85/999)")
+        var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
 
         // Position 5: TraitFilters
         var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
@@ -260,8 +260,8 @@ public static class DistributionFileFormatter
 
         var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
 
-        // Position 4: LevelFilters - Not supported yet
-        string? levelFiltersPart = null;
+        // Position 4: LevelFilters (skill filters like "12(85/999)")
+        var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
 
         // Position 5: TraitFilters
         var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
