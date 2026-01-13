@@ -265,11 +265,19 @@ public class DistributionFileWriterService
             if (outfitPartIndex < 0)
                 return null;
 
-            var npcFormKeys = ExtractFilterFormKeys(line, "filterByNpcs=", outfitPartIndex);
-            var factionFormKeys = ExtractFilterFormKeys(line, "filterByFactions=", outfitPartIndex);
-            var keywordFormKeys = ExtractFilterFormKeys(line, "filterByKeywords=", outfitPartIndex);
-            var raceFormKeys = ExtractFilterFormKeys(line, "filterByRaces=", outfitPartIndex);
-            var classFormKeys = ExtractFilterFormKeys(line, "filterByClass=", outfitPartIndex);
+            // Extract filter strings first
+            var npcStrings = ExtractFilterStrings(line, "filterByNpcs=", outfitPartIndex);
+            var factionStrings = ExtractFilterStrings(line, "filterByFactions=", outfitPartIndex);
+            var keywordStrings = ExtractFilterStrings(line, "filterByKeywords=", outfitPartIndex);
+            var raceStrings = ExtractFilterStrings(line, "filterByRaces=", outfitPartIndex);
+            var classStrings = ExtractFilterStrings(line, "filterByClass=", outfitPartIndex);
+
+            // Resolve to FormKeys - supports both FormKey format and EditorID
+            var npcFormKeys = ResolveNpcIdentifiers(npcStrings, linkCache);
+            var factionFormKeys = ResolveFactionIdentifiers(factionStrings, linkCache);
+            var keywordFormKeys = ResolveKeywordIdentifiers(keywordStrings, linkCache);
+            var raceFormKeys = ResolveRaceIdentifiers(raceStrings, linkCache);
+            var classFormKeys = ResolveClassIdentifiers(classStrings, linkCache);
 
             // Extract outfit - handle potential trailing colon or other content
             var outfitStart = outfitPartIndex + "outfitDefault=".Length;
@@ -310,7 +318,7 @@ public class DistributionFileWriterService
         }
     }
 
-    private static List<FormKey> ExtractFilterFormKeys(string line, string filterPrefix, int outfitPartIndex)
+    private static List<string> ExtractFilterStrings(string line, string filterPrefix, int outfitPartIndex)
     {
         var partIndex = line.IndexOf(filterPrefix, StringComparison.OrdinalIgnoreCase);
         if (partIndex < 0)
@@ -326,10 +334,140 @@ public class DistributionFileWriterService
             .Split(',')
             .Select(s => s.Trim())
             .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(TryParseFormKey)
-            .Where(fk => fk.HasValue)
-            .Select(fk => fk!.Value)
             .ToList();
+    }
+
+    private List<FormKey> ResolveNpcIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var results = new List<FormKey>();
+        foreach (var id in identifiers)
+        {
+            // Try FormKey format first
+            if (TryParseFormKey(id) is { } formKey)
+            {
+                results.Add(formKey);
+                continue;
+            }
+
+            // Try EditorID lookup
+            var npc = linkCache.PriorityOrder.WinningOverrides<INpcGetter>()
+                .FirstOrDefault(n => string.Equals(n.EditorID, id, StringComparison.OrdinalIgnoreCase)
+                                  || string.Equals(n.Name?.String, id, StringComparison.OrdinalIgnoreCase));
+            if (npc != null)
+            {
+                results.Add(npc.FormKey);
+                _logger.Debug("Resolved NPC EditorID/Name '{Id}' to {FormKey}", id, npc.FormKey);
+            }
+            else
+            {
+                _logger.Warning("Could not resolve NPC identifier: {Id}", id);
+            }
+        }
+        return results;
+    }
+
+    private List<FormKey> ResolveFactionIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var results = new List<FormKey>();
+        foreach (var id in identifiers)
+        {
+            if (TryParseFormKey(id) is { } formKey)
+            {
+                results.Add(formKey);
+                continue;
+            }
+
+            var faction = linkCache.PriorityOrder.WinningOverrides<IFactionGetter>()
+                .FirstOrDefault(f => string.Equals(f.EditorID, id, StringComparison.OrdinalIgnoreCase));
+            if (faction != null)
+            {
+                results.Add(faction.FormKey);
+                _logger.Debug("Resolved Faction EditorID '{Id}' to {FormKey}", id, faction.FormKey);
+            }
+            else
+            {
+                _logger.Warning("Could not resolve Faction identifier: {Id}", id);
+            }
+        }
+        return results;
+    }
+
+    private List<FormKey> ResolveKeywordIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var results = new List<FormKey>();
+        foreach (var id in identifiers)
+        {
+            if (TryParseFormKey(id) is { } formKey)
+            {
+                results.Add(formKey);
+                continue;
+            }
+
+            var keyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
+                .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
+            if (keyword != null)
+            {
+                results.Add(keyword.FormKey);
+                _logger.Debug("Resolved Keyword EditorID '{Id}' to {FormKey}", id, keyword.FormKey);
+            }
+            else
+            {
+                _logger.Warning("Could not resolve Keyword identifier: {Id}", id);
+            }
+        }
+        return results;
+    }
+
+    private List<FormKey> ResolveRaceIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var results = new List<FormKey>();
+        foreach (var id in identifiers)
+        {
+            if (TryParseFormKey(id) is { } formKey)
+            {
+                results.Add(formKey);
+                continue;
+            }
+
+            var race = linkCache.PriorityOrder.WinningOverrides<IRaceGetter>()
+                .FirstOrDefault(r => string.Equals(r.EditorID, id, StringComparison.OrdinalIgnoreCase));
+            if (race != null)
+            {
+                results.Add(race.FormKey);
+                _logger.Debug("Resolved Race EditorID '{Id}' to {FormKey}", id, race.FormKey);
+            }
+            else
+            {
+                _logger.Warning("Could not resolve Race identifier: {Id}", id);
+            }
+        }
+        return results;
+    }
+
+    private List<FormKey> ResolveClassIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var results = new List<FormKey>();
+        foreach (var id in identifiers)
+        {
+            if (TryParseFormKey(id) is { } formKey)
+            {
+                results.Add(formKey);
+                continue;
+            }
+
+            var cls = linkCache.PriorityOrder.WinningOverrides<IClassGetter>()
+                .FirstOrDefault(c => string.Equals(c.EditorID, id, StringComparison.OrdinalIgnoreCase));
+            if (cls != null)
+            {
+                results.Add(cls.FormKey);
+                _logger.Debug("Resolved Class EditorID '{Id}' to {FormKey}", id, cls.FormKey);
+            }
+            else
+            {
+                _logger.Warning("Could not resolve Class identifier: {Id}", id);
+            }
+        }
+        return results;
     }
 
     private static string FormatFormKey(FormKey formKey) => $"{formKey.ModKey.FileName}|{formKey.ID:X8}";

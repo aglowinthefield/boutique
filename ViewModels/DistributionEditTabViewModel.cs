@@ -192,6 +192,45 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     [Reactive] public ObservableCollection<DistributionFileSelectionItem> AvailableDistributionFiles { get; private set; } = [];
 
+    /// <summary>
+    /// Organized dropdown items with headers and files for tree-ish display.
+    /// </summary>
+    [Reactive] public IReadOnlyList<DistributionDropdownItem> DropdownItems { get; private set; } = [];
+
+    /// <summary>
+    /// The currently selected dropdown item. Headers are not selectable.
+    /// </summary>
+    public DistributionDropdownItem? SelectedDropdownItem
+    {
+        get
+        {
+            if (SelectedDistributionFile == null) return null;
+            if (SelectedDistributionFile.IsNewFile) return DistributionNewFileItem.Instance;
+
+            return DropdownItems.OfType<DistributionFileItem>()
+                .FirstOrDefault(f => f.FullPath == SelectedDistributionFile.File?.FullPath);
+        }
+        set
+        {
+            if (value is DistributionGroupHeader)
+                return; // Headers are not selectable
+
+            if (value is DistributionNewFileItem)
+            {
+                SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+            }
+            else if (value is DistributionFileItem fileItem)
+            {
+                var match = AvailableDistributionFiles.FirstOrDefault(f =>
+                    !f.IsNewFile && f.File?.FullPath == fileItem.FullPath);
+                if (match != null)
+                    SelectedDistributionFile = match;
+            }
+
+            this.RaisePropertyChanged(nameof(SelectedDropdownItem));
+        }
+    }
+
     public DistributionFileSelectionItem? SelectedDistributionFile
     {
         get => field;
@@ -952,6 +991,7 @@ public class DistributionEditTabViewModel : ReactiveObject
         _justSavedFilePath = null; // Clear after reading
 
         var files = _cache.AllDistributionFiles.ToList();
+        var duplicateFileNames = GetDuplicateFileNames(files);
 
         _logger.Debug("Refreshing distribution files dropdown. Previous selection: {Selection}, NewFileName: {NewFileName}, JustSaved: {JustSaved}",
             previousSelected?.DisplayName, previousNewFileName, justSaved);
@@ -960,8 +1000,14 @@ public class DistributionEditTabViewModel : ReactiveObject
         AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: true, file: null));
         foreach (var file in files)
         {
-            AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: false, file: file));
+            var hasDuplicate = duplicateFileNames.Contains(file.FileName);
+            AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: false, file: file, hasDuplicate));
         }
+
+        // Update organized dropdown structure
+        var dropdownStructure = DistributionDropdownOrganizer.Organize(files);
+        DropdownItems = dropdownStructure.Items;
+        this.RaisePropertyChanged(nameof(SelectedDropdownItem));
 
         // If we just saved a file, select it instead of "Create New File"
         if (!string.IsNullOrEmpty(justSaved))
@@ -1223,12 +1269,19 @@ public class DistributionEditTabViewModel : ReactiveObject
         UpdateFilteredRaces();
         UpdateFilteredClasses();
         var files = _cache.AllDistributionFiles.ToList();
+        var duplicateFileNames = GetDuplicateFileNames(files);
         AvailableDistributionFiles.Clear();
         AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: true, file: null));
         foreach (var file in files)
         {
-            AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: false, file: file));
+            var hasDuplicate = duplicateFileNames.Contains(file.FileName);
+            AvailableDistributionFiles.Add(new DistributionFileSelectionItem(isNewFile: false, file: file, hasDuplicate));
         }
+
+        // Update organized dropdown structure
+        var dropdownStructure = DistributionDropdownOrganizer.Organize(files);
+        DropdownItems = dropdownStructure.Items;
+
         var newFileItem = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
         if (newFileItem != null)
         {
@@ -1236,6 +1289,7 @@ public class DistributionEditTabViewModel : ReactiveObject
             _logger.Debug("Generated unique filename: {FileName}", NewFileName);
             SelectedDistributionFile = newFileItem;
         }
+        this.RaisePropertyChanged(nameof(SelectedDropdownItem));
 
         _isInitialized = true;
         this.RaisePropertyChanged(nameof(IsInitialized));
@@ -1266,6 +1320,13 @@ public class DistributionEditTabViewModel : ReactiveObject
     private static bool IsBaseNameAvailable(string baseName, HashSet<string> existingFileNames) =>
         !existingFileNames.Contains($"{baseName}.ini") &&
         !existingFileNames.Contains($"{baseName}_DISTR.ini");
+
+    private static HashSet<string> GetDuplicateFileNames(IEnumerable<DistributionFileViewModel> files) =>
+        files
+            .GroupBy(f => f.FileName, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     private async Task PreviewEntryAsync(DistributionEntryViewModel? entry)
     {

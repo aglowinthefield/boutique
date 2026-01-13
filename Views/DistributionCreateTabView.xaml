@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:models="clr-namespace:Boutique.Models"
              xmlns:util="clr-namespace:Boutique.Utilities"
              xmlns:controls="clr-namespace:Boutique.Controls"
              mc:Ignorable="d"
@@ -61,10 +62,45 @@
                 <StackPanel Grid.Row="0" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <TextBlock Text="File:" Style="{StaticResource LabelTextStyle}" />
-                        <ComboBox ItemsSource="{Binding AvailableDistributionFiles}"
-                                  SelectedItem="{Binding SelectedDistributionFile, Mode=TwoWay}"
-                                  DisplayMemberPath="DisplayName"
-                                  MinWidth="250" Margin="0,0,6,0" />
+                        <ComboBox ItemsSource="{Binding DropdownItems}"
+                                  SelectedItem="{Binding SelectedDropdownItem, Mode=TwoWay}"
+                                  MinWidth="350" Margin="0,0,6,0"
+                                  MaxDropDownHeight="400"
+                                  IsSynchronizedWithCurrentItem="False">
+                            <ComboBox.Resources>
+                                <!-- Template for group headers (non-selectable) -->
+                                <DataTemplate DataType="{x:Type models:DistributionGroupHeader}">
+                                    <TextBlock Text="{Binding GroupName}"
+                                               FontWeight="SemiBold"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
+                                               Padding="0,4,0,2" />
+                                </DataTemplate>
+
+                                <!-- Template for file items -->
+                                <DataTemplate DataType="{x:Type models:DistributionFileItem}">
+                                    <TextBlock Text="{Binding DisplayText}" Padding="12,0,0,0" />
+                                </DataTemplate>
+
+                                <!-- Template for new file item -->
+                                <DataTemplate DataType="{x:Type models:DistributionNewFileItem}">
+                                    <TextBlock Text="{Binding DisplayText}" FontStyle="Italic" />
+                                </DataTemplate>
+                            </ComboBox.Resources>
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                    <Style.Triggers>
+                                        <!-- Make headers non-selectable -->
+                                        <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                            <Setter Property="IsHitTestVisible" Value="False" />
+                                            <Setter Property="Focusable" Value="False" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                        </ComboBox>
                         <TextBlock Text="Format:" Style="{StaticResource LabelTextStyle}" Margin="12,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableFormats}"
                                   SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
