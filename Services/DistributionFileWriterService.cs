@@ -215,8 +215,8 @@ public class DistributionFileWriterService
                     else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
                     {
                         hasSpidLines = true;
-                        cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                        cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
+                        cachedNpcs ??= [.. linkCache.PriorityOrder.WinningOverrides<INpcGetter>()];
+                        cachedOutfits ??= [.. linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>()];
                         entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits, _logger);
                         if (entry == null)
                             parseFailureReason = "Could not resolve outfit or filters from SPID syntax";

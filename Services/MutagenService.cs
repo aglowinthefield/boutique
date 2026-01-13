@@ -196,6 +196,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
             try
             {
+                // Try to get from load order first - this has proper strings resolution
+                // for localized mods (strings stored in .STRINGS files, not embedded in .esp)
+                var modKey = ModKey.FromFileName(pluginFileName);
+                var loadOrderMod = _environment?.LoadOrder
+                    .FirstOrDefault(e => e.Key == modKey)?.Value.Mod;
+
+                if (loadOrderMod is not null)
+                    return loadOrderMod.Armors.ToList();
+
+                // Fall back to binary overlay for plugins not in load order
                 var skyrimRelease = GetSkyrimRelease();
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
                 return mod.Armors.ToList();
@@ -221,6 +231,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
             try
             {
+                // Try to get from load order first - this has proper strings resolution
+                // for localized mods (strings stored in .STRINGS files, not embedded in .esp)
+                var modKey = ModKey.FromFileName(pluginFileName);
+                var loadOrderMod = _environment?.LoadOrder
+                    .FirstOrDefault(e => e.Key == modKey)?.Value.Mod;
+
+                if (loadOrderMod is not null)
+                    return loadOrderMod.Outfits.ToList();
+
+                // Fall back to binary overlay for plugins not in load order
                 var skyrimRelease = GetSkyrimRelease();
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
                 return mod.Outfits.ToList();
