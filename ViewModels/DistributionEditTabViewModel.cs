@@ -939,12 +939,12 @@ public class DistributionEditTabViewModel : ReactiveObject
             }
             if (!_cache.IsLoaded && !_cache.IsLoading)
             {
-                StatusMessage = "Loading game data cache...";
+                StatusMessage = "Loading game data (NPCs, factions, keywords, races, classes)...";
                 await _cache.LoadAsync();
             }
             else if (_cache.IsLoading)
             {
-                StatusMessage = "Waiting for game data cache...";
+                StatusMessage = "Loading game data from plugins...";
                 while (_cache.IsLoading)
                     await Task.Delay(100);
             }
@@ -954,8 +954,8 @@ public class DistributionEditTabViewModel : ReactiveObject
             UpdateFilteredRaces();
             UpdateFilteredClasses();
 
-            StatusMessage = $"Data loaded: {AvailableNpcs.Count} NPCs, {AvailableFactions.Count} factions, {AvailableRaces.Count} races, {AvailableClasses.Count} classes, {AvailableKeywords.Count} keywords.";
-            _logger.Information("Using cached data: {NpcCount} NPCs, {FactionCount} factions.",
+            StatusMessage = $"Loaded: {AvailableNpcs.Count:N0} NPCs, {AvailableFactions.Count:N0} factions, {AvailableRaces.Count:N0} races, {AvailableClasses.Count:N0} classes, {AvailableKeywords.Count:N0} keywords.";
+            _logger.Information("Game data loaded: {NpcCount} NPCs, {FactionCount} factions.",
                 AvailableNpcs.Count, AvailableFactions.Count);
             await LoadAvailableOutfitsAsync();
         }
