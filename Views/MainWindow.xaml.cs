@@ -17,15 +17,19 @@ public partial class MainWindow : Window
     private readonly CompositeDisposable _bindings = [];
     private readonly ThemeService _themeService;
     private readonly TutorialService _tutorialService;
+    private readonly GuiSettingsService _guiSettings;
     private bool _initialized;
 
-    public MainWindow(MainViewModel viewModel, ThemeService themeService, TutorialService tutorialService)
+    public MainWindow(MainViewModel viewModel, ThemeService themeService, TutorialService tutorialService, GuiSettingsService guiSettings)
     {
         InitializeComponent();
         DataContext = viewModel;
         _themeService = themeService;
         _tutorialService = tutorialService;
+        _guiSettings = guiSettings;
         _tutorialService.Initialize(MainGuideline);
+
+        _guiSettings.RestoreWindowGeometry(this);
 
         // Apply title bar theme on initialization and when theme changes
         SourceInitialized += (_, _) => _themeService.ApplyTitleBarTheme(this);
@@ -93,6 +97,7 @@ public partial class MainWindow : Window
         });
         _bindings.Add(missingMastersDisposable);
 
+        Closing += (_, _) => _guiSettings.SaveWindowGeometry(this);
         Closed += (_, _) =>
         {
             _bindings.Dispose();

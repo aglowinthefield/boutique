@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using Mutagen.Bethesda.Skyrim;
 using Serilog;
 
@@ -13,6 +14,12 @@ public class GuiSettings
     public string? PatchFileName { get; set; }
     public SkyrimRelease SelectedSkyrimRelease { get; set; }
     public string? LastDistributionFilePath { get; set; }
+
+    public double? WindowLeft { get; set; }
+    public double? WindowTop { get; set; }
+    public double? WindowWidth { get; set; }
+    public double? WindowHeight { get; set; }
+    public WindowState? WindowState { get; set; }
 }
 
 public class GuiSettingsService
@@ -103,6 +110,72 @@ public class GuiSettingsService
             _settings.LastDistributionFilePath = value;
             SaveSettings();
         }
+    }
+
+    public void RestoreWindowGeometry(Window window)
+    {
+        if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
+            _settings.WindowWidth.Value > 0 && _settings.WindowHeight.Value > 0)
+        {
+            window.Width = _settings.WindowWidth.Value;
+            window.Height = _settings.WindowHeight.Value;
+        }
+
+        if (_settings.WindowLeft.HasValue && _settings.WindowTop.HasValue)
+        {
+            var left = _settings.WindowLeft.Value;
+            var top = _settings.WindowTop.Value;
+
+            if (IsOnScreen(left, top, window.Width, window.Height))
+            {
+                window.Left = left;
+                window.Top = top;
+                window.WindowStartupLocation = WindowStartupLocation.Manual;
+            }
+        }
+
+        if (_settings.WindowState.HasValue && _settings.WindowState.Value != System.Windows.WindowState.Minimized)
+        {
+            window.WindowState = _settings.WindowState.Value;
+        }
+    }
+
+    public void SaveWindowGeometry(Window window)
+    {
+        if (window.WindowState == System.Windows.WindowState.Normal)
+        {
+            _settings.WindowLeft = window.Left;
+            _settings.WindowTop = window.Top;
+            _settings.WindowWidth = window.Width;
+            _settings.WindowHeight = window.Height;
+        }
+        else if (window.WindowState == System.Windows.WindowState.Maximized)
+        {
+            _settings.WindowLeft = window.RestoreBounds.Left;
+            _settings.WindowTop = window.RestoreBounds.Top;
+            _settings.WindowWidth = window.RestoreBounds.Width;
+            _settings.WindowHeight = window.RestoreBounds.Height;
+        }
+
+        _settings.WindowState = window.WindowState;
+        SaveSettings();
+    }
+
+    private static bool IsOnScreen(double left, double top, double width, double height)
+    {
+        var virtualScreenLeft = SystemParameters.VirtualScreenLeft;
+        var virtualScreenTop = SystemParameters.VirtualScreenTop;
+        var virtualScreenWidth = SystemParameters.VirtualScreenWidth;
+        var virtualScreenHeight = SystemParameters.VirtualScreenHeight;
+
+        var virtualScreen = new Rect(virtualScreenLeft, virtualScreenTop, virtualScreenWidth, virtualScreenHeight);
+        var windowRect = new Rect(left, top, width, height);
+
+        if (!windowRect.IntersectsWith(virtualScreen))
+            return false;
+
+        var intersection = Rect.Intersect(windowRect, virtualScreen);
+        return intersection.Width >= 100 && intersection.Height >= 100;
     }
 
     private void LoadSettings()
