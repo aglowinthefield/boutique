@@ -7,39 +7,12 @@
              xmlns:models="clr-namespace:Boutique.Models"
              xmlns:util="clr-namespace:Boutique.Utilities"
              xmlns:controls="clr-namespace:Boutique.Controls"
+             xmlns:themes="clr-namespace:Boutique.Themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              x:Name="Root"
              d:DesignHeight="600"
              d:DesignWidth="1100">
-    <UserControl.Resources>
-        <!-- Reusable Filter Chip Template -->
-        <DataTemplate x:Key="FilterChipTemplate">
-            <Border Style="{StaticResource FilterChipStyle}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
-                    <Button Style="{StaticResource InlineRemoveButtonStyle}" Tag="{Binding}" Margin="3,0,0,0" />
-                </StackPanel>
-            </Border>
-        </DataTemplate>
-
-        <!-- Reusable Search/Filter Tab Content -->
-        <DataTemplate x:Key="FilterDataGridTemplate">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                    <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
-                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
-                </StackPanel>
-            </Grid>
-        </DataTemplate>
-    </UserControl.Resources>
-
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
@@ -61,7 +34,7 @@
                 <!-- File Selector -->
                 <StackPanel Grid.Row="0" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <TextBlock Text="File:" Style="{StaticResource LabelTextStyle}" />
+                        <TextBlock Text="File:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding DropdownItems}"
                                   SelectedItem="{Binding SelectedDropdownItem, Mode=TwoWay}"
                                   MinWidth="350" Margin="0,0,6,0"
@@ -101,7 +74,7 @@
                                 </Style>
                             </ComboBox.ItemContainerStyle>
                         </ComboBox>
-                        <TextBlock Text="Format:" Style="{StaticResource LabelTextStyle}" Margin="12,0,6,0" />
+                        <TextBlock Text="Format:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="12,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableFormats}"
                                   SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
                                   MinWidth="120" Margin="0,0,6,0">
@@ -128,17 +101,17 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
-                        <TextBlock Text="Filename:" Style="{StaticResource LabelTextStyle}" />
+                        <TextBlock Text="Filename:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" MinWidth="200" Margin="0,0,6,0" />
                         <Button Content="Browse..." Command="{Binding SelectDistributionFilePathCommand}" Padding="8,2" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                 Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
-                        <TextBlock Text="Saves as:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                        <TextBlock Text="Saves as:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                         <TextBlock Text="{Binding ActualFileName}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource Brush.TextSecondary}" />
                     </StackPanel>
                     <!-- Conflict Warning -->
-                    <Border Style="{StaticResource WarningPanelStyle}" Margin="0,6,0,0"
+                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
                             Visibility="{Binding HasConflicts, Converter={StaticResource BoolToVisConverter}}">
                         <StackPanel>
                             <TextBlock Text="{Binding ConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
@@ -167,12 +140,12 @@
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          Background="Transparent" BorderThickness="0"
                          HorizontalContentAlignment="Stretch"
-                         ItemContainerStyle="{StaticResource PlainListBoxItemStyle}">
+                         ItemContainerStyle="{DynamicResource {x:Static themes:ResourceKeys.PlainListBoxItemStyleKey}}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource SelectableEntryStyle}">
+                            <Border Style="{DynamicResource {x:Static themes:ResourceKeys.SelectableEntryStyleKey}}">
                                 <Border.Resources>
-                                    <Style TargetType="Border" BasedOn="{StaticResource SelectableEntryStyle}">
+                                    <Style TargetType="Border" BasedOn="{DynamicResource {x:Static themes:ResourceKeys.SelectableEntryStyleKey}}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                 <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
@@ -201,30 +174,30 @@
                                         <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="32" Height="22"
                                                  IsEnabled="{Binding UseChance}" Margin="0,0,4,0" ToolTip="Chance (0-100)"
                                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="2,0" />
-                                        <Button ToolTip="Preview Outfit" Style="{StaticResource IconButtonStyle}"
+                                        <Button ToolTip="Preview Outfit" Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
                                                 Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}" CommandParameter="{Binding}">
                                             <Image Source="pack://application:,,,/Assets/eye.png" Width="12" Height="12" />
                                         </Button>
-                                        <Button Command="{Binding RemoveCommand}" Style="{StaticResource InlineRemoveButtonStyle}"
+                                        <Button Command="{Binding RemoveCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                                 ToolTip="Remove Entry" Height="22" Width="22" Margin="2,0,0,0" />
                                     </StackPanel>
 
                                     <!-- NPCs (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="NPCs:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="NPCs:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedNpcs}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource FilterChipStyle}">
+                                                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
+                                                            <TextBlock Text="{Binding FormKeyString}" Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" Margin="4,0,0,0" FontSize="9" />
                                                             <Button Click="RemoveNpc_Click" Tag="{Binding}"
-                                                                    Style="{StaticResource InlineRemoveButtonStyle}" Margin="3,0,0,0" />
+                                                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}" Margin="3,0,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -235,19 +208,19 @@
                                     <!-- Factions (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="Factions:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="Factions:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedFactions}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource FilterChipStyle}">
+                                                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
+                                                            <TextBlock Text="{Binding FormKeyString}" Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" Margin="4,0,0,0" FontSize="9" />
                                                             <Button Click="RemoveFaction_Click" Tag="{Binding}"
-                                                                    Style="{StaticResource InlineRemoveButtonStyle}" Margin="3,0,0,0" />
+                                                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}" Margin="3,0,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -258,19 +231,19 @@
                                     <!-- Keywords (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="Keywords:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="Keywords:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedKeywords}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource FilterChipStyle}">
+                                                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
+                                                            <TextBlock Text="{Binding FormKeyString}" Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" Margin="4,0,0,0" FontSize="9" />
                                                             <Button Click="RemoveKeyword_Click" Tag="{Binding}"
-                                                                    Style="{StaticResource InlineRemoveButtonStyle}" Margin="3,0,0,0" />
+                                                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}" Margin="3,0,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -281,19 +254,19 @@
                                     <!-- Races (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="Races:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="Races:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedRaces}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource FilterChipStyle}">
+                                                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
+                                                            <TextBlock Text="{Binding FormKeyString}" Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" Margin="4,0,0,0" FontSize="9" />
                                                             <Button Click="RemoveRace_Click" Tag="{Binding}"
-                                                                    Style="{StaticResource InlineRemoveButtonStyle}" Margin="3,0,0,0" />
+                                                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}" Margin="3,0,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -304,19 +277,19 @@
                                     <!-- Classes (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="Classes:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="Classes:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedClasses}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Style="{StaticResource FilterChipStyle}">
+                                                    <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding FormKeyString}" Style="{StaticResource FormKeyTextStyle}" Margin="4,0,0,0" FontSize="9" />
+                                                            <TextBlock Text="{Binding FormKeyString}" Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" Margin="4,0,0,0" FontSize="9" />
                                                             <Button Click="RemoveClass_Click" Tag="{Binding}"
-                                                                    Style="{StaticResource InlineRemoveButtonStyle}" Margin="3,0,0,0" />
+                                                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}" Margin="3,0,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -326,7 +299,7 @@
 
                                     <!-- Traits: Gender, Unique -->
                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock Text="Traits:" Style="{StaticResource SecondaryTextStyle}" Margin="0,0,6,0" FontSize="11" />
+                                        <TextBlock Text="Traits:" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,6,0" FontSize="11" />
                                         <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
                                         <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
                                                   SelectedItem="{Binding Gender, Mode=TwoWay}"
@@ -405,7 +378,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding NpcSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredNpcs}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -415,9 +388,9 @@
                                 <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
                                 <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                                 <DataGridTextColumn Header="Mod" Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridSecondaryColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Grid.Row="2" Margin="0,6,0,0">
@@ -437,7 +410,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding FactionSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredFactions}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -447,7 +420,7 @@
                                 <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
                                 <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <Button Grid.Row="2" Content="Add Selected Factions to Entry" Command="{Binding AddSelectedFactionsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
@@ -463,7 +436,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding KeywordSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredKeywords}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -472,7 +445,7 @@
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
                                 <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <Button Grid.Row="2" Content="Add Selected Keywords to Entry" Command="{Binding AddSelectedKeywordsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
@@ -488,7 +461,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding RaceSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredRaces}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -498,7 +471,7 @@
                                 <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
                                 <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <Button Grid.Row="2" Content="Add Selected Races to Entry" Command="{Binding AddSelectedRacesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
@@ -514,7 +487,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding ClassSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredClasses}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -524,7 +497,7 @@
                                 <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
                                 <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
                                 <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
-                                                    ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <Button Grid.Row="2" Content="Add Selected Classes to Entry" Command="{Binding AddSelectedClassesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />

@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:themes="clr-namespace:Boutique.Themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionOutfitsTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600"
@@ -33,7 +34,7 @@
                 <CheckBox Content="Hide vanilla distributions" IsChecked="{Binding HideVanillaOutfits}"
                           VerticalAlignment="Center" Margin="0,0,16,0"
                           ToolTip="Hides Outfits with their default outfit as the winning assignment" />
-                <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                 <TextBox Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}"
                          MinWidth="250" ToolTip="Search outfits by EditorID, FormKey, or mod" />
             </StackPanel>
@@ -68,9 +69,9 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="*" CanUserSort="True" />
                     <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="150" CanUserSort="True"
-                                        ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                        ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                     <DataGridTextColumn Header="Mod" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
-                                        ElementStyle="{StaticResource DataGridSecondaryColumnStyle}" />
+                                        ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                     <DataGridTextColumn Header="NPCs" Binding="{Binding NpcCount}" Width="60" CanUserSort="True" SortDirection="Descending">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
@@ -112,9 +113,9 @@
                             <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
                             <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
                             <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="130" CanUserSort="True"
-                                                ElementStyle="{StaticResource DataGridFormKeyColumnStyle}" />
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             <DataGridTextColumn Header="Mod" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
-                                                ElementStyle="{StaticResource DataGridSecondaryColumnStyle}" />
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </GroupBox>
@@ -141,7 +142,7 @@
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
                                                                     <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
-                                                                               Style="{StaticResource SecondaryTextStyle}" Margin="4,0,0,0" />
+                                                                               Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="4,0,0,0" />
                                                                     <TextBlock Text=" [WINNER]" Foreground="Green" FontWeight="Bold"
                                                                                Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
                                                                 </StackPanel>

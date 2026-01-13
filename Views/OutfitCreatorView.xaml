@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:themes="clr-namespace:Boutique.Themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="800"
@@ -72,7 +73,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Search:" Style="{StaticResource LabelTextStyle}" />
+                        <TextBlock Grid.Column="0" Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <TextBox Grid.Column="1" Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock Grid.Column="2"
                                    Text="{Binding OutfitArmors.Count, StringFormat='{}{0} armors'}"
@@ -97,7 +98,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="👁" Click="PreviewArmorButton_Click"
-                                                Style="{StaticResource IconButtonStyle}"
+                                                Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
                                                 Width="28" Height="28" FontSize="12" ToolTip="Preview armor" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -128,17 +129,17 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="1" Style="{StaticResource DropZoneStyle}" Margin="0,0,0,6"
+                    <Border Grid.Row="1" Style="{DynamicResource {x:Static themes:ResourceKeys.DropZoneStyleKey}}" Margin="0,0,0,6"
                             AllowDrop="True"
                             DragEnter="NewOutfitDropZone_OnDragEnter"
                             DragLeave="NewOutfitDropZone_OnDragLeave"
                             DragOver="NewOutfitDropZone_OnDragOver"
                             Drop="NewOutfitDropZone_OnDrop">
                         <TextBlock Text="Drop armors here to create a new outfit (double-click an armor to quick add)."
-                                   Style="{StaticResource EmptyStateTextStyle}" TextWrapping="Wrap" />
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}" TextWrapping="Wrap" />
                     </Border>
 
-                    <Border Grid.Row="0" Style="{StaticResource InfoPanelStyle}" Margin="0,0,0,6"
+                    <Border Grid.Row="0" Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,0,0,6"
                             Visibility="{Binding HasExistingPluginOutfits, Converter={StaticResource BoolToVisConverter}}">
                         <StackPanel>
                             <TextBlock Text="{Binding ExistingOutfits.Count, StringFormat='This plugin already defines {0} outfit(s).'}"
@@ -160,7 +161,7 @@
 
                     <Grid Grid.Row="2">
                         <TextBlock Text="No outfits queued. Select armors and click Create Outfit."
-                                   Style="{StaticResource EmptyStateTextStyle}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
                                    Visibility="{Binding HasOutfitDrafts, Converter={StaticResource InverseBoolToVisConverter}}" />
 
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -190,10 +191,10 @@
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                                                         <Button Content="👁" Command="{Binding PreviewCommand}"
-                                                                Style="{StaticResource IconButtonStyle}"
+                                                                Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
                                                                 Margin="0,0,2,0" FontSize="10" ToolTip="Preview outfit" />
                                                         <Button Command="{Binding RemoveSelfCommand}"
-                                                                Style="{StaticResource InlineRemoveButtonStyle}"
+                                                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                                                 Width="22" Height="22" FontSize="12" ToolTip="Remove outfit" />
                                                     </StackPanel>
                                                 </Grid>
@@ -211,13 +212,13 @@
                                                                 <Button Grid.Column="1"
                                                                         Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                         CommandParameter="{Binding}"
-                                                                        Style="{StaticResource InlineRemoveButtonStyle}"
+                                                                        Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                                                         Margin="4,0,0,0" FontSize="9" ToolTip="Remove piece" />
                                                             </Grid>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                                <TextBlock Text="No pieces selected." Style="{StaticResource EmptyStateTextStyle}"
+                                                <TextBlock Text="No pieces selected." Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
                                                            HorizontalAlignment="Left" FontSize="12" Margin="0,2,0,0"
                                                            Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
                                             </StackPanel>
@@ -240,7 +241,7 @@
                        Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} outfit(s) queued'}"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
-                    Style="{StaticResource PrimaryButtonStyle}"
+                    Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
                     IsEnabled="{Binding HasOutfitDrafts}">
                 <Grid>
                     <TextBlock Text="Save Outfits" Visibility="{Binding IsCreatingOutfits, Converter={StaticResource InverseBoolToVisConverter}}" />

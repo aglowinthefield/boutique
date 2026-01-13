@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:themes="clr-namespace:Boutique.Themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="800"
@@ -57,7 +58,7 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" Margin="0,0,4,0" />
+                        <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,4,0" />
                         <TextBox Width="200" Text="{Binding SourceSearchText, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock Text="{Binding SourceArmors.Count, StringFormat='{}{0} armors'}"
                                    Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -87,7 +88,7 @@
                             <DataGridTextColumn Header="Slots" Width="130" IsReadOnly="True" Binding="{Binding SlotSummary, Mode=OneWay}" />
                             <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True" SortMemberPath="FormIdSortable" Binding="{Binding FormIdDisplay, Mode=OneWay}" />
                             <DataGridTextColumn Header="Mod" Width="150" IsReadOnly="True" Binding="{Binding ModDisplayName, Mode=OneWay}"
-                                                ElementStyle="{StaticResource DataGridSecondaryColumnStyle}" />
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -109,7 +110,7 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Search:" Style="{StaticResource LabelTextStyle}" Margin="0,0,4,0" />
+                            <TextBlock Text="Search:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,4,0" />
                             <TextBox Width="200" Text="{Binding TargetSearchText, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Text="{Binding TargetArmors.Count, StringFormat='{}{0} candidates'}"
                                        Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -149,7 +150,7 @@
                             <DataGridTextColumn Header="Slots" Width="130" IsReadOnly="True" Binding="{Binding SlotSummary, Mode=OneWay}" />
                             <DataGridTextColumn Header="Form ID" Width="120" IsReadOnly="True" SortMemberPath="FormIdSortable" Binding="{Binding FormIdDisplay, Mode=OneWay}" />
                             <DataGridTextColumn Header="Mod" Width="150" IsReadOnly="True" Binding="{Binding ModDisplayName, Mode=OneWay}"
-                                                ElementStyle="{StaticResource DataGridSecondaryColumnStyle}" />
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                             <DataGridTextColumn Header="Armor" Width="80" IsReadOnly="True" Binding="{Binding ArmorRating, Mode=OneWay}" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -242,7 +243,7 @@
                                             </Run>
                                         </TextBlock>
 
-                                        <Button Grid.Column="3" Style="{StaticResource InlineRemoveButtonStyle}"
+                                        <Button Grid.Column="3" Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                                 FontSize="14" FontWeight="Bold" Width="24" Height="24"
                                                 Margin="8,0,0,0" ToolTip="Remove mapping"
                                                 Command="{Binding DataContext.RemoveMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -265,7 +266,7 @@
                        Text="{Binding Matches.Count, StringFormat='{}{0} mapping(s) queued'}"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="Create Patch" Command="{Binding CreatePatchCommand}"
-                    Style="{StaticResource PrimaryButtonStyle}"
+                    Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
                     Padding="12,6" FontSize="13" HorizontalAlignment="Right"
                     IsEnabled="{Binding IsPatching, Converter={StaticResource InverseBoolConverter}}" />
         </Grid>
