@@ -153,7 +153,6 @@
                 <!-- Action Buttons -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
                     <Button Content="Add Entry" Command="{Binding AddDistributionEntryCommand}" Margin="0,0,6,0" Padding="8,2" />
-                    <Button Content="Load File" Command="{Binding LoadDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
                     <Button Content="Save File" Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
                     <Button Content="📋 Paste Filter" Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
                             ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue='Paste copied filter from NPCs tab'}" />

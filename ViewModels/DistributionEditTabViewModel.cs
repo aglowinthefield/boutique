@@ -81,7 +81,6 @@ public class DistributionEditTabViewModel : ReactiveObject
                 (!string.IsNullOrWhiteSpace(path) || (isNew && !string.IsNullOrWhiteSpace(newName))));
 
         SaveDistributionFileCommand = ReactiveCommand.CreateFromTask(SaveDistributionFileAsync, canSave);
-        LoadDistributionFileCommand = ReactiveCommand.CreateFromTask(LoadDistributionFileAsync, notLoading);
         ScanNpcsCommand = ReactiveCommand.CreateFromTask(ScanNpcsAsync, notLoading);
         SelectDistributionFilePathCommand = ReactiveCommand.Create(SelectDistributionFilePath);
         PreviewEntryCommand = ReactiveCommand.CreateFromTask<DistributionEntryViewModel>(PreviewEntryAsync, notLoading);
@@ -386,7 +385,6 @@ public class DistributionEditTabViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddSelectedRacesToEntryCommand { get; }
     public ReactiveCommand<Unit, Unit> AddSelectedClassesToEntryCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveDistributionFileCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadDistributionFileCommand { get; }
     public ReactiveCommand<Unit, Unit> ScanNpcsCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectDistributionFilePathCommand { get; }
     public ReactiveCommand<DistributionEntryViewModel, Unit> PreviewEntryCommand { get; }
@@ -1282,6 +1280,31 @@ public class DistributionEditTabViewModel : ReactiveObject
         var dropdownStructure = DistributionDropdownOrganizer.Organize(files);
         DropdownItems = dropdownStructure.Items;
 
+        // Try to restore last saved file from settings
+        var lastFilePath = _guiSettings.LastDistributionFilePath;
+        if (!string.IsNullOrEmpty(lastFilePath))
+        {
+            var lastFileItem = AvailableDistributionFiles.FirstOrDefault(item =>
+                !item.IsNewFile && item.File != null &&
+                string.Equals(item.File.FullPath, lastFilePath, StringComparison.OrdinalIgnoreCase));
+
+            if (lastFileItem != null)
+            {
+                _logger.Debug("Restoring last saved file from settings: {Path}", lastFilePath);
+                DistributionFilePath = lastFileItem.File!.FullPath;
+                SelectedDistributionFile = lastFileItem;
+                this.RaisePropertyChanged(nameof(SelectedDropdownItem));
+                _isInitialized = true;
+                this.RaisePropertyChanged(nameof(IsInitialized));
+                _logger.Information("Initialization complete: {NpcCount} NPCs, {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races, {FileCount} files. Restored file: {FilePath}",
+                    FilteredNpcs.Count, FilteredFactions.Count, FilteredKeywords.Count, FilteredRaces.Count, files.Count, lastFilePath);
+                _ = LoadDistributionFileAsync();
+                return;
+            }
+            _logger.Debug("Last saved file not found in available files: {Path}", lastFilePath);
+        }
+
+        // Fall back to <New File>
         var newFileItem = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
         if (newFileItem != null)
         {
