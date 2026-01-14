@@ -444,13 +444,36 @@ public class NpcOutfitResolutionService
             }
         }
 
-        if (outfitFormKey.HasValue && npcFormKeys.Count > 0)
+        if (!outfitFormKey.HasValue || npcFormKeys.Count == 0)
+            return;
+
+        var genderFilter = ParseSkyPatcherGenderFilter(trimmed);
+
+        foreach (var npcFormKey in npcFormKeys)
         {
-            foreach (var npcFormKey in npcFormKeys)
+            if (genderFilter.HasValue && linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
             {
-                results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
+                var isFemale = npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female);
+                if (isFemale != genderFilter.Value)
+                    continue;
             }
+
+            results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
         }
+    }
+
+    private static bool? ParseSkyPatcherGenderFilter(string line)
+    {
+        var index = line.IndexOf("filterByGender=", StringComparison.OrdinalIgnoreCase);
+        if (index < 0)
+            return null;
+
+        var start = index + "filterByGender=".Length;
+        var end = line.IndexOf(':', start);
+        var value = (end > start ? line.Substring(start, end - start) : line[start..]).Trim();
+
+        return value.Equals("female", StringComparison.OrdinalIgnoreCase) ? true :
+               value.Equals("male", StringComparison.OrdinalIgnoreCase) ? false : null;
     }
 
     private static List<NpcOutfitAssignment> BuildNpcOutfitAssignmentsFromFilterData(
@@ -734,12 +757,21 @@ public class NpcOutfitResolutionService
             "SkyPatcher parse result: {NpcCount} NPCs, outfit={OutfitFormKey}",
             npcFormKeys.Count, outfitFormKey?.ToString() ?? "null");
 
-        if (outfitFormKey.HasValue && npcFormKeys.Count > 0)
+        if (!outfitFormKey.HasValue || npcFormKeys.Count == 0)
+            return;
+
+        var genderFilter = ParseSkyPatcherGenderFilter(trimmed);
+
+        foreach (var npcFormKey in npcFormKeys)
         {
-            foreach (var npcFormKey in npcFormKeys)
+            if (genderFilter.HasValue && linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
             {
-                results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
+                var isFemale = npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female);
+                if (isFemale != genderFilter.Value)
+                    continue;
             }
+
+            results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
         }
     }
 

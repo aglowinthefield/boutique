@@ -161,6 +161,12 @@ public class DistributionViewModel : ReactiveObject
             _logger.Debug("Filter copied from NPCs tab: {Description}", copiedFilter.Description);
         };
 
+        OutfitsTab.OutfitCopied += (_, copiedOutfit) =>
+        {
+            OutfitCopiedToCreator?.Invoke(this, copiedOutfit);
+            _logger.Debug("Outfit copy requested from Outfits tab: {Description}", copiedOutfit.Description);
+        };
+
         EditTab.WhenAnyValue(vm => vm.CopiedFilter)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(CopiedFilter)));
         EditTab.WhenAnyValue(vm => vm.HasCopiedFilter)
@@ -278,6 +284,11 @@ public class DistributionViewModel : ReactiveObject
     public DistributionEditTabViewModel EditTab { get; }
     public DistributionNpcsTabViewModel NpcsTab { get; }
     public DistributionOutfitsTabViewModel OutfitsTab { get; }
+
+    /// <summary>
+    /// Event raised when an outfit should be copied to the Outfit Creator tab.
+    /// </summary>
+    public event EventHandler<CopiedOutfit>? OutfitCopiedToCreator;
     public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
 
     #region Distribution Files

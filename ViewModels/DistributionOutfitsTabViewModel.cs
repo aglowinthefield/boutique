@@ -44,6 +44,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
         var notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
         LoadOutfitsCommand = ReactiveCommand.CreateFromTask(LoadOutfitsAsync, notLoading);
         PreviewOutfitCommand = ReactiveCommand.CreateFromTask<OutfitRecordViewModel>(PreviewOutfitAsync, notLoading);
+        CopyOutfitCommand = ReactiveCommand.CreateFromTask<OutfitRecordViewModel>(CopyOutfit, notLoading);
 
         // Outfits tab search filtering
         this.WhenAnyValue(vm => vm.OutfitSearchText)
@@ -98,7 +99,14 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
 
     public ReactiveCommand<OutfitRecordViewModel, Unit> PreviewOutfitCommand { get; }
 
+    public ReactiveCommand<OutfitRecordViewModel, Unit> CopyOutfitCommand { get; }
+
     public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
+
+    /// <summary>
+    /// Event raised when an outfit is copied to create a distribution entry.
+    /// </summary>
+    public event EventHandler<CopiedOutfit>? OutfitCopied;
 
     public bool IsInitialized => _mutagenService.IsInitialized;
 
@@ -209,7 +217,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             return;
         }
 
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not { } linkCache)
         {
             StatusMessage = "Initialize Skyrim data path before previewing outfits.";
             return;
@@ -237,6 +245,24 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
             StatusMessage = $"Failed to preview outfit: {ex.Message}";
         }
+    }
+
+    private Task CopyOutfit(OutfitRecordViewModel outfitVm)
+    {
+        var outfit = outfitVm.Outfit;
+        var editorId = outfit.EditorID ?? outfit.FormKey.ToString();
+
+        var copiedOutfit = new CopiedOutfit
+        {
+            OutfitFormKey = outfit.FormKey,
+            OutfitEditorId = editorId,
+            Description = editorId
+        };
+
+        OutfitCopied?.Invoke(this, copiedOutfit);
+        _logger.Debug("Copied outfit {EditorId} to Create tab", editorId);
+
+        return Task.CompletedTask;
     }
 
     private void UpdateFilteredOutfits()

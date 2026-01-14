@@ -17,7 +17,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TabControl x:Name="MainTabControl" Grid.Row="0" Margin="8" SelectionChanged="TabControl_OnSelectionChanged">
+        <TabControl x:Name="MainTabControl" Grid.Row="0" Margin="8"
+                    SelectedIndex="{Binding MainTabIndex, Mode=TwoWay}"
+                    SelectionChanged="TabControl_OnSelectionChanged">
             <TabItem x:Name="DistributionTab" Header="Distribution">
                 <views:DistributionView DataContext="{Binding Distribution}" />
             </TabItem>

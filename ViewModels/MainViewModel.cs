@@ -14,6 +14,7 @@ using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -72,6 +73,8 @@ public class MainViewModel : ReactiveObject
             await ShowPreview.Handle(interaction.Input);
             interaction.SetOutput(Unit.Default);
         });
+
+        Distribution.OutfitCopiedToCreator += OnOutfitCopiedToCreator;
 
         _mutagenService.PluginsChanged += OnPluginsChanged;
 
@@ -396,6 +399,8 @@ public class MainViewModel : ReactiveObject
     [Reactive] public int ProgressCurrent { get; set; }
 
     [Reactive] public int ProgressTotal { get; set; }
+
+    [Reactive] public int MainTabIndex { get; set; }
 
     public ICommand InitializeCommand { get; }
     public ICommand CreatePatchCommand { get; }
@@ -1264,6 +1269,38 @@ public class MainViewModel : ReactiveObject
             .ToList();
     }
 
+    private async void OnOutfitCopiedToCreator(object? sender, CopiedOutfit copiedOutfit)
+    {
+        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        {
+            StatusMessage = "LinkCache not available. Please initialize Skyrim data path first.";
+            return;
+        }
+
+        // Resolve the outfit from the FormKey
+        if (!linkCache.TryResolve<IOutfitGetter>(copiedOutfit.OutfitFormKey, out var outfit))
+        {
+            StatusMessage = $"Could not find outfit {copiedOutfit.OutfitEditorId} in load order.";
+            _logger.Warning("Outfit {FormKey} not found in LinkCache", copiedOutfit.OutfitFormKey);
+            return;
+        }
+
+        // Get armor pieces from the outfit
+        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        if (armorPieces.Count == 0)
+        {
+            StatusMessage = $"Outfit {copiedOutfit.OutfitEditorId} has no armor pieces.";
+            return;
+        }
+
+        // Navigate to Outfit Creator tab (index 1)
+        MainTabIndex = 1;
+
+        // Create the draft with btq_ prefix
+        var defaultName = "btq_" + (copiedOutfit.OutfitEditorId ?? outfit.FormKey.ToString());
+        await CreateOutfitFromPiecesAsync(armorPieces, defaultName);
+    }
+
     private async Task CreateOutfitAsync()
     {
         var selectedPieces = SelectedOutfitArmors
@@ -1273,7 +1310,7 @@ public class MainViewModel : ReactiveObject
         await CreateOutfitFromPiecesAsync(selectedPieces);
     }
 
-    public async Task CreateOutfitFromPiecesAsync(IReadOnlyList<ArmorRecordViewModel> pieces)
+    public async Task CreateOutfitFromPiecesAsync(IReadOnlyList<ArmorRecordViewModel> pieces, string? defaultName = null)
     {
         var (distinctPieces, isValid, validationMessage) = await Task.Run(() =>
         {
@@ -1296,14 +1333,22 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        const string namePrompt = "Enter the outfit name (also used as the EditorID):";
-        var outfitName = await RequestOutfitName.Handle(namePrompt).ToTask();
-
-        if (string.IsNullOrWhiteSpace(outfitName))
+        string outfitName;
+        if (!string.IsNullOrWhiteSpace(defaultName))
         {
-            StatusMessage = "Outfit creation canceled.";
-            _logger.Information("Outfit creation canceled by user.");
-            return;
+            outfitName = defaultName;
+        }
+        else
+        {
+            const string namePrompt = "Enter the outfit name (also used as the EditorID):";
+            outfitName = await RequestOutfitName.Handle(namePrompt).ToTask();
+
+            if (string.IsNullOrWhiteSpace(outfitName))
+            {
+                StatusMessage = "Outfit creation canceled.";
+                _logger.Information("Outfit creation canceled by user.");
+                return;
+            }
         }
 
         var trimmedName = outfitName.Trim();
