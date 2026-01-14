@@ -20,7 +20,8 @@ public class NpcScanningService
 
     public async Task<IReadOnlyList<NpcRecord>> ScanNpcsAsync(CancellationToken cancellationToken = default)
     {
-        return await Task.Run<IReadOnlyList<NpcRecord>>(() =>
+        return await Task.Run<IReadOnlyList<NpcRecord>>(
+            () =>
         {
             if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
@@ -73,7 +74,8 @@ public class NpcScanningService
 
     public async Task<IReadOnlyList<NpcFilterData>> ScanNpcsWithFilterDataAsync(CancellationToken cancellationToken = default)
     {
-        return await Task.Run<IReadOnlyList<NpcFilterData>>(() =>
+        return await Task.Run<IReadOnlyList<NpcFilterData>>(
+            () =>
         {
             if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {

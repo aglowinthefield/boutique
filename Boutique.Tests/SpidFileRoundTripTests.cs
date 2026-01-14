@@ -9,39 +9,32 @@ namespace Boutique.Tests;
 /// File-based round-trip tests for SPID distribution files.
 /// Reads actual .ini files from TestData directory and verifies parsing/formatting fidelity.
 /// </summary>
-public class SpidFileRoundTripTests
+public class SpidFileRoundTripTests(ITestOutputHelper output)
 {
-    private static readonly string TestDataPath = Path.Combine(
+    private static readonly string _testDataPath = Path.Combine(
         AppContext.BaseDirectory, "TestData");
 
-    private static readonly string SpidTestDataPath = Path.Combine(TestDataPath, "Spid");
-
-    private readonly ITestOutputHelper _output;
-
-    public SpidFileRoundTripTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
+    private static readonly string _spidTestDataPath = Path.Combine(_testDataPath, "Spid");
 
     #region File Discovery
 
     [Fact]
     public void TestDataDirectory_Exists()
     {
-        Assert.True(Directory.Exists(TestDataPath),
-            $"TestData directory not found at: {TestDataPath}");
+        Assert.True(Directory.Exists(_testDataPath),
+            $"TestData directory not found at: {_testDataPath}");
     }
 
     [Fact]
     public void SpidTestData_HasFiles()
     {
-        if (!Directory.Exists(SpidTestDataPath))
+        if (!Directory.Exists(_spidTestDataPath))
         {
             // Skip if directory doesn't exist yet
             return;
         }
 
-        var files = Directory.GetFiles(SpidTestDataPath, "*.ini");
+        var files = Directory.GetFiles(_spidTestDataPath, "*.ini");
         Assert.NotEmpty(files);
     }
 
@@ -52,7 +45,7 @@ public class SpidFileRoundTripTests
     [Fact]
     public void RoundTrip_SampleSpidFile_AllLinesPreserved()
     {
-        var filePath = Path.Combine(SpidTestDataPath, "sample_DISTR.ini");
+        var filePath = Path.Combine(_spidTestDataPath, "sample_DISTR.ini");
         if (!File.Exists(filePath))
         {
             // Skip if file doesn't exist
@@ -91,7 +84,7 @@ public class SpidFileRoundTripTests
     [InlineData("sample_DISTR.ini")]
     public void RoundTrip_SpecificFile_AllLinesPreserved(string fileName)
     {
-        var filePath = Path.Combine(SpidTestDataPath, fileName);
+        var filePath = Path.Combine(_spidTestDataPath, fileName);
         if (!File.Exists(filePath))
         {
             // Skip if file doesn't exist
@@ -117,12 +110,12 @@ public class SpidFileRoundTripTests
     [Fact]
     public void RoundTrip_AllSpidFiles_AllLinesPreserved()
     {
-        if (!Directory.Exists(SpidTestDataPath))
+        if (!Directory.Exists(_spidTestDataPath))
         {
             return;
         }
 
-        var files = Directory.GetFiles(SpidTestDataPath, "*.ini");
+        var files = Directory.GetFiles(_spidTestDataPath, "*.ini");
         if (files.Length == 0)
         {
             return;
@@ -146,10 +139,10 @@ public class SpidFileRoundTripTests
         var totalSuccess = fileStats.Sum(f => f.SuccessCount);
         var totalFailure = fileStats.Sum(f => f.FailureCount);
 
-        _output.WriteLine($"Tested {files.Length} files, {totalSuccess + totalFailure} lines ({totalSuccess} passed, {totalFailure} failed):");
+        output.WriteLine($"Tested {files.Length} files, {totalSuccess + totalFailure} lines ({totalSuccess} passed, {totalFailure} failed):");
         foreach (var (file, success, failure) in fileStats)
         {
-            _output.WriteLine($"  {file}: {success + failure} lines ({success} passed, {failure} failed)");
+            output.WriteLine($"  {file}: {success + failure} lines ({success} passed, {failure} failed)");
         }
 
         if (allFailures.Count > 0)
@@ -174,7 +167,7 @@ public class SpidFileRoundTripTests
     [Fact]
     public void Analyze_SampleFile_ShowDifferences()
     {
-        var filePath = Path.Combine(SpidTestDataPath, "sample_DISTR.ini");
+        var filePath = Path.Combine(_spidTestDataPath, "sample_DISTR.ini");
         if (!File.Exists(filePath))
         {
             return;

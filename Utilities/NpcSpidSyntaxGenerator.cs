@@ -26,8 +26,7 @@ public static class NpcSpidSyntaxGenerator
         {
             return (
                 $"; No filters active - this would target ALL NPCs\n; Outfit = {outfitPlaceholder}",
-                $"; No filters active - this would target ALL NPCs\n; outfitDefault={outfitPlaceholder}"
-            );
+                $"; No filters active - this would target ALL NPCs\n; outfitDefault={outfitPlaceholder}");
         }
 
         var spidSyntax = GenerateSpidSyntax(filter, linkCache, outfitPlaceholder);
@@ -63,6 +62,7 @@ public static class NpcSpidSyntaxGenerator
                 }
             }
         }
+
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join("+", stringFilters) : null;
 
         // Position 3: FormFilters - Factions, Races, and Classes (AND with +)
@@ -77,6 +77,7 @@ public static class NpcSpidSyntaxGenerator
                     formFilters.Add(faction.EditorID);
                 }
             }
+
             foreach (var raceFormKey in filter.Races)
             {
                 if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
@@ -85,6 +86,7 @@ public static class NpcSpidSyntaxGenerator
                     formFilters.Add(race.EditorID);
                 }
             }
+
             foreach (var classFormKey in filter.Classes)
             {
                 if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
@@ -94,6 +96,7 @@ public static class NpcSpidSyntaxGenerator
                 }
             }
         }
+
         var formFiltersPart = formFilters.Count > 0 ? string.Join("+", formFilters) : null;
 
         // Position 4: LevelFilters
@@ -198,12 +201,11 @@ public static class NpcSpidSyntaxGenerator
         // Gender filter
         if (filter.IsFemale.HasValue)
         {
-            filterParts.Add($"filterByGender={( filter.IsFemale.Value ? "female" : "male" )}");
+            filterParts.Add($"filterByGender={(filter.IsFemale.Value ? "female" : "male")}");
         }
 
         // Note: SkyPatcher doesn't have direct filters for unique, templated, child, summonable, leveled
         // These are SPID-specific traits. We'll add a comment about this.
-
         var unsupportedFilters = new List<string>();
         if (filter.IsUnique.HasValue)
             unsupportedFilters.Add($"Unique={(filter.IsUnique.Value ? "Yes" : "No")}");
@@ -270,7 +272,6 @@ public static class NpcSpidSyntaxGenerator
         // Note: Templated is not a standard SPID trait filter
         // We'll add it as a comment instead
         // The -L (non-leveled) filter is close but not the same as non-templated
-
         return parts.Count > 0 ? string.Join("/", parts) : null;
     }
 

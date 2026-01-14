@@ -112,7 +112,8 @@ public class KeywordDistributionResolver(ILogger logger)
             _logger.Warning("Detected circular keyword dependencies: {Keywords}", string.Join(", ", cyclicKeywords));
         }
 
-        _logger.Debug("Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
+        _logger.Debug(
+            "Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
             sorted.Count, cyclicKeywords.Count);
 
         return (sorted, cyclicKeywords);
@@ -132,7 +133,8 @@ public class KeywordDistributionResolver(ILogger logger)
             npcKeywords[npc.FormKey] = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
         }
 
-        _logger.Debug("Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
+        _logger.Debug(
+            "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
             allNpcs.Count, sortedKeywords.Count);
 
         foreach (var entry in sortedKeywords)
@@ -147,12 +149,14 @@ public class KeywordDistributionResolver(ILogger logger)
                 }
             }
 
-            _logger.Debug("Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
+            _logger.Debug(
+                "Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
                 entry.KeywordIdentifier, matchingNpcs.Count, entry.Chance);
         }
 
         var totalAssignments = npcKeywords.Values.Sum(k => k.Count);
-        _logger.Information("Keyword simulation complete: {TotalAssignments} total keyword assignments",
+        _logger.Information(
+            "Keyword simulation complete: {TotalAssignments} total keyword assignments",
             totalAssignments);
 
         return npcKeywords;

@@ -450,14 +450,16 @@ public class MainViewModel : ReactiveObject
 
                 if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
                 {
-                    _logger.Debug("Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
+                    _logger.Debug(
+                        "Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
                         formKey, outfit.EditorID ?? "(No EditorID)", plugin);
                     continue;
                 }
 
                 if (item is not IArmorGetter armor)
                 {
-                    _logger.Debug("Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
+                    _logger.Debug(
+                        "Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
                         formKey, item.GetType().Name, outfit.EditorID ?? "(No EditorID)");
                     continue;
                 }
@@ -485,7 +487,8 @@ public class MainViewModel : ReactiveObject
             _existingOutfits.Add(existing);
             discoveredCount++;
 
-            _logger.Information("Discovered existing outfit {EditorId} in {Plugin} with {PieceCount} piece(s).",
+            _logger.Information(
+                "Discovered existing outfit {EditorId} in {Plugin} with {PieceCount} piece(s).",
                 editorId, plugin, distinctPieces.Count);
         }
 
@@ -525,8 +528,11 @@ public class MainViewModel : ReactiveObject
             var uniqueName = EnsureUniqueOutfitName(baseName, null);
 
             if (!string.Equals(uniqueName, baseName, StringComparison.Ordinal))
-                _logger.Debug("Adjusted outfit name from {Original} to {Adjusted} when copying existing outfit.",
+            {
+                _logger.Debug(
+                    "Adjusted outfit name from {Original} to {Adjusted} when copying existing outfit.",
                     baseName, uniqueName);
+            }
 
             var pieces = existing.Pieces
                 .Select(armor => new ArmorRecordViewModel(armor, linkCache))
@@ -560,7 +566,8 @@ public class MainViewModel : ReactiveObject
         if (copied > 0)
         {
             StatusMessage = $"Copied {copied} existing outfit(s) into the queue.";
-            _logger.Information("Copied {CopiedCount} existing outfit(s) into the queue from plugin {Plugin}.",
+            _logger.Information(
+                "Copied {CopiedCount} existing outfit(s) into the queue from plugin {Plugin}.",
                 copied,
                 SelectedOutfitPlugin ?? "<none>");
         }
@@ -603,7 +610,8 @@ public class MainViewModel : ReactiveObject
         var missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
         if (missingMastersResult.HasMissingMasters)
         {
-            _logger.Warning("Missing masters detected in patch {Plugin}: {Masters}",
+            _logger.Warning(
+                "Missing masters detected in patch {Plugin}: {Masters}",
                 outputPlugin,
                 string.Join(", ", missingMastersResult.MissingMasters.Select(m => m.MissingMaster.FileName)));
 
@@ -720,7 +728,8 @@ public class MainViewModel : ReactiveObject
         if (loadedCount > 0)
         {
             StatusMessage = $"Loaded {loadedCount} existing outfit(s) from {outputPlugin} for editing.";
-            _logger.Information("Loaded {Count} existing outfit(s) from output plugin {Plugin} for editing.",
+            _logger.Information(
+                "Loaded {Count} existing outfit(s) from output plugin {Plugin} for editing.",
                 loadedCount, outputPlugin);
         }
     }
@@ -1020,7 +1029,8 @@ public class MainViewModel : ReactiveObject
             var previousCount = AvailablePlugins.Count;
             AvailablePlugins = new ObservableCollection<string>(plugins);
 
-            _logger.Information("Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
+            _logger.Information(
+                "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
                 previousCount, AvailablePlugins.Count);
 
             await LoadOutfitsFromOutputPluginAsync();
@@ -1459,7 +1469,8 @@ public class MainViewModel : ReactiveObject
         {
             var original = draft.EditorId;
             draft.Name = uniqueName;
-            _logger.Information("Adjusted outfit draft name from {Original} to {Adjusted} to ensure uniqueness.",
+            _logger.Information(
+                "Adjusted outfit draft name from {Original} to {Adjusted} to ensure uniqueness.",
                 original, uniqueName);
             return;
         }
@@ -1579,7 +1590,8 @@ public class MainViewModel : ReactiveObject
         if (TargetArmorsView is not ListCollectionView view)
             return;
         view.SortDescriptions.Clear();
-        view.SortDescriptions.Add(new SortDescription(nameof(ArmorRecordViewModel.SlotCompatibilityPriority),
+        view.SortDescriptions.Add(new SortDescription(
+            nameof(ArmorRecordViewModel.SlotCompatibilityPriority),
             ListSortDirection.Ascending));
 
         if (!string.IsNullOrEmpty(propertyName))
@@ -1630,7 +1642,8 @@ public class MainViewModel : ReactiveObject
                 }
             }
 
-            _logger.Information("Starting patch creation for {MatchCount} matches to {OutputPath}",
+            _logger.Information(
+                "Starting patch creation for {MatchCount} matches to {OutputPath}",
                 matchesToPatch.Count, Settings.FullOutputPath);
 
             var (success, message) = await _patchingService.CreatePatchAsync(

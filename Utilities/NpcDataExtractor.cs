@@ -187,8 +187,7 @@ public static class NpcDataExtractor
             IsFemale: config.Flags.HasFlag(NpcConfiguration.Flag.Female),
             IsUnique: config.Flags.HasFlag(NpcConfiguration.Flag.Unique),
             IsSummonable: config.Flags.HasFlag(NpcConfiguration.Flag.Summonable),
-            IsLeveled: config.Level is PcLevelMult
-        );
+            IsLeveled: config.Level is PcLevelMult);
     }
 
     /// <summary>

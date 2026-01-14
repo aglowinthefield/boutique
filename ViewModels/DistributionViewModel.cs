@@ -248,6 +248,7 @@ public class DistributionViewModel : ReactiveObject
 
                         break;
                     }
+
                     case (int)DistributionTab.Npcs:
                         break;
                     case (int)DistributionTab.Outfits:

@@ -189,6 +189,7 @@ public static class SpidFilterResolver
                     return outfit;
                 }
             }
+
             logger?.Debug("Failed to resolve tilde-format outfit: {Identifier}", outfitIdentifier);
             return null;
         }
@@ -210,6 +211,7 @@ public static class SpidFilterResolver
                     return outfit;
                 }
             }
+
             logger?.Debug("Failed to resolve pipe-format outfit: {Identifier}", outfitIdentifier);
             return null;
         }

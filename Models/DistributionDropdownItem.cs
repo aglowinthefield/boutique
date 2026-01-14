@@ -38,7 +38,9 @@ public sealed record DistributionFileItem(
 public sealed record DistributionNewFileItem : DistributionDropdownItem
 {
     public static DistributionNewFileItem Instance { get; } = new();
-    private DistributionNewFileItem() { }
+    private DistributionNewFileItem()
+    {
+    }
 
     public override string DisplayText => "<New File>";
     public override bool IsSelectable => true;

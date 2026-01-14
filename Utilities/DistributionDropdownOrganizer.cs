@@ -17,9 +17,11 @@ public static class DistributionDropdownOrganizer
     {
         var fileList = files.ToList();
         if (fileList.Count == 0)
+        {
             return new DistributionDropdownStructure(
                 [DistributionNewFileItem.Instance],
                 []);
+        }
 
         var duplicateFileNames = GetDuplicateFileNames(fileList);
 

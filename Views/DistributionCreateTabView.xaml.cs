@@ -79,7 +79,8 @@ public partial class DistributionCreateTabView
         }
     }
 
-    private static T? FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+    private static T? FindVisualParent<T>(DependencyObject child)
+        where T : DependencyObject
     {
         var parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
         while (parent != null)
@@ -88,6 +89,7 @@ public partial class DistributionCreateTabView
                 return t;
             parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
         }
+
         return null;
     }
 }

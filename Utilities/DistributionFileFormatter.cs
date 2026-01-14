@@ -432,7 +432,7 @@ public static class DistributionFileFormatter
 
             var parts = expr.Parts.Select(part =>
             {
-                var prefix = part.IsNegated ? "-" : "";
+                var prefix = part.IsNegated ? "-" : string.Empty;
                 return $"{prefix}{part.Value}";
             });
 

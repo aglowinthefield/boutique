@@ -110,7 +110,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         CancellationToken cancellationToken)
     {
         var gender = DetermineEffectiveGender(pieces, preferredGender, linkCache);
-        _logger.Debug("Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}",
+        _logger.Debug(
+            "Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}",
             pieces.Count, preferredGender);
         var meshes = new List<PreviewMeshShape>();
         var missingAssets = new List<string>();
@@ -197,6 +198,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             return GenderedModelVariant.Male;
 
         foreach (var piece in pieces)
+        {
             foreach (var addonLink in piece.Armor.Armature)
             {
                 if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon))
@@ -212,6 +214,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 if (worldModel.Male != null)
                     return GenderedModelVariant.Male;
             }
+        }
 
         return GenderedModelVariant.Female;
     }
@@ -246,14 +249,16 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
                 if (!TryExtractMesh(nif, shape, ownerModKey, out var meshData))
                 {
-                    _logger.Debug("Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
+                    _logger.Debug(
+                        "Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
                         shape.Name?.ToString() ?? "<unnamed>", meshPath);
                     continue;
                 }
 
                 if (meshData.DiffuseTexturePath == null)
                 {
-                    _logger.Debug("Skipping shape {ShapeName} because it has no diffuse texture.",
+                    _logger.Debug(
+                        "Skipping shape {ShapeName} because it has no diffuse texture.",
                         shape.Name?.ToString() ?? "<unnamed>");
                     continue;
                 }
@@ -311,11 +316,15 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             normals = ComputeNormals(vertices, indices);
             var shapeName = shape.Name?.ToString() ?? "<unnamed>";
             if (extractedNormals == null)
+            {
                 _logger.Debug("Shape {ShapeName} provided no normals; computed fallback.", shapeName);
+            }
             else
+            {
                 _logger.Debug(
                     "Shape {ShapeName} normals count {ProvidedCount} mismatched vertex count {VertexCount}; computed fallback.",
                     shapeName, extractedNormals.Count, vertices.Count);
+            }
         }
 
         var textureCoordinates = ExtractTextureCoordinates(shape);
@@ -328,7 +337,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
         else if (textureCoordinates != null)
         {
-            _logger.Debug("Shape {ShapeName} extracted {TexCount} UV coordinates.",
+            _logger.Debug(
+                "Shape {ShapeName} extracted {TexCount} UV coordinates.",
                 shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count);
         }
 
@@ -498,10 +508,12 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         for (var i = 0; i < normals.Count; i++)
+        {
             if (normals[i] != Vector3.Zero)
                 normals[i] = Vector3.Normalize(normals[i]);
             else
                 normals[i] = Vector3.UnitZ;
+        }
 
         return normals;
     }
@@ -555,8 +567,10 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
         if (candidates.Count == 0 && shape.Properties != null)
+        {
             foreach (var propRef in shape.Properties.References)
                 CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(propRef));
+        }
 
         foreach (var candidate in candidates)
         {
@@ -586,10 +600,15 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         if (candidates.Count > 0)
-            _logger.Debug("Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.",
+        {
+            _logger.Debug(
+                "Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.",
                 candidates.Count, shapeName);
+        }
         else
+        {
             _logger.Debug("No texture path resolved for shape {Shape}", shapeName);
+        }
 
         return null;
 

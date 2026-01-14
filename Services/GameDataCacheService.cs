@@ -149,6 +149,7 @@ public class GameDataCacheService
                     AllNpcs.Add(npc);
                     NpcsByFormKey[npc.FormKey] = npc;
                 }
+
                 foreach (var npc in npcRecordsList)
                 {
                     AllNpcRecords.Add(npc);
@@ -381,7 +382,8 @@ public class GameDataCacheService
             }
         });
 
-        _logger.Information("[PERF] LoadNpcs processing: {ElapsedMs}ms ({ValidCount} valid NPCs)",
+        _logger.Information(
+            "[PERF] LoadNpcs processing: {ElapsedMs}ms ({ValidCount} valid NPCs)",
             processSw.ElapsedMilliseconds, validNpcs.Count);
 
         return ([.. filterDataBag], [.. recordsBag]);

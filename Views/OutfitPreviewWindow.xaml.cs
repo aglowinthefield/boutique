@@ -85,15 +85,20 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
         PreviewViewport.UseDefaultGestures = false;
         PreviewViewport.InputBindings.Clear();
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Rotate,
+        PreviewViewport.InputBindings.Add(new MouseBinding(
+            ViewportCommands.Rotate,
             new MouseGesture(MouseAction.LeftClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Pan,
+        PreviewViewport.InputBindings.Add(new MouseBinding(
+            ViewportCommands.Pan,
             new MouseGesture(MouseAction.MiddleClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.Zoom,
+        PreviewViewport.InputBindings.Add(new MouseBinding(
+            ViewportCommands.Zoom,
             new MouseGesture(MouseAction.RightClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents,
+        PreviewViewport.InputBindings.Add(new MouseBinding(
+            ViewportCommands.ZoomExtents,
             new MouseGesture(MouseAction.LeftDoubleClick)));
-        PreviewViewport.InputBindings.Add(new MouseBinding(ViewportCommands.ZoomExtents,
+        PreviewViewport.InputBindings.Add(new MouseBinding(
+            ViewportCommands.ZoomExtents,
             new MouseGesture(MouseAction.RightDoubleClick)));
         PreviewViewport.InputBindings.Add(new KeyBinding(ViewportCommands.ZoomExtents, Key.F, ModifierKeys.Control));
         PreviewViewport.BackgroundColor = GetViewportBackgroundColor();
@@ -219,17 +224,23 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         };
 
         if (evaluated.Normals.Count == evaluated.Vertices.Count)
+        {
             geometry.Normals = new Vector3Collection(
                 evaluated.Normals.Select(n => new SharpDXVector3(n.X, n.Y, n.Z)));
+        }
 
         var uvs = evaluated.Shape.TextureCoordinates;
         if (uvs != null && uvs.Count == evaluated.Vertices.Count)
+        {
             geometry.TextureCoordinates = new Vector2Collection(
                 uvs.Select(tc => new SharpDXVector2(tc.X, tc.Y)));
+        }
         else if (uvs != null)
+        {
             Log.Warning(
                 "Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}",
                 uvs.Count, evaluated.Vertices.Count, evaluated.Shape.Name);
+        }
 
         geometry.UpdateBounds();
         return geometry;
@@ -443,6 +454,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private static Color4 ToColor4(Color color) => new Color4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
 
     private static Color GetViewportBackgroundColor() =>
+
         // Match BodySlide's light preview background (RGB 210,210,210).
         Color.FromRgb(210, 210, 210);
 

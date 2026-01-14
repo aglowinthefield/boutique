@@ -4,7 +4,6 @@ using System.IO.Abstractions;
 using System.Security.Cryptography;
 using System.Text;
 using Boutique.Utilities;
-using Mutagen.Bethesda;
 using Mutagen.Bethesda.Archives;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
@@ -59,7 +58,8 @@ public class GameAssetLocator
 
         if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
         {
-            _logger.Debug("ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}",
+            _logger.Debug(
+                "ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}",
                 normalized);
             return null;
         }
@@ -76,12 +76,16 @@ public class GameAssetLocator
             return looseCandidate;
 
         foreach (var archive in EnumerateCandidateArchives(modKeyHint))
+        {
             if (TryExtractFromArchive(archive, normalized, out var extracted))
                 return extracted;
+        }
 
         foreach (var fallback in EnumerateFallbackArchives(modKeyHint))
+        {
             if (TryExtractFromArchive(fallback, normalized, out var extracted))
                 return extracted;
+        }
 
         _logger.Debug("Asset {Asset} could not be resolved from loose files or archives.", normalized);
         return null;
@@ -141,9 +145,11 @@ public class GameAssetLocator
     private IEnumerable<ModKey?> GetFallbackKeys(ModKey? original)
     {
         if (original.HasValue)
+        {
             // Allow resolving against masters of the requested plugin
             foreach (var master in GetMastersForMod(original.Value))
                 yield return master;
+        }
 
         foreach (var fallback in FallbackModKeys)
             yield return fallback;
@@ -175,6 +181,7 @@ public class GameAssetLocator
         IReadOnlyList<ModKey> masters = [];
 
         if (File.Exists(pluginPath))
+        {
             try
             {
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, _mutagenService.SkyrimRelease);
@@ -187,6 +194,7 @@ public class GameAssetLocator
             {
                 _logger.Debug(ex, "Failed to read masters for mod {ModKey}", modKey);
             }
+        }
 
         _mastersByMod[modKey] = masters;
 
@@ -254,6 +262,7 @@ public class GameAssetLocator
     private static void EnsureDirectoryExists(string path, bool recreate = false)
     {
         if (recreate && Directory.Exists(path))
+        {
             try
             {
                 Directory.Delete(path, true);
@@ -262,6 +271,7 @@ public class GameAssetLocator
             {
                 // Best-effort cleanup. Swallow and continue if deletion fails.
             }
+        }
 
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
@@ -285,7 +295,8 @@ public class GameAssetLocator
             ArchivePath = archivePath;
             _reader = reader;
             _logger = logger;
-            _files = new Lazy<Dictionary<string, IArchiveFile>>(BuildLookup,
+            _files = new Lazy<Dictionary<string, IArchiveFile>>(
+                BuildLookup,
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 

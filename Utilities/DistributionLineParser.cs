@@ -167,6 +167,7 @@ public static class DistributionLineParser
                 return outfit.EditorID ?? outfit.FormKey.ToString();
             }
         }
+
         return null;
     }
 

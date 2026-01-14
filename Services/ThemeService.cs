@@ -18,8 +18,8 @@ public enum AppTheme
 public class ThemeService
 {
     private const string ThemeConfigFileName = "theme.json";
-    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-    private const int DWMWA_BORDER_COLOR = 34;
+    private const int DWMWAUSEIMMERSIVEDARKMODE = 20;
+    private const int DWMWABORDERCOLOR = 34;
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -123,12 +123,12 @@ public class ThemeService
         if (hwnd == IntPtr.Zero) return;
 
         var useDarkMode = _isCurrentlyDark ? 1 : 0;
-        _ = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
+        _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
         // Set window border color (Windows 11+)
         // Color format: 0x00BBGGRR
         uint borderColor = _isCurrentlyDark ? 0x00232323u : 0x00E0E0E0u;
-        _ = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(uint));
+        _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
     }
 
     public static void ApplyTitleBarTheme(IntPtr hwnd, bool isDark)
@@ -136,11 +136,11 @@ public class ThemeService
         if (hwnd == IntPtr.Zero) return;
 
         var useDarkMode = isDark ? 1 : 0;
-        _ = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkMode, sizeof(int));
+        _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
         // Set window border color (Windows 11+)
         uint borderColor = isDark ? 0x00232323u : 0x00E0E0E0u;
-        _ = DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, ref borderColor, sizeof(uint));
+        _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
     }
 
     private static void EnsureControlsLoaded(Application app)
@@ -177,6 +177,7 @@ public class ThemeService
         {
             // Default to dark if we can't read the registry
         }
+
         return true;
     }
 
@@ -210,6 +211,7 @@ public class ThemeService
         {
             _logger.Warning(ex, "Failed to load theme setting");
         }
+
         return AppTheme.System;
     }
 

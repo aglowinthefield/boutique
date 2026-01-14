@@ -80,7 +80,6 @@ BundleArtifacts/
 # Others
 *.Cache
 ClientBin/
-[Ss]tyle[Cc]op.*
 ~$*
 *.dbmdl
 *.jfm

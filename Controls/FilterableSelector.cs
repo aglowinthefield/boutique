@@ -182,7 +182,7 @@ public class FilterableSelector : Control
         if (_isUpdatingText || _filteredView == null)
             return;
 
-        var filterText = _textBox?.Text?.Trim() ?? "";
+        var filterText = _textBox?.Text?.Trim() ?? string.Empty;
         var filterPath = FilterPath ?? DisplayMemberPath;
 
         if (string.IsNullOrEmpty(filterText))
@@ -214,7 +214,8 @@ public class FilterableSelector : Control
     private void OnTextBoxLostFocus(object sender, RoutedEventArgs e)
     {
         // Delay closing to allow click on listbox item
-        Dispatcher.BeginInvoke(new Action(() =>
+        Dispatcher.BeginInvoke(
+            new Action(() =>
         {
             if (_listBox?.IsKeyboardFocusWithin != true)
                 IsDropDownOpen = false;
@@ -230,7 +231,9 @@ public class FilterableSelector : Control
         {
             case Key.Down:
                 if (!IsDropDownOpen)
+                {
                     IsDropDownOpen = true;
+                }
                 else if (_listBox.Items.Count > 0)
                 {
                     _listBox.SelectedIndex = Math.Min(_listBox.SelectedIndex + 1, _listBox.Items.Count - 1);

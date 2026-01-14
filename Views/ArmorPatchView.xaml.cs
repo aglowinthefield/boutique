@@ -73,15 +73,19 @@ public partial class ArmorPatchView : UserControl
             : ListSortDirection.Ascending;
 
         foreach (var column in dataGrid.Columns)
+        {
             if (!ReferenceEquals(column, e.Column))
                 column.SortDirection = null;
+        }
 
         e.Column.SortDirection = newDirection;
 
         var sortMember = e.Column.SortMemberPath;
         if (string.IsNullOrWhiteSpace(sortMember) && e.Column is DataGridBoundColumn boundColumn)
+        {
             if (boundColumn.Binding is Binding binding && binding.Path != null)
                 sortMember = binding.Path.Path;
+        }
 
         if (string.IsNullOrWhiteSpace(sortMember))
             sortMember = nameof(ArmorRecordViewModel.DisplayName);

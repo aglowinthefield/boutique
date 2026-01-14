@@ -45,7 +45,8 @@ public class OutfitDraftViewModel : ReactiveObject
 
         RemovePieceCommand = ReactiveCommand.Create<ArmorRecordViewModel>(piece => _removePiece(this, piece));
         RemoveSelfCommand = ReactiveCommand.Create(() => _removeDraft(this));
-        PreviewCommand = ReactiveCommand.CreateFromTask(() => _previewDraft(this),
+        PreviewCommand = ReactiveCommand.CreateFromTask(
+            () => _previewDraft(this),
             this.WhenAnyValue(x => x.HasPieces));
     }
 
@@ -90,9 +91,6 @@ public class OutfitDraftViewModel : ReactiveObject
 
         foreach (var piece in newPieces)
         {
-            if (piece == null)
-                continue;
-
             if (_pieces.Any(p => p.Armor.FormKey == piece.Armor.FormKey))
                 continue;
 

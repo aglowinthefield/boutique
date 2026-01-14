@@ -121,16 +121,16 @@ public partial class App
             using var doc = JsonDocument.Parse(args.RemoteData);
             var root = doc.RootElement;
 
-            var tagName = root.GetProperty("tag_name").GetString() ?? "";
+            var tagName = root.GetProperty("tag_name").GetString() ?? string.Empty;
             var version = tagName.TrimStart('v');
-            var changelogUrl = root.GetProperty("html_url").GetString() ?? "";
+            var changelogUrl = root.GetProperty("html_url").GetString() ?? string.Empty;
 
             string? downloadUrl = null;
             if (root.TryGetProperty("assets", out var assets))
             {
                 foreach (var asset in assets.EnumerateArray())
                 {
-                    var name = asset.GetProperty("name").GetString() ?? "";
+                    var name = asset.GetProperty("name").GetString() ?? string.Empty;
                     if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     {
                         downloadUrl = asset.GetProperty("browser_download_url").GetString();
@@ -197,7 +197,8 @@ public partial class App
 
         if (detected.Count > 0)
         {
-            Log.Information("MO2 environment detected: {Variables}",
+            Log.Information(
+                "MO2 environment detected: {Variables}",
                 string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
         }
         else

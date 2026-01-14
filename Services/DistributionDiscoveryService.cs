@@ -11,7 +11,8 @@ public class DistributionDiscoveryService(ILogger logger)
 {
     private readonly ILogger _logger = logger.ForContext<DistributionDiscoveryService>();
 
-    public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(string dataFolderPath,
+    public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(
+        string dataFolderPath,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dataFolderPath) || !Directory.Exists(dataFolderPath))
@@ -133,7 +134,8 @@ public class DistributionDiscoveryService(ILogger logger)
             {
                 files.Add(parsed);
                 parsedCount++;
-                _logger.Debug("Successfully parsed {Type} file: {Path} ({OutfitCount} outfit, {KeywordCount} keyword distributions)",
+                _logger.Debug(
+                    "Successfully parsed {Type} file: {Path} ({OutfitCount} outfit, {KeywordCount} keyword distributions)",
                     type, path, parsed.OutfitDistributionCount, parsed.KeywordDistributionCount);
             }
             else
@@ -239,7 +241,8 @@ public class DistributionDiscoveryService(ILogger logger)
 
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
 
-            _logger.Debug("Parsed {Type} file {Path}: {TotalLines} total lines, {OutfitCount} outfit distributions, {KeywordCount} keyword distributions",
+            _logger.Debug(
+                "Parsed {Type} file {Path}: {TotalLines} total lines, {OutfitCount} outfit distributions, {KeywordCount} keyword distributions",
                 type, filePath, totalLines, outfitCount, keywordCount);
 
             if (outfitCount == 0 && keywordCount == 0)

@@ -111,11 +111,11 @@ public class SettingsViewModel : ReactiveObject
     }
 
     [Reactive] public bool IsRunningFromMO2 { get; set; }
-    [Reactive] public string DetectionSource { get; set; } = "";
+    [Reactive] public string DetectionSource { get; set; } = string.Empty;
     [Reactive] public bool DetectionFailed { get; set; }
-    [Reactive] public string SkyrimDataPath { get; set; } = "";
-    [Reactive] public string OutputPatchPath { get; set; } = "";
-    [Reactive] public string PatchFileName { get; set; } = "";
+    [Reactive] public string SkyrimDataPath { get; set; } = string.Empty;
+    [Reactive] public string OutputPatchPath { get; set; } = string.Empty;
+    [Reactive] public string PatchFileName { get; set; } = string.Empty;
     [Reactive] public SkyrimRelease SelectedSkyrimRelease { get; set; }
     [Reactive] public ThemeOption SelectedTheme { get; set; }
 
@@ -190,7 +190,7 @@ public class SettingsViewModel : ReactiveObject
     private static string NormalizeDataPath(string path)
     {
         if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-            return path ?? "";
+            return path ?? string.Empty;
 
         // Check if the current path has plugins
         var hasPlugins = PathUtilities.HasPluginFiles(path);
@@ -206,13 +206,15 @@ public class SettingsViewModel : ReactiveObject
             var subfolderHasPlugins = PathUtilities.HasPluginFiles(dataSubfolder);
             if (subfolderHasPlugins)
             {
-                Log.Information("Auto-corrected data path: {Original} -> {Corrected} (found Data subfolder with plugins)",
+                Log.Information(
+                    "Auto-corrected data path: {Original} -> {Corrected} (found Data subfolder with plugins)",
                     path, dataSubfolder);
                 return dataSubfolder;
             }
         }
 
-        Log.Warning("Data path {Path} contains no .esp/.esm files and no Data subfolder was found. " +
+        Log.Warning(
+            "Data path {Path} contains no .esp/.esm files and no Data subfolder was found. " +
                     "Plugins may not load correctly. For Wabbajack modlists, select the 'Game Root\\Data' folder.", path);
         return path;
     }
@@ -265,6 +267,7 @@ public class SettingsViewModel : ReactiveObject
             IsRunningFromMO2 = true;
             DetectionSource = "Running under Mod Organizer 2 USVFS (data path not explicitly set)";
             DetectionFailed = false;
+
             // Don't return - fall through to find the game's Data folder which USVFS will virtualize
         }
 

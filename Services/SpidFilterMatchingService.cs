@@ -103,7 +103,7 @@ public class SpidFilterMatchingService
         if (hasWildcard)
         {
             // Partial match - remove * and check if any string contains the value
-            var searchValue = value.Replace("*", "");
+            var searchValue = value.Replace("*", string.Empty);
             matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords);
         }
         else
@@ -455,7 +455,6 @@ public class SpidFilterMatchingService
 
         // Note: Teammate and Dead are runtime states, can't be checked statically
         // We'll skip these for now
-
         return true;
     }
 }

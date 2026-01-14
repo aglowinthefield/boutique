@@ -198,7 +198,7 @@ public sealed class SpidFilterPart
 
     public override string ToString()
     {
-        var prefix = IsNegated ? "NOT " : "";
+        var prefix = IsNegated ? "NOT " : string.Empty;
         return $"{prefix}{Value}";
     }
 }

@@ -349,7 +349,8 @@ public partial class OutfitCreatorView
         return row?.Item as ArmorRecordViewModel;
     }
 
-    private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
+    private static T? FindAncestor<T>(DependencyObject? current)
+        where T : DependencyObject
     {
         while (current != null)
         {

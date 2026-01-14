@@ -175,7 +175,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
             armorPlugins.Sort(StringComparer.OrdinalIgnoreCase);
 
-            _logger.Information("[PERF] GetAvailablePluginsAsync: Scanned {Total} plugins in {ElapsedMs}ms, found {ArmorCount} with armors/outfits",
+            _logger.Information(
+                "[PERF] GetAvailablePluginsAsync: Scanned {Total} plugins in {ElapsedMs}ms, found {ArmorCount} with armors/outfits",
                 pluginFiles.Count, sw.ElapsedMilliseconds, armorPlugins.Count);
 
             return armorPlugins;
@@ -275,7 +276,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         var diff = newCount - previousCount;
         var diffText = diff > 0 ? $"+{diff}" : diff.ToString(CultureInfo.InvariantCulture);
 
-        _logger.Information("LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
+        _logger.Information(
+            "LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
             previousCount, newCount, diffText);
 
         if (!string.IsNullOrEmpty(expectedPlugin) && !string.IsNullOrEmpty(DataFolderPath))
@@ -286,7 +288,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             if (fileExists)
             {
                 var fileInfo = new FileInfo(pluginPath);
-                _logger.Information("Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
+                _logger.Information(
+                    "Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
                     expectedPlugin, fileInfo.Length, fileInfo.LastWriteTime);
 
                 var inLoadOrder = _environment?.LoadOrder

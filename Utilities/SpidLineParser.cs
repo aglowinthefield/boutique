@@ -164,7 +164,6 @@ public static class SpidLineParser
         return (valuePart, string.Empty);
     }
 
-
     private static string? GetSection(string[] sections, int index)
     {
         if (index < 0 || index >= sections.Length)
@@ -206,25 +205,6 @@ public static class SpidLineParser
         }
 
         return section;
-    }
-
-    private static SpidFilterPart? ParseFilterPart(string partText)
-    {
-        var trimmedPart = partText.Trim();
-        if (string.IsNullOrWhiteSpace(trimmedPart))
-            return null;
-
-        var isNegated = trimmedPart.StartsWith('-');
-        var value = isNegated ? trimmedPart[1..].Trim() : trimmedPart;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        return new SpidFilterPart
-        {
-            Value = value,
-            IsNegated = isNegated
-        };
     }
 
     private static SpidFilterExpression ParseFilterExpression(string exprText)

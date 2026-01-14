@@ -313,14 +313,16 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
 
         if (SelectedOutfit == null || _npcAssignments == null)
         {
-            _logger.Debug("UpdateSelectedOutfitNpcAssignments: SelectedOutfit={SelectedOutfit}, _npcAssignments={NpcAssignmentsCount}",
+            _logger.Debug(
+                "UpdateSelectedOutfitNpcAssignments: SelectedOutfit={SelectedOutfit}, _npcAssignments={NpcAssignmentsCount}",
                 SelectedOutfit?.EditorID ?? "null",
                 _npcAssignments?.Count ?? 0);
             return;
         }
 
         var outfitFormKey = SelectedOutfit.FormKey;
-        _logger.Debug("UpdateSelectedOutfitNpcAssignments: Looking for outfit {OutfitFormKey} ({EditorID})",
+        _logger.Debug(
+            "UpdateSelectedOutfitNpcAssignments: Looking for outfit {OutfitFormKey} ({EditorID})",
             outfitFormKey, SelectedOutfit.EditorID);
 
         // Find all NPCs that have this outfit assigned
@@ -342,6 +344,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
                 {
                     _logger.Debug("  Match: NPC {NpcFormKey} has this outfit in distributions", assignment.NpcFormKey);
                 }
+
                 return hasDistribution;
             })
             .ToList();
@@ -363,6 +366,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             {
                 outfit.NpcCount = 0;
             }
+
             return;
         }
 
@@ -386,6 +390,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
             {
                 if (!outfitNpcSets.ContainsKey(dist.OutfitFormKey))
                     outfitNpcSets[dist.OutfitFormKey] = [];
+
                 // Add this NPC to the set for this outfit (HashSet automatically handles duplicates)
                 outfitNpcSets[dist.OutfitFormKey].Add(assignment.NpcFormKey);
             }

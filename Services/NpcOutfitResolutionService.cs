@@ -29,7 +29,8 @@ public class NpcOutfitResolutionService
     {
         _logger.Debug("ResolveNpcOutfitsAsync called with {Count} distribution files", distributionFiles.Count);
 
-        return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(() =>
+        return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
+            () =>
         {
             if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
@@ -49,7 +50,8 @@ public class NpcOutfitResolutionService
                 foreach (var file in sortedFiles)
                 {
                     var outfitLineCount = file.Lines.Count(l => l.IsOutfitDistribution);
-                    _logger.Debug("File: {FileName} ({Type}) - {TotalLines} lines, {OutfitLines} outfit distributions",
+                    _logger.Debug(
+                        "File: {FileName} ({Type}) - {TotalLines} lines, {OutfitLines} outfit distributions",
                         file.FileName, file.Type, file.Lines.Count, outfitLineCount);
                 }
 
@@ -89,13 +91,15 @@ public class NpcOutfitResolutionService
                     cancellationToken.ThrowIfCancellationRequested();
                     var file = sortedFiles[fileIndex];
 
-                    _logger.Debug("Processing file {Index}/{Total}: {FileName}",
+                    _logger.Debug(
+                        "Processing file {Index}/{Total}: {FileName}",
                         fileIndex + 1, sortedFiles.Count, file.FileName);
 
                     // Processing order starts at 1 (ESP is 0)
                     ProcessDistributionFile(file, fileIndex + 1, linkCache, npcByEditorId, npcByName, outfitByEditorId, npcDistributions);
 
-                    _logger.Debug("After processing {FileName}: {NpcCount} unique NPCs with distributions",
+                    _logger.Debug(
+                        "After processing {FileName}: {NpcCount} unique NPCs with distributions",
                         file.FileName, npcDistributions.Count);
                 }
 
@@ -125,10 +129,12 @@ public class NpcOutfitResolutionService
         IReadOnlyList<NpcFilterData> npcFilterData,
         CancellationToken cancellationToken = default)
     {
-        _logger.Debug("ResolveNpcOutfitsWithFiltersAsync called with {FileCount} distribution files and {NpcCount} NPCs",
+        _logger.Debug(
+            "ResolveNpcOutfitsWithFiltersAsync called with {FileCount} distribution files and {NpcCount} NPCs",
             distributionFiles.Count, npcFilterData.Count);
 
-        return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(() =>
+        return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
+            () =>
         {
             if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
@@ -155,12 +161,14 @@ public class NpcOutfitResolutionService
 
                 if (cyclicKeywords.Count > 0)
                 {
-                    _logger.Warning("Skipping {Count} keywords with circular dependencies: {Keywords}",
+                    _logger.Warning(
+                        "Skipping {Count} keywords with circular dependencies: {Keywords}",
                         cyclicKeywords.Count, string.Join(", ", cyclicKeywords.Take(5)));
                 }
 
                 var simulatedKeywords = _keywordResolver.SimulateKeywordDistribution(sortedKeywords, npcFilterData);
-                _logger.Debug("Keyword simulation: {KeywordCount} keyword types, {NpcCount} NPCs with assignments",
+                _logger.Debug(
+                    "Keyword simulation: {KeywordCount} keyword types, {NpcCount} NPCs with assignments",
                     sortedKeywords.Count, simulatedKeywords.Count(kvp => kvp.Value.Count > 0));
 
                 // First, add ESP-provided outfits (processing order 0, so INI files win)
@@ -174,13 +182,15 @@ public class NpcOutfitResolutionService
                     cancellationToken.ThrowIfCancellationRequested();
                     var file = sortedFiles[fileIndex];
 
-                    _logger.Debug("Processing file {Index}/{Total}: {FileName}",
+                    _logger.Debug(
+                        "Processing file {Index}/{Total}: {FileName}",
                         fileIndex + 1, sortedFiles.Count, file.FileName);
 
                     // Processing order starts at 1 (ESP is 0)
                     ProcessDistributionFileWithFilters(file, fileIndex + 1, linkCache, npcFilterData, outfitByEditorId, npcDistributions, simulatedKeywords);
 
-                    _logger.Debug("After processing {FileName}: {NpcCount} unique NPCs with distributions",
+                    _logger.Debug(
+                        "After processing {FileName}: {NpcCount} unique NPCs with distributions",
                         file.FileName, npcDistributions.Count);
                 }
 
@@ -234,7 +244,8 @@ public class NpcOutfitResolutionService
             }
         }
 
-        _logger.Debug("File {FileName} summary: {OutfitLines} outfit lines, {MatchedNpcs} total NPC matches",
+        _logger.Debug(
+            "File {FileName} summary: {OutfitLines} outfit lines, {MatchedNpcs} total NPC matches",
             file.FileName, outfitLineCount, matchedNpcCount);
     }
 
@@ -303,8 +314,7 @@ public class NpcOutfitResolutionService
                 UsesKeywordTargeting: filter.UsesKeywordTargeting,
                 UsesFactionTargeting: filter.UsesFactionTargeting,
                 UsesRaceTargeting: hasRaceTargeting,
-                UsesTraitTargeting: !filter.TraitFilters.IsEmpty
-            ));
+                UsesTraitTargeting: !filter.TraitFilters.IsEmpty));
 
             matchedNpcCount++;
         }
@@ -341,8 +351,7 @@ public class NpcOutfitResolutionService
                 ProcessingOrder: processingOrder,
                 IsWinner: false,
                 RawLine: line.RawText,
-                TargetingDescription: "Specific NPC targeting"
-            ));
+                TargetingDescription: "Specific NPC targeting"));
 
             matchedNpcCount++;
         }
@@ -499,8 +508,7 @@ public class NpcOutfitResolutionService
                 FinalOutfitFormKey: winner.OutfitFormKey,
                 FinalOutfitEditorId: winner.OutfitEditorId,
                 Distributions: updatedDistributions,
-                HasConflict: hasConflict
-            ));
+                HasConflict: hasConflict));
         }
 
         // Sort by display name for UI
@@ -552,7 +560,8 @@ public class NpcOutfitResolutionService
                 continue;
 
             outfitLineCount++;
-            _logger.Debug("Processing outfit line {LineNum} in {File}: {Text}",
+            _logger.Debug(
+                "Processing outfit line {LineNum} in {File}: {Text}",
                 line.LineNumber, file.FileName, line.RawText.Length > 100 ? line.RawText[..100] + "..." : line.RawText);
 
             // Parse the line to extract NPC targets and outfit
@@ -577,15 +586,16 @@ public class NpcOutfitResolutionService
                     OutfitFormKey: outfitFormKey,
                     OutfitEditorId: outfitEditorId,
                     ProcessingOrder: processingOrder,
-                    IsWinner: false // Will be set later
-                ));
+                    IsWinner: false)); // Will be set later
 
-                _logger.Debug("Added distribution: NPC={NpcFormKey}, Outfit={OutfitFormKey} ({OutfitEditorId})",
+                _logger.Debug(
+                    "Added distribution: NPC={NpcFormKey}, Outfit={OutfitFormKey} ({OutfitEditorId})",
                     npcFormKey, outfitFormKey, outfitEditorId ?? "null");
             }
         }
 
-        _logger.Debug("File {FileName} summary: {OutfitLines} outfit lines, {ParsedEntries} parsed entries",
+        _logger.Debug(
+            "File {FileName} summary: {OutfitLines} outfit lines, {ParsedEntries} parsed entries",
             file.FileName, outfitLineCount, parsedEntryCount);
     }
 
@@ -713,7 +723,8 @@ public class NpcOutfitResolutionService
             }
         }
 
-        _logger.Debug("SkyPatcher parse result: {NpcCount} NPCs, outfit={OutfitFormKey}",
+        _logger.Debug(
+            "SkyPatcher parse result: {NpcCount} NPCs, outfit={OutfitFormKey}",
             npcFormKeys.Count, outfitFormKey?.ToString() ?? "null");
 
         if (outfitFormKey.HasValue && npcFormKeys.Count > 0)
@@ -765,7 +776,7 @@ public class NpcOutfitResolutionService
         var rest = valuePart.Substring(tildeIndex + 1).Trim();
 
         // Parse FormID
-        formIdString = formIdString.Replace("0x", "").Replace("0X", "");
+        formIdString = formIdString.Replace("0x", string.Empty).Replace("0X", string.Empty);
         if (!uint.TryParse(formIdString, System.Globalization.NumberStyles.HexNumber, null, out var formId))
         {
             _logger.Debug("Failed to parse FormID: {FormIdString}", formIdString);
@@ -811,7 +822,8 @@ public class NpcOutfitResolutionService
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToList();
 
-        _logger.Debug("Found {Count} NPC identifiers: {Identifiers}",
+        _logger.Debug(
+            "Found {Count} NPC identifiers: {Identifiers}",
             npcIdentifiers.Count, string.Join(", ", npcIdentifiers.Take(5)));
 
         var resolvedCount = 0;
@@ -886,8 +898,7 @@ public class NpcOutfitResolutionService
                 UsesKeywordTargeting: false,
                 UsesFactionTargeting: false,
                 UsesRaceTargeting: false,
-                UsesTraitTargeting: false
-            ));
+                UsesTraitTargeting: false));
 
             espOutfitCount++;
         }
@@ -937,8 +948,7 @@ public class NpcOutfitResolutionService
                 UsesKeywordTargeting: false,
                 UsesFactionTargeting: false,
                 UsesRaceTargeting: false,
-                UsesTraitTargeting: false
-            ));
+                UsesTraitTargeting: false));
 
             espOutfitCount++;
         }
@@ -1001,7 +1011,9 @@ public class NpcOutfitResolutionService
                     if (firstContext != null)
                         sourceMod = firstContext.ModKey;
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             // Only count conflicts between INI files, not ESP vs INI
@@ -1018,8 +1030,7 @@ public class NpcOutfitResolutionService
                 FinalOutfitFormKey: winner.OutfitFormKey,
                 FinalOutfitEditorId: winner.OutfitEditorId,
                 Distributions: updatedDistributions,
-                HasConflict: hasConflict
-            ));
+                HasConflict: hasConflict));
         }
 
         // Sort by display name for UI

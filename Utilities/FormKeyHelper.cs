@@ -40,13 +40,14 @@ public static class FormKeyHelper
             if (idx >= 0)
                 return idx + ext.Length;
         }
+
         return -1;
     }
 
     public static string StripHexPrefix(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            return text ?? "";
+            return text ?? string.Empty;
 
         var trimmed = text.Trim();
         return trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? trimmed[2..] : trimmed;
