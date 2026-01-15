@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         xmlns:res="clr-namespace:Boutique.Resources"
-        Title="{lex:Loc res:LocalizationKeys+MissingMasters.Title}"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+MissingMasters.Title}}"
         Width="550" Height="450"
         MinWidth="450" MinHeight="350"
         WindowStartupLocation="CenterOwner"
@@ -20,12 +20,12 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="{lex:Loc res:LocalizationKeys+MissingMasters.Header}"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+MissingMasters.Header}}"
                        FontSize="16"
                        FontWeight="SemiBold"
                        Foreground="{StaticResource Brush.Warning}"
                        Margin="0,0,0,8" />
-            <TextBlock Text="{lex:Loc res:LocalizationKeys+MissingMasters.Description}"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+MissingMasters.Description}}"
                        TextWrapping="Wrap"
                        FontSize="13"
                        Foreground="{StaticResource Brush.TextSecondary}" />
@@ -90,13 +90,13 @@
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="AddMastersButton"
-                    Content="{lex:Loc res:LocalizationKeys+MissingMasters.AddBack}"
+                    Content="{lex:Loc Key={x:Static res:LocalizationKeys+MissingMasters.AddBack}}"
                     Click="AddMastersButton_Click"
                     MinWidth="160"
                     Margin="0,0,10,0"
                     Padding="14,8" />
             <Button x:Name="CleanPatchButton"
-                    Content="{lex:Loc res:LocalizationKeys+MissingMasters.CleanPatch}"
+                    Content="{lex:Loc Key={x:Static res:LocalizationKeys+MissingMasters.CleanPatch}}"
                     Click="CleanPatchButton_Click"
                     MinWidth="180"
                     Padding="14,8" />

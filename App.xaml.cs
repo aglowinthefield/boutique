@@ -70,11 +70,10 @@ public partial class App
 
         try
         {
-            var mainWindow = _container.Resolve<MainWindow>();
-
             var localizationService = _container.Resolve<LocalizationService>();
             localizationService.Initialize();
 
+            var mainWindow = _container.Resolve<MainWindow>();
             mainWindow.Show();
             Log.Information("Main window displayed.");
         }

@@ -45,6 +45,7 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
         LoadOutfitsCommand = ReactiveCommand.CreateFromTask(LoadOutfitsAsync, notLoading);
         PreviewOutfitCommand = ReactiveCommand.CreateFromTask<OutfitRecordViewModel>(PreviewOutfitAsync, notLoading);
         CopyOutfitCommand = ReactiveCommand.CreateFromTask<OutfitRecordViewModel>(CopyOutfit, notLoading);
+        CopyOutfitAsOverrideCommand = ReactiveCommand.CreateFromTask<OutfitRecordViewModel>(CopyOutfitAsOverride, notLoading);
 
         // Outfits tab search filtering
         this.WhenAnyValue(vm => vm.OutfitSearchText)
@@ -100,6 +101,8 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
     public ReactiveCommand<OutfitRecordViewModel, Unit> PreviewOutfitCommand { get; }
 
     public ReactiveCommand<OutfitRecordViewModel, Unit> CopyOutfitCommand { get; }
+
+    public ReactiveCommand<OutfitRecordViewModel, Unit> CopyOutfitAsOverrideCommand { get; }
 
     public Interaction<ArmorPreviewScene, Unit> ShowPreview { get; } = new();
 
@@ -247,7 +250,11 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
         }
     }
 
-    private Task CopyOutfit(OutfitRecordViewModel outfitVm)
+    private Task CopyOutfit(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, isOverride: false);
+
+    private Task CopyOutfitAsOverride(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, isOverride: true);
+
+    private Task CopyOutfitInternal(OutfitRecordViewModel outfitVm, bool isOverride)
     {
         var outfit = outfitVm.Outfit;
         var editorId = outfit.EditorID ?? outfit.FormKey.ToString();
@@ -256,11 +263,12 @@ public class DistributionOutfitsTabViewModel : ReactiveObject
         {
             OutfitFormKey = outfit.FormKey,
             OutfitEditorId = editorId,
-            Description = editorId
+            Description = editorId,
+            IsOverride = isOverride
         };
 
         OutfitCopied?.Invoke(this, copiedOutfit);
-        _logger.Debug("Copied outfit {EditorId} to Create tab", editorId);
+        _logger.Debug("Copied outfit {EditorId} to Create tab (override={IsOverride})", editorId, isOverride);
 
         return Task.CompletedTask;
     }

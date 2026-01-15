@@ -30,23 +30,23 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <Button Content="{lex:Loc res:LocalizationKeys+Buttons.Refresh}" Command="{Binding ScanNpcOutfitsCommand}"
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Refresh}}" Command="{Binding ScanNpcOutfitsCommand}"
                         Padding="12,4" Margin="0,0,6,0"
-                        ToolTip="{lex:Loc res:LocalizationKeys+NpcTab.RefreshTooltip}" />
+                        ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.RefreshTooltip}}" />
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <CheckBox Content="{lex:Loc res:LocalizationKeys+NpcTab.HideVanilla}" IsChecked="{Binding HideVanillaDistributions}"
+                <CheckBox Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.HideVanilla}}" IsChecked="{Binding HideVanillaDistributions}"
                           VerticalAlignment="Center" Margin="0,0,16,0"
-                          ToolTip="{lex:Loc res:LocalizationKeys+NpcTab.HideVanillaTooltip}" />
-                <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.HideVanillaTooltip}}" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                 <TextBox Text="{Binding NpcOutfitSearchText, UpdateSourceTrigger=PropertyChanged}"
-                         MinWidth="250" ToolTip="{lex:Loc res:LocalizationKeys+NpcTab.SearchTooltip}" />
+                         MinWidth="250" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.SearchTooltip}}" />
             </StackPanel>
         </Grid>
 
         <!-- SPID-Style Filter Controls -->
-        <GroupBox Grid.Row="1" Header="{lex:Loc res:LocalizationKeys+NpcTab.SpidFilters}" Margin="0,0,0,6" Padding="6">
+        <GroupBox Grid.Row="1" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.SpidFilters}}" Margin="0,0,0,6" Padding="6">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -57,73 +57,73 @@
                 <WrapPanel Grid.Row="0" Orientation="Horizontal">
                     <!-- Gender Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Gender}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Gender}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding GenderFilterOptions}" SelectedItem="{Binding SelectedGenderFilter}"
-                                  MinWidth="90" ToolTip="{lex:Loc res:LocalizationKeys+Filters.GenderTooltip}" />
+                                  MinWidth="90" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.GenderTooltip}}" />
                     </StackPanel>
 
                     <!-- Unique Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Unique}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Unique}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding UniqueFilterOptions}" SelectedItem="{Binding SelectedUniqueFilter}"
-                                  MinWidth="100" ToolTip="{lex:Loc res:LocalizationKeys+Filters.UniqueTooltip}" />
+                                  MinWidth="100" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.UniqueTooltip}}" />
                     </StackPanel>
 
                     <!-- Templated Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Templated}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Templated}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding TemplatedFilterOptions}" SelectedItem="{Binding SelectedTemplatedFilter}"
-                                  MinWidth="110" ToolTip="{lex:Loc res:LocalizationKeys+Filters.TemplatedTooltip}" />
+                                  MinWidth="110" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.TemplatedTooltip}}" />
                     </StackPanel>
 
                     <!-- Child Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Age}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Age}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding ChildFilterOptions}" SelectedItem="{Binding SelectedChildFilter}"
-                                  MinWidth="80" ToolTip="{lex:Loc res:LocalizationKeys+Filters.ChildTooltip}" />
+                                  MinWidth="80" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.ChildTooltip}}" />
                     </StackPanel>
 
                     <!-- Faction Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Faction}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Faction}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <controls:FilterableSelector ItemsSource="{Binding AvailableFactions}" SelectedItem="{Binding SelectedFaction}"
                                   DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="150"
-                                  ToolTip="{lex:Loc res:LocalizationKeys+Filters.FactionTooltip}" />
+                                  ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.FactionTooltip}}" />
                     </StackPanel>
 
                     <!-- Race Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Race}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Race}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <controls:FilterableSelector ItemsSource="{Binding AvailableRaces}" SelectedItem="{Binding SelectedRace}"
                                   DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="120"
-                                  ToolTip="{lex:Loc res:LocalizationKeys+Filters.RaceTooltip}" />
+                                  ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.RaceTooltip}}" />
                     </StackPanel>
 
                     <!-- Class Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Class}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Class}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <controls:FilterableSelector ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClass}"
                                   DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="130"
-                                  ToolTip="{lex:Loc res:LocalizationKeys+Filters.ClassTooltip}" />
+                                  ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.ClassTooltip}}" />
                     </StackPanel>
 
                     <!-- Keyword Filter -->
                     <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Keyword}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keyword}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <controls:FilterableSelector ItemsSource="{Binding AvailableKeywords}" SelectedItem="{Binding SelectedKeyword}"
                                   DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="140"
-                                  ToolTip="{lex:Loc res:LocalizationKeys+Filters.KeywordTooltip}" />
+                                  ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.KeywordTooltip}}" />
                     </StackPanel>
 
                     <!-- Clear Filters Button -->
-                    <Button Content="{lex:Loc res:LocalizationKeys+Buttons.ClearFilters}" Command="{Binding ClearFiltersCommand}"
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ClearFilters}}" Command="{Binding ClearFiltersCommand}"
                             Padding="8,2" VerticalAlignment="Center" Margin="0,2,6,2"
-                            ToolTip="{lex:Loc res:LocalizationKeys+Filters.ResetTooltip}" />
+                            ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.ResetTooltip}}" />
 
                     <!-- Copy Filter Button -->
-                    <Button Content="{lex:Loc res:LocalizationKeys+NpcTab.CopyFilter}" Command="{Binding CopyFilterCommand}"
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.CopyFilter}}" Command="{Binding CopyFilterCommand}"
                             Padding="8,2" VerticalAlignment="Center" Margin="0,2,0,2"
-                            ToolTip="{lex:Loc res:LocalizationKeys+NpcTab.CopyFilterTooltip}" />
+                            ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.CopyFilterTooltip}}" />
                 </WrapPanel>
 
                 <!-- Filter Status Row -->
@@ -169,12 +169,12 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FinalOutfit}" Binding="{Binding FinalOutfitDisplay}" Width="200" CanUserSort="True" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Mod}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FinalOutfit}}" Binding="{Binding FinalOutfitDisplay}" Width="200" CanUserSort="True" />
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
                                         ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Distributor}" Binding="{Binding WinningFileName}" Width="150" CanUserSort="True"
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Distributor}}" Binding="{Binding WinningFileName}" Width="150" CanUserSort="True"
                                         ToolTipService.ToolTip="The distribution file determining this NPC's outfit">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
@@ -183,7 +183,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Targeting}" Binding="{Binding TargetingType}" Width="100" CanUserSort="True">
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Targeting}}" Binding="{Binding TargetingType}" Width="100" CanUserSort="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="10" />
@@ -191,7 +191,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTemplateColumn Header="{lex:Loc res:LocalizationKeys+Headers.Chance}" Width="60" CanUserSort="True" SortMemberPath="Chance">
+                    <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Chance}}" Width="60" CanUserSort="True" SortMemberPath="Chance">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding ChanceDisplay}" Foreground="#CC6600" FontWeight="SemiBold"
@@ -199,7 +199,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{lex:Loc res:LocalizationKeys+Headers.Conflict}" Width="70" CanUserSort="True" SortMemberPath="HasConflict">
+                    <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Conflict}}" Width="70" CanUserSort="True" SortMemberPath="HasConflict">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding ConflictSummary}" Foreground="#FF8C00" FontWeight="Bold"
@@ -225,7 +225,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Distribution Details -->
-                <GroupBox Grid.Column="0" Header="{lex:Loc res:LocalizationKeys+NpcTab.DistributionFiles}" Padding="6">
+                <GroupBox Grid.Column="0" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.DistributionFiles}}" Padding="6">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding SelectedNpcAssignment.Distributions}">
                             <ItemsControl.ItemTemplate>
@@ -253,7 +253,7 @@
                                                 <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
                                                 <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
                                                            Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="4,0,0,0" />
-                                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Winner}" Foreground="Green" FontWeight="Bold"
+                                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Winner}}" Foreground="Green" FontWeight="Bold"
                                                            Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
                                                 <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}"
                                                            Foreground="#CC6600" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"
@@ -273,7 +273,7 @@
                 </GroupBox>
 
                 <!-- Outfit Contents -->
-                <GroupBox Grid.Column="2" Header="{lex:Loc res:LocalizationKeys+NpcTab.OutfitContents}" Padding="6">
+                <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.OutfitContents}}" Padding="6">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -282,7 +282,7 @@
                         <TextBox Grid.Row="0" Text="{Binding SelectedNpcOutfitContents, Mode=OneWay}"
                                  IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                                  VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
-                        <Button Grid.Row="1" Content="{lex:Loc res:LocalizationKeys+NpcTab.PreviewOutfit}"
+                        <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.PreviewOutfit}}"
                                 Command="{Binding PreviewNpcOutfitCommand}"
                                 CommandParameter="{Binding SelectedNpcAssignment}"
                                 Padding="12,4" Margin="0,6,0,0" HorizontalAlignment="Left" />
@@ -290,7 +290,7 @@
                 </GroupBox>
 
                 <!-- Filter Syntax Preview -->
-                <GroupBox Grid.Column="4" Header="{lex:Loc res:LocalizationKeys+NpcTab.FilterSyntaxPreview}" Padding="6">
+                <GroupBox Grid.Column="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.FilterSyntaxPreview}}" Padding="6">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
@@ -298,14 +298,14 @@
                         </Grid.RowDefinitions>
                         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.SpidFormat}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.SpidFormat}}" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <TextBox Text="{Binding GeneratedSpidSyntax, Mode=OneWay}"
                                          IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                                          FontFamily="Consolas" FontSize="10"
                                          Background="{StaticResource Brush.PanelBackground}"
                                          Foreground="{StaticResource Brush.TextPrimary}"
                                          Padding="4" Margin="0,0,0,8" />
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.SkyPatcherFormat}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.SkyPatcherFormat}}" FontWeight="SemiBold" Margin="0,0,0,4" />
                                 <TextBox Text="{Binding GeneratedSkyPatcherSyntax, Mode=OneWay}"
                                          IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                                          FontFamily="Consolas" FontSize="10"
@@ -314,39 +314,39 @@
                                          Padding="4" />
                             </StackPanel>
                         </ScrollViewer>
-                        <TextBlock Grid.Row="1" Text="{lex:Loc res:LocalizationKeys+NpcTab.CopySyntaxHint}"
+                        <TextBlock Grid.Row="1" Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.CopySyntaxHint}}"
                                    FontStyle="Italic" Foreground="Gray" FontSize="10" Margin="0,6,0,0" />
                     </Grid>
                 </GroupBox>
 
                 <!-- NPC Details -->
-                <GroupBox Grid.Column="6" Header="{lex:Loc res:LocalizationKeys+NpcTab.NpcDetails}" Padding="6">
+                <GroupBox Grid.Column="6" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.NpcDetails}}" Padding="6">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <!-- FormKey -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+Headers.FormKey}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.FormKeyString}"
                                            Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" />
                             </StackPanel>
 
                             <!-- Source Mod -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+Headers.Mod}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.ModDisplayName}"
                                            Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" />
                             </StackPanel>
 
                             <!-- Gender -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Gender}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Gender}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock FontSize="11" VerticalAlignment="Center">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="{lex:Loc res:LocalizationKeys+NpcTab.Male}" />
+                                            <Setter Property="Text" Value="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Male}}" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding SelectedNpcFilterData.IsFemale}" Value="True">
-                                                    <Setter Property="Text" Value="{lex:Loc res:LocalizationKeys+NpcTab.Female}" />
+                                                    <Setter Property="Text" Value="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Female}}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -356,59 +356,59 @@
 
                             <!-- Traits -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Traits}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Traits}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.TraitUnique}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
+                                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitUnique}}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
                                                Visibility="{Binding SelectedNpcFilterData.IsUnique, Converter={StaticResource BoolToVisConverter}}" />
-                                    <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.TraitSummonable}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
+                                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitSummonable}}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
                                                Visibility="{Binding SelectedNpcFilterData.IsSummonable, Converter={StaticResource BoolToVisConverter}}" />
-                                    <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.TraitChild}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
+                                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitChild}}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
                                                Visibility="{Binding SelectedNpcFilterData.IsChild, Converter={StaticResource BoolToVisConverter}}" />
-                                    <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.TraitLeveled}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
+                                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitLeveled}}" FontSize="10" Foreground="#8EC07C" Margin="0,0,6,0"
                                                Visibility="{Binding SelectedNpcFilterData.IsLeveled, Converter={StaticResource BoolToVisConverter}}" />
                                 </StackPanel>
                             </StackPanel>
 
                             <!-- Level -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Level}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Level}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.Level}" FontSize="11" VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- Race -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Race}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Race}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.RaceEditorId}" FontSize="11" VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- Class -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Class}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Class}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.ClassEditorId}" FontSize="11" VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- Voice Type -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Voice}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Voice}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.VoiceTypeEditorId}" FontSize="11" VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- Combat Style -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Combat}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Combat}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock Text="{Binding SelectedNpcFilterData.CombatStyleEditorId}" FontSize="11" VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- Template -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Template}" FontWeight="SemiBold" Width="70" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Template}}" FontWeight="SemiBold" Width="70" FontSize="11" />
                                 <TextBlock FontSize="11" VerticalAlignment="Center"
                                            Text="{Binding SelectedNpcFilterData.TemplateEditorId, TargetNullValue='(None)'}"
                                            Foreground="{Binding SelectedNpcFilterData.TemplateEditorId, Converter={StaticResource NullToVisConverter}, ConverterParameter=Inverse, FallbackValue=Gray}" />
                             </StackPanel>
 
                             <!-- Factions -->
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Factions}" FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Factions}}" FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
                             <ItemsControl ItemsSource="{Binding SelectedNpcFilterData.Factions}" Margin="8,0,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -421,7 +421,7 @@
                             </ItemsControl>
 
                             <!-- Keywords -->
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Keywords}" FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keywords}}" FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
                             <ItemsControl ItemsSource="{Binding SelectedNpcFilterData.Keywords}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>

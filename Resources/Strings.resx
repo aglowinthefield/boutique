@@ -254,6 +254,9 @@
   <data name="Header_Copy" xml:space="preserve">
     <value>Copy</value>
   </data>
+  <data name="Header_Override" xml:space="preserve">
+    <value>Override</value>
+  </data>
 
   <!-- Armor Patch View -->
   <data name="ArmorPatch_PluginSelection" xml:space="preserve">
@@ -587,6 +590,9 @@
   </data>
   <data name="Outfits_CopyToPatch" xml:space="preserve">
     <value>Copy to Patch</value>
+  </data>
+  <data name="Outfits_CopyAsOverride" xml:space="preserve">
+    <value>Copy as Override</value>
   </data>
   <data name="Outfits_DistributedToNpcs" xml:space="preserve">
     <value>Distributed to NPCs</value>

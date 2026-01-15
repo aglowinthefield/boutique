@@ -23,7 +23,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Distribution Entries Editor -->
-        <GroupBox Grid.Column="0" Header="{lex:Loc res:LocalizationKeys+Distribution.DistributionEntries}" Padding="6">
+        <GroupBox Grid.Column="0" Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.DistributionEntries}}" Padding="6">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -36,7 +36,7 @@
                 <!-- File Selector -->
                 <StackPanel Grid.Row="0" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.File}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.File}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <ComboBox ItemsSource="{Binding DropdownItems}"
                                   SelectedItem="{Binding SelectedDropdownItem, Mode=TwoWay}"
                                   MinWidth="350" Margin="0,0,6,0"
@@ -76,7 +76,7 @@
                                 </Style>
                             </ComboBox.ItemContainerStyle>
                         </ComboBox>
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Format}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="12,0,6,0" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Format}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="12,0,6,0" />
                         <ComboBox ItemsSource="{Binding AvailableFormats}"
                                   SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
                                   MinWidth="120" Margin="0,0,6,0">
@@ -111,13 +111,13 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Filename}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Filename}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                         <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" MinWidth="200" Margin="0,0,6,0" />
-                        <Button Content="{lex:Loc res:LocalizationKeys+Buttons.Browse}" Command="{Binding SelectDistributionFilePathCommand}" Padding="8,2" />
+                        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Browse}}" Command="{Binding SelectDistributionFilePathCommand}" Padding="8,2" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                 Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
-                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.SavesAs}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.SavesAs}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                         <TextBlock Text="{Binding ActualFileName}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource Brush.TextSecondary}" />
                     </StackPanel>
                     <!-- Conflict Warning -->
@@ -126,7 +126,7 @@
                         <StackPanel>
                             <TextBlock Text="{Binding ConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Suggested}" Foreground="#CC6600" FontWeight="Bold" FontSize="11" />
+                                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Suggested}}" Foreground="#CC6600" FontWeight="Bold" FontSize="11" />
                                 <TextBlock Text="{Binding SuggestedFileName}" Foreground="#CC6600" FontFamily="Consolas" FontWeight="Bold" FontSize="11" />
                             </StackPanel>
                         </StackPanel>
@@ -135,10 +135,10 @@
 
                 <!-- Action Buttons -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
-                    <Button Content="{lex:Loc res:LocalizationKeys+Distribution.AddEntry}" Command="{Binding AddDistributionEntryCommand}" Margin="0,0,6,0" Padding="8,2" />
-                    <Button Content="{lex:Loc res:LocalizationKeys+Distribution.SaveFile}" Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
-                    <Button Content="{lex:Loc res:LocalizationKeys+Distribution.PasteFilter}" Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
-                            ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue={lex:Loc res:LocalizationKeys+Distribution.PasteFilterTooltip}}" />
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddEntry}}" Command="{Binding AddDistributionEntryCommand}" Margin="0,0,6,0" Padding="8,2" />
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SaveFile}}" Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilter}}" Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
+                            ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue={lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilterTooltip}}}" />
                 </StackPanel>
 
                 <!-- Distribution Entries List -->
@@ -168,7 +168,7 @@
                                 <StackPanel>
                                     <!-- Header: Assign + Type + Outfit/Keyword + Chance + Preview + Remove -->
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                        <RadioButton Content="{lex:Loc res:LocalizationKeys+Distribution.Assign}" IsChecked="{Binding IsSelected}"
+                                        <RadioButton Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Assign}}" IsChecked="{Binding IsSelected}"
                                                      Command="{Binding DataContext.SelectEntryCommand, ElementName=Root}"
                                                      CommandParameter="{Binding}" Margin="0,0,8,0" FontWeight="Bold" VerticalAlignment="Center" />
                                         <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.TypeOptions}"
@@ -176,7 +176,7 @@
                                                   MinWidth="70" Height="22" VerticalContentAlignment="Center" Margin="0,0,6,0" />
                                         <!-- Outfit selector (visible when Type=Outfit) -->
                                         <StackPanel Orientation="Horizontal" Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Outfit}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Outfit}}" VerticalAlignment="Center" Margin="0,0,4,0" />
                                             <controls:FilterableSelector
                                                       ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
                                                       SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
@@ -188,31 +188,31 @@
                                         </StackPanel>
                                         <!-- Keyword selector (visible when Type=Keyword) -->
                                         <StackPanel Orientation="Horizontal" Visibility="{Binding IsKeywordDistribution, Converter={StaticResource BoolToVisConverter}}">
-                                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Keyword}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keyword}}" VerticalAlignment="Center" Margin="0,0,4,0" />
                                             <ComboBox ItemsSource="{Binding DataContext.AvailableKeywords, ElementName=Root}"
                                                       Text="{Binding KeywordToDistribute, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                       DisplayMemberPath="EditorID"
                                                       IsEditable="True"
                                                       MinWidth="160" Height="22" VerticalContentAlignment="Center" Margin="0,0,4,0"
-                                                      ToolTip="{lex:Loc res:LocalizationKeys+Distribution.SelectKeywordTooltip}" />
+                                                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SelectKeywordTooltip}}" />
                                         </StackPanel>
-                                        <CheckBox Content="%" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,2,0" ToolTip="{lex:Loc res:LocalizationKeys+Distribution.UseChance}" />
+                                        <CheckBox Content="%" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,2,0" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.UseChance}}" />
                                         <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="32" Height="22"
-                                                 IsEnabled="{Binding UseChance}" Margin="0,0,4,0" ToolTip="{lex:Loc res:LocalizationKeys+Distribution.ChanceTooltip}"
+                                                 IsEnabled="{Binding UseChance}" Margin="0,0,4,0" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.ChanceTooltip}}"
                                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="2,0" />
-                                        <Button ToolTip="{lex:Loc res:LocalizationKeys+OutfitCreator.PreviewOutfit}" Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                                        <Button ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
                                                 Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}" CommandParameter="{Binding}"
                                                 Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
                                             <Image Source="pack://application:,,,/Assets/eye.png" Width="12" Height="12" />
                                         </Button>
                                         <Button Command="{Binding RemoveCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                                                ToolTip="{lex:Loc res:LocalizationKeys+Distribution.RemoveEntry}" Height="22" Width="22" Margin="2,0,0,0" />
+                                                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.RemoveEntry}}" Height="22" Width="22" Margin="2,0,0,0" />
                                     </StackPanel>
 
                                     <!-- NPCs (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.NPCs}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.NPCs}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedNpcs}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
@@ -235,7 +235,7 @@
                                     <!-- Factions (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Factions}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Factions}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedFactions}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
@@ -258,7 +258,7 @@
                                     <!-- Keywords (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Keywords}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keywords}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedKeywords}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
@@ -281,7 +281,7 @@
                                     <!-- Races (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Races}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Races}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedRaces}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
@@ -304,7 +304,7 @@
                                     <!-- Classes (hidden when empty) -->
                                     <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                                                 Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Classes}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Classes}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
                                         <ItemsControl ItemsSource="{Binding SelectedClasses}" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
@@ -326,19 +326,19 @@
 
                                     <!-- Traits: Gender, Unique -->
                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Traits}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,6,0" FontSize="11" />
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Gender}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Traits}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,6,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Gender}}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
                                         <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
                                                   SelectedItem="{Binding Gender, Mode=TwoWay}"
                                                   MinWidth="70" Height="22" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,12,0" />
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.Unique}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Unique}}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
                                         <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
                                                   SelectedItem="{Binding Unique, Mode=TwoWay}"
                                                   MinWidth="100" Height="22" FontSize="11" VerticalContentAlignment="Center" Margin="0,0,12,0" />
-                                        <TextBlock Text="{lex:Loc res:LocalizationKeys+Distribution.LevelSkill}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
+                                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkill}}" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="11" />
                                         <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  Width="100" Height="22" FontSize="11" VerticalContentAlignment="Center"
-                                                 ToolTip="{lex:Loc res:LocalizationKeys+Distribution.LevelSkillTooltip}" />
+                                                 ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -387,7 +387,7 @@
                 </Expander>
 
                 <!-- Preview (Collapsible) -->
-                <Expander Grid.Row="4" Header="{lex:Loc res:LocalizationKeys+Distribution.FilePreview}" IsExpanded="{Binding IsFilePreviewExpanded, Mode=TwoWay}" Margin="0,6,0,0">
+                <Expander Grid.Row="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.FilePreview}}" IsExpanded="{Binding IsFilePreviewExpanded, Mode=TwoWay}" Margin="0,6,0,0">
                     <Border Padding="6" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
                             BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1" CornerRadius="0,0,4,4">
                         <TextBox Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
@@ -398,10 +398,10 @@
         </GroupBox>
 
         <!-- Filter Selection -->
-        <GroupBox Grid.Column="2" Header="{lex:Loc res:LocalizationKeys+Distribution.DistributionFilters}" Padding="6">
+        <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.DistributionFilters}}" Padding="6">
             <TabControl>
                 <!-- NPCs Tab -->
-                <TabItem Header="{lex:Loc res:LocalizationKeys+Tabs.NPCs}">
+                <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -409,31 +409,31 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding NpcSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredNpcs}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   CanUserSortColumns="True" SelectionMode="Single" EnableRowVirtualization="True" EnableColumnVirtualization="True">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Mod}" Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Grid.Row="2" Margin="0,6,0,0">
                             <TextBlock Text="{Binding SelectedEntry.SelectedOutfit.EditorID, StringFormat='Target Entry: {0}', FallbackValue='Target Entry: (None selected)'}"
                                        FontStyle="Italic" Foreground="Gray" Margin="0,0,0,4" />
-                            <Button Content="{lex:Loc res:LocalizationKeys+Distribution.AddSelectedNpcs}" Command="{Binding AddSelectedNpcsToEntryCommand}" Padding="8,2" />
+                            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedNpcs}}" Command="{Binding AddSelectedNpcsToEntryCommand}" Padding="8,2" />
                         </StackPanel>
                     </Grid>
                 </TabItem>
 
                 <!-- Factions Tab -->
-                <TabItem Header="{lex:Loc res:LocalizationKeys+Tabs.Factions}">
+                <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Factions}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -441,25 +441,25 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding FactionSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredFactions}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   EnableRowVirtualization="True" EnableColumnVirtualization="True">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button Grid.Row="2" Content="{lex:Loc res:LocalizationKeys+Distribution.AddSelectedFactions}" Command="{Binding AddSelectedFactionsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                        <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedFactions}}" Command="{Binding AddSelectedFactionsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
                     </Grid>
                 </TabItem>
 
                 <!-- Keywords Tab -->
-                <TabItem Header="{lex:Loc res:LocalizationKeys+Tabs.Keywords}">
+                <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Keywords}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -467,24 +467,24 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding KeywordSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredKeywords}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   EnableRowVirtualization="True" EnableColumnVirtualization="True">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button Grid.Row="2" Content="{lex:Loc res:LocalizationKeys+Distribution.AddSelectedKeywords}" Command="{Binding AddSelectedKeywordsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                        <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedKeywords}}" Command="{Binding AddSelectedKeywordsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
                     </Grid>
                 </TabItem>
 
                 <!-- Races Tab -->
-                <TabItem Header="{lex:Loc res:LocalizationKeys+Tabs.Races}">
+                <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Races}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -492,25 +492,25 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding RaceSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredRaces}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   EnableRowVirtualization="True" EnableColumnVirtualization="True">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button Grid.Row="2" Content="{lex:Loc res:LocalizationKeys+Distribution.AddSelectedRaces}" Command="{Binding AddSelectedRacesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                        <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedRaces}}" Command="{Binding AddSelectedRacesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
                     </Grid>
                 </TabItem>
 
                 <!-- Classes Tab -->
-                <TabItem Header="{lex:Loc res:LocalizationKeys+Tabs.Classes}">
+                <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Classes}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -518,20 +518,20 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                             <TextBox Text="{Binding ClassSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredClasses}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   EnableRowVirtualization="True" EnableColumnVirtualization="True">
                             <DataGrid.Columns>
                                 <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
-                                <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="200" IsReadOnly="True" />
+                                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" IsReadOnly="True"
                                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button Grid.Row="2" Content="{lex:Loc res:LocalizationKeys+Distribution.AddSelectedClasses}" Command="{Binding AddSelectedClassesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                        <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedClasses}}" Command="{Binding AddSelectedClassesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
                     </Grid>
                 </TabItem>
             </TabControl>

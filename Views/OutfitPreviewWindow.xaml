@@ -4,7 +4,7 @@
         xmlns:helix="clr-namespace:HelixToolkit.Wpf.SharpDX;assembly=HelixToolkit.Wpf.SharpDX"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         xmlns:res="clr-namespace:Boutique.Resources"
-        Title="{lex:Loc res:LocalizationKeys+Preview.Title}"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Title}}"
         Width="900"
         Height="700"
         WindowStartupLocation="CenterOwner"
@@ -41,12 +41,12 @@
                             Margin="0,0,0,10">
                         <TextBlock TextWrapping="Wrap"
                                    Foreground="#664D03">
-                            <Run FontWeight="SemiBold" Text="{lex:Loc res:LocalizationKeys+Preview.MissingAssetsWarning}" />
+                            <Run FontWeight="SemiBold" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssetsWarning}}" />
                             <LineBreak /><LineBreak />
-                            <Run Text="{lex:Loc res:LocalizationKeys+Preview.BodySlideHint}" />
+                            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.BodySlideHint}}" />
                         </TextBlock>
                     </Border>
-                    <TextBlock Text="{lex:Loc res:LocalizationKeys+Preview.MissingAssets}" FontWeight="Bold" />
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssets}}" FontWeight="Bold" />
                     <ItemsControl x:Name="MissingAssetsList" Margin="0,4,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -56,7 +56,7 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <Expander Header="{lex:Loc res:LocalizationKeys+Preview.LightingDebug}"
+                <Expander Header="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.LightingDebug}}"
                           IsExpanded="False"
                           Margin="0,0,0,12">
                     <Grid Margin="0,6,0,0">
@@ -72,7 +72,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc res:LocalizationKeys+Preview.Ambient}" Margin="0,0,8,0"
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Ambient}}" Margin="0,0,8,0"
                                    VerticalAlignment="Center" />
                         <Slider x:Name="AmbientMultiplierSlider"
                                 Grid.Row="0"
@@ -87,7 +87,7 @@
                                    Text="{Binding Value, ElementName=AmbientMultiplierSlider, StringFormat=F2}"
                                    Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc res:LocalizationKeys+Preview.KeyFill}" Margin="0,6,8,0"
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.KeyFill}}" Margin="0,6,8,0"
                                    VerticalAlignment="Center" />
                         <Slider x:Name="KeyFillMultiplierSlider"
                                 Grid.Row="1"
@@ -102,7 +102,7 @@
                                    Text="{Binding Value, ElementName=KeyFillMultiplierSlider, StringFormat=F2}"
                                    Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc res:LocalizationKeys+Preview.Rim}" Margin="0,6,8,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Rim}}" Margin="0,6,8,0" VerticalAlignment="Center" />
                         <Slider x:Name="RimMultiplierSlider"
                                 Grid.Row="2"
                                 Grid.Column="1"
@@ -116,7 +116,7 @@
                                    Text="{Binding Value, ElementName=RimMultiplierSlider, StringFormat=F2}" Width="48"
                                    VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc res:LocalizationKeys+Preview.Frontal}" Margin="0,6,8,0"
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Frontal}}" Margin="0,6,8,0"
                                    VerticalAlignment="Center" />
                         <Slider x:Name="FrontalMultiplierSlider"
                                 Grid.Row="3"
@@ -134,11 +134,11 @@
                 </Expander>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="{lex:Loc res:LocalizationKeys+Buttons.ResetView}"
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ResetView}}"
                             Margin="0,0,8,0"
                             Padding="14,6"
                             Click="OnResetView" />
-                    <Button Content="{lex:Loc res:LocalizationKeys+Buttons.Close}"
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Close}}"
                             Padding="14,6"
                             IsCancel="True"
                             Click="OnClose" />

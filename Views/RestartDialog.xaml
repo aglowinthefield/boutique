@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         xmlns:res="clr-namespace:Boutique.Resources"
-        Title="{lex:Loc res:LocalizationKeys+Restart.Title}"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Title}}"
         Width="400" Height="180"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -18,19 +18,19 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="{lex:Loc res:LocalizationKeys+Restart.Message}"
+                   Text="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Message}}"
                    TextWrapping="Wrap"
                    VerticalAlignment="Center"
                    FontSize="14"
                    Foreground="{StaticResource Brush.TextPrimary}" />
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="{lex:Loc res:LocalizationKeys+Restart.Later}"
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Later}}"
                     Click="LaterButton_Click"
                     MinWidth="110"
                     Margin="0,0,10,0"
                     Padding="12,6" />
-            <Button Content="{lex:Loc res:LocalizationKeys+Restart.QuitNow}"
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.QuitNow}}"
                     Click="QuitButton_Click"
                     MinWidth="90"
                     Padding="12,6" />

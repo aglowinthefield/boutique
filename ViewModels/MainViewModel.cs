@@ -596,7 +596,7 @@ public class MainViewModel : ReactiveObject
         var targetModKey = ModKey.FromFileName(outputPlugin);
 
         var draftsFromOtherPlugins = _outfitDrafts
-            .Where(d => d.FormKey.HasValue && d.FormKey.Value.ModKey != targetModKey)
+            .Where(d => d.FormKey.HasValue && d.FormKey.Value.ModKey != targetModKey && !d.IsOverride)
             .ToList();
 
         if (draftsFromOtherPlugins.Count > 0)
@@ -665,8 +665,7 @@ public class MainViewModel : ReactiveObject
         {
             foreach (var outfit in outfits)
             {
-                if (outfit.FormKey.ModKey != targetModKey)
-                    continue;
+                var isOverride = outfit.FormKey.ModKey != targetModKey;
 
                 if (_outfitDrafts.Any(d => d.FormKey.HasValue && d.FormKey.Value == outfit.FormKey))
                 {
@@ -710,6 +709,10 @@ public class MainViewModel : ReactiveObject
                     continue;
                 }
 
+                var overrideSourceMod = isOverride
+                    ? GetWinningModForOutfit(outfit.FormKey, excludeMod: targetModKey)
+                    : null;
+
                 var draft = new OutfitDraftViewModel(
                     editorId,
                     editorId,
@@ -717,14 +720,22 @@ public class MainViewModel : ReactiveObject
                     RemoveOutfitDraft,
                     RemoveOutfitPiece,
                     PreviewDraftAsync,
-                    DuplicateDraftAsync);
+                    DuplicateDraftAsync)
+                {
+                    FormKey = outfit.FormKey,
+                    IsOverride = isOverride,
+                    OverrideSourceMod = overrideSourceMod
+                };
 
-                draft.FormKey = outfit.FormKey;
                 draft.PropertyChanged += OutfitDraftOnPropertyChanged;
                 _outfitDrafts.Add(draft);
                 loadedCount++;
 
-                _logger.Debug("Loaded existing outfit {EditorId} from output plugin {Plugin}.", editorId, outputPlugin);
+                _logger.Debug(
+                    "Loaded {Type} outfit {EditorId} from output plugin {Plugin}.",
+                    isOverride ? "override" : "existing",
+                    editorId,
+                    outputPlugin);
             }
         }
         finally
@@ -1279,7 +1290,6 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        // Resolve the outfit from the FormKey
         if (!linkCache.TryResolve<IOutfitGetter>(copiedOutfit.OutfitFormKey, out var outfit))
         {
             StatusMessage = $"Could not find outfit {copiedOutfit.OutfitEditorId} in load order.";
@@ -1287,7 +1297,6 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        // Get armor pieces from the outfit
         var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
         if (armorPieces.Count == 0)
         {
@@ -1295,12 +1304,81 @@ public class MainViewModel : ReactiveObject
             return;
         }
 
-        // Navigate to Outfit Creator tab (index 1)
         MainTabIndex = 1;
 
-        // Create the draft with btq_ prefix
-        var defaultName = "btq_" + (copiedOutfit.OutfitEditorId ?? outfit.FormKey.ToString());
-        await CreateOutfitFromPiecesAsync(armorPieces, defaultName);
+        if (copiedOutfit.IsOverride)
+        {
+            await CreateOverrideDraftAsync(outfit, armorPieces);
+        }
+        else
+        {
+            var defaultName = "btq_" + (copiedOutfit.OutfitEditorId ?? outfit.FormKey.ToString());
+            await CreateOutfitFromPiecesAsync(armorPieces, defaultName);
+        }
+    }
+
+    private Task CreateOverrideDraftAsync(IOutfitGetter outfit, IReadOnlyList<ArmorRecordViewModel> armorPieces)
+    {
+        var editorId = outfit.EditorID ?? outfit.FormKey.ToString();
+
+        var existingDraft = _outfitDrafts.FirstOrDefault(d =>
+            d.FormKey == outfit.FormKey ||
+            string.Equals(d.EditorId, editorId, StringComparison.OrdinalIgnoreCase));
+
+        if (existingDraft != null)
+        {
+            StatusMessage = $"Override for {editorId} is already in the queue.";
+            return Task.CompletedTask;
+        }
+
+        var winningMod = GetWinningModForOutfit(outfit.FormKey, excludeMod: null);
+
+        var draft = new OutfitDraftViewModel(
+            editorId,
+            editorId,
+            armorPieces,
+            RemoveOutfitDraft,
+            RemoveOutfitPiece,
+            PreviewDraftAsync,
+            DuplicateDraftAsync)
+        {
+            FormKey = outfit.FormKey,
+            IsOverride = true,
+            OverrideSourceMod = winningMod
+        };
+
+        draft.PropertyChanged += OutfitDraftOnPropertyChanged;
+        _outfitDrafts.Add(draft);
+
+        StatusMessage = $"Queued override for '{editorId}' with {armorPieces.Count} piece(s).";
+        _logger.Information("Queued override draft for {EditorId} ({FormKey}) with {PieceCount} pieces.",
+            editorId, outfit.FormKey, armorPieces.Count);
+
+        return Task.CompletedTask;
+    }
+
+    private string? GetWinningModForOutfit(FormKey formKey, ModKey? excludeMod)
+    {
+        if (_mutagenService.LinkCache is not { } linkCache)
+            return null;
+
+        try
+        {
+            var contexts = linkCache.ResolveAllContexts<IOutfit, IOutfitGetter>(formKey);
+            foreach (var context in contexts)
+            {
+                if (excludeMod.HasValue && context.ModKey == excludeMod.Value)
+                    continue;
+
+                return context.ModKey.FileName;
+            }
+        }
+        catch
+        {
+            // Fall back to FormKey origin if resolution fails
+        }
+
+        return formKey.ModKey.FileName;
     }
 
     private async Task CreateOutfitAsync()
@@ -1617,7 +1695,8 @@ public class MainViewModel : ReactiveObject
                     d.Name,
                     d.EditorId,
                     [.. d.GetPieces().Select(p => p.Armor)],
-                    d.FormKey));
+                    d.FormKey,
+                    d.IsOverride));
 
             requests.AddRange(deletionsToProcess.Select(editorId => new OutfitCreationRequest(editorId, editorId, [])));
 
@@ -1649,7 +1728,7 @@ public class MainViewModel : ReactiveObject
                     var draft = _outfitDrafts.FirstOrDefault(d =>
                         string.Equals(d.EditorId, result.EditorId, StringComparison.OrdinalIgnoreCase));
 
-                    if (draft != null)
+                    if (draft != null && !draft.FormKey.HasValue)
                         draft.FormKey = result.FormKey;
                 }
 
@@ -1668,10 +1747,6 @@ public class MainViewModel : ReactiveObject
             IsCreatingOutfits = false;
             ProgressCurrent = 0;
             ProgressTotal = 0;
-
-            // Re-trigger auto-save if there are pending changes that were queued during this save
-            if (HasOutfitDrafts || HasPendingOutfitDeletions)
-                TriggerAutoSave();
         }
     }
 

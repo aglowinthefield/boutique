@@ -85,6 +85,7 @@ public static class LocalizationKeys
         public const string Conflict = "Header_Conflict";
         public const string Preview = "Header_Preview";
         public const string Copy = "Header_Copy";
+        public const string Override = "Header_Override";
     }
 
     public static class ArmorPatch
@@ -213,6 +214,7 @@ public static class LocalizationKeys
         public const string HideVanillaTooltip = "Outfits_HideVanillaTooltip";
         public const string SearchTooltip = "Outfits_SearchTooltip";
         public const string CopyToPatch = "Outfits_CopyToPatch";
+        public const string CopyAsOverride = "Outfits_CopyAsOverride";
         public const string DistributedToNpcs = "Outfits_DistributedToNpcs";
     }
 

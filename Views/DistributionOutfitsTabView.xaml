@@ -27,18 +27,18 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <Button Content="{lex:Loc res:LocalizationKeys+OutfitsTab.LoadOutfits}" Command="{Binding LoadOutfitsCommand}"
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.LoadOutfits}}" Command="{Binding LoadOutfitsCommand}"
                         Padding="12,4" Margin="0,0,6,0"
-                        ToolTip="{lex:Loc res:LocalizationKeys+OutfitsTab.LoadTooltip}" />
+                        ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.LoadTooltip}}" />
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <CheckBox Content="{lex:Loc res:LocalizationKeys+NpcTab.HideVanilla}" IsChecked="{Binding HideVanillaOutfits}"
+                <CheckBox Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.HideVanilla}}" IsChecked="{Binding HideVanillaOutfits}"
                           VerticalAlignment="Center" Margin="0,0,16,0"
-                          ToolTip="{lex:Loc res:LocalizationKeys+OutfitsTab.HideVanillaTooltip}" />
-                <TextBlock Text="{lex:Loc res:LocalizationKeys+Labels.Search}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.HideVanillaTooltip}}" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                 <TextBox Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}"
-                         MinWidth="250" ToolTip="{lex:Loc res:LocalizationKeys+OutfitsTab.SearchTooltip}" />
+                         MinWidth="250" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.SearchTooltip}}" />
             </StackPanel>
         </Grid>
 
@@ -69,12 +69,12 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorID}" Width="*" CanUserSort="True" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="150" CanUserSort="True"
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="*" CanUserSort="True" />
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="150" CanUserSort="True"
                                         ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Mod}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
                                         ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
-                    <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.NPCs}" Binding="{Binding NpcCount}" Width="60" CanUserSort="True" SortDirection="Descending">
+                    <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.NPCs}}" Binding="{Binding NpcCount}" Width="60" CanUserSort="True" SortDirection="Descending">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right" />
@@ -82,20 +82,29 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTemplateColumn Header="{lex:Loc res:LocalizationKeys+Headers.Preview}" Width="90">
+                    <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Preview}}" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="{lex:Loc res:LocalizationKeys+Buttons.Preview}"
+                                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Preview}}"
                                         Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" Padding="6,2" HorizontalAlignment="Center" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{lex:Loc res:LocalizationKeys+Headers.Copy}" Width="150">
+                    <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Copy}}" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="{lex:Loc res:LocalizationKeys+OutfitsTab.CopyToPatch}"
+                                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyToPatch}}"
                                         Command="{Binding DataContext.CopyOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" Padding="6,2" HorizontalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Override}}" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyAsOverride}}"
+                                        Command="{Binding DataContext.CopyOutfitAsOverrideCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}" Padding="6,2" HorizontalAlignment="Center" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -114,25 +123,25 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- NPC Assignments -->
-                <GroupBox Grid.Column="0" Header="{lex:Loc res:LocalizationKeys+OutfitsTab.DistributedToNpcs}" Padding="6">
+                <GroupBox Grid.Column="0" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.DistributedToNpcs}}" Padding="6">
                     <DataGrid ItemsSource="{Binding SelectedOutfitNpcAssignments}"
                               AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                               IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
                               GridLinesVisibility="All" HeadersVisibility="Column"
                               EnableRowVirtualization="True" EnableColumnVirtualization="True">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Name}" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
-                            <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.EditorID}" Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
-                            <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.FormKey}" Binding="{Binding FormKeyString}" Width="130" CanUserSort="True"
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="130" CanUserSort="True"
                                                 ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-                            <DataGridTextColumn Header="{lex:Loc res:LocalizationKeys+Headers.Mod}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
                                                 ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </GroupBox>
 
                 <!-- Distribution Details -->
-                <GroupBox Grid.Column="2" Header="{lex:Loc res:LocalizationKeys+NpcTab.DistributionFiles}" Padding="6">
+                <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.DistributionFiles}}" Padding="6">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding SelectedOutfitNpcAssignments}">
                             <ItemsControl.ItemTemplate>
@@ -154,7 +163,7 @@
                                                                     <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
                                                                     <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
                                                                                Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="4,0,0,0" />
-                                                                    <TextBlock Text="{lex:Loc res:LocalizationKeys+NpcTab.Winner}" Foreground="Green" FontWeight="Bold"
+                                                                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Winner}}" Foreground="Green" FontWeight="Bold"
                                                                                Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
                                                                 </StackPanel>
                                                                 <TextBlock Text="{Binding TargetingDescription}"

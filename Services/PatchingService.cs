@@ -15,6 +15,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private const uint MinimumFormId = 0x800;
     private readonly ILogger _logger = loggingService.ForContext<PatchingService>();
 
+    private static readonly BinaryWriteParameters DefaultWriteParameters = new()
+    {
+        LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
+    };
+
     public bool ValidatePatch(IEnumerable<ArmorMatch> matches, out string validationMessage)
     {
         var matchList = matches.ToList();
@@ -43,6 +48,54 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         return true;
     }
 
+    private void RequireInitialized()
+    {
+        if (!mutagenService.IsInitialized)
+            throw new InvalidOperationException("Mutagen service is not initialized. Please set the Skyrim data path first.");
+    }
+
+    private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(string outputPath, string operationName)
+    {
+        var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
+        SkyrimMod patchMod;
+
+        if (File.Exists(outputPath))
+        {
+            _logger.Information("Loading existing patch at {OutputPath} for {Operation}.", outputPath, operationName);
+            patchMod = SkyrimMod.CreateFromBinary(outputPath, mutagenService.SkyrimRelease);
+        }
+        else
+        {
+            patchMod = new SkyrimMod(modKey, mutagenService.SkyrimRelease);
+        }
+
+        EnsureMinimumFormId(patchMod);
+
+        var requiredMasters = new HashSet<ModKey>();
+        var existingMasters = patchMod.ModHeader.MasterReferences?.Select(m => m.Master) ?? [];
+        requiredMasters.UnionWith(existingMasters);
+
+        return (patchMod, requiredMasters);
+    }
+
+    private void FinalizePatch(SkyrimMod patchMod, HashSet<ModKey> requiredMasters, string outputPath, IProgress<(int current, int total, string message)>? progress)
+    {
+        EnsureMasters(patchMod, requiredMasters);
+        TryApplyEslFlag(patchMod);
+
+        progress?.Report((1, 1, "Writing patch file..."));
+        mutagenService.ReleaseLinkCache();
+
+        WritePatchWithRetry(patchMod, outputPath, DefaultWriteParameters);
+    }
+
+    private async Task RefreshAfterWrite(string outputPath, IProgress<(int current, int total, string message)>? progress)
+    {
+        progress?.Report((1, 1, "Refreshing load order..."));
+        var pluginName = Path.GetFileName(outputPath);
+        await mutagenService.RefreshLinkCacheAsync(pluginName);
+    }
+
     public async Task<(bool success, string message)> CreatePatchAsync(
         IEnumerable<ArmorMatch> matches,
         string outputPath,
@@ -52,8 +105,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
             try
             {
+                RequireInitialized();
+
                 var validMatches = matches.Where(m => m.TargetArmor != null || m.IsGlamOnly).ToList();
-                var requiredMasters = new HashSet<ModKey>();
 
                 _logger.Information(
                     "Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}",
@@ -65,35 +119,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     return (false, "No valid matches to patch.");
                 }
 
-                var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
-                SkyrimMod patchMod;
-
-                if (File.Exists(outputPath))
-                {
-                    try
-                    {
-                        _logger.Information("Existing patch detected at {OutputPath}; loading for append.", outputPath);
-                        patchMod = SkyrimMod.CreateFromBinary(outputPath, mutagenService.SkyrimRelease);
-                        _logger.Information(
-                            "Loaded existing patch containing {ArmorCount} armor overrides.",
-                            patchMod.Armors.Count);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "Failed to load existing patch at {OutputPath}.", outputPath);
-                        return (false, $"Unable to load existing patch: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    patchMod = new SkyrimMod(modKey, mutagenService.SkyrimRelease);
-                }
-
-                EnsureMinimumFormId(patchMod);
-
-                var existingMasters = patchMod.ModHeader.MasterReferences?
-                    .Select(m => m.Master) ?? [];
-                requiredMasters.UnionWith(existingMasters);
+                var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "armor patch");
+                _logger.Information("Loaded patch containing {ArmorCount} armor overrides.", patchMod.Armors.Count);
 
                 var current = 0;
                 var total = validMatches.Count;
@@ -121,27 +148,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     CopyEnchantment(patchedArmor, targetArmor);
                 }
 
-                //// Handle tempering recipes (temporarily disabled while we investigate freeze issues)
-                ////progress?.Report((total, total, "Processing tempering recipes..."));
-                ////CopyTemperingRecipes(patchMod, validMatches);
-
-                EnsureMasters(patchMod, requiredMasters);
-
-                TryApplyEslFlag(patchMod);
-
-                progress?.Report((total, total, "Writing patch file..."));
-                mutagenService.ReleaseLinkCache();
-
-                var writeParameters = new BinaryWriteParameters
-                {
-                    LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
-                };
-
-                WritePatchWithRetry(patchMod, outputPath, writeParameters);
+                FinalizePatch(patchMod, requiredMasters, outputPath, progress);
 
                 _logger.Information("Patch successfully written to {OutputPath}", outputPath);
 
                 return (true, $"Successfully created patch with {validMatches.Count} armor(s) at {outputPath}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message);
             }
             catch (Exception ex)
             {
@@ -150,13 +165,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             }
         });
 
-        // Refresh the link cache so subsequent operations can read the newly written patch
         if (result.Item1)
-        {
-            progress?.Report((1, 1, "Refreshing load order..."));
-            var pluginName = Path.GetFileName(outputPath);
-            await mutagenService.RefreshLinkCacheAsync(pluginName);
-        }
+            await RefreshAfterWrite(outputPath, progress);
 
         return result;
     }
@@ -171,53 +181,51 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
             try
             {
+                RequireInitialized();
+
                 var outfitList = outfits.ToList();
                 if (outfitList.Count == 0)
                     return (false, "No outfits to create.", (IReadOnlyList<OutfitCreationResult>)[]);
-
-                if (!mutagenService.IsInitialized)
-                    return (false, "Mutagen service is not initialized. Please set the Skyrim data path first.", (IReadOnlyList<OutfitCreationResult>)[]);
 
                 _logger.Information(
                     "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
                     outputPath, outfitList.Count);
 
-                var requiredMasters = new HashSet<ModKey>();
-                var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
-
-                SkyrimMod patchMod;
-                if (File.Exists(outputPath))
-                {
-                    try
-                    {
-                        _logger.Information("Loading existing patch at {OutputPath} for outfit append.", outputPath);
-                        patchMod = SkyrimMod.CreateFromBinary(outputPath, mutagenService.SkyrimRelease);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "Failed to load existing patch for outfit creation at {OutputPath}.",
-                            outputPath);
-                        return (false, $"Unable to load existing patch: {ex.Message}", (IReadOnlyList<OutfitCreationResult>)[]);
-                    }
-                }
-                else
-                {
-                    patchMod = new SkyrimMod(modKey, mutagenService.SkyrimRelease);
-                }
-
-                EnsureMinimumFormId(patchMod);
-
-                var existingOutfitMasters = patchMod.ModHeader.MasterReferences.Select(m => m.Master);
-                requiredMasters.UnionWith(existingOutfitMasters);
+                var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit creation");
 
                 var results = new List<OutfitCreationResult>();
                 var total = outfitList.Count;
                 var current = 0;
 
-                foreach (var (name, editorId, pieces, existingFormKey) in outfitList)
+                foreach (var (name, editorId, pieces, existingFormKey, isOverride) in outfitList)
                 {
                     current++;
                     progress?.Report((current, total, $"Writing outfit {name}..."));
+
+                    if (isOverride && existingFormKey.HasValue)
+                    {
+                        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(existingFormKey.Value, out var sourceOutfit))
+                        {
+                            _logger.Warning("Override outfit {FormKey} not found in LinkCache, skipping.", existingFormKey.Value);
+                            continue;
+                        }
+
+                        var overrideOutfit = patchMod.Outfits.GetOrAddAsOverride(sourceOutfit);
+                        requiredMasters.Add(sourceOutfit.FormKey.ModKey);
+
+                        var overrideItems = overrideOutfit.Items ??= [];
+                        overrideItems.Clear();
+                        foreach (var armor in pieces)
+                        {
+                            overrideItems.Add(armor.ToLink());
+                            requiredMasters.Add(armor.FormKey.ModKey);
+                        }
+
+                        results.Add(new OutfitCreationResult(editorId, overrideOutfit.FormKey));
+                        _logger.Information("Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
+                            editorId, existingFormKey.Value, pieces.Count);
+                        continue;
+                    }
 
                     Outfit? existing = null;
                     if (existingFormKey.HasValue)
@@ -282,38 +290,25 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                     results.Add(new OutfitCreationResult(editorId, outfit.FormKey));
                 }
 
-                EnsureMasters(patchMod, requiredMasters);
-                TryApplyEslFlag(patchMod);
-
-                progress?.Report((total, total, "Writing patch file..."));
-                mutagenService.ReleaseLinkCache();
-
-                var writeParameters = new BinaryWriteParameters
-                {
-                    LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
-                };
-
-                WritePatchWithRetry(patchMod, outputPath, writeParameters);
+                FinalizePatch(patchMod, requiredMasters, outputPath, progress);
 
                 _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
 
                 return (true, $"Saved {results.Count} outfit(s) to {outputPath}", (IReadOnlyList<OutfitCreationResult>)results);
             }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message, (IReadOnlyList<OutfitCreationResult>)[]);
+            }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Error creating outfits destined for {OutputPath}", outputPath);
-                return (false, $"Error creating outfits: {ex.Message}",
-                    (IReadOnlyList<OutfitCreationResult>)[]);
+                return (false, $"Error creating outfits: {ex.Message}", (IReadOnlyList<OutfitCreationResult>)[]);
             }
         });
 
-        // Refresh the link cache so subsequent operations can read the newly written patch
         if (result.Item1)
-        {
-            progress?.Report((1, 1, "Refreshing load order..."));
-            var pluginName = Path.GetFileName(outputPath);
-            await mutagenService.RefreshLinkCacheAsync(pluginName);
-        }
+            await RefreshAfterWrite(outputPath, progress);
 
         return result;
     }
@@ -604,12 +599,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 mutagenService.ReleaseLinkCache();
 
-                var writeParameters = new BinaryWriteParameters
-                {
-                    LowerRangeDisallowedHandler = new NoCheckIfLowerRangeDisallowed()
-                };
-
-                WritePatchWithRetry(patchMod, patchPath, writeParameters);
+                WritePatchWithRetry(patchMod, patchPath, DefaultWriteParameters);
 
                 _logger.Information("Patch cleaned successfully. Removed {Count} outfit(s).", removedCount);
                 return (true, $"Successfully removed {removedCount} outfit(s) with missing masters.");

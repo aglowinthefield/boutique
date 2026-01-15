@@ -21,4 +21,9 @@ public class CopiedOutfit
     /// Gets a human-readable description for display purposes.
     /// </summary>
     public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets whether this should be created as an override (keeping the original FormKey) rather than a new record.
+    /// </summary>
+    public bool IsOverride { get; init; }
 }
