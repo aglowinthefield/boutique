@@ -244,12 +244,16 @@
                                             </Style>
                                         </Border.Style>
                                         <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                            <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
                                                 <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
                                                 <TextBlock Text="{Binding FileType, StringFormat=' ({0})'}"
                                                            Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="4,0,0,0" />
@@ -259,9 +263,13 @@
                                                            Foreground="#CC6600" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"
                                                            Visibility="{Binding Chance, Converter={StaticResource InequalityToVisConverter}, ConverterParameter=100}" />
                                             </StackPanel>
-                                            <TextBlock Grid.Row="1" Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
+                                            <Button Grid.Column="1" Grid.Row="0" Content="👁" VerticalAlignment="Top"
+                                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.PreviewDistributionOutfitCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="2,0" FontSize="11" MinWidth="0" MinHeight="0" Margin="4,0,0,0" />
+                                            <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
                                                        FontFamily="Consolas" FontSize="11" Margin="0,2,0,0" />
-                                            <TextBlock Grid.Row="2" Text="{Binding TargetingDescription}"
+                                            <TextBlock Grid.Column="0" Grid.Row="2" Text="{Binding TargetingDescription}"
                                                        Foreground="#8EC07C" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"
                                                        Visibility="{Binding TargetingDescription, Converter={StaticResource StringEmptyToVisConverter}}" />
                                         </Grid>

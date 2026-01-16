@@ -35,6 +35,7 @@ public class DistributionNpcsTabViewModel : ReactiveObject
         var notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
         ScanNpcOutfitsCommand = ReactiveCommand.CreateFromTask(ScanNpcOutfitsAsync, notLoading);
         PreviewNpcOutfitCommand = ReactiveCommand.CreateFromTask<NpcOutfitAssignmentViewModel>(PreviewNpcOutfitAsync, notLoading);
+        PreviewDistributionOutfitCommand = ReactiveCommand.CreateFromTask<OutfitDistribution>(PreviewDistributionOutfitAsync, notLoading);
         ClearFiltersCommand = ReactiveCommand.Create(ClearFilters);
 
         var hasFilters = this.WhenAnyValue(vm => vm.HasActiveFilters);
@@ -222,6 +223,8 @@ public class DistributionNpcsTabViewModel : ReactiveObject
 
     public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand { get; }
 
+    public ReactiveCommand<OutfitDistribution, Unit> PreviewDistributionOutfitCommand { get; }
+
     public ReactiveCommand<Unit, Unit> ClearFiltersCommand { get; }
 
     public ReactiveCommand<Unit, Unit> CopyFilterCommand { get; }
@@ -304,6 +307,50 @@ public class DistributionNpcsTabViewModel : ReactiveObject
         }
 
         var outfitFormKey = npcAssignment.FinalOutfitFormKey.Value;
+        if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
+        {
+            StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
+            return;
+        }
+
+        var label = outfit.EditorID ?? outfit.FormKey.ToString();
+        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+
+        if (armorPieces.Count == 0)
+        {
+            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+            return;
+        }
+
+        try
+        {
+            StatusMessage = $"Building preview for {label}...";
+            var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, GenderedModelVariant.Female);
+            await ShowPreview.Handle(scene);
+            StatusMessage = $"Preview ready for {label}.";
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
+            StatusMessage = $"Failed to preview outfit: {ex.Message}";
+        }
+    }
+
+    private async Task PreviewDistributionOutfitAsync(OutfitDistribution? distribution)
+    {
+        if (distribution == null)
+        {
+            StatusMessage = "No distribution to preview.";
+            return;
+        }
+
+        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        {
+            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+            return;
+        }
+
+        var outfitFormKey = distribution.OutfitFormKey;
         if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
         {
             StatusMessage = $"Could not resolve outfit: {outfitFormKey}";

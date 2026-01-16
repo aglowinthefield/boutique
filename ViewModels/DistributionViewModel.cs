@@ -415,6 +415,7 @@ public class DistributionViewModel : ReactiveObject
     public NpcFilterData? SelectedNpcFilterData => NpcsTab.SelectedNpcFilterData;
     public ReactiveCommand<Unit, Unit> ScanNpcOutfitsCommand => NpcsTab.ScanNpcOutfitsCommand;
     public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand => NpcsTab.PreviewNpcOutfitCommand;
+    public ReactiveCommand<OutfitDistribution, Unit> PreviewDistributionOutfitCommand => NpcsTab.PreviewDistributionOutfitCommand;
     public IReadOnlyList<string> GenderFilterOptions => NpcsTab.GenderFilterOptions;
 
     public string SelectedGenderFilter
