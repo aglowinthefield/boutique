@@ -11,7 +11,10 @@
         WindowStyle="ToolWindow"
         Background="{StaticResource Brush.PrimaryBackground}">
 
-    <Grid Margin="20">
+    <Grid x:Name="RootGrid" Margin="20">
+        <Grid.LayoutTransform>
+            <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
+        </Grid.LayoutTransform>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />

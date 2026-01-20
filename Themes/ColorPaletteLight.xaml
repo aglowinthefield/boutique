@@ -1,6 +1,14 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <!-- Light Theme (Clean, bright) -->
+
+    <!-- Font Sizes (base values, can be scaled by ThemeService) -->
+    <sys:Double x:Key="FontSize.Small">10</sys:Double>
+    <sys:Double x:Key="FontSize.Base">13</sys:Double>
+    <sys:Double x:Key="FontSize.Medium">14</sys:Double>
+    <sys:Double x:Key="FontSize.Large">16</sys:Double>
+    <sys:Double x:Key="FontSize.Heading">18</sys:Double>
 
     <!-- Colors -->
     <Color x:Key="Color.PrimaryBackground">#FFFCFBF9</Color>

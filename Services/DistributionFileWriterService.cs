@@ -80,20 +80,25 @@ public class DistributionFileWriterService
                             filterParts.Add($"filterByNpcs={npcList}");
                         }
 
-                        if (entry.FactionFormKeys.Count > 0)
+                        var includedFactions = entry.FactionFilters.Where(f => !f.IsExcluded).ToList();
+                        var excludedFactions = entry.FactionFilters.Where(f => f.IsExcluded).ToList();
+                        if (includedFactions.Count > 0)
                         {
-                            var factionFormKeys = entry.FactionFormKeys
-                                .Select(fk => FormatFormKey(fk))
-                                .ToList();
-                            var factionList = string.Join(",", factionFormKeys);
+                            var factionList = string.Join(",", includedFactions.Select(f => FormatFormKey(f.FormKey)));
                             filterParts.Add($"filterByFactions={factionList}");
                         }
-
-                        if (entry.KeywordEditorIds.Count > 0 && linkCache != null)
+                        if (excludedFactions.Count > 0)
                         {
-                            // SkyPatcher needs FormKeys, so resolve EditorIDs to FormKeys for game keywords
-                            var keywordFormKeys = entry.KeywordEditorIds
-                                .Select(editorId => ResolveKeywordEditorIdToFormKey(editorId, linkCache))
+                            var factionList = string.Join(",", excludedFactions.Select(f => FormatFormKey(f.FormKey)));
+                            filterParts.Add($"filterByFactionsExcluded={factionList}");
+                        }
+
+                        var includedKeywords = entry.KeywordFilters.Where(f => !f.IsExcluded).ToList();
+                        var excludedKeywords = entry.KeywordFilters.Where(f => f.IsExcluded).ToList();
+                        if (includedKeywords.Count > 0 && linkCache != null)
+                        {
+                            var keywordFormKeys = includedKeywords
+                                .Select(k => ResolveKeywordEditorIdToFormKey(k.EditorId, linkCache))
                                 .Where(fk => !fk.IsNull)
                                 .Select(FormatFormKey)
                                 .ToList();
@@ -103,14 +108,31 @@ public class DistributionFileWriterService
                                 filterParts.Add($"filterByKeywords={keywordList}");
                             }
                         }
-
-                        if (entry.RaceFormKeys.Count > 0)
+                        if (excludedKeywords.Count > 0 && linkCache != null)
                         {
-                            var raceFormKeys = entry.RaceFormKeys
-                                .Select(fk => FormatFormKey(fk))
+                            var keywordFormKeys = excludedKeywords
+                                .Select(k => ResolveKeywordEditorIdToFormKey(k.EditorId, linkCache))
+                                .Where(fk => !fk.IsNull)
+                                .Select(FormatFormKey)
                                 .ToList();
-                            var raceList = string.Join(",", raceFormKeys);
+                            if (keywordFormKeys.Count > 0)
+                            {
+                                var keywordList = string.Join(",", keywordFormKeys);
+                                filterParts.Add($"filterByKeywordsExcluded={keywordList}");
+                            }
+                        }
+
+                        var includedRaces = entry.RaceFilters.Where(f => !f.IsExcluded).ToList();
+                        var excludedRaces = entry.RaceFilters.Where(f => f.IsExcluded).ToList();
+                        if (includedRaces.Count > 0)
+                        {
+                            var raceList = string.Join(",", includedRaces.Select(f => FormatFormKey(f.FormKey)));
                             filterParts.Add($"filterByRaces={raceList}");
+                        }
+                        if (excludedRaces.Count > 0)
+                        {
+                            var raceList = string.Join(",", excludedRaces.Select(f => FormatFormKey(f.FormKey)));
+                            filterParts.Add($"filterByRacesExcluded={raceList}");
                         }
 
                         if (entry.ClassFormKeys.Count > 0)
@@ -299,15 +321,15 @@ public class DistributionFileWriterService
             var genderFilter = SkyPatcherSyntax.ParseGenderFilter(line);
 
             var npcFormKeys = ResolveNpcIdentifiers(npcStrings, linkCache);
-            var factionFormKeys = ResolveFactionIdentifiers(factionStrings, linkCache);
-            var keywordEditorIds = ResolveKeywordIdentifiersToEditorIds(keywordStrings, linkCache);
-            var raceFormKeys = ResolveRaceIdentifiers(raceStrings, linkCache);
+            var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
+            var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, linkCache);
+            var raceFilters = ResolveRaceIdentifiers(raceStrings, linkCache);
             var classFormKeys = ResolveClassIdentifiers(classStrings, linkCache);
 
             var hasAnyParsedFilter = npcFormKeys.Count > 0 ||
-                                      factionFormKeys.Count > 0 ||
-                                      keywordEditorIds.Count > 0 ||
-                                      raceFormKeys.Count > 0 ||
+                                      factionFilters.Count > 0 ||
+                                      keywordFilters.Count > 0 ||
+                                      raceFilters.Count > 0 ||
                                       classFormKeys.Count > 0 ||
                                       genderFilter.HasValue;
 
@@ -351,9 +373,9 @@ public class DistributionFileWriterService
             {
                 Outfit = outfit,
                 NpcFormKeys = npcFormKeys,
-                FactionFormKeys = factionFormKeys,
-                KeywordEditorIds = keywordEditorIds,
-                RaceFormKeys = raceFormKeys,
+                FactionFilters = factionFilters,
+                KeywordFilters = keywordFilters,
+                RaceFilters = raceFilters,
                 ClassFormKeys = classFormKeys,
                 TraitFilters = new SpidTraitFilters { IsFemale = genderFilter }
             }, null);
@@ -395,14 +417,14 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<FormKey> ResolveFactionIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<FormKeyFilter> ResolveFactionIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-        var results = new List<FormKey>();
+        var results = new List<FormKeyFilter>();
         foreach (var id in identifiers)
         {
             if (TryParseFormKey(id) is { } formKey)
             {
-                results.Add(formKey);
+                results.Add(new FormKeyFilter(formKey));
                 continue;
             }
 
@@ -410,7 +432,7 @@ public class DistributionFileWriterService
                 .FirstOrDefault(f => string.Equals(f.EditorID, id, StringComparison.OrdinalIgnoreCase));
             if (faction != null)
             {
-                results.Add(faction.FormKey);
+                results.Add(new FormKeyFilter(faction.FormKey));
                 _logger.Debug("Resolved Faction EditorID '{Id}' to {FormKey}", id, faction.FormKey);
             }
             else
@@ -422,9 +444,9 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<string> ResolveKeywordIdentifiersToEditorIds(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<KeywordFilter> ResolveKeywordIdentifiersToFilters(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-        var results = new List<string>();
+        var results = new List<KeywordFilter>();
         foreach (var id in identifiers)
         {
             // If it's a FormKey, resolve to EditorID
@@ -433,7 +455,7 @@ public class DistributionFileWriterService
                 if (linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
                     !string.IsNullOrWhiteSpace(keyword.EditorID))
                 {
-                    results.Add(keyword.EditorID);
+                    results.Add(new KeywordFilter(keyword.EditorID));
                     continue;
                 }
             }
@@ -443,12 +465,12 @@ public class DistributionFileWriterService
                 .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
             if (resolvedKeyword != null)
             {
-                results.Add(resolvedKeyword.EditorID ?? id);
+                results.Add(new KeywordFilter(resolvedKeyword.EditorID ?? id));
             }
             else
             {
                 // Keep as-is (could be a virtual keyword)
-                results.Add(id);
+                results.Add(new KeywordFilter(id));
             }
         }
 
@@ -462,14 +484,14 @@ public class DistributionFileWriterService
         return keyword?.FormKey ?? FormKey.Null;
     }
 
-    private List<FormKey> ResolveRaceIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private List<FormKeyFilter> ResolveRaceIdentifiers(List<string> identifiers, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-        var results = new List<FormKey>();
+        var results = new List<FormKeyFilter>();
         foreach (var id in identifiers)
         {
             if (TryParseFormKey(id) is { } formKey)
             {
-                results.Add(formKey);
+                results.Add(new FormKeyFilter(formKey));
                 continue;
             }
 
@@ -477,7 +499,7 @@ public class DistributionFileWriterService
                 .FirstOrDefault(r => string.Equals(r.EditorID, id, StringComparison.OrdinalIgnoreCase));
             if (race != null)
             {
-                results.Add(race.FormKey);
+                results.Add(new FormKeyFilter(race.FormKey));
                 _logger.Debug("Resolved Race EditorID '{Id}' to {FormKey}", id, race.FormKey);
             }
             else
@@ -556,30 +578,39 @@ public class DistributionFileWriterService
             stringFilters.Add(string.Join(",", npcNames));
         }
 
-        // Add keywords (+ separated for AND logic)
-        // KeywordEditorIds already contains EditorIDs for both game and virtual keywords
-        if (entry.KeywordEditorIds.Count > 0)
+        // Add keywords (+ separated for AND logic, with negation prefix for excluded)
+        var includedKeywords = entry.KeywordFilters.Where(k => !k.IsExcluded).Select(k => k.EditorId).ToList();
+        var excludedKeywords = entry.KeywordFilters.Where(k => k.IsExcluded).Select(k => $"-{k.EditorId}").ToList();
+        if (includedKeywords.Count > 0)
         {
-            stringFilters.Add(string.Join("+", entry.KeywordEditorIds));
+            stringFilters.Add(string.Join("+", includedKeywords));
+        }
+        if (excludedKeywords.Count > 0)
+        {
+            stringFilters.AddRange(excludedKeywords);
         }
 
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;
 
-        // Position 3: FormFilters - all form filter types (AND with +)
+        // Position 3: FormFilters - all form filter types (AND with +, negation with - prefix)
         var formFilters = new List<string>();
 
-        foreach (var factionFormKey in entry.FactionFormKeys)
+        foreach (var filter in entry.FactionFilters)
         {
-            if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) &&
+            if (linkCache.TryResolve<IFactionGetter>(filter.FormKey, out var faction) &&
                 !string.IsNullOrWhiteSpace(faction.EditorID))
-                formFilters.Add(faction.EditorID);
+            {
+                formFilters.Add(filter.IsExcluded ? $"-{faction.EditorID}" : faction.EditorID);
+            }
         }
 
-        foreach (var raceFormKey in entry.RaceFormKeys)
+        foreach (var filter in entry.RaceFilters)
         {
-            if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
+            if (linkCache.TryResolve<IRaceGetter>(filter.FormKey, out var race) &&
                 !string.IsNullOrWhiteSpace(race.EditorID))
-                formFilters.Add(race.EditorID);
+            {
+                formFilters.Add(filter.IsExcluded ? $"-{race.EditorID}" : race.EditorID);
+            }
         }
 
         foreach (var classFormKey in entry.ClassFormKeys)

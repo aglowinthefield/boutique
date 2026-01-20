@@ -1,0 +1,191 @@
+<UserControl x:Class="Boutique.Views.DistributionEntryListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:models="clr-namespace:Boutique.Models"
+             xmlns:util="clr-namespace:Boutique.Utilities"
+             xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:res="clr-namespace:Boutique.Resources"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="400"
+             d:DesignWidth="400">
+    <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.DistributionEntries}}" Padding="6">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- File Selector -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.File}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                    <ComboBox ItemsSource="{Binding DropdownItems}"
+                              SelectedItem="{Binding SelectedDropdownItem, Mode=TwoWay}"
+                              MinWidth="200" Margin="0,0,6,0"
+                              MaxDropDownHeight="400"
+                              IsSynchronizedWithCurrentItem="False">
+                        <ComboBox.Resources>
+                            <DataTemplate DataType="{x:Type models:DistributionGroupHeader}">
+                                <TextBlock Text="{Binding GroupName}"
+                                           FontWeight="SemiBold"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
+                                           Padding="0,4,0,2" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type models:DistributionFileItem}">
+                                <TextBlock Text="{Binding DisplayText}" Padding="12,0,0,0" />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type models:DistributionNewFileItem}">
+                                <TextBlock Text="{Binding DisplayText}" FontStyle="Italic" />
+                            </DataTemplate>
+                        </ComboBox.Resources>
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="IsHitTestVisible" Value="False" />
+                                        <Setter Property="Focusable" Value="False" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Format}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="6,0,6,0" />
+                    <ComboBox ItemsSource="{Binding AvailableFormats}"
+                              SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
+                              MinWidth="100">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource DistributionFileTypeConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding}" Value="SkyPatcher" />
+                                            <Condition Binding="{Binding DataContext.HasChanceBasedEntries, RelativeSource={RelativeSource AncestorType=ComboBox}}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="ToolTip" Value="SkyPatcher does not support chance-based distribution. Disable chance on all entries to use this format." />
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding}" Value="SkyPatcher" />
+                                            <Condition Binding="{Binding DataContext.HasKeywordDistributions, RelativeSource={RelativeSource AncestorType=ComboBox}}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="ToolTip" Value="SkyPatcher does not support keyword distribution. Change all entries to Outfit type to use this format." />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Filename}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                    <TextBox Text="{Binding NewFileName, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" MinWidth="150" Margin="0,0,6,0" />
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Browse}}" Command="{Binding SelectDistributionFilePathCommand}" Padding="8,2" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
+                            Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.SavesAs}}" Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" FontSize="11" />
+                    <TextBlock Text="{Binding ActualFileName}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource Brush.TextSecondary}" />
+                </StackPanel>
+                <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
+                        Visibility="{Binding HasConflicts, Converter={StaticResource BoolToVisConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding ConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Suggested}}" Foreground="#CC6600" FontWeight="Bold" FontSize="11" />
+                            <TextBlock Text="{Binding SuggestedFileName}" Foreground="#CC6600" FontFamily="Consolas" FontWeight="Bold" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddEntry}}" Command="{Binding AddDistributionEntryCommand}" Margin="0,0,6,0" Padding="8,2" />
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SaveFile}}" Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilter}}" Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
+                        ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue={lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilterTooltip}}}" />
+            </StackPanel>
+
+            <!-- Compact Entry List -->
+            <ListBox Grid.Row="2" ItemsSource="{Binding DistributionEntries}"
+                     SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     Background="Transparent" BorderThickness="1"
+                     BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}"
+                     HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="4,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Type indicator -->
+                            <Border Grid.Column="0" Grid.RowSpan="2"
+                                    Background="{DynamicResource {x:Static util:ResourceKeys.BrushAccent}}"
+                                    CornerRadius="2" Padding="4,2" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Type}" FontSize="10" FontWeight="SemiBold" Foreground="White" />
+                            </Border>
+
+                            <!-- Target name -->
+                            <TextBlock Grid.Column="1" Grid.Row="0"
+                                       Text="{Binding TargetDisplayName}"
+                                       FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding TargetDisplayName}" />
+
+                            <!-- Filter summary -->
+                            <TextBlock Grid.Column="1" Grid.Row="1"
+                                       Text="{Binding FilterSummary}"
+                                       Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
+                                       FontSize="11"
+                                       TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding FilterSummary}" />
+
+                            <!-- Remove button -->
+                            <Button Grid.Column="2" Grid.RowSpan="2"
+                                    Click="RemoveEntry_Click"
+                                    Tag="{Binding}"
+                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.RemoveEntry}}"
+                                    Height="28" Width="28"
+                                    FontSize="14"
+                                    VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="Padding" Value="2" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </Grid>
+    </GroupBox>
+</UserControl>

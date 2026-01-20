@@ -31,9 +31,13 @@ public class ThemeService
         AppDomain.CurrentDomain.BaseDirectory, ".config", ThemeConfigFileName);
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
+    private static readonly double[] BaseFontSizes = { 10, 13, 14, 16, 18 };
+    private static readonly string[] FontSizeKeys = { "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading" };
+
     private readonly ILogger _logger;
     private AppTheme _currentThemeSetting = AppTheme.System;
     private bool _isCurrentlyDark = true;
+    private double _currentFontScale = 1.0;
 
     public static ThemeService? Current { get; private set; }
 
@@ -44,16 +48,18 @@ public class ThemeService
 
     public AppTheme CurrentThemeSetting => _currentThemeSetting;
     public bool IsCurrentlyDark => _isCurrentlyDark;
+    public double CurrentFontScale => _currentFontScale;
 
     public event EventHandler<bool>? ThemeChanged;
+    public event EventHandler<double>? FontScaleChanged;
 
     public void Initialize()
     {
         Current = this;
-        _currentThemeSetting = LoadThemeSetting();
+        (_currentThemeSetting, _currentFontScale) = LoadSettings();
         ApplyTheme(_currentThemeSetting);
+        ApplyFontScale(_currentFontScale);
 
-        // Subscribe to system theme changes
         SystemEvents.UserPreferenceChanged += OnSystemPreferenceChanged;
     }
 
@@ -61,7 +67,16 @@ public class ThemeService
     {
         _currentThemeSetting = theme;
         ApplyTheme(theme);
-        SaveThemeSetting(theme);
+        SaveSettings(_currentThemeSetting, _currentFontScale);
+    }
+
+    public void SetFontScale(double scale)
+    {
+        _currentFontScale = scale;
+        ApplyFontScale(scale);
+        SaveSettings(_currentThemeSetting, _currentFontScale);
+        FontScaleChanged?.Invoke(this, scale);
+        _logger.Information("Applied font scale: {Scale}x", scale);
     }
 
     public void ToggleTheme()
@@ -114,6 +129,22 @@ public class ThemeService
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to apply theme {Theme}", theme);
+        }
+    }
+
+    private void ApplyFontScale(double scale)
+    {
+        var app = Application.Current;
+        if (app == null) return;
+
+        try
+        {
+            for (var i = 0; i < BaseFontSizes.Length; i++)
+                app.Resources[FontSizeKeys[i]] = BaseFontSizes[i] * scale;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to apply font scale {Scale}", scale);
         }
     }
 
@@ -190,32 +221,43 @@ public class ThemeService
         Application.Current?.Dispatcher.BeginInvoke(() => ApplyTheme(AppTheme.System));
     }
 
-    private AppTheme LoadThemeSetting()
+    private (AppTheme Theme, double FontScale) LoadSettings()
     {
         try
         {
             if (!File.Exists(ConfigPath))
-                return AppTheme.System;
+                return (AppTheme.System, 1.0);
 
             var json = File.ReadAllText(ConfigPath);
             using var doc = JsonDocument.Parse(json);
 
+            var theme = AppTheme.System;
+            var fontScale = 1.0;
+
             if (doc.RootElement.TryGetProperty("Theme", out var themeElement))
             {
                 var themeStr = themeElement.GetString();
-                if (Enum.TryParse<AppTheme>(themeStr, true, out var theme))
-                    return theme;
+                if (Enum.TryParse<AppTheme>(themeStr, true, out var parsedTheme))
+                    theme = parsedTheme;
             }
+
+            if (doc.RootElement.TryGetProperty("FontScale", out var fontScaleElement) &&
+                fontScaleElement.TryGetDouble(out var parsedFontScale))
+            {
+                fontScale = parsedFontScale;
+            }
+
+            return (theme, fontScale);
         }
         catch (Exception ex)
         {
-            _logger.Warning(ex, "Failed to load theme setting");
+            _logger.Warning(ex, "Failed to load settings");
         }
 
-        return AppTheme.System;
+        return (AppTheme.System, 1.0);
     }
 
-    private void SaveThemeSetting(AppTheme theme)
+    private void SaveSettings(AppTheme theme, double fontScale)
     {
         try
         {
@@ -223,14 +265,15 @@ public class ThemeService
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            var json = JsonSerializer.Serialize(new { Theme = theme.ToString() }, JsonOptions);
+            var settings = new { Theme = theme.ToString(), FontScale = fontScale };
+            var json = JsonSerializer.Serialize(settings, JsonOptions);
             File.WriteAllText(ConfigPath, json);
 
-            _logger.Information("Saved theme setting: {Theme}", theme);
+            _logger.Information("Saved settings: Theme={Theme}, FontScale={FontScale}", theme, fontScale);
         }
         catch (Exception ex)
         {
-            _logger.Warning(ex, "Failed to save theme setting");
+            _logger.Warning(ex, "Failed to save settings");
         }
     }
 }

@@ -32,6 +32,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="140" />
@@ -94,17 +95,30 @@
                       SelectedItem="{Binding Settings.SelectedTheme}"
                       Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 6: Language -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="{lex:Loc Settings_Language}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <!-- Row 6: Font Size -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="{lex:Loc Settings_FontSize}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <ComboBox Grid.Row="6" Grid.Column="1"
+                      ItemsSource="{Binding Settings.FontScaleOptions}"
+                      SelectedItem="{Binding Settings.SelectedFontScale}"
+                      Width="100" Margin="0,0,0,12" HorizontalAlignment="Left">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat={}{0:P0}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!-- Row 7: Language -->
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="{lex:Loc Settings_Language}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="7" Grid.Column="1"
                       ItemsSource="{Binding Settings.AvailableLanguages}"
                       SelectedItem="{Binding Settings.SelectedLanguage}"
                       Width="180" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 7: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
+            <!-- Row 8: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
                        Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="7" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
+            <Button Grid.Row="8" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
                     Command="{Binding Settings.RestartTutorialCommand}"
                     HorizontalAlignment="Left" MinWidth="120"
                     Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />

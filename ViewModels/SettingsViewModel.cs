@@ -61,6 +61,7 @@ public class SettingsViewModel : ReactiveObject
         _settings.SelectedSkyrimRelease = SelectedSkyrimRelease;
 
         SelectedTheme = (ThemeOption)_themeService.CurrentThemeSetting;
+        SelectedFontScale = _themeService.CurrentFontScale;
 
         this.WhenAnyValue(x => x.SkyrimDataPath)
             .Skip(1)
@@ -104,6 +105,10 @@ public class SettingsViewModel : ReactiveObject
                 ShowRestartDialog();
             });
 
+        this.WhenAnyValue(x => x.SelectedFontScale)
+            .Skip(1)
+            .Subscribe(scale => _themeService.SetFontScale(scale));
+
         SelectedLanguage = _localizationService.GetCurrentLanguageOption() ?? AvailableLanguages[0];
 
         this.WhenAnyValue(x => x.SelectedLanguage)
@@ -129,6 +134,7 @@ public class SettingsViewModel : ReactiveObject
     [Reactive] public SkyrimRelease SelectedSkyrimRelease { get; set; }
     [Reactive] public ThemeOption SelectedTheme { get; set; }
     [Reactive] public LanguageOption? SelectedLanguage { get; set; }
+    [Reactive] public double SelectedFontScale { get; set; }
 
     public IReadOnlyList<SkyrimRelease> SkyrimReleaseOptions { get; } = new[]
     {
@@ -138,6 +144,7 @@ public class SettingsViewModel : ReactiveObject
     };
     public IReadOnlyList<ThemeOption> ThemeOptions { get; } = Enum.GetValues<ThemeOption>();
     public IReadOnlyList<LanguageOption> AvailableLanguages => _localizationService.AvailableLanguages;
+    public IReadOnlyList<double> FontScaleOptions { get; } = [0.85, 1.0, 1.15, 1.3];
 
     public string FullOutputPath
     {

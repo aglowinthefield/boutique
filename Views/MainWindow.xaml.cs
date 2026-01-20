@@ -31,9 +31,13 @@ public partial class MainWindow : Window
 
         _guiSettings.RestoreWindowGeometry(this);
 
-        // Apply title bar theme on initialization and when theme changes
-        SourceInitialized += (_, _) => _themeService.ApplyTitleBarTheme(this);
+        SourceInitialized += (_, _) =>
+        {
+            _themeService.ApplyTitleBarTheme(this);
+            ApplyFontScale(_themeService.CurrentFontScale);
+        };
         _themeService.ThemeChanged += OnThemeChanged;
+        _themeService.FontScaleChanged += OnFontScaleChanged;
 
         var notificationDisposable = viewModel.PatchCreatedNotification.RegisterHandler(async interaction =>
         {
@@ -102,6 +106,7 @@ public partial class MainWindow : Window
         {
             _bindings.Dispose();
             _themeService.ThemeChanged -= OnThemeChanged;
+            _themeService.FontScaleChanged -= OnFontScaleChanged;
         };
         Loaded += OnLoaded;
     }
@@ -110,6 +115,14 @@ public partial class MainWindow : Window
     {
         var hwnd = new WindowInteropHelper(this).Handle;
         ThemeService.ApplyTitleBarTheme(hwnd, isDark);
+    }
+
+    private void OnFontScaleChanged(object? sender, double scale) => Dispatcher.Invoke(() => ApplyFontScale(scale));
+
+    private void ApplyFontScale(double scale)
+    {
+        RootScaleTransform.ScaleX = scale;
+        RootScaleTransform.ScaleY = scale;
     }
 
     private async void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)

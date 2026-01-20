@@ -30,11 +30,7 @@ public static class DistributionFileFormatter
         {
             string? line = null;
 
-            if (entry.Entry.OriginalSpidFilter != null && format == DistributionFileType.Spid)
-            {
-                line = FormatSpidDistributionFilter(entry.Entry.OriginalSpidFilter);
-            }
-            else if (entry.Type == DistributionType.Keyword)
+            if (entry.Type == DistributionType.Keyword)
             {
                 if (!string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
                 {

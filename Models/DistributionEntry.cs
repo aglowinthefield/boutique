@@ -9,27 +9,32 @@ public enum DistributionType
     Keyword
 }
 
+public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false);
+
+public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false);
+
 public sealed class DistributionEntry
 {
     public DistributionType Type { get; set; } = DistributionType.Outfit;
     public IOutfitGetter? Outfit { get; set; }
     public string? KeywordToDistribute { get; set; }
     public List<FormKey> NpcFormKeys { get; set; } = [];
-    public List<FormKey> FactionFormKeys { get; set; } = [];
 
     /// <summary>
-    /// The original parsed SPID filter, preserved for round-trip formatting.
-    /// When set, formatting uses this instead of reconstructing from resolved values.
+    /// Keyword filters with negation support. EditorIDs of game keywords or virtual keywords (SPID-distributed via Keyword = lines).
     /// </summary>
-    public SpidDistributionFilter? OriginalSpidFilter { get; set; }
+    public List<KeywordFilter> KeywordFilters { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the keyword EditorIDs used for filtering. Includes both game keywords and virtual
-    /// keywords (SPID-distributed via Keyword = lines).
+    /// Faction filters with negation support.
     /// </summary>
-    public List<string> KeywordEditorIds { get; set; } = [];
+    public List<FormKeyFilter> FactionFilters { get; set; } = [];
 
-    public List<FormKey> RaceFormKeys { get; set; } = [];
+    /// <summary>
+    /// Race filters with negation support.
+    /// </summary>
+    public List<FormKeyFilter> RaceFilters { get; set; } = [];
+
     public List<FormKey> ClassFormKeys { get; set; } = [];
     public List<FormKey> CombatStyleFormKeys { get; set; } = [];
     public List<FormKey> OutfitFilterFormKeys { get; set; } = [];
@@ -59,21 +64,6 @@ public sealed class DistributionEntry
     /// Supports SPID form filter syntax for advanced use cases.
     /// </summary>
     public string? RawFormFilters { get; set; }
-
-    /// <summary>
-    /// List of excluded/negated keyword EditorIDs (prefixed with - in SPID output).
-    /// </summary>
-    public List<string> ExcludedKeywordEditorIds { get; set; } = [];
-
-    /// <summary>
-    /// List of excluded/negated faction FormKeys (prefixed with - in SPID output).
-    /// </summary>
-    public List<FormKey> ExcludedFactionFormKeys { get; set; } = [];
-
-    /// <summary>
-    /// List of excluded/negated race FormKeys (prefixed with - in SPID output).
-    /// </summary>
-    public List<FormKey> ExcludedRaceFormKeys { get; set; } = [];
 }
 
 public sealed record DistributionParseError(int LineNumber, string LineContent, string Reason)

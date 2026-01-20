@@ -1,5 +1,6 @@
 using System.Windows;
 using Boutique.Models;
+using Boutique.Services;
 
 namespace Boutique.Views;
 
@@ -10,6 +11,12 @@ public partial class MissingMastersDialog : Window
     public MissingMastersDialog(MissingMastersResult result)
     {
         InitializeComponent();
+
+        if (ThemeService.Current is { } themeService)
+        {
+            RootScaleTransform.ScaleX = themeService.CurrentFontScale;
+            RootScaleTransform.ScaleY = themeService.CurrentFontScale;
+        }
 
         var viewModels = result.MissingMasters
             .Select(m => new MissingMasterViewModel(m))

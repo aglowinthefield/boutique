@@ -637,13 +637,20 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
     {
         var requiredMasters = new HashSet<ModKey>();
+        var patchModKey = patchMod.ModKey;
+
+        void AddMaster(ModKey modKey)
+        {
+            if (modKey != patchModKey && !modKey.IsNull)
+                requiredMasters.Add(modKey);
+        }
 
         foreach (var record in patchMod.EnumerateMajorRecords())
         {
             if (record is IOutfitGetter outfit && excludedOutfits.Contains(outfit.FormKey))
                 continue;
 
-            requiredMasters.Add(record.FormKey.ModKey);
+            AddMaster(record.FormKey.ModKey);
 
             if (record is IOutfitGetter outfitRecord && outfitRecord.Items != null)
             {
@@ -651,21 +658,21 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 {
                     var formKey = item?.FormKeyNullable;
                     if (formKey.HasValue && formKey.Value != FormKey.Null)
-                        requiredMasters.Add(formKey.Value.ModKey);
+                        AddMaster(formKey.Value.ModKey);
                 }
             }
 
             if (record is IArmorGetter armor)
             {
                 if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
-                    requiredMasters.Add(enchantKey.ModKey);
+                    AddMaster(enchantKey.ModKey);
 
                 if (armor.Keywords != null)
                 {
                     foreach (var keyword in armor.Keywords)
                     {
                         if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
-                            requiredMasters.Add(keywordKey.ModKey);
+                            AddMaster(keywordKey.ModKey);
                     }
                 }
             }

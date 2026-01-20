@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Boutique.Models;
+using Boutique.Utilities;
 using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -305,6 +306,9 @@ public class GameDataCacheService
             var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
             _logger.Information("[PERF] DiscoverAsync: {ElapsedMs}ms ({Count} files)", discoverSw.ElapsedMilliseconds, discoveredFiles.Count);
 
+            var virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
+            _logger.Information("Extracted {Count} virtual keywords from SPID distribution files.", virtualKeywords.Count);
+
             var outfitFiles = discoveredFiles
                 .Where(f => f.OutfitDistributionCount > 0)
                 .ToList();
@@ -337,11 +341,92 @@ public class GameDataCacheService
                 {
                     AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
                 }
+
+                foreach (var keyword in virtualKeywords)
+                {
+                    if (!AllKeywords.Any(k => string.Equals(k.EditorID, keyword.EditorID, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        AllKeywords.Add(keyword);
+                    }
+                }
             });
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to load distribution data.");
+        }
+    }
+
+    private static List<KeywordRecordViewModel> ExtractVirtualKeywords(IReadOnlyList<DistributionFile> discoveredFiles)
+    {
+        var existingEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var virtualKeywords = new List<KeywordRecordViewModel>();
+
+        foreach (var file in discoveredFiles)
+        {
+            if (file.Type != DistributionFileType.Spid)
+                continue;
+
+            var sourceName = ExtractModFolderName(file.FullPath);
+
+            foreach (var line in file.Lines)
+            {
+                if (line.IsKeywordDistribution && !string.IsNullOrWhiteSpace(line.KeywordIdentifier))
+                {
+                    AddKeywordIfNew(line.KeywordIdentifier, sourceName);
+                }
+
+                if ((line.IsKeywordDistribution || line.IsOutfitDistribution) &&
+                    SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
+                {
+                    foreach (var keyword in GetAllKeywordIdentifiers(filter))
+                    {
+                        AddKeywordIfNew(keyword, sourceName);
+                    }
+                }
+            }
+        }
+
+        return virtualKeywords.OrderBy(k => k.DisplayName).ToList();
+
+        void AddKeywordIfNew(string editorId, string? source)
+        {
+            if (existingEditorIds.Add(editorId))
+            {
+                var record = new KeywordRecord(FormKey.Null, editorId, ModKey.Null, source);
+                virtualKeywords.Add(new KeywordRecordViewModel(record));
+            }
+        }
+    }
+
+    private static string? ExtractModFolderName(string fullPath)
+    {
+        var fileName = System.IO.Path.GetFileNameWithoutExtension(fullPath);
+        if (!string.IsNullOrEmpty(fileName))
+        {
+            var distrSuffix = "_DISTR";
+            if (fileName.EndsWith(distrSuffix, StringComparison.OrdinalIgnoreCase))
+                return fileName[..^distrSuffix.Length];
+        }
+
+        var directory = System.IO.Path.GetDirectoryName(fullPath);
+        if (string.IsNullOrEmpty(directory))
+            return fileName;
+
+        return new System.IO.DirectoryInfo(directory).Name;
+    }
+
+    private static IEnumerable<string> GetAllKeywordIdentifiers(SpidDistributionFilter filter)
+    {
+        foreach (var expr in filter.StringFilters.Expressions)
+        {
+            foreach (var part in expr.Parts)
+            {
+                if (part.LooksLikeKeyword)
+                {
+                    yield return part.Value;
+                }
+            }
         }
     }
 

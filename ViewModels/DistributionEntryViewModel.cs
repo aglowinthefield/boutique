@@ -76,40 +76,31 @@ public class DistributionEntryViewModel : ReactiveObject
             }
         }
 
-        if (entry.FactionFormKeys.Count > 0)
+        foreach (var filter in entry.FactionFilters)
         {
-            var factionVms = entry.FactionFormKeys
-                .Select(fk => new FactionRecordViewModel(new FactionRecord(fk, null, null, fk.ModKey)))
-                .ToList();
-
-            foreach (var factionVm in factionVms)
+            var vm = new FactionRecordViewModel(new FactionRecord(filter.FormKey, null, null, filter.FormKey.ModKey))
             {
-                _selectedFactions.Add(factionVm);
-            }
+                IsExcluded = filter.IsExcluded
+            };
+            _selectedFactions.Add(vm);
         }
 
-        if (entry.KeywordEditorIds.Count > 0)
+        foreach (var filter in entry.KeywordFilters)
         {
-            var keywordVms = entry.KeywordEditorIds
-                .Select(editorId => new KeywordRecordViewModel(new KeywordRecord(FormKey.Null, editorId, ModKey.Null)))
-                .ToList();
-
-            foreach (var keywordVm in keywordVms)
+            var vm = new KeywordRecordViewModel(new KeywordRecord(FormKey.Null, filter.EditorId, ModKey.Null))
             {
-                _selectedKeywords.Add(keywordVm);
-            }
+                IsExcluded = filter.IsExcluded
+            };
+            _selectedKeywords.Add(vm);
         }
 
-        if (entry.RaceFormKeys.Count > 0)
+        foreach (var filter in entry.RaceFilters)
         {
-            var raceVms = entry.RaceFormKeys
-                .Select(fk => new RaceRecordViewModel(new RaceRecord(fk, null, null, fk.ModKey)))
-                .ToList();
-
-            foreach (var raceVm in raceVms)
+            var vm = new RaceRecordViewModel(new RaceRecord(filter.FormKey, null, null, filter.FormKey.ModKey))
             {
-                _selectedRaces.Add(raceVm);
-            }
+                IsExcluded = filter.IsExcluded
+            };
+            _selectedRaces.Add(vm);
         }
 
         if (entry.ClassFormKeys.Count > 0)
@@ -131,6 +122,7 @@ public class DistributionEntryViewModel : ReactiveObject
                 Entry.Type = type;
                 this.RaisePropertyChanged(nameof(IsOutfitDistribution));
                 this.RaisePropertyChanged(nameof(IsKeywordDistribution));
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -139,6 +131,7 @@ public class DistributionEntryViewModel : ReactiveObject
             .Subscribe(outfit =>
             {
                 Entry.Outfit = outfit;
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -147,6 +140,7 @@ public class DistributionEntryViewModel : ReactiveObject
             .Subscribe(keyword =>
             {
                 Entry.KeywordToDistribute = keyword;
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -163,6 +157,7 @@ public class DistributionEntryViewModel : ReactiveObject
                         _ => null
                     }
                 };
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -179,6 +174,7 @@ public class DistributionEntryViewModel : ReactiveObject
                         _ => null
                     }
                 };
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -221,6 +217,7 @@ public class DistributionEntryViewModel : ReactiveObject
                 }
 
                 Entry.Chance = useChance ? Chance : null;
+                RaiseFilterSummaryChanged();
                 RaiseEntryChanged();
             });
 
@@ -231,6 +228,7 @@ public class DistributionEntryViewModel : ReactiveObject
                 if (UseChance)
                 {
                     Entry.Chance = chance;
+                    RaiseFilterSummaryChanged();
                     RaiseEntryChanged();
                 }
             });
@@ -248,7 +246,6 @@ public class DistributionEntryViewModel : ReactiveObject
             .Subscribe(rawFilters =>
             {
                 Entry.RawStringFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
-                Entry.OriginalSpidFilter = null;
                 RaiseEntryChanged();
             });
 
@@ -257,7 +254,6 @@ public class DistributionEntryViewModel : ReactiveObject
             .Subscribe(rawFilters =>
             {
                 Entry.RawFormFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
-                Entry.OriginalSpidFilter = null;
                 RaiseEntryChanged();
             });
 
@@ -307,6 +303,44 @@ public class DistributionEntryViewModel : ReactiveObject
     public static UniqueFilter[] UniqueOptions { get; } = [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
 
     public bool HasTraitFilters => Gender != GenderFilter.Any || Unique != UniqueFilter.Any || IsChild.HasValue;
+
+    public string TargetDisplayName => Type == DistributionType.Outfit
+        ? SelectedOutfit?.EditorID ?? "(No outfit)"
+        : !string.IsNullOrWhiteSpace(KeywordToDistribute) ? KeywordToDistribute : "(No keyword)";
+
+    public string FilterSummary => BuildFilterSummary();
+
+    private string BuildFilterSummary()
+    {
+        var parts = new List<string>();
+
+        if (_selectedNpcs.Count > 0)
+            parts.Add($"{_selectedNpcs.Count} NPC(s)");
+        if (_selectedFactions.Count > 0)
+            parts.Add($"{_selectedFactions.Count} faction(s)");
+        if (_selectedKeywords.Count > 0)
+            parts.Add($"{_selectedKeywords.Count} keyword(s)");
+        if (_selectedRaces.Count > 0)
+            parts.Add($"{_selectedRaces.Count} race(s)");
+        if (_selectedClasses.Count > 0)
+            parts.Add($"{_selectedClasses.Count} class(es)");
+
+        if (Gender != GenderFilter.Any)
+            parts.Add(Gender.ToString());
+        if (Unique != UniqueFilter.Any)
+            parts.Add(Unique == UniqueFilter.UniqueOnly ? "Unique" : "Non-Unique");
+
+        if (UseChance && Chance < 100)
+            parts.Add($"{Chance}%");
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "No filters";
+    }
+
+    private void RaiseFilterSummaryChanged()
+    {
+        this.RaisePropertyChanged(nameof(FilterSummary));
+        this.RaisePropertyChanged(nameof(TargetDisplayName));
+    }
 
     public ObservableCollection<NpcRecordViewModel> SelectedNpcs
     {
@@ -366,61 +400,39 @@ public class DistributionEntryViewModel : ReactiveObject
     {
         Entry.NpcFormKeys.Clear();
         Entry.NpcFormKeys.AddRange(SelectedNpcs.Select(npc => npc.FormKey));
+        RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }
 
     public void UpdateEntryFactions()
     {
-        Entry.FactionFormKeys.Clear();
-        Entry.ExcludedFactionFormKeys.Clear();
-
-        foreach (var faction in SelectedFactions)
-        {
-            if (faction.IsExcluded)
-                Entry.ExcludedFactionFormKeys.Add(faction.FormKey);
-            else
-                Entry.FactionFormKeys.Add(faction.FormKey);
-        }
-
-        Entry.OriginalSpidFilter = null;
+        Entry.FactionFilters.Clear();
+        Entry.FactionFilters.AddRange(SelectedFactions.Select(f => new FormKeyFilter(f.FormKey, f.IsExcluded)));
+        RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }
 
     public void UpdateEntryKeywords()
     {
-        Entry.KeywordEditorIds.Clear();
-        Entry.ExcludedKeywordEditorIds.Clear();
-
+        Entry.KeywordFilters.Clear();
         foreach (var keyword in SelectedKeywords)
         {
             var editorId = keyword.KeywordRecord.EditorID;
-            if (string.IsNullOrWhiteSpace(editorId))
-                continue;
-
-            if (keyword.IsExcluded)
-                Entry.ExcludedKeywordEditorIds.Add(editorId);
-            else
-                Entry.KeywordEditorIds.Add(editorId);
+            if (!string.IsNullOrWhiteSpace(editorId))
+            {
+                Entry.KeywordFilters.Add(new KeywordFilter(editorId, keyword.IsExcluded));
+            }
         }
 
-        Entry.OriginalSpidFilter = null;
+        RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }
 
     public void UpdateEntryRaces()
     {
-        Entry.RaceFormKeys.Clear();
-        Entry.ExcludedRaceFormKeys.Clear();
-
-        foreach (var race in SelectedRaces)
-        {
-            if (race.IsExcluded)
-                Entry.ExcludedRaceFormKeys.Add(race.FormKey);
-            else
-                Entry.RaceFormKeys.Add(race.FormKey);
-        }
-
-        Entry.OriginalSpidFilter = null;
+        Entry.RaceFilters.Clear();
+        Entry.RaceFilters.AddRange(SelectedRaces.Select(r => new FormKeyFilter(r.FormKey, r.IsExcluded)));
+        RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }
 
@@ -428,6 +440,7 @@ public class DistributionEntryViewModel : ReactiveObject
     {
         Entry.ClassFormKeys.Clear();
         Entry.ClassFormKeys.AddRange(SelectedClasses.Select(c => c.FormKey));
+        RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }
 

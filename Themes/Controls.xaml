@@ -9,7 +9,7 @@
 
     <Style x:Key="{x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Large}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="Margin" Value="0,0,0,6" />
@@ -18,20 +18,20 @@
     <!-- Reusable Text Styles -->
     <Style x:Key="{x:Static themes:ResourceKeys.FormKeyTextStyleKey}" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style x:Key="{x:Static themes:ResourceKeys.SecondaryTextStyleKey}" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style x:Key="{x:Static themes:ResourceKeys.LabelTextStyleKey}" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Margin" Value="0,0,6,0" />
     </Style>
@@ -51,7 +51,7 @@
         <Setter Property="Width" Value="16" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
@@ -128,12 +128,12 @@
     <!-- DataGrid Column Element Styles -->
     <Style x:Key="{x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
     </Style>
 
     <Style x:Key="{x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
         <Setter Property="Foreground" Value="{StaticResource Brush.TextDisabled}" />
     </Style>
 
@@ -224,10 +224,10 @@
     <DataTemplate x:Key="{x:Static themes:ResourceKeys.FilterChipTemplateKey}">
         <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding FormKeyString}"
                            Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                           Margin="4,0,0,0" FontSize="9" />
+                           Margin="4,0,0,0" />
                 <Button Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                         Tag="{Binding}" Margin="3,0,0,0" />
             </StackPanel>
@@ -255,6 +255,13 @@
         <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Base}" />
+    </Style>
+
+    <!-- UserControl (for views) -->
+    <Style TargetType="UserControl">
+        <Setter Property="Background" Value="{StaticResource Brush.PanelBackground}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Base}" />
     </Style>
 
     <!-- Grid defaults -->
@@ -272,7 +279,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize.Base}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
@@ -615,7 +622,7 @@
                                         <Setter Property="TextElement.Foreground"
                                                 Value="{StaticResource Brush.TextPrimary}" />
                                         <Setter Property="TextElement.FontWeight" Value="SemiBold" />
-                                        <Setter Property="TextElement.FontSize" Value="14" />
+                                        <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSize.Medium}" />
                                     </Style>
                                 </ContentPresenter.Resources>
                             </ContentPresenter>
@@ -824,11 +831,6 @@
     <!-- ScrollViewer (uniform background) -->
     <Style TargetType="ScrollViewer">
         <Setter Property="Background" Value="Transparent" />
-    </Style>
-
-    <!-- UserControl -->
-    <Style TargetType="UserControl">
-        <Setter Property="Background" Value="{StaticResource Brush.PanelBackground}" />
     </Style>
 
     <!-- ProgressBar -->

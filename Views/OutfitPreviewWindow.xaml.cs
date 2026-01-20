@@ -58,8 +58,12 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         _currentSceneIndex = sceneCollection.InitialIndex;
         _currentGender = sceneCollection.InitialGender;
 
-        // Apply title bar theme
-        SourceInitialized += (_, _) => _themeService.ApplyTitleBarTheme(this);
+        SourceInitialized += (_, _) =>
+        {
+            _themeService.ApplyTitleBarTheme(this);
+            RootScaleTransform.ScaleX = _themeService.CurrentFontScale;
+            RootScaleTransform.ScaleY = _themeService.CurrentFontScale;
+        };
         _themeService.ThemeChanged += OnThemeChanged;
 
         InitializeViewport();

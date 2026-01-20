@@ -1,0 +1,162 @@
+<UserControl x:Class="Boutique.Views.DistributionFilterTabsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:res="clr-namespace:Boutique.Resources"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="300"
+             d:DesignWidth="500">
+    <UserControl.Resources>
+        <DataTemplate x:Key="CheckBoxCellTemplate">
+            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </DataTemplate>
+    </UserControl.Resources>
+    <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.DistributionFilters}}" Padding="6">
+        <TabControl>
+            <!-- NPCs Tab -->
+            <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBox Text="{Binding NpcSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredNpcs}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              CanUserSortColumns="True" SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              PreviewKeyDown="DataGrid_PreviewKeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2" Margin="0,6,0,0">
+                        <TextBlock Text="{Binding SelectedEntry.TargetDisplayName, StringFormat='Target: {0}', FallbackValue='Target: (None selected)'}"
+                                   FontStyle="Italic" Foreground="Gray" Margin="0,0,0,4" />
+                        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedNpcs}}" Command="{Binding AddSelectedNpcsToEntryCommand}" Padding="8,2" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Factions Tab -->
+            <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Factions}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBox Text="{Binding FactionSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredFactions}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              PreviewKeyDown="DataGrid_PreviewKeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedFactions}}" Command="{Binding AddSelectedFactionsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                </Grid>
+            </TabItem>
+
+            <!-- Keywords Tab -->
+            <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Keywords}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBox Text="{Binding KeywordSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredKeywords}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              PreviewKeyDown="DataGrid_PreviewKeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedKeywords}}" Command="{Binding AddSelectedKeywordsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                </Grid>
+            </TabItem>
+
+            <!-- Races Tab -->
+            <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Races}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBox Text="{Binding RaceSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredRaces}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              PreviewKeyDown="DataGrid_PreviewKeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedRaces}}" Command="{Binding AddSelectedRacesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                </Grid>
+            </TabItem>
+
+            <!-- Classes Tab -->
+            <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Classes}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                        <TextBox Text="{Binding ClassSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredClasses}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                              PreviewKeyDown="DataGrid_PreviewKeyDown">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                            <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                                ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedClasses}}" Command="{Binding AddSelectedClassesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </GroupBox>
+</UserControl>

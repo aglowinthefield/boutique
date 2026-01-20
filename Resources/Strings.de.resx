@@ -126,6 +126,9 @@
   <data name="Settings_Theme" xml:space="preserve">
     <value>Farbschema:</value>
   </data>
+  <data name="Settings_FontSize" xml:space="preserve">
+    <value>Schriftgröße:</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Sprache:</value>
   </data>
