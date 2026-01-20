@@ -16,6 +16,8 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
+public record PreviewLineHighlightRequest(int LineNumber, string LineContent);
+
 public class DistributionEditTabViewModel : ReactiveObject
 {
     private readonly DistributionFileWriterService _fileWriterService;
@@ -33,6 +35,7 @@ public class DistributionEditTabViewModel : ReactiveObject
     private readonly Dictionary<DistributionEntryViewModel, IDisposable> _entryChangedSubscriptions = new();
     private readonly Dictionary<DistributionEntryViewModel, IDisposable> _useChanceSubscriptions = new();
     private readonly Dictionary<DistributionEntryViewModel, IDisposable> _typeSubscriptions = new();
+    private DistributionEntryViewModel? _lastChangedEntry;
 
     public DistributionEditTabViewModel(
         DistributionFileWriterService fileWriterService,
@@ -345,6 +348,8 @@ public class DistributionEditTabViewModel : ReactiveObject
 
     [Reactive] public string DistributionFileContent { get; private set; } = string.Empty;
 
+    [Reactive] public PreviewLineHighlightRequest? HighlightRequest { get; private set; }
+
     /// <summary>
     /// The distribution file format (SPID or SkyPatcher).
     /// Defaults to SkyPatcher for new files, or detected from existing files.
@@ -454,6 +459,7 @@ public class DistributionEditTabViewModel : ReactiveObject
     private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
     {
         var entryChangedSub = Observable.FromEventPattern(entry, nameof(entry.EntryChanged))
+            .Do(_ => _lastChangedEntry = entry)
             .Throttle(TimeSpan.FromMilliseconds(300))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => UpdateFileContent());
@@ -1226,12 +1232,52 @@ public class DistributionEditTabViewModel : ReactiveObject
 
             _logger.Debug("UpdateFileContent: Generated {LineCount} lines", DistributionFileContent.Split('\n').Length);
             DetectConflicts();
+
+            RaiseHighlightRequestForChangedEntry(effectiveFormat);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Error updating distribution file content");
             DistributionFileContent = $"; Error generating file content: {ex.Message}";
         }
+    }
+
+    private void RaiseHighlightRequestForChangedEntry(DistributionFileType effectiveFormat)
+    {
+        var entryToHighlight = _lastChangedEntry ?? SelectedEntry;
+        _lastChangedEntry = null;
+
+        if (entryToHighlight == null || _isBulkLoading)
+            return;
+
+        var lineNumber = CalculateLineNumberForEntry(entryToHighlight, effectiveFormat);
+        if (lineNumber < 0)
+            return;
+
+        var lines = DistributionFileContent.Split('\n');
+        var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
+
+        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent);
+    }
+
+    private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry, DistributionFileType format)
+    {
+        var lineNumber = 3;
+
+        foreach (var entry in DistributionEntries)
+        {
+            var producesLine = entry.Type == DistributionType.Keyword
+                ? !string.IsNullOrWhiteSpace(entry.KeywordToDistribute)
+                : entry.SelectedOutfit != null;
+
+            if (entry == targetEntry)
+                return producesLine ? lineNumber : -1;
+
+            if (producesLine)
+                lineNumber++;
+        }
+
+        return -1;
     }
 
     private async Task LoadAvailableOutfitsAsync()

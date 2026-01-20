@@ -8,6 +8,7 @@
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
+             x:Name="Root"
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="200"
              d:DesignWidth="400">
@@ -61,8 +62,19 @@
             <!-- File Content Preview -->
             <Border Grid.Row="1" Padding="6" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
                     BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1" CornerRadius="4">
-                <TextBox Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+                <Grid>
+                    <TextBox x:Name="PreviewTextBox"
+                             Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+                    <Border x:Name="HighlightOverlay"
+                            Background="{DynamicResource Brush.Accent}"
+                            Opacity="0"
+                            IsHitTestVisible="False"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Stretch"
+                            Height="16"
+                            Margin="0" />
+                </Grid>
             </Border>
         </Grid>
     </GroupBox>
