@@ -1729,18 +1729,26 @@ public class MainViewModel : ReactiveObject
                     _pendingOutfitDeletions.Remove(editorId);
                 HasPendingOutfitDeletions = _pendingOutfitDeletions.Count > 0;
 
-                foreach (var result in results)
+                _suppressAutoSave = true;
+                try
                 {
-                    var draft = _outfitDrafts.FirstOrDefault(d =>
-                        string.Equals(d.EditorId, result.EditorId, StringComparison.OrdinalIgnoreCase));
+                    foreach (var result in results)
+                    {
+                        var draft = _outfitDrafts.FirstOrDefault(d =>
+                            string.Equals(d.EditorId, result.EditorId, StringComparison.OrdinalIgnoreCase));
 
-                    if (draft != null && !draft.FormKey.HasValue)
-                        draft.FormKey = result.FormKey;
+                        if (draft != null && !draft.FormKey.HasValue)
+                            draft.FormKey = result.FormKey;
+                    }
+
+                    StatusMessage = "Refreshing outfits...";
+                    await _gameDataCache.RefreshOutfitsFromPatchAsync();
+                    StatusMessage = message;
                 }
-
-                StatusMessage = "Refreshing outfits...";
-                await _gameDataCache.RefreshOutfitsFromPatchAsync();
-                StatusMessage = message;
+                finally
+                {
+                    _suppressAutoSave = false;
+                }
             }
         }
         catch (Exception ex)
