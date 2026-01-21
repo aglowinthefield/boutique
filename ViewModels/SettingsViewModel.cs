@@ -237,77 +237,34 @@ public class SettingsViewModel : ReactiveObject
 
     private void AutoDetectPath()
     {
-        var mo2DataPath = Environment.GetEnvironmentVariable("MO_DATAPATH");
-        if (!string.IsNullOrEmpty(mo2DataPath) && Directory.Exists(mo2DataPath))
-        {
-            SkyrimDataPath = mo2DataPath;
-            IsRunningFromMO2 = true;
-            DetectionSource = "Detected from Mod Organizer 2 (MO_DATAPATH)";
-            DetectionFailed = false;
-            return;
-        }
-
-        var mo2GamePath = Environment.GetEnvironmentVariable("MO_GAMEPATH");
-        if (!string.IsNullOrEmpty(mo2GamePath))
-        {
-            var dataPath = Path.Combine(mo2GamePath, "Data");
-            if (Directory.Exists(dataPath))
-            {
-                SkyrimDataPath = dataPath;
-                IsRunningFromMO2 = true;
-                DetectionSource = "Detected from Mod Organizer 2 (MO_GAMEPATH)";
-                DetectionFailed = false;
-                return;
-            }
-        }
-
-        var mo2VirtualPath = Environment.GetEnvironmentVariable("VIRTUAL_STORE");
-        if (!string.IsNullOrEmpty(mo2VirtualPath) && Directory.Exists(mo2VirtualPath))
-        {
-            SkyrimDataPath = mo2VirtualPath;
-            IsRunningFromMO2 = true;
-            DetectionSource = "Detected from Mod Organizer 2 (VIRTUAL_STORE)";
-            DetectionFailed = false;
-            return;
-        }
-
-        var usvfsLog = Environment.GetEnvironmentVariable("USVFS_LOGFILE");
-        var mo2Profile = Environment.GetEnvironmentVariable("MO_PROFILE");
-        if (!string.IsNullOrEmpty(usvfsLog) || !string.IsNullOrEmpty(mo2Profile))
-        {
-            IsRunningFromMO2 = true;
-            DetectionSource = "Running under Mod Organizer 2 USVFS (data path not explicitly set)";
-            DetectionFailed = false;
-        }
-
-        var gameRelease = SelectedSkyrimRelease switch
-        {
-            SkyrimRelease.SkyrimSE => GameRelease.SkyrimSE,
-            SkyrimRelease.SkyrimVR => GameRelease.SkyrimVR,
-            SkyrimRelease.SkyrimSEGog => GameRelease.SkyrimSEGog,
-            _ => GameRelease.SkyrimSE
-        };
-
-        var gameName = SelectedSkyrimRelease switch
-        {
-            SkyrimRelease.SkyrimVR => "Skyrim VR",
-            SkyrimRelease.SkyrimSEGog => "Skyrim SE (GOG)",
-            _ => "Skyrim SE"
-        };
+        var (gameRelease, gameName) = GetGameInfo(SelectedSkyrimRelease);
 
         if (GameLocations.TryGetDataFolder(gameRelease, out var dataFolder))
         {
             SkyrimDataPath = dataFolder.Path;
-            IsRunningFromMO2 = false;
-            DetectionSource = $"Detected {gameName} using Mutagen";
             DetectionFailed = false;
-            return;
+        }
+        else
+        {
+            DetectionFailed = true;
         }
 
-        IsRunningFromMO2 = false;
-        DetectionSource = $"Auto-detection failed for {gameName} - please set manually";
-        DetectionFailed = true;
+        DetectionSource = GetDetectionMessage(gameName, !DetectionFailed);
     }
+
+    private static (GameRelease GameRelease, string GameName) GetGameInfo(SkyrimRelease release)
+    {
+        return release switch
+        {
+            SkyrimRelease.SkyrimVR => (GameRelease.SkyrimVR, "Skyrim VR"),
+            SkyrimRelease.SkyrimSEGog => (GameRelease.SkyrimSEGog, "Skyrim SE (GOG)"),
+            _ => (GameRelease.SkyrimSE, "Skyrim SE")
+        };
+    }
+
+    private static string GetDetectionMessage(string gameName, bool success) =>
+        success ? $"Detected {gameName} using Mutagen"
+                : $"Auto-detection failed for {gameName} - please set manually";
 
     private void RestartTutorial()
     {
