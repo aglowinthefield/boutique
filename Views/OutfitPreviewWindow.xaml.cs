@@ -6,17 +6,18 @@ using System.Windows.Interop;
 using System.Windows.Media.Media3D;
 using Boutique.Models;
 using Boutique.Services;
+using HelixToolkit;
+using HelixToolkit.SharpDX;
+using HelixToolkit.SharpDX.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
-using HelixToolkit.Wpf.SharpDX.Model.Scene;
 using Serilog;
 using SharpDX.Direct3D11;
 using Color = System.Windows.Media.Color;
-using Color4 = SharpDX.Color4;
-using MeshGeometry3D = HelixToolkit.Wpf.SharpDX.MeshGeometry3D;
+using Color4 = HelixToolkit.Maths.Color4;
+using HxMeshGeometry3D = HelixToolkit.SharpDX.MeshGeometry3D;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 using ProjectionCamera = HelixToolkit.Wpf.SharpDX.ProjectionCamera;
-using SharpDXVector2 = SharpDX.Vector2;
-using SharpDXVector3 = SharpDX.Vector3;
+using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
 
 namespace Boutique.Views;
@@ -297,7 +298,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         return evaluatedMeshes;
     }
 
-    private static MeshGeometry3D? CreateGeometry(EvaluatedMesh evaluated, Vector3 center)
+    private static HxMeshGeometry3D? CreateGeometry(EvaluatedMesh evaluated, Vector3 center)
     {
         if (evaluated.Vertices.Count == 0 || evaluated.Shape.Indices.Count == 0)
         {
@@ -305,9 +306,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         }
 
         var positions = new Vector3Collection(
-            evaluated.Vertices.Select(v => new SharpDXVector3(v.X - center.X, v.Y - center.Y, v.Z - center.Z)));
+            evaluated.Vertices.Select(v => new Vector3(v.X - center.X, v.Y - center.Y, v.Z - center.Z)));
 
-        var geometry = new MeshGeometry3D
+        var geometry = new HxMeshGeometry3D
         {
             Positions = positions, Indices = new IntCollection(evaluated.Shape.Indices)
         };
@@ -315,14 +316,14 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         if (evaluated.Normals.Count == evaluated.Vertices.Count)
         {
             geometry.Normals = new Vector3Collection(
-                evaluated.Normals.Select(n => new SharpDXVector3(n.X, n.Y, n.Z)));
+                evaluated.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)));
         }
 
         var uvs = evaluated.Shape.TextureCoordinates;
         if (uvs != null && uvs.Count == evaluated.Vertices.Count)
         {
             geometry.TextureCoordinates = new Vector2Collection(
-                uvs.Select(tc => new SharpDXVector2(tc.X, tc.Y)));
+                uvs.Select(tc => new Vector2(tc.X, tc.Y)));
         }
         else if (uvs != null)
         {
