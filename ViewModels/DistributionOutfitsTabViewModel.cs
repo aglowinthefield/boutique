@@ -94,11 +94,6 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     public bool IsInitialized => _mutagenService.IsInitialized;
 
     /// <summary>
-    ///     Gets distribution files from the cache for NPC outfit resolution.
-    /// </summary>
-    private IReadOnlyList<DistributionFileViewModel> DistributionFiles => _cache.AllDistributionFiles;
-
-    /// <summary>
     ///     Event raised when an outfit is copied to create a distribution entry.
     /// </summary>
     public event EventHandler<CopiedOutfit>? OutfitCopied;

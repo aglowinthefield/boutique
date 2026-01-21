@@ -43,7 +43,8 @@ public class DistributionEntryViewModelTests
     {
         // Arrange
         var entry = new DistributionEntry { TraitFilters = new SpidTraitFilters { IsFemale = true } };
-        var vm = new DistributionEntryViewModel(entry)
+
+        _ = new DistributionEntryViewModel(entry)
         {
             // Act
             Gender = GenderFilter.Any

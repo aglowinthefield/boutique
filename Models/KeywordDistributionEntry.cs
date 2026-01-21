@@ -77,9 +77,11 @@ public sealed class KeywordDistributionEntry
         var results = new List<string>();
 
         foreach (var expr in StringFilters.Expressions)
-        foreach (var part in expr.Parts)
         {
-            results.Add(part.Value);
+            foreach (var part in expr.Parts)
+            {
+                results.Add(part.Value);
+            }
         }
 
         return results;

@@ -417,9 +417,11 @@ public static class SpidLineParser
         var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var expr in filter.StringFilters.Expressions)
-        foreach (var part in expr.Parts)
         {
-            results.Add(part.Value);
+            foreach (var part in expr.Parts)
+            {
+                results.Add(part.Value);
+            }
         }
 
         return results.ToList();

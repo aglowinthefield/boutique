@@ -156,10 +156,7 @@ public class FilterableSelector : Control
         if (ItemsSource is IList list)
         {
             _filteredView = new ListCollectionView(list);
-            if (_listBox != null)
-            {
-                _listBox.ItemsSource = _filteredView;
-            }
+            _listBox?.ItemsSource = _filteredView;
         }
     }
 
