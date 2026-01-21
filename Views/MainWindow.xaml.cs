@@ -124,22 +124,34 @@ public partial class MainWindow : Window
     private async void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!Equals(e.Source, sender))
+        {
             return;
+        }
 
         if (sender is not TabControl)
+        {
             return;
+        }
 
         if (DataContext is not MainViewModel viewModel)
+        {
             return;
+        }
 
         if (e.AddedItems.Count == 0)
+        {
             return;
+        }
 
         if (e.AddedItems[0] is not TabItem tabItem)
+        {
             return;
+        }
 
         if (tabItem.Header is not string header)
+        {
             return;
+        }
 
         switch (header)
         {
@@ -155,7 +167,9 @@ public partial class MainWindow : Window
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         if (_initialized)
+        {
             return;
+        }
 
         if (DataContext is MainViewModel viewModel)
         {
@@ -164,16 +178,22 @@ public partial class MainWindow : Window
         }
 
         if (FeatureFlags.TutorialEnabled && !_tutorialService.HasCompletedTutorial)
+        {
             Dispatcher.BeginInvoke(() => _tutorialService.StartTutorial(), DispatcherPriority.ApplicationIdle);
+        }
     }
 
     private void MainGuideline_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (!FeatureFlags.TutorialEnabled)
+        {
             return;
+        }
 
         if (sender is not GuideLine_View { DataContext: GuideLineManager manager })
+        {
             return;
+        }
 
         switch (e.Key)
         {
@@ -196,6 +216,8 @@ public partial class MainWindow : Window
     public void StartTutorial()
     {
         if (FeatureFlags.TutorialEnabled)
+        {
             _tutorialService.StartTutorial();
+        }
     }
 }

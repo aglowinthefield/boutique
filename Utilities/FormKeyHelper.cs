@@ -14,7 +14,9 @@ public static class FormKeyHelper
     public static bool IsModKeyFileName(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return false;
+        }
 
         return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
                text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
@@ -24,11 +26,15 @@ public static class FormKeyHelper
     public static bool LooksLikeFormId(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return false;
+        }
 
         var trimmed = text.Trim();
         if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
             trimmed = trimmed[2..];
+        }
 
         return trimmed.Length is >= 1 and <= 8 && trimmed.All(char.IsAsciiHexDigit);
     }
@@ -39,7 +45,9 @@ public static class FormKeyHelper
         {
             var idx = text.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
             if (idx >= 0)
+            {
                 return idx + ext.Length;
+            }
         }
 
         return -1;
@@ -48,7 +56,9 @@ public static class FormKeyHelper
     public static string StripHexPrefix(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return text ?? string.Empty;
+        }
 
         var trimmed = text.Trim();
         return trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? trimmed[2..] : trimmed;
@@ -58,7 +68,9 @@ public static class FormKeyHelper
     {
         formKey = FormKey.Null;
         if (string.IsNullOrWhiteSpace(text))
+        {
             return false;
+        }
 
         var trimmed = text.Trim();
         string modPart;
@@ -77,13 +89,19 @@ public static class FormKeyHelper
             modPart = parts[1].Trim();
         }
         else
+        {
             return false;
+        }
 
         if (!TryParseModKey(modPart, out var modKey))
+        {
             return false;
+        }
 
         if (!TryParseFormId(formIdPart, out var id))
+        {
             return false;
+        }
 
         formKey = new FormKey(modKey, id);
         return true;
@@ -107,11 +125,15 @@ public static class FormKeyHelper
     {
         id = 0;
         if (string.IsNullOrWhiteSpace(text))
+        {
             return false;
+        }
 
         var trimmed = text.Trim();
         if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
             trimmed = trimmed[2..];
+        }
 
         return uint.TryParse(trimmed, NumberStyles.HexNumber, null, out id);
     }
@@ -122,7 +144,9 @@ public static class FormKeyHelper
         editorId = string.Empty;
 
         if (string.IsNullOrWhiteSpace(identifier))
+        {
             return false;
+        }
 
         var trimmed = identifier.Trim();
         string? modCandidate = null;
@@ -172,14 +196,20 @@ public static class FormKeyHelper
             }
         }
         else
+        {
             editorCandidate = trimmed;
+        }
 
         if (!modKey.HasValue && !string.IsNullOrWhiteSpace(modCandidate) &&
             TryParseModKey(modCandidate, out var parsedMod))
+        {
             modKey = parsedMod;
+        }
 
         if (string.IsNullOrWhiteSpace(editorCandidate))
+        {
             return false;
+        }
 
         editorId = editorCandidate;
         return true;
@@ -190,10 +220,14 @@ public static class FormKeyHelper
     public static FormKey? ResolveOutfit(string identifier, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (string.IsNullOrWhiteSpace(identifier))
+        {
             return null;
+        }
 
         if (TryParse(identifier, out var formKey))
+        {
             return formKey;
+        }
 
         var outfit = linkCache.WinningOverrides<IOutfitGetter>()
             .FirstOrDefault(o => !string.IsNullOrWhiteSpace(o.EditorID) &&
@@ -208,10 +242,14 @@ public static class FormKeyHelper
         IReadOnlyDictionary<string, FormKey> outfitByEditorId)
     {
         if (string.IsNullOrWhiteSpace(identifier))
+        {
             return null;
+        }
 
         if (TryParse(identifier, out var formKey))
+        {
             return formKey;
+        }
 
         return outfitByEditorId.TryGetValue(identifier, out var resolvedFormKey)
             ? resolvedFormKey

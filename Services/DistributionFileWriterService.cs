@@ -60,7 +60,9 @@ public class DistributionFileWriterService
                         cancellationToken.ThrowIfCancellationRequested();
 
                         if (entry.Outfit == null)
+                        {
                             continue;
+                        }
 
                         if (effectiveFormat == DistributionFileType.Spid)
                         {
@@ -150,8 +152,10 @@ public class DistributionFileWriterService
                             }
 
                             if (entry.TraitFilters.IsFemale.HasValue)
+                            {
                                 filterParts.Add(
                                     $"filterByGender={(entry.TraitFilters.IsFemale.Value ? "female" : "male")}");
+                            }
 
                             var outfitFormKey = FormatFormKey(entry.Outfit.FormKey);
                             filterParts.Add($"outfitDefault={outfitFormKey}");
@@ -239,7 +243,9 @@ public class DistributionFileWriterService
                         var line = lines[lineNumber];
                         var trimmed = line.Trim();
                         if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#'))
+                        {
                             continue;
+                        }
 
                         DistributionEntry? entry = null;
                         string? parseFailureReason = null;
@@ -262,7 +268,9 @@ public class DistributionFileWriterService
                                 entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits,
                                     _logger);
                                 if (entry == null)
+                                {
                                     parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
+                                }
                             }
                             else if (spidFilter.FormType == SpidFormType.Keyword)
                             {
@@ -270,8 +278,10 @@ public class DistributionFileWriterService
                                 entry = SpidFilterResolver.ResolveKeyword(spidFilter, linkCache, cachedNpcs, null,
                                     _logger);
                                 if (entry == null)
+                                {
                                     parseFailureReason =
                                         "Could not resolve keyword distribution filters from SPID syntax";
+                                }
                             }
                             else
                             {
@@ -281,12 +291,18 @@ public class DistributionFileWriterService
                             }
                         }
                         else
+                        {
                             parseFailureReason = "Unrecognized distribution syntax";
+                        }
 
                         if (entry != null)
+                        {
                             entries.Add(entry);
+                        }
                         else if (parseFailureReason != null)
+                        {
                             parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed, parseFailureReason));
+                        }
                     }
 
                     detectedFormat = hasSpidLines ? DistributionFileType.Spid : DistributionFileType.SkyPatcher;
@@ -316,7 +332,9 @@ public class DistributionFileWriterService
         try
         {
             if (!SkyPatcherSyntax.HasFilter(line, "outfitDefault"))
+            {
                 return (null, null);
+            }
 
             var npcStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
             var factionStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
@@ -358,7 +376,9 @@ public class DistributionFileWriterService
 
             var outfitString = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
             if (string.IsNullOrWhiteSpace(outfitString))
+            {
                 return (null, null);
+            }
 
             var outfitFormKey = FormKeyHelper.ResolveOutfit(outfitString, linkCache, outfitByEditorId);
 
@@ -416,7 +436,9 @@ public class DistributionFileWriterService
                 _logger.Debug("Resolved NPC EditorID/Name '{Id}' to {FormKey}", id, npc.FormKey);
             }
             else
+            {
                 _logger.Warning("Could not resolve NPC identifier: {Id}", id);
+            }
         }
 
         return results;
@@ -442,7 +464,9 @@ public class DistributionFileWriterService
                 _logger.Debug("Resolved Faction EditorID '{Id}' to {FormKey}", id, faction.FormKey);
             }
             else
+            {
                 _logger.Warning("Could not resolve Faction identifier: {Id}", id);
+            }
         }
 
         return results;
@@ -469,7 +493,9 @@ public class DistributionFileWriterService
             var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
                 .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
             if (resolvedKeyword != null)
+            {
                 results.Add(new KeywordFilter(resolvedKeyword.EditorID ?? id));
+            }
             else
             {
                 // Keep as-is (could be a virtual keyword)
@@ -507,7 +533,9 @@ public class DistributionFileWriterService
                 _logger.Debug("Resolved Race EditorID '{Id}' to {FormKey}", id, race.FormKey);
             }
             else
+            {
                 _logger.Warning("Could not resolve Race identifier: {Id}", id);
+            }
         }
 
         return results;
@@ -533,7 +561,9 @@ public class DistributionFileWriterService
                 _logger.Debug("Resolved Class EditorID '{Id}' to {FormKey}", id, cls.FormKey);
             }
             else
+            {
                 _logger.Warning("Could not resolve Class identifier: {Id}", id);
+            }
         }
 
         return results;
@@ -564,18 +594,33 @@ public class DistributionFileWriterService
                 // Prefer Name, fall back to EditorID
                 var name = npc.Name?.String;
                 if (!string.IsNullOrWhiteSpace(name))
+                {
                     npcNames.Add(name);
-                else if (!string.IsNullOrWhiteSpace(npc.EditorID)) npcNames.Add(npc.EditorID);
+                }
+                else if (!string.IsNullOrWhiteSpace(npc.EditorID))
+                {
+                    npcNames.Add(npc.EditorID);
+                }
             }
         }
 
-        if (npcNames.Count > 0) stringFilters.Add(string.Join(",", npcNames));
+        if (npcNames.Count > 0)
+        {
+            stringFilters.Add(string.Join(",", npcNames));
+        }
 
         // Add keywords (+ separated for AND logic, with negation prefix for excluded)
         var includedKeywords = entry.KeywordFilters.Where(k => !k.IsExcluded).Select(k => k.EditorId).ToList();
         var excludedKeywords = entry.KeywordFilters.Where(k => k.IsExcluded).Select(k => $"-{k.EditorId}").ToList();
-        if (includedKeywords.Count > 0) stringFilters.Add(string.Join("+", includedKeywords));
-        if (excludedKeywords.Count > 0) stringFilters.AddRange(excludedKeywords);
+        if (includedKeywords.Count > 0)
+        {
+            stringFilters.Add(string.Join("+", includedKeywords));
+        }
+
+        if (excludedKeywords.Count > 0)
+        {
+            stringFilters.AddRange(excludedKeywords);
+        }
 
         var stringFiltersPart = stringFilters.Count > 0 ? string.Join(",", stringFilters) : null;
 
@@ -586,63 +631,81 @@ public class DistributionFileWriterService
         {
             if (linkCache.TryResolve<IFactionGetter>(filter.FormKey, out var faction) &&
                 !string.IsNullOrWhiteSpace(faction.EditorID))
+            {
                 formFilters.Add(filter.IsExcluded ? $"-{faction.EditorID}" : faction.EditorID);
+            }
         }
 
         foreach (var filter in entry.RaceFilters)
         {
             if (linkCache.TryResolve<IRaceGetter>(filter.FormKey, out var race) &&
                 !string.IsNullOrWhiteSpace(race.EditorID))
+            {
                 formFilters.Add(filter.IsExcluded ? $"-{race.EditorID}" : race.EditorID);
+            }
         }
 
         foreach (var classFormKey in entry.ClassFormKeys)
         {
             if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
                 !string.IsNullOrWhiteSpace(classRecord.EditorID))
+            {
                 formFilters.Add(classRecord.EditorID);
+            }
         }
 
         foreach (var combatStyleFormKey in entry.CombatStyleFormKeys)
         {
             if (linkCache.TryResolve<ICombatStyleGetter>(combatStyleFormKey, out var combatStyle) &&
                 !string.IsNullOrWhiteSpace(combatStyle.EditorID))
+            {
                 formFilters.Add(combatStyle.EditorID);
+            }
         }
 
         foreach (var outfitFilterFormKey in entry.OutfitFilterFormKeys)
         {
             if (linkCache.TryResolve<IOutfitGetter>(outfitFilterFormKey, out var outfitFilter) &&
                 !string.IsNullOrWhiteSpace(outfitFilter.EditorID))
+            {
                 formFilters.Add(outfitFilter.EditorID);
+            }
         }
 
         foreach (var perkFormKey in entry.PerkFormKeys)
         {
             if (linkCache.TryResolve<IPerkGetter>(perkFormKey, out var perk) &&
                 !string.IsNullOrWhiteSpace(perk.EditorID))
+            {
                 formFilters.Add(perk.EditorID);
+            }
         }
 
         foreach (var voiceTypeFormKey in entry.VoiceTypeFormKeys)
         {
             if (linkCache.TryResolve<IVoiceTypeGetter>(voiceTypeFormKey, out var voiceType) &&
                 !string.IsNullOrWhiteSpace(voiceType.EditorID))
+            {
                 formFilters.Add(voiceType.EditorID);
+            }
         }
 
         foreach (var locationFormKey in entry.LocationFormKeys)
         {
             if (linkCache.TryResolve<ILocationGetter>(locationFormKey, out var location) &&
                 !string.IsNullOrWhiteSpace(location.EditorID))
+            {
                 formFilters.Add(location.EditorID);
+            }
         }
 
         foreach (var formListFormKey in entry.FormListFormKeys)
         {
             if (linkCache.TryResolve<IFormListGetter>(formListFormKey, out var formList) &&
                 !string.IsNullOrWhiteSpace(formList.EditorID))
+            {
                 formFilters.Add(formList.EditorID);
+            }
         }
 
         var formFiltersPart = formFilters.Count > 0 ? string.Join(",", formFilters) : null;
@@ -697,44 +760,74 @@ public class DistributionFileWriterService
     private static string? FormatTraitFilters(SpidTraitFilters traits)
     {
         if (traits.IsEmpty)
+        {
             return null;
+        }
 
         var parts = new List<string>();
 
         if (traits.IsFemale == true)
+        {
             parts.Add("F");
+        }
         else if (traits.IsFemale == false)
+        {
             parts.Add("M");
+        }
 
         if (traits.IsUnique == true)
+        {
             parts.Add("U");
+        }
         else if (traits.IsUnique == false)
+        {
             parts.Add("-U");
+        }
 
         if (traits.IsSummonable == true)
+        {
             parts.Add("S");
+        }
         else if (traits.IsSummonable == false)
+        {
             parts.Add("-S");
+        }
 
         if (traits.IsChild == true)
+        {
             parts.Add("C");
+        }
         else if (traits.IsChild == false)
+        {
             parts.Add("-C");
+        }
 
         if (traits.IsLeveled == true)
+        {
             parts.Add("L");
+        }
         else if (traits.IsLeveled == false)
+        {
             parts.Add("-L");
+        }
 
         if (traits.IsTeammate == true)
+        {
             parts.Add("T");
+        }
         else if (traits.IsTeammate == false)
+        {
             parts.Add("-T");
+        }
 
         if (traits.IsDead == true)
+        {
             parts.Add("D");
+        }
         else if (traits.IsDead == false)
+        {
             parts.Add("-D");
+        }
 
         return parts.Count > 0 ? string.Join("/", parts) : null;
     }

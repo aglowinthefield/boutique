@@ -96,7 +96,9 @@ public partial class App
     private static void CheckForUpdates()
     {
         if (!FeatureFlags.AutoUpdateEnabled)
+        {
             return;
+        }
 
         try
         {
@@ -177,7 +179,9 @@ public partial class App
         versionString = versionString.TrimStart('v');
         var match = Regex.Match(versionString, @"^(\d+)\.(\d+)\.(\d+)");
         if (!match.Success)
+        {
             return null;
+        }
 
         var major = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
         var minor = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
@@ -206,7 +210,9 @@ public partial class App
                 string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
         }
         else
+        {
             Log.Debug("No MO2 environment variables detected - running standalone or MO2 env vars not set");
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)

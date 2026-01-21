@@ -22,15 +22,21 @@ public class KeywordDistributionResolver(ILogger logger)
         foreach (var file in files)
         {
             if (file.Type != DistributionFileType.Spid)
+            {
                 continue;
+            }
 
             foreach (var line in file.Lines)
             {
                 if (!line.IsKeywordDistribution)
+                {
                     continue;
+                }
 
                 if (SpidLineParser.TryParseKeyword(line.RawText, out var filter) && filter != null)
+                {
                     entries.Add(KeywordDistributionEntry.FromFilter(filter, file.FullPath, line.LineNumber));
+                }
             }
         }
 
@@ -64,9 +70,14 @@ public class KeywordDistributionResolver(ILogger logger)
             foreach (var dep in dependencies)
             {
                 if (!keywordToEntry.ContainsKey(dep))
+                {
                     continue;
+                }
 
-                if (graph[dep].Add(keyword)) inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
+                if (graph[dep].Add(keyword))
+                {
+                    inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
+                }
             }
         }
 
@@ -74,7 +85,9 @@ public class KeywordDistributionResolver(ILogger logger)
         foreach (var (keyword, degree) in inDegree)
         {
             if (degree == 0)
+            {
                 queue.Enqueue(keyword);
+            }
         }
 
         var sorted = new List<KeywordDistributionEntry>();
@@ -86,16 +99,22 @@ public class KeywordDistributionResolver(ILogger logger)
             processed.Add(current);
 
             if (keywordToEntry.TryGetValue(current, out var entry))
+            {
                 sorted.Add(entry);
+            }
 
             if (!graph.TryGetValue(current, out var dependents))
+            {
                 continue;
+            }
 
             foreach (var dependent in dependents)
             {
                 inDegree[dependent]--;
                 if (inDegree[dependent] == 0)
+                {
                     queue.Enqueue(dependent);
+                }
             }
         }
 
@@ -104,7 +123,9 @@ public class KeywordDistributionResolver(ILogger logger)
             .ToList();
 
         if (cyclicKeywords.Count > 0)
+        {
             _logger.Warning("Detected circular keyword dependencies: {Keywords}", string.Join(", ", cyclicKeywords));
+        }
 
         _logger.Debug(
             "Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
@@ -123,7 +144,9 @@ public class KeywordDistributionResolver(ILogger logger)
         var npcKeywords = new Dictionary<FormKey, HashSet<string>>();
 
         foreach (var npc in allNpcs)
+        {
             npcKeywords[npc.FormKey] = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
+        }
 
         _logger.Debug(
             "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
@@ -134,8 +157,12 @@ public class KeywordDistributionResolver(ILogger logger)
             var matchingNpcs = GetMatchingNpcs(entry, allNpcs, npcKeywords);
 
             foreach (var npc in matchingNpcs)
+            {
                 if (ShouldApplyChance(entry.Chance, npc.FormKey))
+                {
                     npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
+                }
+            }
 
             _logger.Debug(
                 "Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
@@ -159,7 +186,9 @@ public class KeywordDistributionResolver(ILogger logger)
         NpcFilterData npc)
     {
         if (!simulatedKeywords.TryGetValue(npcFormKey, out var keywords))
+        {
             return npc.Keywords;
+        }
 
         var combined = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
         combined.UnionWith(keywords);
@@ -189,10 +218,14 @@ public class KeywordDistributionResolver(ILogger logger)
     private static bool ShouldApplyChance(int chance, FormKey npcFormKey)
     {
         if (chance >= 100)
+        {
             return true;
+        }
 
         if (chance <= 0)
+        {
             return false;
+        }
 
         var hash = npcFormKey.GetHashCode();
         var randomValue = Math.Abs(hash) % 100;

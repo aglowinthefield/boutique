@@ -121,12 +121,16 @@ public class DistributionConflictDetectionService
                         .AppendLine();
 
                     foreach (var conflict in conflicts.Take(5)) // Show first 5
+                    {
                         sb.Append(CultureInfo.InvariantCulture,
                                 $"  • {conflict.DisplayName ?? conflict.NpcFormKey.ToString()} ({conflict.ExistingFileName})")
                             .AppendLine();
+                    }
 
                     if (conflicts.Count > 5)
+                    {
                         sb.Append(CultureInfo.InvariantCulture, $"  ... and {conflicts.Count - 5} more").AppendLine();
+                    }
                 }
 
                 conflictSummary = sb.ToString().TrimEnd();
@@ -152,16 +156,24 @@ public class DistributionConflictDetectionService
     private static bool DoesFileLoadAfterAll(string fileName, HashSet<string> conflictingFileNames)
     {
         if (string.IsNullOrWhiteSpace(fileName))
+        {
             return false;
+        }
 
         // No conflicting files means we're already "after" all of them (vacuously true)
         if (conflictingFileNames.Count == 0)
+        {
             return true;
+        }
 
         foreach (var conflictingFile in conflictingFileNames)
             // Compare alphabetically (case-insensitive, like file systems)
+        {
             if (string.Compare(fileName, conflictingFile, StringComparison.OrdinalIgnoreCase) <= 0)
+            {
                 return false;
+            }
+        }
 
         return true;
     }
@@ -204,7 +216,10 @@ public class DistributionConflictDetectionService
                 if (DistributionLineParser.LineTargetsAllNpcs(file, line))
                 {
                     // Only track the first "all NPCs" distribution
-                    if (allNpcsDistributions.Count == 0) allNpcsDistributions.Add((file.FileName, outfitName));
+                    if (allNpcsDistributions.Count == 0)
+                    {
+                        allNpcsDistributions.Add((file.FileName, outfitName));
+                    }
 
                     continue;
                 }
@@ -215,8 +230,12 @@ public class DistributionConflictDetectionService
 
                 foreach (var npcFormKey in npcFormKeys)
                     // Only track first occurrence (earlier files in load order)
+                {
                     if (!map.ContainsKey(npcFormKey))
+                    {
                         map[npcFormKey] = (file.FileName, outfitName);
+                    }
+                }
             }
         }
 
@@ -226,7 +245,9 @@ public class DistributionConflictDetectionService
     private static string CalculateZPrefixedFileName(string newFileName, HashSet<string> conflictingFileNames)
     {
         if (string.IsNullOrWhiteSpace(newFileName) || conflictingFileNames.Count == 0)
+        {
             return newFileName;
+        }
 
         // Find the maximum number of leading Z's in conflicting filenames
         var maxZCount = 0;
@@ -236,9 +257,13 @@ public class DistributionConflictDetectionService
             foreach (var c in fileName)
             {
                 if (c == 'Z' || c == 'z')
+                {
                     zCount++;
+                }
                 else
+                {
                     break;
+                }
             }
 
             maxZCount = Math.Max(maxZCount, zCount);

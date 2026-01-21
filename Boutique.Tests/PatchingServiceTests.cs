@@ -89,7 +89,9 @@ public class PatchingServiceTests
         mod.ModHeader.Stats.NextFormID = 0x100;
 
         if (mod.ModHeader.Stats.NextFormID < MinimumEslFormId)
+        {
             mod.ModHeader.Stats.NextFormID = MinimumEslFormId;
+        }
 
         Assert.Equal(MinimumEslFormId, mod.ModHeader.Stats.NextFormID);
     }
@@ -103,7 +105,9 @@ public class PatchingServiceTests
         mod.ModHeader.Stats.NextFormID = 0x900;
 
         if (mod.ModHeader.Stats.NextFormID < MinimumEslFormId)
+        {
             mod.ModHeader.Stats.NextFormID = MinimumEslFormId;
+        }
 
         Assert.Equal(0x900u, mod.ModHeader.Stats.NextFormID);
     }

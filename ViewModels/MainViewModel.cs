@@ -254,7 +254,9 @@ public partial class MainViewModel : ReactiveObject
         set
         {
             if (value.Equals(_selectedOutfitArmors))
+            {
                 return;
+            }
 
             _selectedOutfitArmors = value;
             this.RaisePropertyChanged();
@@ -268,7 +270,9 @@ public partial class MainViewModel : ReactiveObject
         set
         {
             if (string.Equals(value, field, StringComparison.Ordinal))
+            {
                 return;
+            }
 
             _existingOutfits.Clear();
 
@@ -299,7 +303,9 @@ public partial class MainViewModel : ReactiveObject
         set
         {
             if (value.Equals(_selectedSourceArmors))
+            {
                 return;
+            }
 
             _selectedSourceArmors = value;
             this.RaisePropertyChanged();
@@ -320,7 +326,9 @@ public partial class MainViewModel : ReactiveObject
                     _targetArmors.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
             }
             else
+            {
                 SelectedTargetArmor = _targetArmors.FirstOrDefault(t => primary.SharesSlotWith(t));
+            }
         }
     }
 
@@ -353,7 +361,9 @@ public partial class MainViewModel : ReactiveObject
         set
         {
             if (string.Equals(value, field, StringComparison.Ordinal))
+            {
                 return;
+            }
 
             this.RaiseAndSetIfChanged(ref field, value);
             _logger.Information("Selected source plugin set to {Plugin}", value ?? "<none>");
@@ -364,7 +374,9 @@ public partial class MainViewModel : ReactiveObject
             SourceSearchText = string.Empty;
 
             if (string.IsNullOrWhiteSpace(value))
+            {
                 return;
+            }
 
             _ = LoadSourceArmorsAsync(value);
         }
@@ -376,7 +388,9 @@ public partial class MainViewModel : ReactiveObject
         set
         {
             if (string.Equals(value, field, StringComparison.Ordinal))
+            {
                 return;
+            }
 
             this.RaiseAndSetIfChanged(ref field, value);
             _logger.Information("Selected target plugin set to {Plugin}", value ?? "<none>");
@@ -411,7 +425,9 @@ public partial class MainViewModel : ReactiveObject
         var outfits = (await _mutagenService.LoadOutfitsFromPluginAsync(plugin)).ToList();
 
         if (!string.Equals(SelectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
+        {
             return 0;
+        }
 
         var linkCache = _mutagenService.LinkCache;
         var pluginModKey = ModKey.FromFileName(plugin);
@@ -420,7 +436,9 @@ public partial class MainViewModel : ReactiveObject
         foreach (var outfit in outfits)
         {
             if (outfit.FormKey.ModKey != pluginModKey)
+            {
                 continue;
+            }
 
             var itemLinks = outfit.Items ?? [];
             var armorPieces = new List<IArmorGetter>();
@@ -428,11 +446,15 @@ public partial class MainViewModel : ReactiveObject
             foreach (var entry in itemLinks)
             {
                 if (entry is null)
+                {
                     continue;
+                }
 
                 var formKeyNullable = entry.FormKeyNullable;
                 if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                {
                     continue;
+                }
 
                 var formKey = formKeyNullable.Value;
 
@@ -461,7 +483,9 @@ public partial class MainViewModel : ReactiveObject
                 .ToList();
 
             if (distinctPieces.Count == 0)
+            {
                 continue;
+            }
 
             var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
             var displayName = editorId;
@@ -588,7 +612,9 @@ public partial class MainViewModel : ReactiveObject
             _logger.Information("Clearing {Count} draft(s) from previous output plugin(s).",
                 draftsFromOtherPlugins.Count);
             foreach (var draft in draftsFromOtherPlugins)
+            {
                 _outfitDrafts.Remove(draft);
+            }
         }
 
         var patchPath = Settings.FullOutputPath;
@@ -661,7 +687,9 @@ public partial class MainViewModel : ReactiveObject
 
                 var pieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
                 if (pieces.Count == 0)
+                {
                     continue;
+                }
 
                 var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
 
@@ -747,10 +775,14 @@ public partial class MainViewModel : ReactiveObject
     private bool OutfitPluginFilter(object? item)
     {
         if (item is not string plugin)
+        {
             return false;
+        }
 
         if (string.IsNullOrWhiteSpace(OutfitPluginSearchText))
+        {
             return true;
+        }
 
         return plugin.Contains(OutfitPluginSearchText, StringComparison.OrdinalIgnoreCase);
     }
@@ -758,7 +790,9 @@ public partial class MainViewModel : ReactiveObject
     private bool SourceArmorsFilter(object? item)
     {
         if (item is not ArmorRecordViewModel record)
+        {
             return false;
+        }
 
         return record.MatchesSearch(SourceSearchText);
     }
@@ -766,7 +800,9 @@ public partial class MainViewModel : ReactiveObject
     private bool TargetArmorsFilter(object? item)
     {
         if (item is not ArmorRecordViewModel record)
+        {
             return false;
+        }
 
         return record.MatchesSearch(TargetSearchText);
     }
@@ -774,7 +810,9 @@ public partial class MainViewModel : ReactiveObject
     private bool OutfitArmorsFilter(object? item)
     {
         if (item is not ArmorRecordViewModel record)
+        {
             return false;
+        }
 
         return record.MatchesSearch(OutfitSearchText);
     }
@@ -786,12 +824,17 @@ public partial class MainViewModel : ReactiveObject
         if (sources.Count == 0)
         {
             foreach (var target in _targetArmors)
+            {
                 target.IsSlotCompatible = true;
+            }
+
             return;
         }
 
         foreach (var target in _targetArmors)
+        {
             target.IsSlotCompatible = sources.All(source => source.SharesSlotWith(target));
+        }
 
         TargetArmorsView?.Refresh();
     }
@@ -816,7 +859,9 @@ public partial class MainViewModel : ReactiveObject
             {
                 var existing = Matches.FirstOrDefault(m => m.Source.Armor.FormKey == source.Armor.FormKey);
                 if (existing is not null)
+                {
                     existing.ApplyManualTarget(target);
+                }
                 else
                 {
                     var match = new ArmorMatch(source.Armor, target.Armor, true);
@@ -856,7 +901,9 @@ public partial class MainViewModel : ReactiveObject
             {
                 var existing = Matches.FirstOrDefault(m => m.Source.Armor.FormKey == source.Armor.FormKey);
                 if (existing is not null)
+                {
                     existing.ApplyGlamOnly();
+                }
                 else
                 {
                     var match = new ArmorMatch(source.Armor, null, true);
@@ -881,7 +928,10 @@ public partial class MainViewModel : ReactiveObject
     private void ClearMappings()
     {
         if (!ClearMappingsInternal())
+        {
             return;
+        }
+
         StatusMessage = "Cleared all mappings.";
         _logger.Information("Cleared all manual mappings.");
     }
@@ -895,7 +945,9 @@ public partial class MainViewModel : ReactiveObject
     private void EndLoading()
     {
         if (_activeLoadingOperations > 0)
+        {
             _activeLoadingOperations--;
+        }
 
         IsLoading = _activeLoadingOperations > 0;
     }
@@ -903,10 +955,14 @@ public partial class MainViewModel : ReactiveObject
     private bool ClearMappingsInternal()
     {
         if (Matches.Count == 0)
+        {
             return false;
+        }
 
         foreach (var mapping in Matches.ToList())
+        {
             mapping.Source.IsMapped = false;
+        }
 
         Matches.Clear();
         return true;
@@ -916,7 +972,10 @@ public partial class MainViewModel : ReactiveObject
     private void RemoveMapping(ArmorMatchViewModel mapping)
     {
         if (!Matches.Contains(mapping))
+        {
             return;
+        }
+
         Matches.Remove(mapping);
         mapping.Source.IsMapped = Matches.Any(m => m.Source.Armor.FormKey == mapping.Source.Armor.FormKey);
         StatusMessage = $"Removed mapping for {mapping.Source.DisplayName}";
@@ -928,7 +987,9 @@ public partial class MainViewModel : ReactiveObject
     {
         var plugin = SelectedTargetPlugin;
         if (string.IsNullOrWhiteSpace(plugin))
+        {
             return;
+        }
 
         var needsReload = forceOutfitReload ||
                           !string.Equals(_lastLoadedTargetPlugin, plugin, StringComparison.OrdinalIgnoreCase);
@@ -949,10 +1010,14 @@ public partial class MainViewModel : ReactiveObject
     {
         var plugin = SelectedOutfitPlugin;
         if (string.IsNullOrWhiteSpace(plugin))
+        {
             return;
+        }
 
         if (!forceReload && string.Equals(_lastLoadedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
+        {
             return;
+        }
 
         await LoadOutfitArmorsAsync(plugin);
     }
@@ -966,7 +1031,9 @@ public partial class MainViewModel : ReactiveObject
         }
 
         if (forceOutfitReload)
+        {
             await LoadOutfitPluginAsync();
+        }
     }
 
     [ReactiveCommand]
@@ -1039,7 +1106,9 @@ public partial class MainViewModel : ReactiveObject
             var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
 
             if (!string.Equals(SelectedSourcePlugin, plugin, StringComparison.OrdinalIgnoreCase))
+            {
                 return;
+            }
 
             SourceArmors = new ObservableCollection<ArmorRecordViewModel>(
                 armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
@@ -1085,7 +1154,9 @@ public partial class MainViewModel : ReactiveObject
             var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
 
             if (!string.Equals(SelectedTargetPlugin, plugin, StringComparison.OrdinalIgnoreCase))
+            {
                 return;
+            }
 
             TargetArmors = new ObservableCollection<ArmorRecordViewModel>(
                 armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
@@ -1135,7 +1206,9 @@ public partial class MainViewModel : ReactiveObject
             var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
 
             if (!string.Equals(SelectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
+            {
                 return;
+            }
 
             OutfitArmors = new ObservableCollection<ArmorRecordViewModel>(
                 armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
@@ -1180,12 +1253,16 @@ public partial class MainViewModel : ReactiveObject
         {
             var mask = piece.SlotMask;
             if (mask == 0)
+            {
                 continue;
+            }
 
             foreach (var flag in BipedObjectFlags)
             {
                 if (!mask.HasFlag(flag))
+                {
                     continue;
+                }
 
                 if (slotsInUse.TryGetValue(flag, out var owner))
                 {
@@ -1221,7 +1298,9 @@ public partial class MainViewModel : ReactiveObject
     private static string AlphabetSuffix(int index)
     {
         if (index <= 0)
+        {
             return string.Empty;
+        }
 
         var builder = new StringBuilder();
         while (index > 0)
@@ -1270,7 +1349,9 @@ public partial class MainViewModel : ReactiveObject
         MainTabIndex = 1;
 
         if (copiedOutfit.IsOverride)
+        {
             await CreateOverrideDraftAsync(outfit, armorPieces);
+        }
         else
         {
             var defaultName = "btq_" + (copiedOutfit.OutfitEditorId ?? outfit.FormKey.ToString());
@@ -1316,7 +1397,9 @@ public partial class MainViewModel : ReactiveObject
     private ModKey? GetWinningModForOutfit(FormKey formKey, ModKey? excludeMod)
     {
         if (_mutagenService.LinkCache is not { } linkCache)
+        {
             return null;
+        }
 
         try
         {
@@ -1324,7 +1407,9 @@ public partial class MainViewModel : ReactiveObject
             foreach (var context in contexts)
             {
                 if (excludeMod.HasValue && context.ModKey == excludeMod.Value)
+                {
                     continue;
+                }
 
                 return context.ModKey;
             }
@@ -1373,7 +1458,9 @@ public partial class MainViewModel : ReactiveObject
 
         string outfitName;
         if (!string.IsNullOrWhiteSpace(defaultName))
+        {
             outfitName = defaultName;
+        }
         else
         {
             const string namePrompt = "Enter the outfit name (also used as the EditorID):";
@@ -1392,7 +1479,9 @@ public partial class MainViewModel : ReactiveObject
         sanitizedName = EnsureUniqueOutfitName(sanitizedName, null);
 
         if (!string.Equals(trimmedName, sanitizedName, StringComparison.Ordinal))
+        {
             _logger.Debug("Outfit name sanitized from {Original} to {Sanitized}", trimmedName, sanitizedName);
+        }
 
         var draft = new OutfitDraftViewModel(
             sanitizedName,
@@ -1586,10 +1675,14 @@ public partial class MainViewModel : ReactiveObject
     private void OutfitDraftOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is not OutfitDraftViewModel draft)
+        {
             return;
+        }
 
         if (e.PropertyName == nameof(OutfitDraftViewModel.Name))
+        {
             HandleOutfitDraftRename(draft);
+        }
 
         // Trigger auto-save on any property change
         TriggerAutoSave();
@@ -1598,7 +1691,9 @@ public partial class MainViewModel : ReactiveObject
     private void TriggerAutoSave()
     {
         if (!_suppressAutoSave)
+        {
             _autoSaveTrigger.OnNext(Unit.Default);
+        }
     }
 
     private void HandleOutfitDraftRename(OutfitDraftViewModel draft)
@@ -1630,7 +1725,9 @@ public partial class MainViewModel : ReactiveObject
         draft.PropertyChanged -= OutfitDraftOnPropertyChanged;
 
         if (!_outfitDrafts.Remove(draft))
+        {
             return;
+        }
 
         if (draft.FormKey.HasValue)
         {
@@ -1704,7 +1801,10 @@ public partial class MainViewModel : ReactiveObject
             if (success)
             {
                 foreach (var editorId in deletionsToProcess)
+                {
                     _pendingOutfitDeletions.Remove(editorId);
+                }
+
                 HasPendingOutfitDeletions = _pendingOutfitDeletions.Count > 0;
 
                 _suppressAutoSave = true;
@@ -1716,7 +1816,9 @@ public partial class MainViewModel : ReactiveObject
                             string.Equals(d.EditorId, result.EditorId, StringComparison.OrdinalIgnoreCase));
 
                         if (draft != null && !draft.FormKey.HasValue)
+                        {
                             draft.FormKey = result.FormKey;
+                        }
                     }
 
                     StatusMessage = "Refreshing outfits...";
@@ -1747,14 +1849,19 @@ public partial class MainViewModel : ReactiveObject
         ListSortDirection direction = ListSortDirection.Ascending)
     {
         if (TargetArmorsView is not ListCollectionView view)
+        {
             return;
+        }
+
         view.SortDescriptions.Clear();
         view.SortDescriptions.Add(new SortDescription(
             nameof(ArmorRecordViewModel.SlotCompatibilityPriority),
             ListSortDirection.Ascending));
 
         if (!string.IsNullOrEmpty(propertyName))
+        {
             view.SortDescriptions.Add(new SortDescription(propertyName, direction));
+        }
 
         view.Refresh();
     }
@@ -1819,7 +1926,9 @@ public partial class MainViewModel : ReactiveObject
                 await PatchCreatedNotification.Handle(message).ToTask();
             }
             else
+            {
                 _logger.Warning("Patch creation failed: {Message}", message);
+            }
         }
         catch (Exception ex)
         {
@@ -1846,11 +1955,17 @@ public partial class ArmorMatchViewModel : ReactiveObject
         Source = source;
 
         if (target is not null)
+        {
             ApplyAutoTarget(target);
+        }
         else if (match.IsGlamOnly)
+        {
             ApplyGlamOnly();
+        }
         else
+        {
             RefreshState();
+        }
     }
 
     public ArmorMatch Match { get; }
@@ -1865,9 +1980,15 @@ public partial class ArmorMatchViewModel : ReactiveObject
         get
         {
             if (Match.IsGlamOnly)
+            {
                 return "✨ Glam-only (armor rating set to 0)";
+            }
+
             if (Target is not null)
+            {
                 return Target.SummaryLine;
+            }
+
             return "Not mapped";
         }
     }

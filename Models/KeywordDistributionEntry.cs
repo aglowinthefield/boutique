@@ -78,7 +78,9 @@ public sealed class KeywordDistributionEntry
 
         foreach (var expr in StringFilters.Expressions)
         foreach (var part in expr.Parts)
+        {
             results.Add(part.Value);
+        }
 
         return results;
     }

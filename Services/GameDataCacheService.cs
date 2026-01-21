@@ -115,7 +115,10 @@ public class GameDataCacheService
                     NpcsByFormKey[npc.FormKey] = npc;
                 }
 
-                foreach (var npc in npcRecordsList) AllNpcRecords.Add(npc);
+                foreach (var npc in npcRecordsList)
+                {
+                    AllNpcRecords.Add(npc);
+                }
 
                 AllFactions.Clear();
                 FactionsByFormKey.Clear();
@@ -150,7 +153,10 @@ public class GameDataCacheService
                 }
 
                 AllOutfits.Clear();
-                foreach (var outfit in outfitsList) AllOutfits.Add(outfit);
+                foreach (var outfit in outfitsList)
+                {
+                    AllOutfits.Add(outfit);
+                }
             });
 
             await LoadDistributionDataAsync(npcFilterDataList);
@@ -194,19 +200,29 @@ public class GameDataCacheService
     {
         var patchFileName = _settings.PatchFileName;
         if (string.IsNullOrEmpty(patchFileName))
+        {
             return;
+        }
 
         var patchOutfits = (await _mutagenService.LoadOutfitsFromPluginAsync(patchFileName)).ToList();
         if (patchOutfits.Count == 0)
+        {
             return;
+        }
 
         await Application.Current.Dispatcher.InvokeAsync(() =>
         {
             var patchModKey = ModKey.FromFileName(patchFileName);
             var existingPatchOutfits = AllOutfits.Where(o => o.FormKey.ModKey == patchModKey).ToList();
-            foreach (var outfit in existingPatchOutfits) AllOutfits.Remove(outfit);
+            foreach (var outfit in existingPatchOutfits)
+            {
+                AllOutfits.Remove(outfit);
+            }
 
-            foreach (var outfit in patchOutfits) AllOutfits.Add(outfit);
+            foreach (var outfit in patchOutfits)
+            {
+                AllOutfits.Add(outfit);
+            }
         });
 
         _logger.Information("Refreshed {Count} outfit(s) from patch file {Patch}.", patchOutfits.Count, patchFileName);
@@ -215,12 +231,17 @@ public class GameDataCacheService
     public async Task EnsureLoadedAsync()
     {
         if (IsLoaded)
+        {
             return;
+        }
 
         if (IsLoading)
         {
             while (IsLoading)
+            {
                 await Task.Delay(50);
+            }
+
             return;
         }
 
@@ -279,16 +300,25 @@ public class GameDataCacheService
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 AllDistributionFiles.Clear();
-                foreach (var file in fileViewModels) AllDistributionFiles.Add(file);
+                foreach (var file in fileViewModels)
+                {
+                    AllDistributionFiles.Add(file);
+                }
 
                 AllNpcOutfitAssignments.Clear();
                 foreach (var assignment in assignments)
+                {
                     AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
+                }
 
                 foreach (var keyword in virtualKeywords)
+                {
                     if (!AllKeywords.Any(k =>
                             string.Equals(k.EditorID, keyword.EditorID, StringComparison.OrdinalIgnoreCase)))
+                    {
                         AllKeywords.Add(keyword);
+                    }
+                }
             });
         }
         catch (Exception ex)
@@ -305,19 +335,27 @@ public class GameDataCacheService
         foreach (var file in discoveredFiles)
         {
             if (file.Type != DistributionFileType.Spid)
+            {
                 continue;
+            }
 
             var sourceName = ExtractModFolderName(file.FullPath);
 
             foreach (var line in file.Lines)
             {
                 if (line.IsKeywordDistribution && !string.IsNullOrWhiteSpace(line.KeywordIdentifier))
+                {
                     AddKeywordIfNew(line.KeywordIdentifier, sourceName);
+                }
 
                 if ((line.IsKeywordDistribution || line.IsOutfitDistribution) &&
                     SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
+                {
                     foreach (var keyword in GetAllKeywordIdentifiers(filter))
+                    {
                         AddKeywordIfNew(keyword, sourceName);
+                    }
+                }
             }
         }
 
@@ -340,12 +378,16 @@ public class GameDataCacheService
         {
             var distrSuffix = "_DISTR";
             if (fileName.EndsWith(distrSuffix, StringComparison.OrdinalIgnoreCase))
+            {
                 return fileName[..^distrSuffix.Length];
+            }
         }
 
         var directory = Path.GetDirectoryName(fullPath);
         if (string.IsNullOrEmpty(directory))
+        {
             return fileName;
+        }
 
         return new DirectoryInfo(directory).Name;
     }
@@ -355,8 +397,12 @@ public class GameDataCacheService
         foreach (var expr in filter.StringFilters.Expressions)
         {
             foreach (var part in expr.Parts)
+            {
                 if (part.LooksLikeKeyword)
+                {
                     yield return part.Value;
+                }
+            }
         }
     }
 
@@ -378,7 +424,9 @@ public class GameDataCacheService
                 var originalModKey = npc.FormKey.ModKey;
                 var filterData = BuildNpcFilterData(npc, linkCache, originalModKey);
                 if (filterData is not null)
+                {
                     filterDataBag.Add(filterData);
+                }
 
                 var record = new NpcRecord(
                     npc.FormKey,

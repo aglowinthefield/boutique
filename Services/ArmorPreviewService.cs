@@ -65,16 +65,22 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         CancellationToken cancellationToken = default)
     {
         if (!mutagenService.IsInitialized)
+        {
             throw new InvalidOperationException("Mutagen service has not been initialized.");
+        }
 
         var dataPath = mutagenService.DataFolderPath;
         var linkCache = mutagenService.LinkCache;
 
         if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
+        {
             throw new DirectoryNotFoundException("Skyrim Data path is not set or does not exist.");
+        }
 
         if (linkCache == null)
+        {
             throw new InvalidOperationException("Link cache is not available.");
+        }
 
         var pieces = armorPieces?.ToList() ?? [];
         return await Task.Run(
@@ -101,7 +107,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var bodyAssetKey = PathUtilities.NormalizeAssetPath(bodyRelative);
         var bodyPath = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
         if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
+        {
             meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, gender, _skyrimBaseModKey, cancellationToken));
+        }
         else
         {
             var expected = FormatExpectedPath(dataPath, bodyAssetKey);
@@ -156,7 +164,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
                 var identity = $"{variantForAddon}:{meshAssetKey}";
                 if (!visitedParts.Add(identity))
+                {
                     continue; // Avoid loading identical meshes multiple times
+                }
 
                 var partName = $"{armorName} ({addon.EditorID ?? addon.FormKey.ToString()})";
                 meshes.AddRange(LoadMeshesFromNif(partName, fullPath, variantForAddon, addon.FormKey.ModKey,
@@ -173,24 +183,34 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         ILinkCache linkCache)
     {
         if (preferredGender == GenderedModelVariant.Male)
+        {
             return GenderedModelVariant.Male;
+        }
 
         foreach (var piece in pieces)
         {
             foreach (var addonLink in piece.Armor.Armature)
             {
                 if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon))
+                {
                     continue;
+                }
 
                 var worldModel = addon.WorldModel;
                 if (worldModel == null)
+                {
                     continue;
+                }
 
                 if (worldModel.Female != null)
+                {
                     continue;
+                }
 
                 if (worldModel.Male != null)
+                {
                     return GenderedModelVariant.Male;
+                }
             }
         }
 
@@ -286,13 +306,17 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         List<Vector3> normals;
 
         if (extractedNormals != null && extractedNormals.Count == vertices.Count)
+        {
             normals = extractedNormals;
+        }
         else
         {
             normals = ComputeNormals(vertices, indices);
             var shapeName = shape.Name?.ToString() ?? "<unnamed>";
             if (extractedNormals == null)
+            {
                 _logger.Debug("Shape {ShapeName} provided no normals; computed fallback.", shapeName);
+            }
             else
             {
                 _logger.Debug(
@@ -320,7 +344,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey);
 
         if (diffuse == null)
+        {
             _logger.Debug("Shape {ShapeName} has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
+        }
 
         meshData = new MeshData(vertices, normals, textureCoordinates, indices, transform, diffuse);
         return true;
@@ -335,7 +361,10 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             case NiTriShape niTriShape:
                 var data = niTriShape.GeometryData;
                 if (data?.Vertices != null)
+                {
                     return data.Vertices.Select(v => v).ToList();
+                }
+
                 break;
         }
 
@@ -352,7 +381,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         };
 
         if (triangles == null)
+        {
             return null;
+        }
 
         var result = new List<int>();
         foreach (var tri in triangles)
@@ -374,7 +405,10 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             case NiTriShape niTriShape:
                 var data = niTriShape.GeometryData;
                 if (data?.Normals is { Count: > 0 })
+                {
                     return data.Normals.Select(n => n).ToList();
+                }
+
                 break;
         }
 
@@ -395,7 +429,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
         var count = shape.VertexPositions?.Count ?? shape.VertexCount;
         if (count <= 0)
+        {
             return null;
+        }
 
         var fromSse = TryExtractFromVertexData(shape.VertexDataSSE, count);
         return fromSse ?? TryExtractFromVertexData(shape.VertexData, count);
@@ -404,7 +440,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     private static List<Vector2>? TryExtractFromVertexData(List<BSVertexDataSSE>? data, int count)
     {
         if (data == null || data.Count < count)
+        {
             return null;
+        }
 
         var list = new List<Vector2>(count);
         for (var i = 0; i < count; i++)
@@ -419,7 +457,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     private static List<Vector2>? TryExtractFromVertexData(List<BSVertexData>? data, int count)
     {
         if (data == null || data.Count < count)
+        {
             return null;
+        }
 
         var list = new List<Vector2>(count);
         for (var i = 0; i < count; i++)
@@ -436,14 +476,20 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var data = shape.GeometryData;
         var vertexCount = data?.Vertices?.Count ?? data?.NumVertices ?? shape.VertexCount;
         if (vertexCount <= 0)
+        {
             return null;
+        }
 
         var uvList = data?.UVSets;
         if (uvList == null || uvList.Count == 0)
+        {
             return null;
+        }
 
         if (uvList.Count < vertexCount)
+        {
             return null;
+        }
 
         var result = new List<Vector2>(vertexCount);
         for (var i = 0; i < vertexCount; i++)
@@ -466,7 +512,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             var i2 = indices[i + 2];
 
             if (i0 >= vertices.Count || i1 >= vertices.Count || i2 >= vertices.Count)
+            {
                 continue;
+            }
 
             var a = vertices[i0];
             var b = vertices[i1];
@@ -474,7 +522,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
             var normal = Vector3.Cross(b - a, c - a);
             if (normal != Vector3.Zero)
+            {
                 normal = Vector3.Normalize(normal);
+            }
 
             normals[i0] += normal;
             normals[i1] += normal;
@@ -484,9 +534,13 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         for (var i = 0; i < normals.Count; i++)
         {
             if (normals[i] != Vector3.Zero)
+            {
                 normals[i] = Vector3.Normalize(normals[i]);
+            }
             else
+            {
                 normals[i] = Vector3.UnitZ;
+            }
         }
 
         return normals;
@@ -508,7 +562,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             current = nif.GetParentBlock(avObject);
             depth++;
             if (depth > MaxDepth)
+            {
                 break;
+            }
         }
 
         return world;
@@ -543,7 +599,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         if (candidates.Count == 0 && shape.Properties != null)
         {
             foreach (var propRef in shape.Properties.References)
+            {
                 CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(propRef));
+            }
         }
 
         foreach (var candidate in candidates)
@@ -580,7 +638,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 candidates.Count, shapeName);
         }
         else
+        {
             _logger.Debug("No texture path resolved for shape {Shape}", shapeName);
+        }
 
         return null;
 
@@ -591,23 +651,33 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     private static IEnumerable<string> EnumerateTexturePaths(NifFile nif, BSLightingShaderProperty? shader)
     {
         if (shader == null)
+        {
             yield break;
+        }
 
         if (shader.TextureSetRef == null || shader.TextureSetRef.IsEmpty())
+        {
             yield break;
+        }
 
         var set = nif.GetBlock<BSShaderTextureSet>(shader.TextureSetRef);
         if (set?.Textures == null)
+        {
             yield break;
+        }
 
         foreach (var textureRef in set.Textures)
         {
             var path = textureRef?.Content;
             if (string.IsNullOrWhiteSpace(path))
+            {
                 path = textureRef?.ToString();
+            }
 
             if (!string.IsNullOrWhiteSpace(path))
+            {
                 yield return path!;
+            }
         }
     }
 
@@ -615,7 +685,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
         var name = Path.GetFileNameWithoutExtension(texturePath);
         if (string.IsNullOrWhiteSpace(name))
+        {
             return true;
+        }
 
         var lower = name.ToLowerInvariant();
         var segments = lower.Split(['_', '-', ' '], StringSplitOptions.RemoveEmptyEntries);
@@ -632,7 +704,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         resolvedVariant = preferred;
 
         if (worldModel == null)
+        {
             return null;
+        }
 
         if (preferred == GenderedModelVariant.Female)
         {
@@ -671,7 +745,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var file = model.File;
 
         if (!string.IsNullOrWhiteSpace(file.DataRelativePath.Path))
+        {
             return PathUtilities.NormalizeAssetPath(file.DataRelativePath.Path);
+        }
 
         return !string.IsNullOrWhiteSpace(file.GivenPath) ? PathUtilities.NormalizeAssetPath(file.GivenPath) : null;
     }
@@ -682,7 +758,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     private static string FormatExpectedPath(string dataPath, string assetKey)
     {
         if (Path.IsPathRooted(assetKey))
+        {
             return assetKey;
+        }
 
         var systemRelative = PathUtilities.ToSystemPath(assetKey);
         return Path.Combine(dataPath, systemRelative);

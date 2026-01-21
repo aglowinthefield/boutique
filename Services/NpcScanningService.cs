@@ -40,10 +40,14 @@ public class NpcScanningService
                         cancellationToken.ThrowIfCancellationRequested();
 
                         if (npc.FormKey == FormKey.Null)
+                        {
                             continue;
+                        }
 
                         if (string.IsNullOrWhiteSpace(npc.EditorID))
+                        {
                             continue;
+                        }
 
                         var name = NpcDataExtractor.GetName(npc);
                         var originalModKey = FindOriginalMaster(linkCache, npc.FormKey);
@@ -95,13 +99,20 @@ public class NpcScanningService
                         cancellationToken.ThrowIfCancellationRequested();
 
                         if (npc.FormKey == FormKey.Null)
+                        {
                             continue;
+                        }
 
                         if (string.IsNullOrWhiteSpace(npc.EditorID))
+                        {
                             continue;
+                        }
 
                         var filterData = BuildNpcFilterData(npc, linkCache);
-                        if (filterData != null) npcs.Add(filterData);
+                        if (filterData != null)
+                        {
+                            npcs.Add(filterData);
+                        }
                     }
 
                     _logger.Information("Scanned {Count} NPCs with filter data from modlist.", npcs.Count);
@@ -177,7 +188,10 @@ public class NpcScanningService
         {
             var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(formKey);
             var firstContext = contexts.FirstOrDefault();
-            if (firstContext != null) return firstContext.ModKey;
+            if (firstContext != null)
+            {
+                return firstContext.ModKey;
+            }
         }
         catch (Exception ex)
         {

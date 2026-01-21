@@ -27,7 +27,10 @@ public static class DistributionFileFormatter
 
             if (entry.Type == DistributionType.Keyword)
             {
-                if (!string.IsNullOrWhiteSpace(entry.KeywordToDistribute)) line = FormatSpidKeywordLine(entry);
+                if (!string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
+                {
+                    line = FormatSpidKeywordLine(entry);
+                }
             }
             else if (entry.SelectedOutfit != null)
             {
@@ -36,10 +39,16 @@ public static class DistributionFileFormatter
                     : FormatSkyPatcherLine(entry);
             }
 
-            if (line != null) lines.Add(line);
+            if (line != null)
+            {
+                lines.Add(line);
+            }
         }
 
-        if (unparsedLines is not { Count: > 0 }) return string.Join(Environment.NewLine, lines);
+        if (unparsedLines is not { Count: > 0 })
+        {
+            return string.Join(Environment.NewLine, lines);
+        }
 
         var spidPreserved = unparsedLines.Where(e =>
             e.Reason.EndsWith("(preserved)", StringComparison.Ordinal) &&
@@ -63,7 +72,10 @@ public static class DistributionFileFormatter
             lines.AddRange(skyPatcherPreserved.Select(preserved => preserved.LineContent));
         }
 
-        if (errorLines.Count <= 0) return string.Join(Environment.NewLine, lines);
+        if (errorLines.Count <= 0)
+        {
+            return string.Join(Environment.NewLine, lines);
+        }
 
         lines.Add(string.Empty);
         lines.Add("; Lines that Boutique could not parse (preserved from original file)");
@@ -79,7 +91,9 @@ public static class DistributionFileFormatter
     public static string FormatSpidLine(DistributionEntryViewModel entry)
     {
         if (entry.SelectedOutfit == null)
+        {
             throw new ArgumentException("Entry must have a selected outfit", nameof(entry));
+        }
 
         // Position 1: Outfit identifier
         var outfitIdentifier = FormKeyHelper.FormatForSpid(entry.SelectedOutfit.FormKey);
@@ -92,14 +106,20 @@ public static class DistributionFileFormatter
             .Where(npc => !string.IsNullOrWhiteSpace(npc.DisplayName))
             .Select(npc => npc.DisplayName)
             .ToList();
-        if (npcNames.Count > 0) stringFilterParts.Add(string.Join(",", npcNames));
+        if (npcNames.Count > 0)
+        {
+            stringFilterParts.Add(string.Join(",", npcNames));
+        }
 
         // Included keywords (+ separated for AND)
         var includedKeywords = entry.SelectedKeywords
             .Where(k => !k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
             .Select(k => k.EditorID)
             .ToList();
-        if (includedKeywords.Count > 0) stringFilterParts.Add(string.Join("+", includedKeywords));
+        if (includedKeywords.Count > 0)
+        {
+            stringFilterParts.Add(string.Join("+", includedKeywords));
+        }
 
         // Excluded keywords (comma-separated as global exclusions)
         var excludedKeywords = entry.SelectedKeywords
@@ -109,7 +129,10 @@ public static class DistributionFileFormatter
         stringFilterParts.AddRange(excludedKeywords);
 
         // Add raw string filters
-        if (!string.IsNullOrWhiteSpace(entry.RawStringFilters)) stringFilterParts.Add(entry.RawStringFilters.Trim());
+        if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
+        {
+            stringFilterParts.Add(entry.RawStringFilters.Trim());
+        }
 
         var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
 
@@ -123,9 +146,13 @@ public static class DistributionFileFormatter
             if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
             {
                 if (faction.IsExcluded)
+                {
                     formExclusions.Add($"-{editorId}");
+                }
                 else
+                {
                     formFilterParts.Add(editorId);
+                }
             }
         }
 
@@ -135,26 +162,39 @@ public static class DistributionFileFormatter
             if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
             {
                 if (race.IsExcluded)
+                {
                     formExclusions.Add($"-{editorId}");
+                }
                 else
+                {
                     formFilterParts.Add(editorId);
+                }
             }
         }
 
         foreach (var classVm in entry.SelectedClasses)
         {
             var editorId = classVm.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)") formFilterParts.Add(editorId);
+            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+            {
+                formFilterParts.Add(editorId);
+            }
         }
 
         // Combine included parts with + and append exclusions
         var formFilterResult = new List<string>();
         if (formFilterParts.Count > 0)
+        {
             formFilterResult.Add(string.Join("+", formFilterParts));
+        }
+
         formFilterResult.AddRange(formExclusions);
 
         // Add raw form filters
-        if (!string.IsNullOrWhiteSpace(entry.RawFormFilters)) formFilterResult.Add(entry.RawFormFilters.Trim());
+        if (!string.IsNullOrWhiteSpace(entry.RawFormFilters))
+        {
+            formFilterResult.Add(entry.RawFormFilters.Trim());
+        }
 
         var formFiltersPart = formFilterResult.Count > 0 ? string.Join(",", formFilterResult) : null;
 
@@ -210,7 +250,9 @@ public static class DistributionFileFormatter
     public static string FormatSpidKeywordLine(DistributionEntryViewModel entry)
     {
         if (string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
+        {
             throw new ArgumentException("Entry must have a keyword to distribute", nameof(entry));
+        }
 
         // Position 1: Keyword EditorID
         var keywordIdentifier = entry.KeywordToDistribute;
@@ -222,14 +264,20 @@ public static class DistributionFileFormatter
             .Where(npc => !string.IsNullOrWhiteSpace(npc.DisplayName))
             .Select(npc => npc.DisplayName)
             .ToList();
-        if (npcNames.Count > 0) stringFilterParts.Add(string.Join(",", npcNames));
+        if (npcNames.Count > 0)
+        {
+            stringFilterParts.Add(string.Join(",", npcNames));
+        }
 
         // Included keywords (+ separated for AND)
         var includedKeywords = entry.SelectedKeywords
             .Where(k => !k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
             .Select(k => k.EditorID)
             .ToList();
-        if (includedKeywords.Count > 0) stringFilterParts.Add(string.Join("+", includedKeywords));
+        if (includedKeywords.Count > 0)
+        {
+            stringFilterParts.Add(string.Join("+", includedKeywords));
+        }
 
         // Excluded keywords (comma-separated as global exclusions)
         var excludedKeywords = entry.SelectedKeywords
@@ -239,7 +287,10 @@ public static class DistributionFileFormatter
         stringFilterParts.AddRange(excludedKeywords);
 
         // Add raw string filters
-        if (!string.IsNullOrWhiteSpace(entry.RawStringFilters)) stringFilterParts.Add(entry.RawStringFilters.Trim());
+        if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
+        {
+            stringFilterParts.Add(entry.RawStringFilters.Trim());
+        }
 
         var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
 
@@ -253,9 +304,13 @@ public static class DistributionFileFormatter
             if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
             {
                 if (faction.IsExcluded)
+                {
                     formExclusions.Add($"-{editorId}");
+                }
                 else
+                {
                     formFilterParts.Add(editorId);
+                }
             }
         }
 
@@ -265,26 +320,39 @@ public static class DistributionFileFormatter
             if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
             {
                 if (race.IsExcluded)
+                {
                     formExclusions.Add($"-{editorId}");
+                }
                 else
+                {
                     formFilterParts.Add(editorId);
+                }
             }
         }
 
         foreach (var classVm in entry.SelectedClasses)
         {
             var editorId = classVm.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)") formFilterParts.Add(editorId);
+            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+            {
+                formFilterParts.Add(editorId);
+            }
         }
 
         // Combine included parts with + and append exclusions
         var formFilterResult = new List<string>();
         if (formFilterParts.Count > 0)
+        {
             formFilterResult.Add(string.Join("+", formFilterParts));
+        }
+
         formFilterResult.AddRange(formExclusions);
 
         // Add raw form filters
-        if (!string.IsNullOrWhiteSpace(entry.RawFormFilters)) formFilterResult.Add(entry.RawFormFilters.Trim());
+        if (!string.IsNullOrWhiteSpace(entry.RawFormFilters))
+        {
+            formFilterResult.Add(entry.RawFormFilters.Trim());
+        }
 
         var formFiltersPart = formFilterResult.Count > 0 ? string.Join(",", formFilterResult) : null;
 
@@ -337,7 +405,9 @@ public static class DistributionFileFormatter
     public static string FormatSkyPatcherLine(DistributionEntryViewModel entry)
     {
         if (entry.SelectedOutfit == null)
+        {
             throw new ArgumentException("Entry must have a selected outfit", nameof(entry));
+        }
 
         var filterParts = new List<string>();
 
@@ -463,14 +533,18 @@ public static class DistributionFileFormatter
     public static string? FormatFilterSection(SpidFilterSection section)
     {
         if (section.IsEmpty)
+        {
             return null;
+        }
 
         var result = new List<string>();
 
         foreach (var expr in section.Expressions)
         {
             if (expr.Parts.Count == 0)
+            {
                 continue;
+            }
 
             var parts = expr.Parts.Select(part =>
             {
@@ -481,7 +555,10 @@ public static class DistributionFileFormatter
             result.Add(string.Join("+", parts));
         }
 
-        foreach (var exclusion in section.GlobalExclusions) result.Add($"-{exclusion.Value}");
+        foreach (var exclusion in section.GlobalExclusions)
+        {
+            result.Add($"-{exclusion.Value}");
+        }
 
         return result.Count > 0 ? string.Join(",", result) : null;
     }
@@ -492,44 +569,74 @@ public static class DistributionFileFormatter
     public static string? FormatTraitFilters(SpidTraitFilters traits)
     {
         if (traits.IsEmpty)
+        {
             return null;
+        }
 
         var parts = new List<string>();
 
         if (traits.IsFemale == true)
+        {
             parts.Add("F");
+        }
         else if (traits.IsFemale == false)
+        {
             parts.Add("M");
+        }
 
         if (traits.IsUnique == true)
+        {
             parts.Add("U");
+        }
         else if (traits.IsUnique == false)
+        {
             parts.Add("-U");
+        }
 
         if (traits.IsSummonable == true)
+        {
             parts.Add("S");
+        }
         else if (traits.IsSummonable == false)
+        {
             parts.Add("-S");
+        }
 
         if (traits.IsChild == true)
+        {
             parts.Add("C");
+        }
         else if (traits.IsChild == false)
+        {
             parts.Add("-C");
+        }
 
         if (traits.IsLeveled == true)
+        {
             parts.Add("L");
+        }
         else if (traits.IsLeveled == false)
+        {
             parts.Add("-L");
+        }
 
         if (traits.IsTeammate == true)
+        {
             parts.Add("T");
+        }
         else if (traits.IsTeammate == false)
+        {
             parts.Add("-T");
+        }
 
         if (traits.IsDead == true)
+        {
             parts.Add("D");
+        }
         else if (traits.IsDead == false)
+        {
             parts.Add("-D");
+        }
 
         return parts.Count > 0 ? string.Join("/", parts) : null;
     }

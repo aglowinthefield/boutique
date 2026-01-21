@@ -14,12 +14,16 @@ public partial class DistributionFilterTabsView
     private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Space || sender is not DataGrid dataGrid)
+        {
             return;
+        }
 
         foreach (var item in dataGrid.SelectedItems)
         {
             if (item is ISelectableRecordViewModel selectable)
+            {
                 selectable.IsSelected = !selectable.IsSelected;
+            }
         }
 
         e.Handled = true;

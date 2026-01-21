@@ -47,7 +47,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.IsFilePreviewExpanded == value)
+            {
                 return;
+            }
+
             _settings.IsFilePreviewExpanded = value;
             SaveSettings();
         }
@@ -59,7 +62,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.SkyrimDataPath == value)
+            {
                 return;
+            }
+
             _settings.SkyrimDataPath = value;
             SaveSettings();
         }
@@ -71,7 +77,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.PatchFileName == value)
+            {
                 return;
+            }
+
             _settings.PatchFileName = value;
             SaveSettings();
         }
@@ -83,7 +92,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.OutputPatchPath == value)
+            {
                 return;
+            }
+
             _settings.OutputPatchPath = value;
             SaveSettings();
         }
@@ -95,7 +107,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.SelectedSkyrimRelease == value)
+            {
                 return;
+            }
+
             _settings.SelectedSkyrimRelease = value;
             SaveSettings();
         }
@@ -107,7 +122,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.LastDistributionFilePath == value)
+            {
                 return;
+            }
+
             _settings.LastDistributionFilePath = value;
             SaveSettings();
         }
@@ -119,7 +137,10 @@ public class GuiSettingsService
         set
         {
             if (_settings.Language == value)
+            {
                 return;
+            }
+
             _settings.Language = value;
             SaveSettings();
         }
@@ -148,7 +169,9 @@ public class GuiSettingsService
         }
 
         if (_settings.WindowState.HasValue && _settings.WindowState.Value != WindowState.Minimized)
+        {
             window.WindowState = _settings.WindowState.Value;
+        }
     }
 
     public void SaveWindowGeometry(Window window)
@@ -183,7 +206,9 @@ public class GuiSettingsService
         var windowRect = new Rect(left, top, width, height);
 
         if (!windowRect.IntersectsWith(virtualScreen))
+        {
             return false;
+        }
 
         var intersection = Rect.Intersect(windowRect, virtualScreen);
         return intersection.Width >= 100 && intersection.Height >= 100;
@@ -220,7 +245,9 @@ public class GuiSettingsService
         {
             var dir = Path.GetDirectoryName(ConfigPath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
                 Directory.CreateDirectory(dir);
+            }
 
             var json = JsonSerializer.Serialize(_settings, JsonOptions);
             File.WriteAllText(ConfigPath, json);

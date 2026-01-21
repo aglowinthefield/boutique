@@ -105,7 +105,10 @@ public class ThemeService
         try
         {
             var app = Application.Current;
-            if (app == null) return;
+            if (app == null)
+            {
+                return;
+            }
 
             // Find and remove existing color palette dictionaries
             var toRemove = app.Resources.MergedDictionaries
@@ -113,7 +116,9 @@ public class ThemeService
                 .ToList();
 
             foreach (var dict in toRemove)
+            {
                 app.Resources.MergedDictionaries.Remove(dict);
+            }
 
             // Add the new color palette FIRST (before Controls.xaml references it)
             var paletteDict = new ResourceDictionary { Source = new Uri(palettePath, UriKind.Relative) };
@@ -136,12 +141,17 @@ public class ThemeService
     private void ApplyFontScale(double scale)
     {
         var app = Application.Current;
-        if (app == null) return;
+        if (app == null)
+        {
+            return;
+        }
 
         try
         {
             for (var i = 0; i < BaseFontSizes.Length; i++)
+            {
                 app.Resources[FontSizeKeys[i]] = BaseFontSizes[i] * scale;
+            }
         }
         catch (Exception ex)
         {
@@ -152,7 +162,10 @@ public class ThemeService
     public void ApplyTitleBarTheme(Window window)
     {
         var hwnd = new WindowInteropHelper(window).Handle;
-        if (hwnd == IntPtr.Zero) return;
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
 
         var useDarkMode = IsCurrentlyDark ? 1 : 0;
         _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
@@ -165,7 +178,10 @@ public class ThemeService
 
     public static void ApplyTitleBarTheme(IntPtr hwnd, bool isDark)
     {
-        if (hwnd == IntPtr.Zero) return;
+        if (hwnd == IntPtr.Zero)
+        {
+            return;
+        }
 
         var useDarkMode = isDark ? 1 : 0;
         _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
@@ -200,7 +216,9 @@ public class ThemeService
                 @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
 
             if (key?.GetValue("AppsUseLightTheme") is int value)
+            {
                 return value == 0; // 0 = dark mode, 1 = light mode
+            }
         }
         catch
         {
@@ -212,8 +230,15 @@ public class ThemeService
 
     private void OnSystemPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
-        if (e.Category != UserPreferenceCategory.General) return;
-        if (CurrentThemeSetting != AppTheme.System) return;
+        if (e.Category != UserPreferenceCategory.General)
+        {
+            return;
+        }
+
+        if (CurrentThemeSetting != AppTheme.System)
+        {
+            return;
+        }
 
         // Re-apply system theme when Windows theme changes
         Application.Current?.Dispatcher.BeginInvoke(() => ApplyTheme(AppTheme.System));
@@ -224,7 +249,9 @@ public class ThemeService
         try
         {
             if (!File.Exists(ConfigPath))
+            {
                 return (AppTheme.System, 1.0);
+            }
 
             var json = File.ReadAllText(ConfigPath);
             using var doc = JsonDocument.Parse(json);
@@ -236,12 +263,16 @@ public class ThemeService
             {
                 var themeStr = themeElement.GetString();
                 if (Enum.TryParse<AppTheme>(themeStr, true, out var parsedTheme))
+                {
                     theme = parsedTheme;
+                }
             }
 
             if (doc.RootElement.TryGetProperty("FontScale", out var fontScaleElement) &&
                 fontScaleElement.TryGetDouble(out var parsedFontScale))
+            {
                 fontScale = parsedFontScale;
+            }
 
             return (theme, fontScale);
         }
@@ -259,7 +290,9 @@ public class ThemeService
         {
             var dir = Path.GetDirectoryName(ConfigPath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
                 Directory.CreateDirectory(dir);
+            }
 
             var settings = new { Theme = theme.ToString(), FontScale = fontScale };
             var json = JsonSerializer.Serialize(settings, JsonOptions);

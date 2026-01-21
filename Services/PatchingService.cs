@@ -44,8 +44,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private void RequireInitialized()
     {
         if (!mutagenService.IsInitialized)
+        {
             throw new InvalidOperationException(
                 "Mutagen service is not initialized. Please set the Skyrim data path first.");
+        }
     }
 
     private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(string outputPath,
@@ -60,7 +62,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             patchMod = SkyrimMod.CreateFromBinary(outputPath, mutagenService.SkyrimRelease);
         }
         else
+        {
             patchMod = new SkyrimMod(modKey, mutagenService.SkyrimRelease);
+        }
 
         EnsureMinimumFormId(patchMod);
 
@@ -161,7 +165,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         });
 
         if (result.Item1)
+        {
             await RefreshAfterWrite(outputPath, progress);
+        }
 
         return result;
     }
@@ -180,7 +186,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 var outfitList = outfits.ToList();
                 if (outfitList.Count == 0)
+                {
                     return (false, "No outfits to create.", []);
+                }
 
                 _logger.Information(
                     "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
@@ -255,7 +263,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                             results.Add(new OutfitCreationResult(editorId, existing.FormKey));
                         }
                         else
+                        {
                             _logger.Debug("Skipping deletion of {EditorId} — not in patch.", editorId);
+                        }
 
                         continue;
                     }
@@ -314,7 +324,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         });
 
         if (result.Item1)
+        {
             await RefreshAfterWrite(outputPath, progress);
+        }
 
         return result;
     }
@@ -343,7 +355,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private static void CopyKeywords(Armor target, IArmorGetter source)
     {
         if (source.Keywords is null)
+        {
             return;
+        }
 
         target.Keywords = [..source.Keywords];
     }
@@ -351,9 +365,13 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private static void CopyEnchantment(Armor target, IArmorGetter source)
     {
         if (source.ObjectEffect.FormKey != FormKey.Null)
+        {
             target.ObjectEffect.SetTo(source.ObjectEffect);
+        }
         else
+        {
             target.ObjectEffect.Clear();
+        }
 
         target.EnchantmentAmount = source.EnchantmentAmount;
     }
@@ -367,10 +385,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         foreach (var master in requiredMasters)
         {
             if (master == patchMod.ModKey || master.IsNull)
+            {
                 continue;
+            }
 
             if (!existing.Add(master))
+            {
                 continue;
+            }
+
             masterList.Add(new MasterReference { Master = master });
             _logger.Debug("Added master {Master} to patch header.", master);
         }
@@ -484,7 +507,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 foreach (var master in masterRefs)
                 {
                     if (master == patchModKey)
+                    {
                         continue;
+                    }
 
                     if (!loadOrderModKeys.Contains(master))
                     {
@@ -515,7 +540,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         {
                             var formKeyNullable = itemLink?.FormKeyNullable;
                             if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
+                            {
                                 continue;
+                            }
 
                             var itemModKey = formKeyNullable.Value.ModKey;
                             if (missingMasterSet.Contains(itemModKey))
@@ -545,7 +572,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         }
                     }
                     else
+                    {
                         validOutfitsList.Add(outfit);
+                    }
                 }
 
                 var missingMasterInfos = missingMasters
@@ -582,7 +611,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             try
             {
                 if (!File.Exists(patchPath))
+                {
                     return (false, "Patch file does not exist.");
+                }
 
                 _logger.Information(
                     "Cleaning patch {Path}: removing {Count} outfit(s) with missing masters.",
@@ -610,7 +641,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 patchMod.Outfits.Clear();
                 foreach (var outfit in outfitsToKeep)
+                {
                     patchMod.Outfits.Add(outfit);
+                }
 
                 var remainingMasters = CollectRequiredMasters(patchMod, outfitsToRemoveSet);
                 CleanupMasterReferences(patchMod, remainingMasters);
@@ -640,13 +673,17 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         void AddMaster(ModKey modKey)
         {
             if (modKey != patchModKey && !modKey.IsNull)
+            {
                 requiredMasters.Add(modKey);
+            }
         }
 
         foreach (var record in patchMod.EnumerateMajorRecords())
         {
             if (record is IOutfitGetter outfit && excludedOutfits.Contains(outfit.FormKey))
+            {
                 continue;
+            }
 
             AddMaster(record.FormKey.ModKey);
 
@@ -656,21 +693,27 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 {
                     var formKey = item?.FormKeyNullable;
                     if (formKey.HasValue && formKey.Value != FormKey.Null)
+                    {
                         AddMaster(formKey.Value.ModKey);
+                    }
                 }
             }
 
             if (record is IArmorGetter armor)
             {
                 if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
+                {
                     AddMaster(enchantKey.ModKey);
+                }
 
                 if (armor.Keywords != null)
                 {
                     foreach (var keyword in armor.Keywords)
                     {
                         if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+                        {
                             AddMaster(keywordKey.ModKey);
+                        }
                     }
                 }
             }

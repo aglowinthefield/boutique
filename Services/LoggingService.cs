@@ -45,7 +45,9 @@ public sealed class LoggingService : ILoggingService
     public void Flush()
     {
         if (_disposed)
+        {
             return;
+        }
 
         Log.CloseAndFlush();
         _disposed = true;

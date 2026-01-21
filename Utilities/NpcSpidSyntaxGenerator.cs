@@ -57,7 +57,9 @@ public static class NpcSpidSyntaxGenerator
             {
                 if (linkCache.TryResolve<IKeywordGetter>(keywordFormKey, out var keyword) &&
                     !string.IsNullOrWhiteSpace(keyword.EditorID))
+                {
                     stringFilters.Add(keyword.EditorID);
+                }
             }
         }
 
@@ -71,21 +73,27 @@ public static class NpcSpidSyntaxGenerator
             {
                 if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) &&
                     !string.IsNullOrWhiteSpace(faction.EditorID))
+                {
                     formFilters.Add(faction.EditorID);
+                }
             }
 
             foreach (var raceFormKey in filter.Races)
             {
                 if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
                     !string.IsNullOrWhiteSpace(race.EditorID))
+                {
                     formFilters.Add(race.EditorID);
+                }
             }
 
             foreach (var classFormKey in filter.Classes)
             {
                 if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
                     !string.IsNullOrWhiteSpace(classRecord.EditorID))
+                {
                     formFilters.Add(classRecord.EditorID);
+                }
             }
         }
 
@@ -98,9 +106,13 @@ public static class NpcSpidSyntaxGenerator
             var min = filter.MinLevel ?? 1;
             var max = filter.MaxLevel ?? 0; // 0 means no max in SPID
             if (max > 0)
+            {
                 levelFiltersPart = $"{min}/{max}";
+            }
             else
+            {
                 levelFiltersPart = $"{min}/";
+            }
         }
 
         // Position 5: TraitFilters
@@ -190,21 +202,38 @@ public static class NpcSpidSyntaxGenerator
         }
 
         // Gender filter
-        if (filter.IsFemale.HasValue) filterParts.Add($"filterByGender={(filter.IsFemale.Value ? "female" : "male")}");
+        if (filter.IsFemale.HasValue)
+        {
+            filterParts.Add($"filterByGender={(filter.IsFemale.Value ? "female" : "male")}");
+        }
 
         // Note: SkyPatcher doesn't have direct filters for unique, templated, child, summonable, leveled
         // These are SPID-specific traits. We'll add a comment about this.
         var unsupportedFilters = new List<string>();
         if (filter.IsUnique.HasValue)
+        {
             unsupportedFilters.Add($"Unique={(filter.IsUnique.Value ? "Yes" : "No")}");
+        }
+
         if (filter.IsTemplated.HasValue)
+        {
             unsupportedFilters.Add($"Templated={(filter.IsTemplated.Value ? "Yes" : "No")}");
+        }
+
         if (filter.IsChild.HasValue)
+        {
             unsupportedFilters.Add($"Child={(filter.IsChild.Value ? "Yes" : "No")}");
+        }
+
         if (filter.IsSummonable.HasValue)
+        {
             unsupportedFilters.Add($"Summonable={(filter.IsSummonable.Value ? "Yes" : "No")}");
+        }
+
         if (filter.IsLeveled.HasValue)
+        {
             unsupportedFilters.Add($"Leveled={(filter.IsLeveled.Value ? "Yes" : "No")}");
+        }
 
         // Add outfit
         filterParts.Add($"outfitDefault={outfitPlaceholder}");
@@ -228,34 +257,56 @@ public static class NpcSpidSyntaxGenerator
     private static string? FormatTraitFilters(NpcSpidFilter filter)
     {
         if (!filter.HasTraitFilters)
+        {
             return null;
+        }
 
         var parts = new List<string>();
 
         if (filter.IsFemale == true)
+        {
             parts.Add("F");
+        }
         else if (filter.IsFemale == false)
+        {
             parts.Add("M");
+        }
 
         if (filter.IsUnique == true)
+        {
             parts.Add("U");
+        }
         else if (filter.IsUnique == false)
+        {
             parts.Add("-U");
+        }
 
         if (filter.IsSummonable == true)
+        {
             parts.Add("S");
+        }
         else if (filter.IsSummonable == false)
+        {
             parts.Add("-S");
+        }
 
         if (filter.IsChild == true)
+        {
             parts.Add("C");
+        }
         else if (filter.IsChild == false)
+        {
             parts.Add("-C");
+        }
 
         if (filter.IsLeveled == true)
+        {
             parts.Add("L");
+        }
         else if (filter.IsLeveled == false)
+        {
             parts.Add("-L");
+        }
 
         // Note: Templated is not a standard SPID trait filter
         // We'll add it as a comment instead
@@ -269,60 +320,98 @@ public static class NpcSpidSyntaxGenerator
     public static string GetFilterDescription(NpcSpidFilter filter)
     {
         if (filter.IsEmpty)
+        {
             return "No filters active";
+        }
 
         var parts = new List<string>();
 
         if (filter.IsFemale == true)
+        {
             parts.Add("Female");
+        }
         else if (filter.IsFemale == false)
+        {
             parts.Add("Male");
+        }
 
         if (filter.IsUnique == true)
+        {
             parts.Add("Unique");
+        }
         else if (filter.IsUnique == false)
+        {
             parts.Add("Non-Unique");
+        }
 
         if (filter.IsTemplated == true)
+        {
             parts.Add("Templated");
+        }
         else if (filter.IsTemplated == false)
+        {
             parts.Add("Non-Templated");
+        }
 
         if (filter.IsChild == true)
+        {
             parts.Add("Child");
+        }
         else if (filter.IsChild == false)
+        {
             parts.Add("Adult");
+        }
 
         if (filter.IsSummonable == true)
+        {
             parts.Add("Summonable");
+        }
         else if (filter.IsSummonable == false)
+        {
             parts.Add("Non-Summonable");
+        }
 
         if (filter.IsLeveled == true)
+        {
             parts.Add("Leveled");
+        }
         else if (filter.IsLeveled == false)
+        {
             parts.Add("Non-Leveled");
+        }
 
         if (filter.Factions.Count > 0)
+        {
             parts.Add($"{filter.Factions.Count} faction(s)");
+        }
 
         if (filter.Races.Count > 0)
+        {
             parts.Add($"{filter.Races.Count} race(s)");
+        }
 
         if (filter.Keywords.Count > 0)
+        {
             parts.Add($"{filter.Keywords.Count} keyword(s)");
+        }
 
         if (filter.Classes.Count > 0)
+        {
             parts.Add($"{filter.Classes.Count} class(es)");
+        }
 
         if (filter.MinLevel.HasValue || filter.MaxLevel.HasValue)
         {
             var min = filter.MinLevel ?? 1;
             var max = filter.MaxLevel;
             if (max.HasValue)
+            {
                 parts.Add($"Level {min}-{max}");
+            }
             else
+            {
                 parts.Add($"Level {min}+");
+            }
         }
 
         return string.Join(", ", parts);

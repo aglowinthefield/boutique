@@ -21,7 +21,9 @@ public class SpidFilterMatchingService
     {
         if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
             filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
+        {
             return allNpcs.ToList();
+        }
 
         return allNpcs.AsParallel().Where(npc => NpcMatchesFilter(npc, filter)).ToList();
     }
@@ -33,7 +35,9 @@ public class SpidFilterMatchingService
     {
         if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
             filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
+        {
             return allNpcs.ToList();
+        }
 
         return allNpcs.AsParallel().Where(npc =>
         {
@@ -46,17 +50,23 @@ public class SpidFilterMatchingService
         IReadOnlySet<string>? virtualKeywords)
     {
         if (filters.IsEmpty)
+        {
             return true;
+        }
 
         foreach (var exclusion in filters.GlobalExclusions)
         {
             if (MatchesStringPart(npc, new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
                     virtualKeywords))
+            {
                 return false;
+            }
         }
 
         if (filters.Expressions.Count == 0)
+        {
             return true;
+        }
 
         return filters.Expressions.Any(e => MatchesStringExpression(npc, e, virtualKeywords));
     }
@@ -96,13 +106,19 @@ public class SpidFilterMatchingService
     private static bool MatchesFormFilters(NpcFilterData npc, SpidFilterSection filters)
     {
         if (filters.IsEmpty)
+        {
             return true;
+        }
 
         if (filters.GlobalExclusions.Any(e => MatchesFormValue(npc, e.Value)))
+        {
             return false;
+        }
 
         if (filters.Expressions.Count == 0)
+        {
             return true;
+        }
 
         return filters.Expressions.Any(e => MatchesFormExpression(npc, e));
     }
@@ -119,7 +135,9 @@ public class SpidFilterMatchingService
     private static bool MatchesFormValue(NpcFilterData npc, string value)
     {
         if (FormKeyHelper.IsModKeyFileName(value))
+        {
             return string.Equals(npc.SourceMod.FileName, value, StringComparison.OrdinalIgnoreCase);
+        }
 
         if (TryParseAsFormKey(value, out var formKey))
         {
@@ -151,7 +169,9 @@ public class SpidFilterMatchingService
         formKey = FormKey.Null;
 
         if (string.IsNullOrWhiteSpace(value))
+        {
             return false;
+        }
 
         return FormKey.TryFactory(value, out formKey) || FormKeyHelper.TryParse(value, out formKey);
     }
@@ -160,7 +180,9 @@ public class SpidFilterMatchingService
     {
         if (string.IsNullOrWhiteSpace(levelFilters) ||
             levelFilters.Equals("NONE", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         var parts = levelFilters.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
@@ -171,18 +193,27 @@ public class SpidFilterMatchingService
             if (TryParseSkillFilter(trimmed, out var skillIndex, out var minSkill, out var maxSkill))
             {
                 if (!MatchesSkillFilter(npc, skillIndex, minSkill, maxSkill))
+                {
                     return false;
+                }
+
                 continue;
             }
 
             if (!ParseLevelRange(trimmed, out var minLevel, out var maxLevel))
+            {
                 continue;
+            }
 
             if (npc.Level < minLevel)
+            {
                 return false;
+            }
 
             if (maxLevel.HasValue && npc.Level > maxLevel.Value)
+            {
                 return false;
+            }
         }
 
         return true;
@@ -198,16 +229,22 @@ public class SpidFilterMatchingService
         var closeParen = value.IndexOf(')');
 
         if (openParen < 0 || closeParen < openParen)
+        {
             return false;
+        }
 
         var indexPart = value[..openParen].Trim();
         var rangePart = value[(openParen + 1)..closeParen].Trim();
 
         if (!int.TryParse(indexPart, out skillIndex))
+        {
             return false;
+        }
 
         if (skillIndex is < 6 or > 23)
+        {
             return false;
+        }
 
         return ParseLevelRange(rangePart, out minSkill, out maxSkill);
     }
@@ -215,15 +252,21 @@ public class SpidFilterMatchingService
     private static bool MatchesSkillFilter(NpcFilterData npc, int skillIndex, int minSkill, int? maxSkill)
     {
         if (skillIndex < 0 || skillIndex >= npc.SkillValues.Length)
+        {
             return true;
+        }
 
         var skillValue = npc.SkillValues[skillIndex];
 
         if (skillValue < minSkill)
+        {
             return false;
+        }
 
         if (maxSkill.HasValue && skillValue > maxSkill.Value)
+        {
             return false;
+        }
 
         return true;
     }
@@ -235,15 +278,22 @@ public class SpidFilterMatchingService
         var slashIndex = value.IndexOf('/');
 
         if (slashIndex < 0)
+        {
             return int.TryParse(value, out minLevel);
+        }
 
         var minPart = value[..slashIndex];
         var maxPart = slashIndex < value.Length - 1 ? value[(slashIndex + 1)..] : null;
 
         if (!int.TryParse(minPart, out minLevel))
+        {
             return false;
+        }
 
-        if (!string.IsNullOrWhiteSpace(maxPart) && int.TryParse(maxPart, out var max)) maxLevel = max;
+        if (!string.IsNullOrWhiteSpace(maxPart) && int.TryParse(maxPart, out var max))
+        {
+            maxLevel = max;
+        }
 
         return true;
     }
@@ -251,18 +301,34 @@ public class SpidFilterMatchingService
     private static bool MatchesTraitFilters(NpcFilterData npc, SpidTraitFilters traits)
     {
         if (traits.IsEmpty)
+        {
             return true;
+        }
 
         if (traits.IsFemale.HasValue && npc.IsFemale != traits.IsFemale.Value)
+        {
             return false;
+        }
+
         if (traits.IsUnique.HasValue && npc.IsUnique != traits.IsUnique.Value)
+        {
             return false;
+        }
+
         if (traits.IsSummonable.HasValue && npc.IsSummonable != traits.IsSummonable.Value)
+        {
             return false;
+        }
+
         if (traits.IsChild.HasValue && npc.IsChild != traits.IsChild.Value)
+        {
             return false;
+        }
+
         if (traits.IsLeveled.HasValue && npc.IsLeveled != traits.IsLeveled.Value)
+        {
             return false;
+        }
 
         return true;
     }

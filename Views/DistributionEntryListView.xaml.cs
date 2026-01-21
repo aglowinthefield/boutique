@@ -22,7 +22,10 @@ public partial class DistributionEntryListView
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
-            if (result == MessageBoxResult.Yes) entryVm.RemoveCommand.Execute().Subscribe();
+            if (result == MessageBoxResult.Yes)
+            {
+                entryVm.RemoveCommand.Execute().Subscribe();
+            }
         }
     }
 }

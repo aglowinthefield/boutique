@@ -37,7 +37,9 @@ public partial class OutfitRecordViewModel : ReactiveObject
     public bool MatchesSearch(string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
+        {
             return true;
+        }
 
         return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
     }

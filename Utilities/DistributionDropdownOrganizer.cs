@@ -80,17 +80,23 @@ public static class DistributionDropdownOrganizer
     private static string StripGroupPrefix(string path, string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
+        {
             return path;
+        }
 
         // Check if path starts with groupName followed by / or \
         var prefixWithSlash = groupName + "/";
         var prefixWithBackslash = groupName + "\\";
 
         if (path.StartsWith(prefixWithSlash, StringComparison.OrdinalIgnoreCase))
+        {
             return path[prefixWithSlash.Length..];
+        }
 
         if (path.StartsWith(prefixWithBackslash, StringComparison.OrdinalIgnoreCase))
+        {
             return path[prefixWithBackslash.Length..];
+        }
 
         return path;
     }

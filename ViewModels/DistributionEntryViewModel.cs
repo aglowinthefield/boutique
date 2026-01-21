@@ -92,7 +92,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 .Select(fk => new NpcRecordViewModel(new NpcRecord(fk, null, null, fk.ModKey)))
                 .ToList();
 
-            foreach (var npcVm in npcVms) _selectedNpcs.Add(npcVm);
+            foreach (var npcVm in npcVms)
+            {
+                _selectedNpcs.Add(npcVm);
+            }
         }
 
         foreach (var filter in entry.FactionFilters)
@@ -128,7 +131,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 .Select(fk => new ClassRecordViewModel(new ClassRecord(fk, null, null, fk.ModKey)))
                 .ToList();
 
-            foreach (var classVm in classVms) _selectedClasses.Add(classVm);
+            foreach (var classVm in classVms)
+            {
+                _selectedClasses.Add(classVm);
+            }
         }
 
         this.WhenAnyValue(x => x.Type)
@@ -358,23 +364,44 @@ public partial class DistributionEntryViewModel : ReactiveObject
         var parts = new List<string>();
 
         if (_selectedNpcs.Count > 0)
+        {
             parts.Add($"{_selectedNpcs.Count} NPC(s)");
+        }
+
         if (_selectedFactions.Count > 0)
+        {
             parts.Add($"{_selectedFactions.Count} faction(s)");
+        }
+
         if (_selectedKeywords.Count > 0)
+        {
             parts.Add($"{_selectedKeywords.Count} keyword(s)");
+        }
+
         if (_selectedRaces.Count > 0)
+        {
             parts.Add($"{_selectedRaces.Count} race(s)");
+        }
+
         if (_selectedClasses.Count > 0)
+        {
             parts.Add($"{_selectedClasses.Count} class(es)");
+        }
 
         if (Gender != GenderFilter.Any)
+        {
             parts.Add(Gender.ToString());
+        }
+
         if (Unique != UniqueFilter.Any)
+        {
             parts.Add(Unique == UniqueFilter.UniqueOnly ? "Unique" : "Non-Unique");
+        }
 
         if (UseChance && Chance < 100)
+        {
             parts.Add($"{Chance}%");
+        }
 
         return parts.Count > 0 ? string.Join(", ", parts) : "No filters";
     }
@@ -408,7 +435,9 @@ public partial class DistributionEntryViewModel : ReactiveObject
         {
             var editorId = keyword.KeywordRecord.EditorID;
             if (!string.IsNullOrWhiteSpace(editorId))
+            {
                 Entry.KeywordFilters.Add(new KeywordFilter(editorId, keyword.IsExcluded));
+            }
         }
 
         RaiseFilterSummaryChanged();
@@ -435,7 +464,9 @@ public partial class DistributionEntryViewModel : ReactiveObject
         where T : ISelectableRecordViewModel
     {
         if (collection.Any(existing => existing.FormKey == item.FormKey))
+        {
             return false;
+        }
 
         collection.Add(item);
         updateAction();
@@ -446,7 +477,9 @@ public partial class DistributionEntryViewModel : ReactiveObject
         where T : class
     {
         if (!collection.Remove(item))
+        {
             return false;
+        }
 
         updateAction();
         return true;

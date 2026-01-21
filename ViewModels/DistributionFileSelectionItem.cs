@@ -16,9 +16,15 @@ public class DistributionFileSelectionItem(
         get
         {
             if (IsNewFile)
+            {
                 return "<New File>";
+            }
+
             if (HasDuplicateFileName)
+            {
                 return File?.UniquePath ?? string.Empty;
+            }
+
             return File?.FileName ?? string.Empty;
         }
     }

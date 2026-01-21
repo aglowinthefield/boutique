@@ -94,16 +94,30 @@ public sealed class SpidDistributionFilter
     {
         var parts = new List<string>();
 
-        if (!StringFilters.IsEmpty) parts.Add($"Names/Keywords: {StringFilters}");
+        if (!StringFilters.IsEmpty)
+        {
+            parts.Add($"Names/Keywords: {StringFilters}");
+        }
 
-        if (!FormFilters.IsEmpty) parts.Add($"Factions/Forms: {FormFilters}");
+        if (!FormFilters.IsEmpty)
+        {
+            parts.Add($"Factions/Forms: {FormFilters}");
+        }
 
         if (!string.IsNullOrEmpty(LevelFilters) && !LevelFilters.Equals("NONE", StringComparison.OrdinalIgnoreCase))
+        {
             parts.Add($"Level: {LevelFilters}");
+        }
 
-        if (!TraitFilters.IsEmpty) parts.Add($"Traits: {TraitFilters}");
+        if (!TraitFilters.IsEmpty)
+        {
+            parts.Add($"Traits: {TraitFilters}");
+        }
 
-        if (Chance < 100) parts.Add($"Chance: {Chance}%");
+        if (Chance < 100)
+        {
+            parts.Add($"Chance: {Chance}%");
+        }
 
         return parts.Count > 0 ? string.Join(", ", parts) : "All NPCs";
     }
@@ -142,7 +156,10 @@ public sealed class SpidFilterSection
     {
         var exprStr = string.Join(", ", Expressions.Select(e => e.ToString()));
         if (GlobalExclusions.Count == 0)
+        {
             return exprStr;
+        }
+
         var exclusionStr = string.Join(", ", GlobalExclusions.Select(p => p.ToString()));
         return string.IsNullOrEmpty(exprStr) ? exclusionStr : $"{exprStr}, {exclusionStr}";
     }
@@ -268,22 +285,42 @@ public sealed record SpidTraitFilters
         parts.Add(IsFemale == true ? "Female" : "Male");
 
         if (IsUnique == true)
+        {
             parts.Add("Unique");
+        }
         else if (IsUnique == false)
+        {
             parts.Add("Non-Unique");
+        }
 
         if (IsSummonable == true)
+        {
             parts.Add("Summonable");
+        }
+
         if (IsChild == true)
+        {
             parts.Add("Child");
+        }
         else if (IsChild == false)
+        {
             parts.Add("Adult");
+        }
+
         if (IsLeveled == true)
+        {
             parts.Add("Leveled");
+        }
+
         if (IsTeammate == true)
+        {
             parts.Add("Teammate");
+        }
+
         if (IsDead == true)
+        {
             parts.Add("Dead");
+        }
 
         return parts.Count > 0 ? string.Join(", ", parts) : string.Empty;
     }

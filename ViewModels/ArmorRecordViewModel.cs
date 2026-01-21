@@ -48,23 +48,32 @@ public partial class ArmorRecordViewModel : ReactiveObject
         get
         {
             if (Armor.Keywords?.Any() != true)
+            {
                 return "(No Keywords)";
+            }
 
             if (_linkCache == null)
+            {
                 return $"({Armor.Keywords.Count} keywords)";
+            }
 
             var keywordNames = Armor.Keywords
                 .Select(k =>
                 {
                     if (_linkCache.TryResolve<IKeywordGetter>(k.FormKey, out var keyword))
+                    {
                         return keyword.EditorID ?? "Unknown";
+                    }
+
                     return "Unresolved";
                 })
                 .Take(5); // Limit display to first 5
 
             var result = string.Join(", ", keywordNames);
             if (Armor.Keywords.Count > 5)
+            {
                 result += $", ... (+{Armor.Keywords.Count - 5} more)";
+            }
 
             return result;
         }
@@ -77,11 +86,15 @@ public partial class ArmorRecordViewModel : ReactiveObject
         get
         {
             if (!HasEnchantment)
+            {
                 return "None";
+            }
 
             if (_linkCache != null &&
                 _linkCache.TryResolve<IObjectEffectGetter>(Armor.ObjectEffect.FormKey, out var enchantment))
+            {
                 return enchantment.Name?.String ?? enchantment.EditorID ?? "Unknown Enchantment";
+            }
 
             return "Enchanted";
         }
@@ -99,7 +112,10 @@ public partial class ArmorRecordViewModel : ReactiveObject
         for (var i = 0; i < 32 && value != 0; i++)
         {
             var bit = 1u << i;
-            if ((value & bit) == 0) continue;
+            if ((value & bit) == 0)
+            {
+                continue;
+            }
 
             var singleFlag = (BipedObjectFlag)bit;
             var flagName = singleFlag.ToString();
@@ -114,7 +130,9 @@ public partial class ArmorRecordViewModel : ReactiveObject
     public bool MatchesSearch(string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
+        {
             return true;
+        }
 
         return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
     }
@@ -122,7 +140,9 @@ public partial class ArmorRecordViewModel : ReactiveObject
     public bool SharesSlotWith(ArmorRecordViewModel other)
     {
         if (SlotMask == 0 || other.SlotMask == 0)
+        {
             return true;
+        }
 
         return (SlotMask & other.SlotMask) != 0;
     }
@@ -130,7 +150,9 @@ public partial class ArmorRecordViewModel : ReactiveObject
     public bool ConflictsWithSlot(ArmorRecordViewModel other)
     {
         if (SlotMask == 0 || other.SlotMask == 0)
+        {
             return false;
+        }
 
         return (SlotMask & other.SlotMask) != 0;
     }

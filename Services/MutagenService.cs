@@ -50,13 +50,17 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     public async Task InitializeAsync(string dataFolderPath)
     {
         if (IsInitialized)
+        {
             return;
+        }
 
         await _initLock.WaitAsync();
         try
         {
             if (IsInitialized)
+            {
                 return;
+            }
 
             await Task.Run(() =>
             {
@@ -132,7 +136,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         return await Task.Run(() =>
         {
             if (string.IsNullOrEmpty(DataFolderPath))
+            {
                 return Enumerable.Empty<string>();
+            }
 
             var pluginFiles = PathUtilities.EnumeratePluginFiles(DataFolderPath)
                 .OrderBy(Path.GetFileName)
@@ -149,10 +155,15 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                     using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, skyrimRelease);
 
                     if (mod.Armors.Count <= 0 && mod.Outfits.Count <= 0)
+                    {
                         continue;
+                    }
+
                     var name = Path.GetFileName(pluginPath);
                     if (!string.IsNullOrEmpty(name))
+                    {
                         armorPlugins.Add(name);
+                    }
                 }
                 catch { }
             }
@@ -167,12 +178,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         return await Task.Run(() =>
         {
             if (string.IsNullOrEmpty(DataFolderPath))
+            {
                 return [];
+            }
 
             var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
 
             if (!File.Exists(pluginPath))
+            {
                 return [];
+            }
 
             try
             {
@@ -192,12 +207,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         return await Task.Run(() =>
         {
             if (string.IsNullOrEmpty(DataFolderPath))
+            {
                 return [];
+            }
 
             var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
 
             if (!File.Exists(pluginPath))
+            {
                 return [];
+            }
 
             try
             {
@@ -215,7 +234,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     public async Task RefreshLinkCacheAsync(string? expectedPlugin = null)
     {
         if (string.IsNullOrEmpty(DataFolderPath))
+        {
             return;
+        }
 
         var previousCount = _environment?.LoadOrder.Count ?? 0;
         _logger.Information("Refreshing LinkCache (current load order: {PreviousCount} mod(s))...", previousCount);
@@ -275,12 +296,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                         string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
 
                 if (!inLoadOrder)
+                {
                     _logger.Debug(
                         "{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.",
                         expectedPlugin);
+                }
             }
             else
+            {
                 _logger.Warning("Expected plugin {Plugin} was NOT found at {Path}!", expectedPlugin, pluginPath);
+            }
         }
 
         PluginsChanged?.Invoke(this, EventArgs.Empty);

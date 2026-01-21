@@ -8,7 +8,9 @@ public static class StringUtilities
     {
         var commentIndex = text.IndexOfAny(CommentChars);
         if (commentIndex >= 0)
+        {
             text = text[..commentIndex];
+        }
 
         return text.Trim();
     }

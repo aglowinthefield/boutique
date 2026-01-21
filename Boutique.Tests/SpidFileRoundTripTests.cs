@@ -25,7 +25,10 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
     public void Analyze_SampleFile_ShowDifferences()
     {
         var filePath = Path.Combine(_spidTestDataPath, "sample_DISTR.ini");
-        if (!File.Exists(filePath)) return;
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
 
         var lines = File.ReadAllLines(filePath);
         var differences = new List<string>();
@@ -34,7 +37,9 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         {
             var line = lines[i].Trim();
             if (string.IsNullOrWhiteSpace(line) || line.StartsWith(';'))
+            {
                 continue;
+            }
 
             var result = TestRoundTrip(line);
             if (!result.Success && result.FormattedLine != null)
@@ -116,7 +121,9 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
 
             // Skip empty lines and comments
             if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';'))
+            {
                 continue;
+            }
 
             var result = TestRoundTrip(trimmed);
             results.Add(result);
@@ -165,10 +172,16 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
     [Fact]
     public void RoundTrip_AllSpidFiles_AllLinesPreserved()
     {
-        if (!Directory.Exists(_spidTestDataPath)) return;
+        if (!Directory.Exists(_spidTestDataPath))
+        {
+            return;
+        }
 
         var files = Directory.GetFiles(_spidTestDataPath, "*.ini");
-        if (files.Length == 0) return;
+        if (files.Length == 0)
+        {
+            return;
+        }
 
         var allFailures = new List<(string File, List<RoundTripResult> Failures)>();
         var fileStats = new List<(string File, int SuccessCount, int FailureCount)>();
@@ -178,7 +191,10 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
             var (successCount, failureCount, failures) = TestFileRoundTrip(file);
             fileStats.Add((Path.GetFileName(file), successCount, failureCount));
 
-            if (failures.Count > 0) allFailures.Add((Path.GetFileName(file), failures));
+            if (failures.Count > 0)
+            {
+                allFailures.Add((Path.GetFileName(file), failures));
+            }
         }
 
         // Build and output summary
@@ -188,7 +204,9 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         output.WriteLine(
             $"Tested {files.Length} files, {totalSuccess + totalFailure} lines ({totalSuccess} passed, {totalFailure} failed):");
         foreach (var (file, success, failure) in fileStats)
+        {
             output.WriteLine($"  {file}: {success + failure} lines ({success} passed, {failure} failed)");
+        }
 
         if (allFailures.Count > 0)
         {
@@ -219,15 +237,21 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
 
             // Skip empty lines and comments
             if (string.IsNullOrWhiteSpace(line) || line.StartsWith(';'))
+            {
                 continue;
+            }
 
             var result = TestRoundTrip(line);
             result = result with { LineNumber = lineNumber };
 
             if (result.Success)
+            {
                 successCount++;
+            }
             else
+            {
                 failures.Add(result);
+            }
         }
 
         return (successCount, failures.Count, failures);
@@ -279,28 +303,44 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         SpidDistributionFilter b)
     {
         if (a.FormType != b.FormType)
+        {
             return (false, $"FormType differs: {a.FormType} vs {b.FormType}");
+        }
 
         if (!string.Equals(a.FormIdentifier, b.FormIdentifier, StringComparison.OrdinalIgnoreCase))
+        {
             return (false, $"FormIdentifier differs: {a.FormIdentifier} vs {b.FormIdentifier}");
+        }
 
         if (!FilterSectionsEquivalent(a.StringFilters, b.StringFilters))
+        {
             return (false, "StringFilters differ");
+        }
 
         if (!FilterSectionsEquivalent(a.FormFilters, b.FormFilters))
+        {
             return (false, "FormFilters differ");
+        }
 
         if (!string.Equals(a.LevelFilters ?? "", b.LevelFilters ?? "", StringComparison.OrdinalIgnoreCase))
+        {
             return (false, $"LevelFilters differ: {a.LevelFilters} vs {b.LevelFilters}");
+        }
 
         if (!TraitFiltersEquivalent(a.TraitFilters, b.TraitFilters))
+        {
             return (false, "TraitFilters differ");
+        }
 
         if (!string.Equals(a.CountOrPackageIdx ?? "", b.CountOrPackageIdx ?? "", StringComparison.OrdinalIgnoreCase))
+        {
             return (false, $"CountOrPackageIdx differs: {a.CountOrPackageIdx} vs {b.CountOrPackageIdx}");
+        }
 
         if (a.Chance != b.Chance)
+        {
             return (false, $"Chance differs: {a.Chance} vs {b.Chance}");
+        }
 
         return (true, null);
     }
@@ -308,21 +348,29 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
     private static bool FilterSectionsEquivalent(SpidFilterSection a, SpidFilterSection b)
     {
         if (a.Expressions.Count != b.Expressions.Count)
+        {
             return false;
+        }
 
         for (var i = 0; i < a.Expressions.Count; i++)
         {
             if (!FilterExpressionsEquivalent(a.Expressions[i], b.Expressions[i]))
+            {
                 return false;
+            }
         }
 
         if (a.GlobalExclusions.Count != b.GlobalExclusions.Count)
+        {
             return false;
+        }
 
         for (var i = 0; i < a.GlobalExclusions.Count; i++)
         {
             if (!FilterPartsEquivalent(a.GlobalExclusions[i], b.GlobalExclusions[i]))
+            {
                 return false;
+            }
         }
 
         return true;
@@ -331,12 +379,16 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
     private static bool FilterExpressionsEquivalent(SpidFilterExpression a, SpidFilterExpression b)
     {
         if (a.Parts.Count != b.Parts.Count)
+        {
             return false;
+        }
 
         for (var i = 0; i < a.Parts.Count; i++)
         {
             if (!FilterPartsEquivalent(a.Parts[i], b.Parts[i]))
+            {
                 return false;
+            }
         }
 
         return true;
@@ -360,11 +412,17 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         // Simple character-by-character diff indicator
         var minLen = Math.Min(original.Length, formatted.Length);
         for (var i = 0; i < minLen; i++)
+        {
             if (original[i] != formatted[i])
+            {
                 return $"First difference at position {i}: '{original[i]}' vs '{formatted[i]}'";
+            }
+        }
 
         if (original.Length != formatted.Length)
+        {
             return $"Length difference: original={original.Length}, formatted={formatted.Length}";
+        }
 
         return "No difference found";
     }

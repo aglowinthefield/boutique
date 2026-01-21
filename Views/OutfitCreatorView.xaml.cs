@@ -40,15 +40,22 @@ public partial class OutfitCreatorView
     private void AttachToViewModel(MainViewModel? viewModel)
     {
         if (ReferenceEquals(viewModel, _currentViewModel))
+        {
             return;
+        }
 
         if (_currentViewModel is not null)
+        {
             _currentViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
+        }
 
         _currentViewModel = viewModel;
 
         if (_currentViewModel is null)
+        {
             return;
+        }
+
         _currentViewModel.PropertyChanged += ViewModelOnPropertyChanged;
         SynchronizeOutfitSelection();
     }
@@ -56,16 +63,22 @@ public partial class OutfitCreatorView
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MainViewModel.SelectedOutfitArmors))
+        {
             SynchronizeOutfitSelection();
+        }
     }
 
     private void OutfitArmorsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_syncingOutfitSelection)
+        {
             return;
+        }
 
         if (ViewModel is not { } viewModel)
+        {
             return;
+        }
 
         var selected = OutfitArmorsGrid.SelectedItems.Cast<object>().ToList();
         viewModel.SelectedOutfitArmors = selected;
@@ -74,14 +87,18 @@ public partial class OutfitCreatorView
     private void SynchronizeOutfitSelection()
     {
         if (ViewModel is not { } viewModel)
+        {
             return;
+        }
 
         _syncingOutfitSelection = true;
         try
         {
             OutfitArmorsGrid.SelectedItems.Clear();
             foreach (var armor in viewModel.SelectedOutfitArmors.OfType<object>())
+            {
                 OutfitArmorsGrid.SelectedItems.Add(armor);
+            }
         }
         finally
         {
@@ -94,11 +111,15 @@ public partial class OutfitCreatorView
         _outfitDragStartPoint = e.GetPosition(null);
 
         if (e.OriginalSource is not DependencyObject source)
+        {
             return;
+        }
 
         var row = FindAncestor<DataGridRow>(source);
         if (row?.Item == null)
+        {
             return;
+        }
 
         if (Keyboard.Modifiers == ModifierKeys.None && !OutfitArmorsGrid.SelectedItems.Contains(row.Item))
         {
@@ -110,17 +131,23 @@ public partial class OutfitCreatorView
     private void OutfitArmorsGrid_MouseMove(object sender, MouseEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed || _outfitDragStartPoint == null)
+        {
             return;
+        }
 
         var position = e.GetPosition(null);
         if (Math.Abs(position.X - _outfitDragStartPoint.Value.X) < SystemParameters.MinimumHorizontalDragDistance &&
             Math.Abs(position.Y - _outfitDragStartPoint.Value.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
             return;
+        }
 
         _outfitDragStartPoint = null;
 
         if (ViewModel is null)
+        {
             return;
+        }
 
         var selected = OutfitArmorsGrid.SelectedItems
             .OfType<ArmorRecordViewModel>()
@@ -130,11 +157,15 @@ public partial class OutfitCreatorView
         {
             var underMouse = GetArmorRecordFromEvent(e);
             if (underMouse != null)
+            {
                 selected.Add(underMouse);
+            }
         }
 
         if (selected.Count == 0)
+        {
             return;
+        }
 
         var data = new DataObject(ArmorDragDataFormat, selected);
         DragDrop.DoDragDrop(OutfitArmorsGrid, data, DragDropEffects.Copy);
@@ -144,7 +175,9 @@ public partial class OutfitCreatorView
     private async void OutfitArmorsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (ViewModel is not { } viewModel)
+        {
             return;
+        }
 
         var pieces = OutfitArmorsGrid.SelectedItems
             .OfType<ArmorRecordViewModel>()
@@ -154,11 +187,15 @@ public partial class OutfitCreatorView
         {
             var underMouse = GetArmorRecordFromEvent(e);
             if (underMouse != null)
+            {
                 pieces.Add(underMouse);
+            }
         }
 
         if (pieces.Count == 0)
+        {
             return;
+        }
 
         await viewModel.CreateOutfitFromPiecesAsync(pieces);
         e.Handled = true;
@@ -167,10 +204,14 @@ public partial class OutfitCreatorView
     private async void PreviewArmorButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: ArmorRecordViewModel armor })
+        {
             return;
+        }
 
         if (ViewModel is not { } viewModel)
+        {
             return;
+        }
 
         await viewModel.PreviewArmorAsync(armor);
     }
@@ -181,7 +222,9 @@ public partial class OutfitCreatorView
     private void OutfitNameTextBox_OnPasting(object sender, DataObjectPastingEventArgs e)
     {
         if (sender is not TextBox textBox)
+        {
             return;
+        }
 
         if (!e.DataObject.GetDataPresent(DataFormats.Text) ||
             e.DataObject.GetData(DataFormats.Text) is not string rawText)
@@ -218,7 +261,9 @@ public partial class OutfitCreatorView
     private void NewOutfitDropZone_OnDragLeave(object sender, DragEventArgs e)
     {
         if (sender is Border border)
+        {
             SetDropTargetState(border, false);
+        }
 
         e.Handled = true;
     }
@@ -226,15 +271,21 @@ public partial class OutfitCreatorView
     private void NewOutfitDropZone_OnDrop(object sender, DragEventArgs e)
     {
         if (sender is Border border)
+        {
             SetDropTargetState(border, false);
+        }
 
         e.Handled = true; // Handle immediately to let drag-drop modal loop complete
 
         if (ViewModel is not MainViewModel viewModel)
+        {
             return;
+        }
 
         if (!TryExtractArmorRecords(e.Data, out var pieces) || pieces.Count == 0)
+        {
             return;
+        }
 
         // Schedule async work after drag-drop modal loop releases
         _ = Dispatcher.InvokeAsync(
@@ -251,7 +302,9 @@ public partial class OutfitCreatorView
     private void OutfitDraftBorder_OnDragLeave(object sender, DragEventArgs e)
     {
         if (sender is Border border)
+        {
             SetDropTargetState(border, false);
+        }
 
         e.Handled = true;
     }
@@ -259,7 +312,9 @@ public partial class OutfitCreatorView
     private void OutfitDraftBorder_OnDrop(object sender, DragEventArgs e)
     {
         if (sender is Border border)
+        {
             SetDropTargetState(border, false);
+        }
 
         if (ViewModel is not MainViewModel viewModel)
         {
@@ -286,7 +341,9 @@ public partial class OutfitCreatorView
     private static void HandleDropTargetDrag(Border? border, DragEventArgs e)
     {
         if (border == null)
+        {
             return;
+        }
 
         if (HasArmorRecords(e.Data))
         {
@@ -327,7 +384,9 @@ public partial class OutfitCreatorView
     private static void SetDropTargetState(Border? border, bool isActive)
     {
         if (border == null)
+        {
             return;
+        }
 
         if (border.Tag is not DropVisualSnapshot snapshot)
         {
@@ -350,7 +409,9 @@ public partial class OutfitCreatorView
     private static ArmorRecordViewModel? GetArmorRecordFromEvent(MouseEventArgs e)
     {
         if (e.OriginalSource is not DependencyObject source)
+        {
             return null;
+        }
 
         var row = FindAncestor<DataGridRow>(source);
         return row?.Item as ArmorRecordViewModel;
@@ -362,7 +423,9 @@ public partial class OutfitCreatorView
         while (current != null)
         {
             if (current is T match)
+            {
                 return match;
+            }
 
             current = VisualTreeHelper.GetParent(current);
         }

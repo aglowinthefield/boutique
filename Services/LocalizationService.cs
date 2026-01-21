@@ -64,7 +64,9 @@ public class LocalizationService
 
         var savedLanguage = _guiSettings.Language;
         if (!string.IsNullOrEmpty(savedLanguage))
+        {
             SetLanguage(savedLanguage, false);
+        }
         else
         {
             var systemCulture = CultureInfo.CurrentUICulture;
@@ -73,9 +75,13 @@ public class LocalizationService
                 l.Code.Equals(systemCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase));
 
             if (matchingLanguage != null)
+            {
                 SetLanguage(matchingLanguage.Code, false);
+            }
             else
+            {
                 SetLanguage("en", false);
+            }
         }
 
         _logger.Information("Localization initialized with language: {Language}", CurrentLanguageCode);
@@ -89,7 +95,10 @@ public class LocalizationService
             LocalizeDictionary.Instance.Culture = culture;
             _logger.Information("Language changed to: {Language}", languageCode);
 
-            if (save) _guiSettings.Language = languageCode;
+            if (save)
+            {
+                _guiSettings.Language = languageCode;
+            }
         }
         catch (CultureNotFoundException ex)
         {

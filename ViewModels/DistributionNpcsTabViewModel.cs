@@ -90,7 +90,10 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
         _cache.CacheLoaded += OnCacheLoaded;
 
         // If cache is already loaded, populate data immediately
-        if (_cache.IsLoaded) PopulateFromCache();
+        if (_cache.IsLoaded)
+        {
+            PopulateFromCache();
+        }
     }
 
     public NpcOutfitAssignmentViewModel? SelectedNpcAssignment
@@ -117,7 +120,10 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     private void PopulateFromCache()
     {
         NpcOutfitAssignments.Clear();
-        foreach (var assignment in _cache.AllNpcOutfitAssignments) NpcOutfitAssignments.Add(assignment);
+        foreach (var assignment in _cache.AllNpcOutfitAssignments)
+        {
+            NpcOutfitAssignments.Add(assignment);
+        }
 
         TotalCount = NpcOutfitAssignments.Count;
         UpdateFilteredNpcOutfitAssignments();
@@ -279,7 +285,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
             }
 
             if (clickedIndex == -1)
+            {
                 clickedIndex = 0;
+            }
 
             var metadata = distributions
                 .Select(d => new OutfitMetadata(
@@ -298,12 +306,16 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
                     var distribution = distributions[index];
 
                     if (!linkCache.TryResolve<IOutfitGetter>(distribution.OutfitFormKey, out var outfit))
+                    {
                         throw new InvalidOperationException($"Could not resolve outfit: {distribution.OutfitFormKey}");
+                    }
 
                     var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
                     if (armorPieces.Count == 0)
+                    {
                         throw new InvalidOperationException(
                             $"Outfit '{outfit.EditorID ?? outfit.FormKey.ToString()}' has no armor pieces");
+                    }
 
                     var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
                     return scene with
@@ -371,19 +383,31 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
         // Faction
         Filter.Factions.Clear();
-        if (SelectedFaction != null) Filter.Factions.Add(SelectedFaction.FormKey);
+        if (SelectedFaction != null)
+        {
+            Filter.Factions.Add(SelectedFaction.FormKey);
+        }
 
         // Race
         Filter.Races.Clear();
-        if (SelectedRace != null) Filter.Races.Add(SelectedRace.FormKey);
+        if (SelectedRace != null)
+        {
+            Filter.Races.Add(SelectedRace.FormKey);
+        }
 
         // Keyword
         Filter.Keywords.Clear();
-        if (SelectedKeyword != null) Filter.Keywords.Add(SelectedKeyword.FormKey);
+        if (SelectedKeyword != null)
+        {
+            Filter.Keywords.Add(SelectedKeyword.FormKey);
+        }
 
         // Class
         Filter.Classes.Clear();
-        if (SelectedClass != null) Filter.Classes.Add(SelectedClass.FormKey);
+        if (SelectedClass != null)
+        {
+            Filter.Classes.Add(SelectedClass.FormKey);
+        }
 
         // Update UI state
         HasActiveFilters = !Filter.IsEmpty;
@@ -408,7 +432,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
         // Filter out NPCs whose final outfit is their default outfit (vanilla distribution)
         if (HideVanillaDistributions)
+        {
             filtered = filtered.Where(a => !IsVanillaDistribution(a.NpcFormKey, a.FinalOutfitFormKey));
+        }
 
         // Apply SPID-style filters
         if (!Filter.IsEmpty)
@@ -422,7 +448,10 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
         }
 
         FilteredNpcOutfitAssignments.Clear();
-        foreach (var assignment in filtered) FilteredNpcOutfitAssignments.Add(assignment);
+        foreach (var assignment in filtered)
+        {
+            FilteredNpcOutfitAssignments.Add(assignment);
+        }
 
         FilteredCount = FilteredNpcOutfitAssignments.Count;
     }
@@ -433,11 +462,15 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     private bool IsVanillaDistribution(FormKey npcFormKey, FormKey? finalOutfitFormKey)
     {
         if (!_cache.NpcsByFormKey.TryGetValue(npcFormKey, out var npcData))
+        {
             return false;
+        }
 
         // If no final outfit or no default outfit, not a vanilla distribution
         if (!finalOutfitFormKey.HasValue || !npcData.DefaultOutfitFormKey.HasValue)
+        {
             return false;
+        }
 
         // If final outfit matches default outfit, it's a vanilla distribution
         return finalOutfitFormKey.Value == npcData.DefaultOutfitFormKey.Value;
@@ -446,7 +479,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     private bool MatchesSpidFilter(FormKey npcFormKey)
     {
         if (!_cache.NpcsByFormKey.TryGetValue(npcFormKey, out var npcData))
+        {
             return false; // If we don't have filter data, filter out (can't evaluate filters)
+        }
 
         return Filter.Matches(npcData);
     }
@@ -500,9 +535,13 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
         // Update NpcFilterData for the selected NPC
         if (SelectedNpcAssignment != null &&
             _cache.NpcsByFormKey.TryGetValue(SelectedNpcAssignment.NpcFormKey, out var npcData))
+        {
             SelectedNpcFilterData = npcData;
+        }
         else
+        {
             SelectedNpcFilterData = null;
+        }
 
         if (SelectedNpcAssignment == null || !SelectedNpcAssignment.FinalOutfitFormKey.HasValue)
         {
@@ -529,7 +568,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
         var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
         if (armorPieces.Count == 0)
+        {
             sb.AppendLine("(No armor pieces)");
+        }
         else
         {
             sb.AppendLine("Armor Pieces:");

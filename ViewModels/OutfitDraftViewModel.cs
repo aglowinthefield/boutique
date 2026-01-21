@@ -98,7 +98,9 @@ public partial class OutfitDraftViewModel : ReactiveObject
     public void RemovePiece(ArmorRecordViewModel piece)
     {
         if (_pieces.Remove(piece))
+        {
             this.RaisePropertyChanged(nameof(HasPieces));
+        }
     }
 
     public (IReadOnlyList<ArmorRecordViewModel> added, IReadOnlyList<ArmorRecordViewModel> replaced) AddPieces(
@@ -109,14 +111,18 @@ public partial class OutfitDraftViewModel : ReactiveObject
         foreach (var piece in newPieces)
         {
             if (_pieces.Any(p => p.Armor.FormKey == piece.Armor.FormKey))
+            {
                 continue;
+            }
 
             _pieces.Add(piece);
             added.Add(piece);
         }
 
         if (added.Count > 0)
+        {
             this.RaisePropertyChanged(nameof(HasPieces));
+        }
 
         return (added, []);
     }
@@ -130,20 +136,28 @@ public partial class OutfitDraftViewModel : ReactiveObject
     {
         var sanitized = Sanitize(value);
         if (string.IsNullOrEmpty(sanitized))
+        {
             sanitized = string.IsNullOrEmpty(_name) ? "Outfit" : _name;
+        }
 
         if (sanitized == _name)
+        {
             return;
+        }
 
         if (updateHistory)
+        {
             _previousValidName = _name;
+        }
 
         this.RaiseAndSetIfChanged(ref _name, sanitized);
         this.RaiseAndSetIfChanged(ref _editorId, sanitized);
         this.RaisePropertyChanged(nameof(Header));
 
         if (!updateHistory)
+        {
             _previousValidName = _name;
+        }
     }
 
     private static string Sanitize(string? value) => InputPatterns.Identifier.Sanitize(value);

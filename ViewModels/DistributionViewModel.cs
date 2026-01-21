@@ -251,7 +251,10 @@ public partial class DistributionViewModel : ReactiveObject
                         if (EditTab.SelectedDistributionFile == null)
                         {
                             var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-                            if (newFileItem != null) EditTab.SelectedDistributionFile = newFileItem;
+                            if (newFileItem != null)
+                            {
+                                EditTab.SelectedDistributionFile = newFileItem;
+                            }
                         }
 
                         break;

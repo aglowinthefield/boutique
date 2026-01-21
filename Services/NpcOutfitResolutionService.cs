@@ -218,16 +218,22 @@ public class NpcOutfitResolutionService
         foreach (var line in file.Lines)
         {
             if (!line.IsOutfitDistribution)
+            {
                 continue;
+            }
 
             outfitLineCount++;
 
             if (file.Type == DistributionFileType.Spid)
+            {
                 ProcessSpidLineWithFilters(file, line, processingOrder, linkCache, allNpcs, npcDistributions,
                     simulatedKeywords, ref matchedNpcCount);
+            }
             else if (file.Type == DistributionFileType.SkyPatcher)
+            {
                 ProcessSkyPatcherLineWithFilters(file, line, processingOrder, linkCache, outfitByEditorId,
                     npcDistributions, ref matchedNpcCount);
+            }
         }
 
         _logger.Debug(
@@ -259,7 +265,10 @@ public class NpcOutfitResolutionService
         }
 
         string? outfitEditorId = null;
-        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit)) outfitEditorId = outfit.EditorID;
+        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
+        {
+            outfitEditorId = outfit.EditorID;
+        }
 
         var matchingNpcs =
             SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, simulatedKeywords);
@@ -344,7 +353,9 @@ public class NpcOutfitResolutionService
         var (outfitFormKey, outfitEditorId) = ResolveOutfitFromLine(lineText, linkCache, outfitByEditorId);
 
         if (!outfitFormKey.HasValue || npcFormKeys.Count == 0)
+        {
             return;
+        }
 
         var genderFilter = SkyPatcherSyntax.ParseGenderFilter(lineText);
 
@@ -354,7 +365,9 @@ public class NpcOutfitResolutionService
             {
                 var isFemale = npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female);
                 if (isFemale != genderFilter.Value)
+                {
                     continue;
+                }
             }
 
             results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
@@ -371,8 +384,13 @@ public class NpcOutfitResolutionService
         foreach (var npcIdentifier in npcIdentifiers)
         {
             if (FormKeyHelper.TryParse(npcIdentifier, out var formKey))
+            {
                 npcFormKeys.Add(formKey);
-            else if (linkCache.TryResolve<INpcGetter>(npcIdentifier, out var npc)) npcFormKeys.Add(npc.FormKey);
+            }
+            else if (linkCache.TryResolve<INpcGetter>(npcIdentifier, out var npc))
+            {
+                npcFormKeys.Add(npc.FormKey);
+            }
         }
 
         return npcFormKeys;
@@ -387,11 +405,15 @@ public class NpcOutfitResolutionService
                            ?? SkyPatcherSyntax.ExtractFilterValue(lineText, "filterByOutfits");
 
         if (string.IsNullOrWhiteSpace(outfitString))
+        {
             return (null, null);
+        }
 
         var resolvedFormKey = FormKeyHelper.ResolveOutfit(outfitString, linkCache, outfitByEditorId);
         if (!resolvedFormKey.HasValue)
+        {
             return (null, null);
+        }
 
         var editorId = linkCache.TryResolve<IOutfitGetter>(resolvedFormKey.Value, out var outfit)
             ? outfit.EditorID
@@ -506,7 +528,9 @@ public class NpcOutfitResolutionService
         foreach (var line in file.Lines)
         {
             if (!line.IsOutfitDistribution)
+            {
                 continue;
+            }
 
             outfitLineCount++;
             _logger.Debug(
@@ -560,9 +584,13 @@ public class NpcOutfitResolutionService
         var results = new List<(FormKey, FormKey, string?)>();
 
         if (file.Type == DistributionFileType.SkyPatcher)
+        {
             ParseSkyPatcherLine(line.RawText, linkCache, outfitByEditorId, results);
+        }
         else if (file.Type == DistributionFileType.Spid)
+        {
             ParseSpidLine(line.RawText, linkCache, npcByEditorId, npcByName, results);
+        }
 
         return results;
     }
@@ -583,7 +611,9 @@ public class NpcOutfitResolutionService
             npcFormKeys.Count, outfitFormKey?.ToString() ?? "null");
 
         if (!outfitFormKey.HasValue || npcFormKeys.Count == 0)
+        {
             return;
+        }
 
         var genderFilter = SkyPatcherSyntax.ParseGenderFilter(lineText);
 
@@ -593,7 +623,9 @@ public class NpcOutfitResolutionService
             {
                 var isFemale = npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female);
                 if (isFemale != genderFilter.Value)
+                {
                     continue;
+                }
             }
 
             results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
@@ -669,9 +701,13 @@ public class NpcOutfitResolutionService
             : null;
 
         if (outfit is not null)
+        {
             _logger.Debug("Resolved outfit EditorID: {EditorId}", outfitEditorId);
+        }
         else
+        {
             _logger.Debug("Could not resolve outfit FormKey in LinkCache");
+        }
 
         var npcIdentifiers = editorIdsString
             .Split(',')
@@ -698,10 +734,14 @@ public class NpcOutfitResolutionService
                 _logger.Debug("Resolved NPC '{Identifier}' by Name: {FormKey}", identifier, npc.FormKey);
             }
             else
+            {
                 _logger.Debug("Could not resolve NPC identifier: {Identifier}", identifier);
+            }
 
             if (npc is null)
+            {
                 continue;
+            }
 
             results.Add((npc.FormKey, outfitFormKey, outfitEditorId));
             resolvedCount++;
@@ -721,10 +761,14 @@ public class NpcOutfitResolutionService
         {
             var defaultOutfit = npc.DefaultOutfit;
             if (defaultOutfit is null || defaultOutfit.IsNull)
+            {
                 continue;
+            }
 
             if (!linkCache.TryResolve<IOutfitGetter>(defaultOutfit.FormKey, out var outfit))
+            {
                 continue;
+            }
 
             var npcFormKey = npc.FormKey;
             if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
@@ -763,10 +807,14 @@ public class NpcOutfitResolutionService
         {
             var defaultOutfitFormKey = npcData.DefaultOutfitFormKey;
             if (!defaultOutfitFormKey.HasValue || defaultOutfitFormKey.Value.IsNull)
+            {
                 continue;
+            }
 
             if (!linkCache.TryResolve<IOutfitGetter>(defaultOutfitFormKey.Value, out var outfit))
+            {
                 continue;
+            }
 
             var npcFormKey = npcData.FormKey;
             if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
@@ -848,7 +896,9 @@ public class NpcOutfitResolutionService
                     var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(npcFormKey);
                     var firstContext = contexts.FirstOrDefault();
                     if (firstContext != null)
+                    {
                         sourceMod = firstContext.ModKey;
+                    }
                 }
                 catch { }
             }

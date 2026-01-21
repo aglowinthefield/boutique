@@ -94,7 +94,10 @@ public static class SpidFilterResolver
                 RawFormFilters = rawFormFilters
             };
 
-            if (filter.Chance != 100) entry.Chance = filter.Chance;
+            if (filter.Chance != 100)
+            {
+                entry.Chance = filter.Chance;
+            }
 
             return entry;
         }
@@ -166,7 +169,10 @@ public static class SpidFilterResolver
                 RawFormFilters = rawFormFilters
             };
 
-            if (filter.Chance != 100) entry.Chance = filter.Chance;
+            if (filter.Chance != 100)
+            {
+                entry.Chance = filter.Chance;
+            }
 
             return entry;
         }
@@ -195,7 +201,10 @@ public static class SpidFilterResolver
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {
                 var outfitFormKey = new FormKey(modKey, formId);
-                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)) return outfit;
+                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
+                {
+                    return outfit;
+                }
             }
 
             logger?.Debug("Failed to resolve tilde-format outfit: {Identifier}", outfitIdentifier);
@@ -214,7 +223,10 @@ public static class SpidFilterResolver
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {
                 var outfitFormKey = new FormKey(modKey, formId);
-                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)) return outfit;
+                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
+                {
+                    return outfit;
+                }
             }
 
             logger?.Debug("Failed to resolve pipe-format outfit: {Identifier}", outfitIdentifier);
@@ -225,7 +237,10 @@ public static class SpidFilterResolver
         var resolvedOutfit = cachedOutfits.FirstOrDefault(o =>
             string.Equals(o.EditorID, outfitIdentifier, StringComparison.OrdinalIgnoreCase));
 
-        if (resolvedOutfit == null) logger?.Debug("Failed to resolve EditorID outfit: {Identifier}", outfitIdentifier);
+        if (resolvedOutfit == null)
+        {
+            logger?.Debug("Failed to resolve EditorID outfit: {Identifier}", outfitIdentifier);
+        }
 
         return resolvedOutfit;
     }
@@ -244,7 +259,9 @@ public static class SpidFilterResolver
             foreach (var part in expr.Parts)
             {
                 if (part.HasWildcard)
+                {
                     continue;
+                }
 
                 // Try to resolve as game keyword first
                 var keyword = linkCache.WinningOverrides<IKeywordGetter>()
@@ -288,18 +305,22 @@ public static class SpidFilterResolver
                 // (either virtual keyword from SPID or an unrecognized game keyword)
                 if (LooksLikeKeywordEditorId(part.Value))
                 {
-                    keywordFilters.Add(new KeywordFilter(part.Value, false));
+                    keywordFilters.Add(new KeywordFilter(part.Value));
                     logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
                 }
                 else
+                {
                     logger?.Verbose("Could not resolve string filter: {Value}", part.Value);
+                }
             }
         }
 
         foreach (var exclusion in stringFilters.GlobalExclusions)
         {
             if (exclusion.HasWildcard)
+            {
                 continue;
+            }
 
             var keyword = linkCache.WinningOverrides<IKeywordGetter>()
                 .FirstOrDefault(k => string.Equals(k.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
@@ -326,11 +347,15 @@ public static class SpidFilterResolver
     private static bool LooksLikeKeywordEditorId(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return false;
+        }
 
         // Keywords typically contain underscores (prefix pattern like MODNAME_keywordId or ActorType_xxx)
         if (value.Contains('_'))
+        {
             return true;
+        }
 
         // Also treat identifiers starting with common keyword prefixes
         if (value.StartsWith("is", StringComparison.Ordinal) ||
@@ -339,7 +364,9 @@ public static class SpidFilterResolver
             value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("Vampire", StringComparison.OrdinalIgnoreCase) ||
             value.EndsWith("Keyword", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         return false;
     }
@@ -370,7 +397,10 @@ public static class SpidFilterResolver
                 {
                     factionFilters.Add(new FormKeyFilter(faction.FormKey, part.IsNegated));
                     if (part.IsNegated)
+                    {
                         resolvedExcludedEditorIds?.Add(part.Value);
+                    }
+
                     continue;
                 }
 
@@ -381,13 +411,18 @@ public static class SpidFilterResolver
                 {
                     raceFilters.Add(new FormKeyFilter(race.FormKey, part.IsNegated));
                     if (part.IsNegated)
+                    {
                         resolvedExcludedEditorIds?.Add(part.Value);
+                    }
+
                     continue;
                 }
 
                 // Skip other form types if negated (we only support negation for factions and races currently)
                 if (part.IsNegated)
+                {
                     continue;
+                }
 
                 // Try class
                 var classRecord = linkCache.WinningOverrides<IClassGetter>()
@@ -471,16 +506,28 @@ public static class SpidFilterResolver
             foreach (var part in expr.Parts)
             {
                 if (part.HasWildcard)
+                {
                     exprParts.Add(part.Value);
-                else if (part.IsNegated && !resolvedSet.Contains(part.Value)) exprParts.Add($"-{part.Value}");
+                }
+                else if (part.IsNegated && !resolvedSet.Contains(part.Value))
+                {
+                    exprParts.Add($"-{part.Value}");
+                }
             }
 
-            if (exprParts.Count > 0) unresolvableParts.Add(string.Join("+", exprParts));
+            if (exprParts.Count > 0)
+            {
+                unresolvableParts.Add(string.Join("+", exprParts));
+            }
         }
 
         foreach (var exclusion in stringFilters.GlobalExclusions)
+        {
             if (!resolvedSet.Contains(exclusion.Value))
+            {
                 unresolvableParts.Add($"-{exclusion.Value}");
+            }
+        }
 
         return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
     }
@@ -497,17 +544,29 @@ public static class SpidFilterResolver
             foreach (var part in expr.Parts)
             {
                 if (!part.IsNegated)
+                {
                     continue;
+                }
 
-                if (!resolvedExcludedEditorIds.Contains(part.Value)) exprParts.Add($"-{part.Value}");
+                if (!resolvedExcludedEditorIds.Contains(part.Value))
+                {
+                    exprParts.Add($"-{part.Value}");
+                }
             }
 
-            if (exprParts.Count > 0) unresolvableParts.Add(string.Join("+", exprParts));
+            if (exprParts.Count > 0)
+            {
+                unresolvableParts.Add(string.Join("+", exprParts));
+            }
         }
 
         foreach (var exclusion in formFilters.GlobalExclusions)
+        {
             if (!resolvedExcludedEditorIds.Contains(exclusion.Value))
+            {
                 unresolvableParts.Add($"-{exclusion.Value}");
+            }
+        }
 
         return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
     }

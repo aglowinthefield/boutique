@@ -10,7 +10,10 @@ public static class PathUtilities
     {
         var normalized = path.Replace('\\', '/').Trim();
         while (normalized.StartsWith('/'))
+        {
             normalized = normalized[1..];
+        }
+
         return normalized;
     }
 
@@ -41,14 +44,18 @@ public static class PathUtilities
             }
 
             foreach (var file in files)
+            {
                 yield return file;
+            }
         }
     }
 
     public static bool HasPluginFiles(string dataPath)
     {
         if (string.IsNullOrEmpty(dataPath) || !Directory.Exists(dataPath))
+        {
             return false;
+        }
 
         return EnumeratePluginFiles(dataPath).Any();
     }

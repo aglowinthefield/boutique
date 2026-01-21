@@ -48,10 +48,14 @@ public class GameAssetLocator
     public string? ResolveAssetPath(string relativePath, ModKey? modKeyHint = null)
     {
         if (string.IsNullOrWhiteSpace(relativePath))
+        {
             return null;
+        }
 
         if (Path.IsPathRooted(relativePath))
+        {
             return File.Exists(relativePath) ? relativePath : null;
+        }
 
         var normalized = PathUtilities.NormalizeAssetPath(relativePath);
         var dataPath = _mutagenService.DataFolderPath;
@@ -67,24 +71,32 @@ public class GameAssetLocator
         EnsureDataPath(dataPath);
 
         if (_extractedAssets.TryGetValue(normalized, out var cached) && File.Exists(cached))
+        {
             return cached;
+        }
 
         var systemRelative = PathUtilities.ToSystemPath(normalized);
         var looseCandidate = Path.Combine(dataPath, systemRelative);
 
         if (File.Exists(looseCandidate))
+        {
             return looseCandidate;
+        }
 
         foreach (var archive in EnumerateCandidateArchives(modKeyHint))
         {
             if (TryExtractFromArchive(archive, normalized, out var extracted))
+            {
                 return extracted;
+            }
         }
 
         foreach (var fallback in EnumerateFallbackArchives(modKeyHint))
         {
             if (TryExtractFromArchive(fallback, normalized, out var extracted))
+            {
                 return extracted;
+            }
         }
 
         _logger.Debug("Asset {Asset} could not be resolved from loose files or archives.", normalized);
@@ -97,7 +109,9 @@ public class GameAssetLocator
         {
             if (_currentDataPath != null &&
                 string.Equals(_currentDataPath, dataPath, StringComparison.OrdinalIgnoreCase))
+            {
                 return;
+            }
 
             _currentDataPath = dataPath;
             _archivesByMod.Clear();
@@ -113,7 +127,9 @@ public class GameAssetLocator
     private IEnumerable<CachedArchive> EnumerateCandidateArchives(ModKey? modKey)
     {
         if (modKey == null)
+        {
             yield break;
+        }
 
         IReadOnlyList<CachedArchive> archives;
         lock (_sync)
@@ -126,7 +142,9 @@ public class GameAssetLocator
         }
 
         foreach (var archive in archives)
+        {
             yield return archive;
+        }
     }
 
     private IEnumerable<CachedArchive> EnumerateFallbackArchives(ModKey? originalModKey)
@@ -135,10 +153,14 @@ public class GameAssetLocator
         foreach (var fallbackKey in GetFallbackKeys(originalModKey))
         {
             if (!fallbackKey.HasValue || !seen.Add(fallbackKey.Value))
+            {
                 continue;
+            }
 
             foreach (var archive in EnumerateCandidateArchives(fallbackKey))
+            {
                 yield return archive;
+            }
         }
     }
 
@@ -148,11 +170,15 @@ public class GameAssetLocator
         {
             // Allow resolving against masters of the requested plugin
             foreach (var master in GetMastersForMod(original.Value))
+            {
                 yield return master;
+            }
         }
 
         foreach (var fallback in FallbackModKeys)
+        {
             yield return fallback;
+        }
     }
 
     private List<CachedArchive> LoadArchivesForMod(ModKey modKey)
@@ -163,7 +189,9 @@ public class GameAssetLocator
 
         foreach (var filePath in Archive.GetApplicableArchivePaths(_mutagenService.GameRelease, directoryPath, modKey,
                      _fileSystem))
+        {
             TryAddArchive(results, filePath);
+        }
 
         return results;
     }
@@ -173,7 +201,10 @@ public class GameAssetLocator
         if (_mastersByMod.TryGetValue(modKey, out var cachedMasters))
         {
             foreach (var master in cachedMasters)
+            {
                 yield return master;
+            }
+
             yield break;
         }
 
@@ -200,7 +231,9 @@ public class GameAssetLocator
         _mastersByMod[modKey] = masters;
 
         foreach (var master in masters)
+        {
             yield return master;
+        }
     }
 
     private void TryAddArchive(ICollection<CachedArchive> archives, FilePath filePath)
@@ -208,10 +241,14 @@ public class GameAssetLocator
         var path = filePath.Path;
 
         if (string.IsNullOrWhiteSpace(path))
+        {
             return;
+        }
 
         if (!File.Exists(path))
+        {
             return;
+        }
 
         try
         {
@@ -229,7 +266,9 @@ public class GameAssetLocator
         extractedPath = string.Empty;
         var file = archive.FindFile(assetKey);
         if (file == null)
+        {
             return false;
+        }
 
         extractedPath = ExtractFile(assetKey, file);
         return extractedPath != null;
@@ -241,7 +280,9 @@ public class GameAssetLocator
         var directory = Path.GetDirectoryName(targetPath);
 
         if (!string.IsNullOrWhiteSpace(directory))
+        {
             Directory.CreateDirectory(directory);
+        }
 
         try
         {
@@ -275,7 +316,9 @@ public class GameAssetLocator
         }
 
         if (!Directory.Exists(path))
+        {
             Directory.CreateDirectory(path);
+        }
     }
 
     private static string ComputePathHash(string dataPath)
@@ -319,7 +362,9 @@ public class GameAssetLocator
                 {
                     var path = file.Path;
                     if (string.IsNullOrWhiteSpace(path))
+                    {
                         continue;
+                    }
 
                     var key = PathUtilities.NormalizeAssetPath(path);
                     dict[key] = file;

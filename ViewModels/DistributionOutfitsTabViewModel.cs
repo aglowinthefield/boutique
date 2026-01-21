@@ -177,7 +177,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             UpdateFilteredOutfits();
 
             // Update NPC counts for each outfit (after both outfits and assignments are loaded)
-            if (_npcAssignments != null) UpdateOutfitNpcCounts();
+            if (_npcAssignments != null)
+            {
+                UpdateOutfitNpcCounts();
+            }
 
             StatusMessage = $"Loaded {outfits.Count} outfits from load order.";
             _logger.Information("Loaded {Count} outfits from load order.", outfits.Count);
@@ -231,8 +234,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
                 {
                     var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
                     return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
-                },
-                GenderedModelVariant.Female);
+                });
 
             await ShowPreview.Handle(collection);
             StatusMessage = $"Preview ready for {label}.";
@@ -354,10 +356,16 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
 
         // Filter out outfits where all NPCs have it as their default (no distribution changed anything)
-        if (HideVanillaOutfits) filtered = filtered.Where(o => !IsVanillaDistribution(o.FormKey));
+        if (HideVanillaOutfits)
+        {
+            filtered = filtered.Where(o => !IsVanillaDistribution(o.FormKey));
+        }
 
         FilteredOutfits.Clear();
-        foreach (var outfit in filtered) FilteredOutfits.Add(outfit);
+        foreach (var outfit in filtered)
+        {
+            FilteredOutfits.Add(outfit);
+        }
     }
 
     /// <summary>
@@ -367,7 +375,9 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     private bool IsVanillaDistribution(FormKey outfitFormKey)
     {
         if (_npcAssignments == null || _npcAssignments.Count == 0)
+        {
             return false; // If no assignments loaded, don't filter anything
+        }
 
         // Find all NPCs whose final outfit is this one
         var npcsWithThisOutfit = _npcAssignments
@@ -375,17 +385,23 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             .ToList();
 
         if (npcsWithThisOutfit.Count == 0)
+        {
             return true; // No NPCs use this outfit, consider it vanilla
+        }
 
         // Check if ALL of these NPCs have this outfit as their default
         foreach (var assignment in npcsWithThisOutfit)
         {
             if (!_cache.NpcsByFormKey.TryGetValue(assignment.NpcFormKey, out var npcData))
+            {
                 continue; // Can't determine, assume not vanilla
+            }
 
             // If this NPC's default outfit is different from their final outfit, this is NOT a vanilla distribution
             if (!npcData.DefaultOutfitFormKey.HasValue || npcData.DefaultOutfitFormKey.Value != outfitFormKey)
+            {
                 return false;
+            }
         }
 
         // All NPCs with this outfit have it as their default - it's a vanilla distribution
@@ -396,7 +412,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     {
         SelectedOutfitNpcAssignments.Clear();
 
-        if (SelectedOutfit == null || _npcAssignments == null) return;
+        if (SelectedOutfit == null || _npcAssignments == null)
+        {
+            return;
+        }
 
         var outfitFormKey = SelectedOutfit.FormKey;
         var selectedOutfitRef = SelectedOutfit;
@@ -413,9 +432,14 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
 
         // Check if selection changed while we were processing
         if (SelectedOutfit != selectedOutfitRef)
+        {
             return;
+        }
 
-        foreach (var vm in matchingAssignments) SelectedOutfitNpcAssignments.Add(vm);
+        foreach (var vm in matchingAssignments)
+        {
+            SelectedOutfitNpcAssignments.Add(vm);
+        }
 
         _logger.Debug(
             "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}",
@@ -426,7 +450,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     {
         if (_npcAssignments == null)
         {
-            foreach (var outfit in Outfits) outfit.NpcCount = 0;
+            foreach (var outfit in Outfits)
+            {
+                outfit.NpcCount = 0;
+            }
 
             return;
         }
@@ -442,7 +469,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             if (finalOutfitFormKey.HasValue)
             {
                 if (!outfitNpcSets.ContainsKey(finalOutfitFormKey.Value))
+                {
                     outfitNpcSets[finalOutfitFormKey.Value] = [];
+                }
+
                 outfitNpcSets[finalOutfitFormKey.Value].Add(assignment.NpcFormKey);
             }
         }
@@ -451,9 +481,13 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         foreach (var outfit in Outfits)
         {
             if (outfitNpcSets.TryGetValue(outfit.FormKey, out var npcSet))
+            {
                 outfit.NpcCount = npcSet.Count;
+            }
             else
+            {
                 outfit.NpcCount = 0;
+            }
         }
     }
 

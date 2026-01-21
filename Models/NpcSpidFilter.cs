@@ -122,44 +122,62 @@ public class NpcSpidFilter
     public bool Matches(NpcFilterData npc)
     {
         if (IsFemale.HasValue && npc.IsFemale != IsFemale.Value)
+        {
             return false;
+        }
 
         if (IsUnique.HasValue && npc.IsUnique != IsUnique.Value)
+        {
             return false;
+        }
 
         if (IsTemplated.HasValue)
         {
             var isTemplated = npc.TemplateFormKey.HasValue;
             if (isTemplated != IsTemplated.Value)
+            {
                 return false;
+            }
         }
 
         if (IsChild.HasValue && npc.IsChild != IsChild.Value)
+        {
             return false;
+        }
 
         if (IsSummonable.HasValue && npc.IsSummonable != IsSummonable.Value)
+        {
             return false;
+        }
 
         if (IsLeveled.HasValue && npc.IsLeveled != IsLeveled.Value)
+        {
             return false;
+        }
 
         if (Factions.Count > 0)
         {
             var npcFactionKeys = npc.Factions.Select(f => f.FactionFormKey).ToHashSet();
             if (!Factions.All(f => npcFactionKeys.Contains(f)))
+            {
                 return false;
+            }
         }
 
         if (Races.Count > 0)
         {
             if (!npc.RaceFormKey.HasValue || !Races.Contains(npc.RaceFormKey.Value))
+            {
                 return false;
+            }
         }
 
         if (Classes.Count > 0)
         {
             if (!npc.ClassFormKey.HasValue || !Classes.Contains(npc.ClassFormKey.Value))
+            {
                 return false;
+            }
         }
 
         // Keyword matching requires LinkCache - handled in ViewModel
@@ -168,7 +186,9 @@ public class NpcSpidFilter
         }
 
         if (MinLevel.HasValue && npc.Level < MinLevel.Value)
+        {
             return false;
+        }
 
         return !MaxLevel.HasValue || npc.Level <= MaxLevel.Value;
     }

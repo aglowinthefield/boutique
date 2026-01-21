@@ -32,32 +32,46 @@ public static class SpidLineParser
         result = null;
 
         if (string.IsNullOrWhiteSpace(line))
+        {
             return false;
+        }
 
         var trimmed = line.Trim();
 
         var equalsIndex = trimmed.IndexOf('=');
         if (equalsIndex < 0)
+        {
             return false;
+        }
 
         var beforeEquals = trimmed[..equalsIndex].Trim();
         if (string.IsNullOrWhiteSpace(beforeEquals))
+        {
             return false;
+        }
 
         if (!FormTypeMap.TryGetValue(beforeEquals, out var formType))
+        {
             return false;
+        }
 
         if (formTypeFilter.HasValue && formType != formTypeFilter.Value)
+        {
             return false;
+        }
 
         var valuePart = trimmed[(equalsIndex + 1)..].Trim();
         if (string.IsNullOrWhiteSpace(valuePart))
+        {
             return false;
+        }
 
         // Remove inline comments
         valuePart = StringUtilities.RemoveInlineComment(valuePart);
         if (string.IsNullOrWhiteSpace(valuePart))
+        {
             return false;
+        }
 
         result = ParseValuePart(valuePart, trimmed, formType);
         return result != null;
@@ -68,7 +82,9 @@ public static class SpidLineParser
         var (formIdentifier, remainder) = ExtractFormIdentifier(valuePart);
 
         if (string.IsNullOrWhiteSpace(formIdentifier))
+        {
             return null;
+        }
 
         var sections = string.IsNullOrWhiteSpace(remainder)
             ? []
@@ -133,7 +149,10 @@ public static class SpidLineParser
                         return (identifier, remainder);
                     }
                 }
-                else if (FormKeyHelper.LooksLikeFormId(afterFirstPipe)) return (valuePart, string.Empty);
+                else if (FormKeyHelper.LooksLikeFormId(afterFirstPipe))
+                {
+                    return (valuePart, string.Empty);
+                }
             }
 
             return (firstPart, valuePart[(firstPipe + 1)..]);
@@ -145,7 +164,9 @@ public static class SpidLineParser
     private static string? GetSection(string[] sections, int index)
     {
         if (index < 0 || index >= sections.Length)
+        {
             return null;
+        }
 
         var value = sections[index].Trim();
         return string.IsNullOrWhiteSpace(value) ? null : value;
@@ -162,7 +183,9 @@ public static class SpidLineParser
         var section = new SpidFilterSection();
 
         if (IsNone(sectionText))
+        {
             return section;
+        }
 
         var expressions = sectionText!.Split(',', StringSplitOptions.RemoveEmptyEntries);
         var globalExclusions = new List<SpidFilterPart>();
@@ -171,7 +194,9 @@ public static class SpidLineParser
         {
             var trimmedExpr = expr.Trim();
             if (string.IsNullOrEmpty(trimmedExpr))
+            {
                 continue;
+            }
 
             if (trimmedExpr.StartsWith('-') && !trimmedExpr.Contains('+'))
             {
@@ -185,11 +210,16 @@ public static class SpidLineParser
             }
 
             var expression = ParseFilterExpression(trimmedExpr);
-            if (expression.Parts.Count > 0) section.Expressions.Add(expression);
+            if (expression.Parts.Count > 0)
+            {
+                section.Expressions.Add(expression);
+            }
         }
 
         if (globalExclusions.Count > 0)
+        {
             section.GlobalExclusions.AddRange(globalExclusions);
+        }
 
         return section;
     }
@@ -199,7 +229,9 @@ public static class SpidLineParser
         var expression = new SpidFilterExpression();
 
         if (string.IsNullOrWhiteSpace(exprText))
+        {
             return expression;
+        }
 
         // Split by + for AND parts
         var parts = exprText.Split('+', StringSplitOptions.RemoveEmptyEntries);
@@ -208,7 +240,9 @@ public static class SpidLineParser
         {
             var trimmedPart = part.Trim();
             if (string.IsNullOrWhiteSpace(trimmedPart))
+            {
                 continue;
+            }
 
             var isNegated = trimmedPart.StartsWith('-');
             var value = isNegated ? trimmedPart[1..].Trim() : trimmedPart;
@@ -225,7 +259,9 @@ public static class SpidLineParser
     private static SpidTraitFilters ParseTraitFilters(string? traitText)
     {
         if (IsNone(traitText))
+        {
             return new SpidTraitFilters();
+        }
 
         bool? isFemale = null;
         bool? isUnique = null;
@@ -241,7 +277,9 @@ public static class SpidLineParser
         {
             var trimmed = trait.Trim();
             if (string.IsNullOrWhiteSpace(trimmed))
+            {
                 continue;
+            }
 
             var isNegated = trimmed.StartsWith('-');
             var code = isNegated ? trimmed[1..].ToUpperInvariant() : trimmed.ToUpperInvariant();
@@ -290,10 +328,14 @@ public static class SpidLineParser
     private static int ParseChance(string? chanceText)
     {
         if (IsNone(chanceText))
+        {
             return 100;
+        }
 
         if (int.TryParse(chanceText, out var chance))
+        {
             return Math.Clamp(chance, 0, 100);
+        }
 
         return 100;
     }
@@ -305,7 +347,9 @@ public static class SpidLineParser
         foreach (var expr in filter.StringFilters.Expressions)
         {
             foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.LooksLikeKeyword && !p.IsNegated))
+            {
                 results.Add(part.Value);
+            }
         }
 
         return results;
@@ -318,7 +362,9 @@ public static class SpidLineParser
         foreach (var expr in filter.StringFilters.Expressions)
         {
             foreach (var part in expr.Parts.Where(p => p.LooksLikeKeyword && !p.IsNegated))
+            {
                 results.Add(part.Value);
+            }
         }
 
         return results;
@@ -351,12 +397,16 @@ public static class SpidLineParser
     public static SpidFormType? GetFormType(string line)
     {
         if (string.IsNullOrWhiteSpace(line))
+        {
             return null;
+        }
 
         var trimmed = line.Trim();
         var equalsIndex = trimmed.IndexOf('=');
         if (equalsIndex < 0)
+        {
             return null;
+        }
 
         var beforeEquals = trimmed[..equalsIndex].Trim();
         return FormTypeMap.TryGetValue(beforeEquals, out var formType) ? formType : null;
@@ -368,7 +418,9 @@ public static class SpidLineParser
 
         foreach (var expr in filter.StringFilters.Expressions)
         foreach (var part in expr.Parts)
+        {
             results.Add(part.Value);
+        }
 
         return results.ToList();
     }

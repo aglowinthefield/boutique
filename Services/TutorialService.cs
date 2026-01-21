@@ -31,9 +31,13 @@ public class TutorialService
             {
                 Directory.CreateDirectory(SettingsDirectory);
                 if (value)
+                {
                     File.WriteAllText(TutorialCompletedFile, DateTime.UtcNow.ToString("O"));
+                }
                 else if (File.Exists(TutorialCompletedFile))
+                {
                     File.Delete(TutorialCompletedFile);
+                }
             }
             catch (Exception ex)
             {
@@ -65,7 +69,11 @@ public class TutorialService
     private void OnTutorialCompleted()
     {
         CompleteTutorial();
-        if (_currentManager is null) return;
+        if (_currentManager is null)
+        {
+            return;
+        }
+
         _currentManager.OnGuideLineListCompleted -= OnTutorialCompleted;
         _currentManager = null;
     }

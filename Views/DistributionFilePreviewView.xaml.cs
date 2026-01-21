@@ -37,11 +37,15 @@ public partial class DistributionFilePreviewView
     private void ScrollToLineAndHighlight(int lineNumber)
     {
         if (PreviewTextBox?.Text is not { Length: > 0 } text)
+        {
             return;
+        }
 
         var lines = text.Split('\n');
         if ((uint)lineNumber >= (uint)lines.Length)
+        {
             return;
+        }
 
         var charIndex = lines.Take(lineNumber).Sum(l => l.Length + 1);
         var lineRect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);

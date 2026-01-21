@@ -55,7 +55,9 @@ public static class OutfitResolver
         outfit = null;
 
         if (!FormKeyHelper.TryParseEditorIdReference(identifier, out var modKey, out var editorId))
+        {
             return false;
+        }
 
         cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
 
@@ -63,7 +65,9 @@ public static class OutfitResolver
             .Where(o => string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
         if (modKey.HasValue)
+        {
             query = query.Where(o => o.FormKey.ModKey == modKey.Value);
+        }
 
         outfit = query.FirstOrDefault();
         return outfit != null;
@@ -86,11 +90,15 @@ public static class OutfitResolver
         foreach (var itemLink in items)
         {
             if (itemLink == null)
+            {
                 continue;
+            }
 
             var targetKeyNullable = itemLink.FormKeyNullable;
             if (!targetKeyNullable.HasValue || targetKeyNullable.Value == FormKey.Null)
+            {
                 continue;
+            }
 
             GatherArmorsFromItem(targetKeyNullable.Value, linkCache, pieces, visited);
         }
@@ -108,10 +116,14 @@ public static class OutfitResolver
         HashSet<FormKey> visited)
     {
         if (!visited.Add(itemFormKey))
+        {
             return;
+        }
 
         if (!linkCache.TryResolve<IItemGetter>(itemFormKey, out var itemRecord))
+        {
             return;
+        }
 
         switch (itemRecord)
         {
@@ -138,7 +150,9 @@ public static class OutfitResolver
     {
         var entries = leveledItem.Entries;
         if (entries == null || entries.Count == 0)
+        {
             return;
+        }
 
         var useAll = leveledItem.Flags.HasFlag(LeveledItem.Flag.UseAll);
 
@@ -147,14 +161,18 @@ public static class OutfitResolver
             foreach (var entry in entries)
             {
                 if (TryGetEntryFormKey(entry, out var formKey))
+                {
                     GatherArmorsFromItem(formKey, linkCache, pieces, visited);
+                }
             }
         }
         else
         {
             var firstEntry = entries.FirstOrDefault();
             if (TryGetEntryFormKey(firstEntry, out var formKey))
+            {
                 GatherArmorsFromItem(formKey, linkCache, pieces, visited);
+            }
         }
     }
 
@@ -164,11 +182,15 @@ public static class OutfitResolver
 
         var data = entry?.Data;
         if (data == null)
+        {
             return false;
+        }
 
         var refFormKey = data.Reference.FormKeyNullable;
         if (!refFormKey.HasValue || refFormKey.Value == FormKey.Null)
+        {
             return false;
+        }
 
         formKey = refFormKey.Value;
         return true;

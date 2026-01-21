@@ -34,7 +34,9 @@ public class CollectionCountToVisibilityConverter : IValueConverter
 
         var isVisible = count > 0;
         if (parameter is "Inverse")
+        {
             isVisible = !isVisible;
+        }
 
         return isVisible ? Visibility.Visible : Visibility.Collapsed;
     }

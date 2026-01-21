@@ -23,7 +23,10 @@ public class FormKeyHelperTests
         var result = FormKeyHelper.TryParseModKey(input, out var modKey);
         Assert.Equal(expected, result);
 
-        if (expected) Assert.NotEqual(ModKey.Null, modKey);
+        if (expected)
+        {
+            Assert.NotEqual(ModKey.Null, modKey);
+        }
     }
 
     #endregion

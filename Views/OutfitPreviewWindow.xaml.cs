@@ -176,7 +176,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         if (!string.IsNullOrWhiteSpace(metadata.OutfitLabel) || !string.IsNullOrWhiteSpace(metadata.SourceFile))
         {
             if (_sceneCollection.Count > 1)
+            {
                 OutfitCounterText.Text = $"Outfit {sceneIndex + 1} of {_sceneCollection.Count}";
+            }
 
             OutfitLabelText.Text = metadata.OutfitLabel ?? "Unknown Outfit";
 
@@ -189,7 +191,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
                 OutfitSourceText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
             }
             else
+            {
                 OutfitSourceText.Text = string.Empty;
+            }
         }
     }
 
@@ -201,7 +205,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             MissingAssetsList.ItemsSource = scene.MissingAssets;
         }
         else
+        {
             MissingAssetsPanel.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void RenderScene(ArmorPreviewScene scene)
@@ -220,7 +226,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         {
             var geometry = CreateGeometry(evaluated, center);
             if (geometry == null)
+            {
                 continue;
+            }
 
             var material = CreateMaterialForMesh(evaluated.Shape);
             var model = new MeshGeometryModel3D
@@ -259,7 +267,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             {
                 var normal = Vector3.TransformNormal(t, mesh.Transform);
                 if (normal != Vector3.Zero)
+                {
                     normal = Vector3.Normalize(normal);
+                }
+
                 transformedNormals.Add(normal);
             }
 
@@ -277,7 +288,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         var extents = max - min;
         radius = Math.Max(Math.Max(extents.X, extents.Y), extents.Z);
         if (radius <= 0)
+        {
             radius = 1f;
+        }
+
         radius *= 0.5f;
 
         return evaluatedMeshes;
@@ -286,7 +300,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private static MeshGeometry3D? CreateGeometry(EvaluatedMesh evaluated, Vector3 center)
     {
         if (evaluated.Vertices.Count == 0 || evaluated.Shape.Indices.Count == 0)
+        {
             return null;
+        }
 
         var positions = new Vector3Collection(
             evaluated.Vertices.Select(v => new SharpDXVector3(v.X - center.X, v.Y - center.Y, v.Z - center.Z)));
@@ -432,7 +448,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     {
         var material = TryCreateTextureMaterial(mesh);
         if (material != null)
+        {
             return material;
+        }
 
         var fallbackColor = GetFallbackColor(mesh);
         var baseDiffuse = ToColor4(fallbackColor);
@@ -495,7 +513,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void UpdateFrontalLightDirection()
     {
         if (PreviewViewport.Camera is not ProjectionCamera camera)
+        {
             return;
+        }
+
         var direction = camera.LookDirection;
         if (direction.LengthSquared > 1e-6)
         {
@@ -507,7 +528,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private static Color GetFallbackColor(PreviewMeshShape mesh)
     {
         if (mesh.Name.Contains("Base Body", StringComparison.OrdinalIgnoreCase))
+        {
             return Color.FromRgb(200, 200, 200);
+        }
 
         var hash = mesh.SourcePath.GetHashCode(StringComparison.OrdinalIgnoreCase);
         var r = (byte)((hash >> 16) & 0xFF);
@@ -535,7 +558,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void OnResetView(object sender, RoutedEventArgs e)
     {
         if (_initialCamera == null)
+        {
             return;
+        }
 
         if (PreviewViewport.Camera is PerspectiveCamera activeCamera)
         {
@@ -545,7 +570,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             activeCamera.FieldOfView = _initialCamera.FieldOfView;
         }
         else
+        {
             PreviewViewport.Camera = (PerspectiveCamera)_initialCamera.Clone();
+        }
 
         UpdateFrontalLightDirection();
     }
@@ -555,14 +582,18 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void OnGenderChanged(object sender, SelectionChangedEventArgs e)
     {
         if (GenderComboBox.SelectedItem is not ComboBoxItem selectedItem)
+        {
             return;
+        }
 
         var newGender = selectedItem.Tag?.ToString() == "Male"
             ? GenderedModelVariant.Male
             : GenderedModelVariant.Female;
 
         if (newGender == _currentGender)
+        {
             return;
+        }
 
         _currentGender = newGender;
         BuildScene();
@@ -585,7 +616,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void NavigateOutfit(int direction)
     {
         if (_sceneCollection.Count <= 1)
+        {
             return;
+        }
 
         _currentSceneIndex = (_currentSceneIndex + direction + _sceneCollection.Count)
                              % _sceneCollection.Count;
@@ -595,7 +628,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void OnWindowPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.IsRepeat)
+        {
             return;
+        }
 
         if (e.Key == Key.Tab)
         {
@@ -623,7 +658,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void OnViewportKeyDown(object sender, KeyEventArgs e)
     {
         if (_sceneCollection.Count <= 1)
+        {
             return;
+        }
 
         switch (e.Key)
         {
@@ -647,7 +684,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private void Dispose(bool disposing)
     {
         if (_disposed)
+        {
             return;
+        }
 
         if (disposing)
         {

@@ -59,7 +59,9 @@ public sealed class ArmorPreviewSceneCollection
     public async Task<ArmorPreviewScene> GetSceneAsync(int index, GenderedModelVariant gender)
     {
         if (_sceneCache.TryGetValue((index, gender), out var cached))
+        {
             return cached;
+        }
 
         var scene = await _sceneBuilder(index, gender);
         _sceneCache[(index, gender)] = scene;

@@ -90,20 +90,35 @@ public partial class NpcOutfitAssignmentViewModel(NpcOutfitAssignment assignment
         {
             var winner = WinningDistribution;
             if (winner == null)
+            {
                 return string.Empty;
+            }
 
             if (winner.TargetsAllNpcs)
+            {
                 return "All";
+            }
 
             var types = new List<string>();
             if (winner.UsesKeywordTargeting)
+            {
                 types.Add("Keyword");
+            }
+
             if (winner.UsesFactionTargeting)
+            {
                 types.Add("Faction");
+            }
+
             if (winner.UsesRaceTargeting)
+            {
                 types.Add("Race");
+            }
+
             if (winner.UsesTraitTargeting)
+            {
                 types.Add("Trait");
+            }
 
             return types.Count > 0 ? string.Join(", ", types) : "Specific";
         }

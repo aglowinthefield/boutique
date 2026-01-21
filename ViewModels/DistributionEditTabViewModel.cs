@@ -137,7 +137,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         _mutagenService.PluginsChanged += OnPluginsChanged;
         _cache.CacheLoaded += OnCacheLoaded;
 
-        if (_cache.IsLoaded) InitializeFromCache();
+        if (_cache.IsLoaded)
+        {
+            InitializeFromCache();
+        }
 
         _distributionEntries.CollectionChanged += OnDistributionEntriesChanged;
 
@@ -202,7 +205,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         get => _guiSettings.IsFilePreviewExpanded;
         set
         {
-            if (_guiSettings.IsFilePreviewExpanded == value) return;
+            if (_guiSettings.IsFilePreviewExpanded == value)
+            {
+                return;
+            }
+
             _guiSettings.IsFilePreviewExpanded = value;
             this.RaisePropertyChanged();
         }
@@ -214,7 +221,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         private set
         {
             var oldCollection = _distributionEntries;
-            if (oldCollection != null) oldCollection.CollectionChanged -= OnDistributionEntriesChanged;
+            if (oldCollection != null)
+            {
+                oldCollection.CollectionChanged -= OnDistributionEntriesChanged;
+            }
 
             this.RaiseAndSetIfChanged(ref _distributionEntries, value);
             if (value != null)
@@ -260,8 +270,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     {
         get
         {
-            if (SelectedDistributionFile == null) return null;
-            if (SelectedDistributionFile.IsNewFile) return DistributionNewFileItem.Instance;
+            if (SelectedDistributionFile == null)
+            {
+                return null;
+            }
+
+            if (SelectedDistributionFile.IsNewFile)
+            {
+                return DistributionNewFileItem.Instance;
+            }
 
             return DropdownItems.OfType<DistributionFileItem>()
                 .FirstOrDefault(f => f.FullPath == SelectedDistributionFile.File?.FullPath);
@@ -269,16 +286,22 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         set
         {
             if (value is DistributionGroupHeader)
+            {
                 return; // Headers are not selectable
+            }
 
             if (value is DistributionNewFileItem)
+            {
                 SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+            }
             else if (value is DistributionFileItem fileItem)
             {
                 var match = AvailableDistributionFiles.FirstOrDefault(f =>
                     !f.IsNewFile && f.File?.FullPath == fileItem.FullPath);
                 if (match != null)
+                {
                     SelectedDistributionFile = match;
+                }
             }
 
             this.RaisePropertyChanged();
@@ -334,7 +357,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                         UpdateHasKeywordDistributions();
                     }
 
-                    if (string.IsNullOrWhiteSpace(NewFileName)) NewFileName = GenerateUniqueNewFileName();
+                    if (string.IsNullOrWhiteSpace(NewFileName))
+                    {
+                        NewFileName = GenerateUniqueNewFileName();
+                    }
 
                     UpdateDistributionFilePathFromNewFileName();
                 }
@@ -384,7 +410,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         set
         {
             if (_distributionFormat == value)
+            {
                 return;
+            }
 
             _logger.Debug(
                 "DistributionFormat changing from {OldFormat} to {NewFormat}, EntryCount={Count}",
@@ -408,7 +436,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private void OnDistributionEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (_isBulkLoading)
+        {
             return;
+        }
 
         _logger.Debug(
             "OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}",
@@ -417,12 +447,20 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(DistributionEntriesCount));
 
         if (e.OldItems != null)
+        {
             foreach (DistributionEntryViewModel entry in e.OldItems)
+            {
                 UnsubscribeFromEntryChanges(entry);
+            }
+        }
 
         if (e.NewItems != null)
+        {
             foreach (DistributionEntryViewModel entry in e.NewItems)
+            {
                 SubscribeToEntryChanges(entry);
+            }
+        }
 
         UpdateFileContent();
         UpdateHasChanceBasedEntries();
@@ -551,7 +589,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             }
         }
 
-        foreach (var item in selectedItems) item.IsSelected = false;
+        foreach (var item in selectedItems)
+        {
+            item.IsSelected = false;
+        }
 
         if (addedCount > 0)
         {
@@ -560,7 +601,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             _logger.Debug("Added {Count} {ItemType}s to entry", addedCount, itemTypeName);
         }
         else
+        {
             StatusMessage = $"All selected {itemTypeName}s are already in this entry.";
+        }
     }
 
     [ReactiveCommand(CanExecute = nameof(_hasEntries))]
@@ -621,7 +664,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 Application.Current?.Dispatcher.BeginInvoke(
                     new Action(() =>
                     {
-                        if (SelectedEntry != null) ApplyFilterToEntry(SelectedEntry, CopiedFilter);
+                        if (SelectedEntry != null)
+                        {
+                            ApplyFilterToEntry(SelectedEntry, CopiedFilter);
+                        }
                     }), DispatcherPriority.Background);
                 return;
             }
@@ -705,7 +751,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             UpdateFileContent();
         }
         else
+        {
             StatusMessage = "Filter already applied or no applicable filters to paste.";
+        }
     }
 
     [ReactiveCommand]
@@ -713,7 +761,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     {
         if (DistributionEntries.Remove(entryVm))
         {
-            if (SelectedEntry == entryVm) SelectedEntry = DistributionEntries.FirstOrDefault();
+            if (SelectedEntry == entryVm)
+            {
+                SelectedEntry = DistributionEntries.FirstOrDefault();
+            }
 
             _logger.Debug("Removed distribution entry.");
         }
@@ -778,7 +829,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             {
                 var directory = Path.GetDirectoryName(DistributionFilePath);
                 finalFileName = SuggestedFileName;
-                if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase)) finalFileName += ".ini";
+                if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
+                {
+                    finalFileName += ".ini";
+                }
 
                 finalFilePath = !string.IsNullOrEmpty(directory)
                     ? Path.Combine(directory, finalFileName)
@@ -812,7 +866,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             // This ensures the saved file matches exactly what the user sees in the preview
             var directory = Path.GetDirectoryName(finalFilePath);
             if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            {
                 Directory.CreateDirectory(directory);
+            }
 
             await File.WriteAllTextAsync(finalFilePath, DistributionFileContent, Encoding.UTF8);
 
@@ -879,9 +935,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 ClearNpcConflictIndicators();
                 var entryVms = await Task.Run(() =>
                     entries.Select(entry => CreateEntryViewModel(entry)).ToList());
-                foreach (var entryVm in entryVms) DistributionEntries.Add(entryVm);
+                foreach (var entryVm in entryVms)
+                {
+                    DistributionEntries.Add(entryVm);
+                }
 
-                foreach (var entryVm in entryVms) SubscribeToEntryChanges(entryVm);
+                foreach (var entryVm in entryVms)
+                {
+                    SubscribeToEntryChanges(entryVm);
+                }
             }
             finally
             {
@@ -896,7 +958,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             var statusMsg =
                 $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
             if (parseErrors.Count > 0)
+            {
                 statusMsg += $" ({parseErrors.Count} line(s) could not be parsed)";
+            }
+
             StatusMessage = statusMsg;
             _logger.Information(
                 "Loaded distribution file: {FilePath} with {Count} entries, {ErrorCount} parse errors",
@@ -948,7 +1013,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             {
                 StatusMessage = "Loading game data from plugins...";
                 while (_cache.IsLoading)
+                {
                     await Task.Delay(100);
+                }
             }
 
             UpdateFilteredNpcs();
@@ -979,7 +1046,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private void SelectDistributionFilePath()
     {
         if (!IsCreatingNewFile)
+        {
             return;
+        }
 
         var dialog = new SaveFileDialog
         {
@@ -996,9 +1065,13 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         {
             var defaultDir = PathUtilities.GetSkyPatcherNpcPath(targetDirectory);
             if (Directory.Exists(defaultDir))
+            {
                 dialog.InitialDirectory = defaultDir;
+            }
             else
+            {
                 dialog.InitialDirectory = targetDirectory;
+            }
         }
 
         if (dialog.ShowDialog() == true)
@@ -1102,23 +1175,35 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private void UpdateDistributionFilePathForFormat()
     {
         if (IsCreatingNewFile)
+        {
             UpdateDistributionFilePathFromNewFileName();
-        else if (!string.IsNullOrWhiteSpace(DistributionFilePath)) UpdateDistributionFilePathFromExistingFile();
+        }
+        else if (!string.IsNullOrWhiteSpace(DistributionFilePath))
+        {
+            UpdateDistributionFilePathFromExistingFile();
+        }
     }
 
     private void UpdateDistributionFilePathFromExistingFile()
     {
         var dataPath = _settings.SkyrimDataPath;
         if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
+        {
             return;
+        }
 
         var currentFileName = Path.GetFileNameWithoutExtension(DistributionFilePath);
         if (string.IsNullOrWhiteSpace(currentFileName))
+        {
             return;
+        }
 
         // Strip any existing format-specific suffixes
         var baseName = currentFileName;
-        if (baseName.EndsWith("_DISTR", StringComparison.OrdinalIgnoreCase)) baseName = baseName[..^6];
+        if (baseName.EndsWith("_DISTR", StringComparison.OrdinalIgnoreCase))
+        {
+            baseName = baseName[..^6];
+        }
 
         // Use output folder as base if set, otherwise fall back to data path
         var baseDirectory = !string.IsNullOrWhiteSpace(_settings.OutputPatchPath)
@@ -1138,7 +1223,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             : _settings.SkyrimDataPath;
 
         if (string.IsNullOrWhiteSpace(targetDirectory) || !Directory.Exists(targetDirectory))
+        {
             return;
+        }
 
         if (string.IsNullOrWhiteSpace(NewFileName))
         {
@@ -1148,9 +1235,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         var fileName = NewFileName.Trim();
         var baseName = fileName;
-        if (baseName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase)) baseName = baseName[..^4];
+        if (baseName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
+        {
+            baseName = baseName[..^4];
+        }
 
-        if (baseName.EndsWith("_DISTR", StringComparison.OrdinalIgnoreCase)) baseName = baseName[..^6];
+        if (baseName.EndsWith("_DISTR", StringComparison.OrdinalIgnoreCase))
+        {
+            baseName = baseName[..^6];
+        }
 
         DistributionFilePath = GetDistributionFilePath(targetDirectory, baseName, DistributionFormat);
     }
@@ -1200,11 +1293,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         _lastChangedEntry = null;
 
         if (entryToHighlight == null || _isBulkLoading)
+        {
             return;
+        }
 
         var lineNumber = CalculateLineNumberForEntry(entryToHighlight, effectiveFormat);
         if (lineNumber < 0)
+        {
             return;
+        }
 
         var lines = DistributionFileContent.Split('\n');
         var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
@@ -1223,10 +1320,14 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 : entry.SelectedOutfit != null;
 
             if (entry == targetEntry)
+            {
                 return producesLine ? lineNumber : -1;
+            }
 
             if (producesLine)
+            {
                 lineNumber++;
+            }
         }
 
         return -1;
@@ -1235,11 +1336,16 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private async Task LoadAvailableOutfitsAsync()
     {
         if (_outfitsLoaded && AvailableOutfits.Count > 0)
+        {
             return;
+        }
 
         if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
         {
-            if (AvailableOutfits.Count > 0) AvailableOutfits.Clear();
+            if (AvailableOutfits.Count > 0)
+            {
+                AvailableOutfits.Clear();
+            }
 
             _outfitsLoaded = false;
             return;
@@ -1269,7 +1375,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     {
         var patchPath = _settings.FullOutputPath;
         if (string.IsNullOrEmpty(patchPath) || !File.Exists(patchPath))
+        {
             return;
+        }
 
         var patchOutfits = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
         var existingFormKeys = outfits.Select(o => o.FormKey).ToHashSet();
@@ -1287,7 +1395,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     /// <summary>Triggers lazy loading of outfits when ComboBox opens.</summary>
     public void EnsureOutfitsLoaded()
     {
-        if (!_outfitsLoaded) _ = LoadAvailableOutfitsAsync();
+        if (!_outfitsLoaded)
+        {
+            _ = LoadAvailableOutfitsAsync();
+        }
     }
 
     private async void OnPluginsChanged(object? sender, EventArgs e)
@@ -1393,13 +1504,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (IsBaseNameAvailable(baseName, existingFileNames))
+        {
             return $"{baseName}.ini";
+        }
 
         for (var i = 2; i < 1000; i++)
         {
             var numberedBase = $"{baseName}_{i}";
             if (IsBaseNameAvailable(numberedBase, existingFileNames))
+            {
                 return $"{numberedBase}.ini";
+            }
         }
 
         return $"{baseName}_{Guid.NewGuid():N}.ini";
@@ -1662,12 +1777,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private void ResolveEntryOutfit(DistributionEntryViewModel entryVm)
     {
         if (entryVm.SelectedOutfit == null)
+        {
             return;
+        }
 
         var outfitFormKey = entryVm.SelectedOutfit.FormKey;
         var matchingOutfit = AvailableOutfits.FirstOrDefault(o => o.FormKey == outfitFormKey);
 
-        if (matchingOutfit != null) entryVm.SelectedOutfit = matchingOutfit;
+        if (matchingOutfit != null)
+        {
+            entryVm.SelectedOutfit = matchingOutfit;
+        }
     }
 
     /// <summary>
@@ -1681,7 +1801,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         foreach (var npcFormKey in formKeys)
         {
             var npcVm = ResolveNpcFormKey(npcFormKey);
-            if (npcVm != null) npcVms.Add(npcVm);
+            if (npcVm != null)
+            {
+                npcVms.Add(npcVm);
+            }
         }
 
         return npcVms;
@@ -1694,7 +1817,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private NpcRecordViewModel? ResolveNpcFormKey(FormKey formKey)
     {
         var existingNpc = AvailableNpcs.FirstOrDefault(npc => npc.FormKey == formKey);
-        if (existingNpc != null) return existingNpc;
+        if (existingNpc != null)
+        {
+            return existingNpc;
+        }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
             linkCache.TryResolve<INpcGetter>(formKey, out var npc))
@@ -1730,7 +1856,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private FactionRecordViewModel? ResolveFactionFormKey(FormKey formKey)
     {
         var existingFaction = AvailableFactions.FirstOrDefault(f => f.FormKey == formKey);
-        if (existingFaction != null) return new FactionRecordViewModel(existingFaction.FactionRecord);
+        if (existingFaction != null)
+        {
+            return new FactionRecordViewModel(existingFaction.FactionRecord);
+        }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
             linkCache.TryResolve<IFactionGetter>(formKey, out var faction))
@@ -1766,12 +1895,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private KeywordRecordViewModel? ResolveKeywordEditorId(string editorId)
     {
         if (string.IsNullOrWhiteSpace(editorId))
+        {
             return null;
+        }
 
         // Check if it's already in AvailableKeywords
         var existingKeyword = AvailableKeywords.FirstOrDefault(k =>
             string.Equals(k.KeywordRecord.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
-        if (existingKeyword != null) return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
+        if (existingKeyword != null)
+        {
+            return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
+        }
 
         // Try to resolve from LinkCache
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
@@ -1796,7 +1930,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private KeywordRecordViewModel? ResolveKeywordByFormKey(FormKey formKey)
     {
         var existingKeyword = AvailableKeywords.FirstOrDefault(k => k.FormKey == formKey);
-        if (existingKeyword != null) return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
+        if (existingKeyword != null)
+        {
+            return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
+        }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
             linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword))
@@ -1831,7 +1968,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private RaceRecordViewModel? ResolveRaceFormKey(FormKey formKey)
     {
         var existingRace = AvailableRaces.FirstOrDefault(r => r.FormKey == formKey);
-        if (existingRace != null) return existingRace;
+        if (existingRace != null)
+        {
+            return existingRace;
+        }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
             linkCache.TryResolve<IRaceGetter>(formKey, out var race))
@@ -1854,7 +1994,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         foreach (var formKey in formKeys)
         {
             var classVm = ResolveClassFormKey(formKey);
-            if (classVm != null) classVms.Add(classVm);
+            if (classVm != null)
+            {
+                classVms.Add(classVm);
+            }
         }
 
         return classVms;
@@ -1863,7 +2006,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private ClassRecordViewModel? ResolveClassFormKey(FormKey formKey)
     {
         var existingClass = AvailableClasses.FirstOrDefault(c => c.FormKey == formKey);
-        if (existingClass != null) return existingClass;
+        if (existingClass != null)
+        {
+            return existingClass;
+        }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
             linkCache.TryResolve<IClassGetter>(formKey, out var classRecord))
@@ -1888,7 +2034,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         IEnumerable<NpcRecordViewModel> filtered;
 
         if (string.IsNullOrWhiteSpace(NpcSearchText))
+        {
             filtered = AvailableNpcs;
+        }
         else
         {
             var term = NpcSearchText.Trim().ToLowerInvariant();
@@ -1896,7 +2044,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         }
 
         FilteredNpcs.Clear();
-        foreach (var npc in filtered) FilteredNpcs.Add(npc);
+        foreach (var npc in filtered)
+        {
+            FilteredNpcs.Add(npc);
+        }
     }
 
     private void UpdateFilteredFactions()
@@ -1904,7 +2055,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         IEnumerable<FactionRecordViewModel> filtered;
 
         if (string.IsNullOrWhiteSpace(FactionSearchText))
+        {
             filtered = AvailableFactions;
+        }
         else
         {
             var term = FactionSearchText.Trim().ToLowerInvariant();
@@ -1912,7 +2065,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         }
 
         FilteredFactions.Clear();
-        foreach (var faction in filtered) FilteredFactions.Add(faction);
+        foreach (var faction in filtered)
+        {
+            FilteredFactions.Add(faction);
+        }
     }
 
     private void UpdateFilteredKeywords()
@@ -1920,7 +2076,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         IEnumerable<KeywordRecordViewModel> filtered;
 
         if (string.IsNullOrWhiteSpace(KeywordSearchText))
+        {
             filtered = AvailableKeywords;
+        }
         else
         {
             var term = KeywordSearchText.Trim().ToLowerInvariant();
@@ -1928,7 +2086,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         }
 
         FilteredKeywords.Clear();
-        foreach (var keyword in filtered) FilteredKeywords.Add(keyword);
+        foreach (var keyword in filtered)
+        {
+            FilteredKeywords.Add(keyword);
+        }
     }
 
     private void UpdateFilteredRaces()
@@ -1936,7 +2097,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         IEnumerable<RaceRecordViewModel> filtered;
 
         if (string.IsNullOrWhiteSpace(RaceSearchText))
+        {
             filtered = AvailableRaces;
+        }
         else
         {
             var term = RaceSearchText.Trim().ToLowerInvariant();
@@ -1944,7 +2107,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         }
 
         FilteredRaces.Clear();
-        foreach (var race in filtered) FilteredRaces.Add(race);
+        foreach (var race in filtered)
+        {
+            FilteredRaces.Add(race);
+        }
     }
 
     private void UpdateFilteredClasses()
@@ -1952,7 +2118,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         IEnumerable<ClassRecordViewModel> filtered;
 
         if (string.IsNullOrWhiteSpace(ClassSearchText))
+        {
             filtered = AvailableClasses;
+        }
         else
         {
             var term = ClassSearchText.Trim().ToLowerInvariant();
@@ -1960,6 +2128,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         }
 
         FilteredClasses.Clear();
-        foreach (var classVm in filtered) FilteredClasses.Add(classVm);
+        foreach (var classVm in filtered)
+        {
+            FilteredClasses.Add(classVm);
+        }
     }
 }

@@ -74,7 +74,9 @@ public class DistributionDiscoveryService(ILogger logger)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (seenPaths.Contains(iniFile))
+                    {
                         continue;
+                    }
 
                     if (IsSkyPatcherIni(dataFolderPath, iniFile))
                     {
@@ -86,7 +88,9 @@ public class DistributionDiscoveryService(ILogger logger)
                 _logger.Debug("Found {Count} SkyPatcher distribution files", skyPatcherFileCount);
             }
             else
+            {
                 _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -116,7 +120,9 @@ public class DistributionDiscoveryService(ILogger logger)
         void TryParse(string path, DistributionFileType type)
         {
             if (!seenPaths.Add(path))
+            {
                 return;
+            }
 
             var parsed = ParseDistributionFile(path, dataFolderPath, type);
             if (parsed != null)
@@ -125,7 +131,9 @@ public class DistributionDiscoveryService(ILogger logger)
                 parsedCount++;
             }
             else
+            {
                 skippedCount++;
+            }
         }
     }
 
@@ -141,7 +149,9 @@ public class DistributionDiscoveryService(ILogger logger)
             .ToLowerInvariant();
 
         if (!normalized.Contains(skyPatcherPath))
+        {
             return false;
+        }
 
         var fileName = Path.GetFileName(iniFile);
         return !string.Equals(fileName, "SkyPatcher.ini", StringComparison.OrdinalIgnoreCase);
@@ -170,9 +180,13 @@ public class DistributionDiscoveryService(ILogger logger)
                 string? value = null;
 
                 if (string.IsNullOrEmpty(trimmed))
+                {
                     kind = DistributionLineKind.Blank;
+                }
                 else if (trimmed.StartsWith(';') || trimmed.StartsWith('#'))
+                {
                     kind = DistributionLineKind.Comment;
+                }
                 else if (trimmed.StartsWith('[') && trimmed.EndsWith(']') && trimmed.Length > 2)
                 {
                     kind = DistributionLineKind.Section;
@@ -189,7 +203,9 @@ public class DistributionDiscoveryService(ILogger logger)
                         value = trimmed[(equalsIndex + 1)..].Trim();
                     }
                     else
+                    {
                         kind = DistributionLineKind.Other;
+                    }
                 }
 
                 var isOutfitDistribution = IsOutfitDistributionLine(type, kind, trimmed);
@@ -216,7 +232,9 @@ public class DistributionDiscoveryService(ILogger logger)
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
 
             if (outfitCount == 0 && keywordCount == 0)
+            {
                 return null;
+            }
 
             return new DistributionFile(
                 Path.GetFileName(filePath),
@@ -237,7 +255,9 @@ public class DistributionDiscoveryService(ILogger logger)
     private static bool IsOutfitDistributionLine(DistributionFileType type, DistributionLineKind kind, string trimmed)
     {
         if (kind is DistributionLineKind.Comment or DistributionLineKind.Blank)
+        {
             return false;
+        }
 
         return type switch
         {
@@ -250,7 +270,9 @@ public class DistributionDiscoveryService(ILogger logger)
     private static bool IsKeywordDistributionLine(DistributionFileType type, DistributionLineKind kind, string trimmed)
     {
         if (kind is DistributionLineKind.Comment or DistributionLineKind.Blank)
+        {
             return false;
+        }
 
         return type == DistributionFileType.Spid && IsSpidKeywordLine(trimmed);
     }
@@ -258,7 +280,9 @@ public class DistributionDiscoveryService(ILogger logger)
     private static bool IsSpidOutfitLine(string trimmed)
     {
         if (!trimmed.StartsWith("Outfit", StringComparison.OrdinalIgnoreCase) || trimmed.Length <= 6)
+        {
             return false;
+        }
 
         var remainder = trimmed[6..].TrimStart();
         return remainder.Length > 0 && remainder[0] == '=';
@@ -267,7 +291,9 @@ public class DistributionDiscoveryService(ILogger logger)
     private static bool IsSpidKeywordLine(string trimmed)
     {
         if (!trimmed.StartsWith("Keyword", StringComparison.OrdinalIgnoreCase) || trimmed.Length <= 7)
+        {
             return false;
+        }
 
         var remainder = trimmed[7..].TrimStart();
         return remainder.Length > 0 && remainder[0] == '=';
@@ -276,7 +302,9 @@ public class DistributionDiscoveryService(ILogger logger)
     private static string? ExtractKeywordIdentifier(string trimmed)
     {
         if (!SpidLineParser.TryParseKeyword(trimmed, out var filter) || filter == null)
+        {
             return null;
+        }
 
         return filter.FormIdentifier;
     }
@@ -301,11 +329,15 @@ public class DistributionDiscoveryService(ILogger logger)
     {
         var equalsIndex = trimmed.IndexOf('=');
         if (equalsIndex < 0)
+        {
             return [];
+        }
 
         var valuePortion = trimmed[(equalsIndex + 1)..].Trim();
         if (string.IsNullOrWhiteSpace(valuePortion))
+        {
             return [];
+        }
 
         var tokens = valuePortion.Split([','], StringSplitOptions.RemoveEmptyEntries);
         var results = new List<string>();
@@ -314,7 +346,9 @@ public class DistributionDiscoveryService(ILogger logger)
         {
             var outfitId = ExtractSpidOutfitIdentifier(token.Trim());
             if (!string.IsNullOrWhiteSpace(outfitId))
+            {
                 results.Add(outfitId);
+            }
         }
 
         return results;
@@ -323,11 +357,15 @@ public class DistributionDiscoveryService(ILogger logger)
     internal static string ExtractSpidOutfitIdentifier(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
+        {
             return string.Empty;
+        }
 
         var cleaned = StringUtilities.RemoveInlineComment(token);
         if (string.IsNullOrWhiteSpace(cleaned))
+        {
             return string.Empty;
+        }
 
         var tildeIndex = cleaned.IndexOf('~');
         if (tildeIndex >= 0)
@@ -339,12 +377,16 @@ public class DistributionDiscoveryService(ILogger logger)
             {
                 var modPart = afterTilde[..pipeAfterMod];
                 if (FormKeyHelper.IsModKeyFileName(modPart))
+                {
                     return cleaned[..(tildeIndex + 1 + pipeAfterMod)];
+                }
             }
 
             var endOfModKey = FormKeyHelper.FindModKeyEnd(afterTilde);
             if (endOfModKey > 0)
+            {
                 return cleaned[..(tildeIndex + 1 + endOfModKey)];
+            }
 
             return pipeAfterMod >= 0 ? cleaned[..(tildeIndex + 1 + pipeAfterMod)] : cleaned;
         }
@@ -363,10 +405,14 @@ public class DistributionDiscoveryService(ILogger logger)
                 {
                     var potentialFormId = afterFirstPipe[..secondPipe];
                     if (FormKeyHelper.LooksLikeFormId(potentialFormId))
+                    {
                         return cleaned[..(pipeIndex + 1 + secondPipe)];
+                    }
                 }
                 else
+                {
                     return cleaned;
+                }
             }
 
             return firstPart;
@@ -391,7 +437,9 @@ public class DistributionDiscoveryService(ILogger logger)
         {
             var index = trimmed.IndexOf(marker, startIndex, StringComparison.OrdinalIgnoreCase);
             if (index < 0)
+            {
                 break;
+            }
 
             index += marker.Length;
             var endIndex = trimmed.IndexOf(':', index);
@@ -399,7 +447,9 @@ public class DistributionDiscoveryService(ILogger logger)
             startIndex = endIndex >= 0 ? endIndex + 1 : trimmed.Length;
 
             if (string.IsNullOrWhiteSpace(segment))
+            {
                 continue;
+            }
 
             var tokens = segment.Split([','], StringSplitOptions.RemoveEmptyEntries);
             keys.AddRange(NormalizeFormKeyTokens(tokens));
@@ -413,7 +463,9 @@ public class DistributionDiscoveryService(ILogger logger)
         foreach (var token in tokens)
         {
             if (!TryNormalizeFormKeyToken(token, out var normalized))
+            {
                 continue;
+            }
 
             results.Add(normalized);
         }
@@ -425,11 +477,15 @@ public class DistributionDiscoveryService(ILogger logger)
     {
         normalized = string.Empty;
         if (string.IsNullOrWhiteSpace(token))
+        {
             return false;
+        }
 
         var cleaned = StringUtilities.RemoveInlineComment(token.Trim());
         if (string.IsNullOrWhiteSpace(cleaned))
+        {
             return false;
+        }
 
         if (TryExtractFormKeyParts(cleaned, out var modPart, out var formIdPart) &&
             !string.IsNullOrWhiteSpace(modPart) &&
@@ -454,7 +510,9 @@ public class DistributionDiscoveryService(ILogger logger)
             formIdPart = text[..tildeIndex].Trim();
             var remainder = text[(tildeIndex + 1)..].Trim();
             if (string.IsNullOrEmpty(remainder) || string.IsNullOrEmpty(formIdPart))
+            {
                 return false;
+            }
 
             var pipeIndex = remainder.IndexOf('|');
             modPart = pipeIndex >= 0 ? remainder[..pipeIndex].Trim() : remainder;
@@ -466,12 +524,16 @@ public class DistributionDiscoveryService(ILogger logger)
 
         var firstPipe = text.IndexOf('|');
         if (firstPipe < 0)
+        {
             return false;
+        }
 
         modPart = text[..firstPipe].Trim();
         var remainderPart = text[(firstPipe + 1)..].Trim();
         if (string.IsNullOrEmpty(modPart) || string.IsNullOrEmpty(remainderPart))
+        {
             return false;
+        }
 
         var secondPipe = remainderPart.IndexOf('|');
         formIdPart = secondPipe >= 0 ? remainderPart[..secondPipe].Trim() : remainderPart;

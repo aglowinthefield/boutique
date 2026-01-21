@@ -39,16 +39,22 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
         {
             var npcIndex = Array.FindIndex(parts, p => p.Equals("npc", StringComparison.OrdinalIgnoreCase));
             if (npcIndex >= 0 && npcIndex < parts.Length - 1)
+            {
                 return string.Join("/", parts.Skip(npcIndex + 1));
+            }
 
             var outfitIndex = Array.FindIndex(parts, p => p.Equals("outfit", StringComparison.OrdinalIgnoreCase));
             if (outfitIndex >= 0 && outfitIndex < parts.Length - 1)
+            {
                 return string.Join("/", parts.Skip(outfitIndex + 1));
+            }
 
             var skypatcherIndex =
                 Array.FindIndex(parts, p => p.Equals("SkyPatcher", StringComparison.OrdinalIgnoreCase));
             if (skypatcherIndex >= 0 && skypatcherIndex < parts.Length - 1)
+            {
                 return string.Join("/", parts.Skip(skypatcherIndex + 1));
+            }
         }
 
         var dir = Path.GetDirectoryName(relativePath);
@@ -56,7 +62,9 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
         {
             var dirParts = dir.Split(Path.DirectorySeparatorChar);
             if (dirParts.Length > 0)
+            {
                 return $"{dirParts[^1]}/{FileName}";
+            }
         }
 
         return FileName;
@@ -69,21 +77,29 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
 
         var skseIndex = Array.FindIndex(parts, p => p.Equals("SKSE", StringComparison.OrdinalIgnoreCase));
         if (skseIndex > 0)
+        {
             return parts[skseIndex - 1];
+        }
 
         if (file.Type == DistributionFileType.SkyPatcher)
         {
             var npcIndex = Array.FindIndex(parts, p => p.Equals("npc", StringComparison.OrdinalIgnoreCase));
             if (npcIndex >= 0 && npcIndex < parts.Length - 2)
+            {
                 return parts[npcIndex + 1];
+            }
 
             var outfitIndex = Array.FindIndex(parts, p => p.Equals("outfit", StringComparison.OrdinalIgnoreCase));
             if (outfitIndex >= 0 && outfitIndex < parts.Length - 2)
+            {
                 return parts[outfitIndex + 1];
+            }
 
             var weaponIndex = Array.FindIndex(parts, p => p.Equals("weapon", StringComparison.OrdinalIgnoreCase));
             if (weaponIndex >= 0 && weaponIndex < parts.Length - 2)
+            {
                 return parts[weaponIndex + 1];
+            }
         }
 
         return string.Empty;

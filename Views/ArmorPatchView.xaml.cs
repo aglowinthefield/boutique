@@ -35,10 +35,14 @@ public partial class ArmorPatchView : UserControl
     private void AttachToViewModel(MainViewModel? viewModel)
     {
         if (ReferenceEquals(viewModel, _currentViewModel))
+        {
             return;
+        }
 
         if (_currentViewModel is not null)
+        {
             _currentViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
+        }
 
         _currentViewModel = viewModel;
 
@@ -52,19 +56,25 @@ public partial class ArmorPatchView : UserControl
     private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MainViewModel.SelectedSourceArmors))
+        {
             SynchronizeSourceSelection();
+        }
     }
 
     private void TargetArmorsGridOnLoaded(object sender, RoutedEventArgs e)
     {
         if (TargetArmorsGrid.Columns.Count > 0)
+        {
             TargetArmorsGrid.Columns[0].SortDirection = ListSortDirection.Ascending;
+        }
     }
 
     private void TargetArmorsDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
     {
         if (ViewModel is not MainViewModel viewModel)
+        {
             return;
+        }
 
         e.Handled = true;
 
@@ -76,7 +86,9 @@ public partial class ArmorPatchView : UserControl
         foreach (var column in dataGrid.Columns)
         {
             if (!ReferenceEquals(column, e.Column))
+            {
                 column.SortDirection = null;
+            }
         }
 
         e.Column.SortDirection = newDirection;
@@ -85,11 +97,15 @@ public partial class ArmorPatchView : UserControl
         if (string.IsNullOrWhiteSpace(sortMember) && e.Column is DataGridBoundColumn boundColumn)
         {
             if (boundColumn.Binding is Binding binding && binding.Path != null)
+            {
                 sortMember = binding.Path.Path;
+            }
         }
 
         if (string.IsNullOrWhiteSpace(sortMember))
+        {
             sortMember = nameof(ArmorRecordViewModel.DisplayName);
+        }
 
         viewModel.ApplyTargetSort(sortMember, newDirection);
     }
@@ -97,10 +113,14 @@ public partial class ArmorPatchView : UserControl
     private void SourceArmorsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_syncingSourceSelection)
+        {
             return;
+        }
 
         if (ViewModel is not MainViewModel viewModel)
+        {
             return;
+        }
 
         var selected = SourceArmorsGrid.SelectedItems.Cast<object>().ToList();
         viewModel.SelectedSourceArmors = selected;
@@ -109,14 +129,18 @@ public partial class ArmorPatchView : UserControl
     private void SynchronizeSourceSelection()
     {
         if (ViewModel is not MainViewModel viewModel)
+        {
             return;
+        }
 
         _syncingSourceSelection = true;
         try
         {
             SourceArmorsGrid.SelectedItems.Clear();
             foreach (var armor in viewModel.SelectedSourceArmors.OfType<object>())
+            {
                 SourceArmorsGrid.SelectedItems.Add(armor);
+            }
         }
         finally
         {

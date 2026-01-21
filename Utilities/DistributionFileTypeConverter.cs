@@ -13,7 +13,10 @@ public class DistributionFileTypeConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not Enum enumValue) return string.Empty;
+        if (value is not Enum enumValue)
+        {
+            return string.Empty;
+        }
 
         var field = enumValue.GetType().GetField(enumValue.ToString());
         var attr = field?.GetCustomAttribute<DescriptionAttribute>();

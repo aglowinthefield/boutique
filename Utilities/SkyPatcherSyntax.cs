@@ -44,12 +44,16 @@ public static class SkyPatcherSyntax
     public static string? ExtractFilterValue(string line, string filterName)
     {
         if (string.IsNullOrWhiteSpace(line))
+        {
             return null;
+        }
 
         var filterPrefix = filterName + "=";
         var index = line.IndexOf(filterPrefix, StringComparison.OrdinalIgnoreCase);
         if (index < 0)
+        {
             return null;
+        }
 
         var start = index + filterPrefix.Length;
         var end = line.IndexOf(':', start);
@@ -62,7 +66,9 @@ public static class SkyPatcherSyntax
     {
         var value = ExtractFilterValue(line, filterName);
         if (string.IsNullOrEmpty(value))
+        {
             return [];
+        }
 
         return value.Split(',')
             .Select(v => v.Trim())
@@ -82,12 +88,20 @@ public static class SkyPatcherSyntax
     {
         var value = ExtractFilterValue(line, "filterByGender");
         if (string.IsNullOrWhiteSpace(value))
+        {
             return null;
+        }
 
         if (value.Equals("female", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
+
         if (value.Equals("male", StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
+
         return null;
     }
 
@@ -99,7 +113,9 @@ public static class SkyPatcherSyntax
         foreach (var value in values)
         {
             if (FormKeyHelper.TryParse(value, out var formKey))
+            {
                 results.Add(formKey);
+            }
         }
 
         return results;
@@ -113,7 +129,9 @@ public static class SkyPatcherSyntax
         foreach (var value in values)
         {
             if (FormKeyHelper.TryParse(value, out var formKey))
+            {
                 results.Add(formKey);
+            }
         }
 
         return results;

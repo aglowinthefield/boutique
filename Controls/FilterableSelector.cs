@@ -130,19 +130,25 @@ public class FilterableSelector : Control
     private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is FilterableSelector selector)
+        {
             selector.SetupFilteredView();
+        }
     }
 
     private static void OnIsDropDownOpenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is FilterableSelector selector && e.NewValue is true)
+        {
             selector.DropDownOpened?.Invoke(selector, EventArgs.Empty);
+        }
     }
 
     private static void OnSelectedItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is FilterableSelector selector)
+        {
             selector.UpdateTextFromSelection();
+        }
     }
 
     private void SetupFilteredView()
@@ -151,14 +157,18 @@ public class FilterableSelector : Control
         {
             _filteredView = new ListCollectionView(list);
             if (_listBox != null)
+            {
                 _listBox.ItemsSource = _filteredView;
+            }
         }
     }
 
     private void UpdateTextFromSelection()
     {
         if (_textBox == null || _isUpdatingText)
+        {
             return;
+        }
 
         _isUpdatingText = true;
         try
@@ -169,7 +179,9 @@ public class FilterableSelector : Control
                 _textBox.Text = value ?? string.Empty;
             }
             else
+            {
                 _textBox.Text = SelectedItem?.ToString() ?? string.Empty;
+            }
         }
         finally
         {
@@ -180,19 +192,25 @@ public class FilterableSelector : Control
     private void OnTextChanged(object sender, TextChangedEventArgs e)
     {
         if (_isUpdatingText || _filteredView == null)
+        {
             return;
+        }
 
         var filterText = _textBox?.Text?.Trim() ?? string.Empty;
         var filterPath = FilterPath ?? DisplayMemberPath;
 
         if (string.IsNullOrEmpty(filterText))
+        {
             _filteredView.Filter = null;
+        }
         else
         {
             _filteredView.Filter = item =>
             {
                 if (item == null || string.IsNullOrEmpty(filterPath))
+                {
                     return true;
+                }
 
                 var value = GetPropertyValue(item, filterPath);
                 return value?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true;
@@ -200,7 +218,9 @@ public class FilterableSelector : Control
         }
 
         if (!IsDropDownOpen && !string.IsNullOrEmpty(filterText))
+        {
             IsDropDownOpen = true;
+        }
     }
 
     private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
@@ -216,20 +236,26 @@ public class FilterableSelector : Control
             new Action(() =>
             {
                 if (_listBox?.IsKeyboardFocusWithin != true)
+                {
                     IsDropDownOpen = false;
+                }
             }), DispatcherPriority.Background);
     }
 
     private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
     {
         if (_listBox == null)
+        {
             return;
+        }
 
         switch (e.Key)
         {
             case Key.Down:
                 if (!IsDropDownOpen)
+                {
                     IsDropDownOpen = true;
+                }
                 else if (_listBox.Items.Count > 0)
                 {
                     _listBox.SelectedIndex = Math.Min(_listBox.SelectedIndex + 1, _listBox.Items.Count - 1);
@@ -250,7 +276,10 @@ public class FilterableSelector : Control
                 break;
 
             case Key.Enter:
-                if (IsDropDownOpen && _listBox.SelectedItem != null) SelectItem(_listBox.SelectedItem);
+                if (IsDropDownOpen && _listBox.SelectedItem != null)
+                {
+                    SelectItem(_listBox.SelectedItem);
+                }
 
                 e.Handled = true;
                 break;
@@ -271,7 +300,9 @@ public class FilterableSelector : Control
     private void OnListBoxMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (_listBox?.SelectedItem != null)
+        {
             SelectItem(_listBox.SelectedItem);
+        }
     }
 
     private void SelectItem(object item)

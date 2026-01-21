@@ -123,7 +123,9 @@ public partial class SettingsViewModel : ReactiveObject
             .Subscribe(lang => _localizationService.SetLanguage(lang!.Code));
 
         if (string.IsNullOrEmpty(SkyrimDataPath))
+        {
             AutoDetectPath();
+        }
     }
 
     [Reactive] public partial double SelectedFontScale { get; set; }
@@ -167,7 +169,9 @@ public partial class SettingsViewModel : ReactiveObject
         {
             var folder = Path.GetDirectoryName(dialog.FileName);
             if (!string.IsNullOrEmpty(folder))
+            {
                 SkyrimDataPath = NormalizeDataPath(folder);
+            }
         }
     }
 
@@ -184,27 +188,37 @@ public partial class SettingsViewModel : ReactiveObject
         };
 
         if (!string.IsNullOrEmpty(OutputPatchPath) && Directory.Exists(OutputPatchPath))
+        {
             dialog.InitialDirectory = OutputPatchPath;
+        }
         else if (!string.IsNullOrEmpty(SkyrimDataPath) && Directory.Exists(SkyrimDataPath))
+        {
             dialog.InitialDirectory = SkyrimDataPath;
+        }
 
         if (dialog.ShowDialog() == true)
         {
             var folder = Path.GetDirectoryName(dialog.FileName);
             if (!string.IsNullOrEmpty(folder))
+            {
                 OutputPatchPath = folder;
+            }
         }
     }
 
     private static string NormalizeDataPath(string path)
     {
         if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+        {
             return path ?? string.Empty;
+        }
 
         var hasPlugins = PathUtilities.HasPluginFiles(path);
 
         if (hasPlugins)
+        {
             return path;
+        }
 
         var dataSubfolder = Path.Combine(path, "Data");
         if (Directory.Exists(dataSubfolder))
@@ -236,7 +250,9 @@ public partial class SettingsViewModel : ReactiveObject
             DetectionFailed = false;
         }
         else
+        {
             DetectionFailed = true;
+        }
 
         DetectionSource = GetDetectionMessage(gameName, !DetectionFailed);
     }
@@ -255,7 +271,9 @@ public partial class SettingsViewModel : ReactiveObject
     private void RestartTutorial()
     {
         if (!FeatureFlags.TutorialEnabled)
+        {
             return;
+        }
 
         _tutorialService.ResetTutorial();
         _tutorialService.StartTutorial();
@@ -272,6 +290,8 @@ public partial class SettingsViewModel : ReactiveObject
         dialog.ShowDialog();
 
         if (dialog.QuitNow)
+        {
             Application.Current.Shutdown();
+        }
     }
 }
