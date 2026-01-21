@@ -5,7 +5,7 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for SPID outfit identifier extraction from distribution lines.
+///     Tests for SPID outfit identifier extraction from distribution lines.
 /// </summary>
 public class SpidOutfitExtractionTests
 {
@@ -275,4 +275,3 @@ public class SpidOutfitExtractionTests
 
     #endregion
 }
-

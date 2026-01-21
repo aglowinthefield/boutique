@@ -1,4 +1,3 @@
-using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Boutique.ViewModels;
@@ -7,7 +6,10 @@ namespace Boutique.Views;
 
 public partial class DistributionEntryListView
 {
-    public DistributionEntryListView() => InitializeComponent();
+    public DistributionEntryListView()
+    {
+        InitializeComponent();
+    }
 
     private void RemoveEntry_Click(object sender, RoutedEventArgs e)
     {
@@ -20,10 +22,7 @@ public partial class DistributionEntryListView
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
-            if (result == MessageBoxResult.Yes)
-            {
-                entryVm.RemoveCommand.Execute().Subscribe();
-            }
+            if (result == MessageBoxResult.Yes) entryVm.RemoveCommand.Execute().Subscribe();
         }
     }
 }

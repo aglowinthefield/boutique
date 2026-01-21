@@ -13,72 +13,72 @@
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Brush.PrimaryBackground}">
 
-    <Grid x:Name="RootGrid" Background="{StaticResource Brush.PrimaryBackground}">
-        <Grid.LayoutTransform>
-            <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
-        </Grid.LayoutTransform>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <TabControl x:Name="MainTabControl" Grid.Row="0" Margin="8"
-                    SelectedIndex="{Binding MainTabIndex, Mode=TwoWay}"
-                    SelectionChanged="TabControl_OnSelectionChanged">
-            <TabItem x:Name="DistributionTab" Header="{lex:Loc Tab_Distribution}">
-                <views:DistributionView DataContext="{Binding Distribution}" />
-            </TabItem>
-            <TabItem x:Name="OutfitCreatorTab" Header="{lex:Loc Tab_OutfitCreator}">
-                <views:OutfitCreatorView DataContext="{Binding}" />
-            </TabItem>
-            <TabItem x:Name="ArmorPatchTab" Header="{lex:Loc Tab_ArmorPatch}">
-                <views:ArmorPatchView DataContext="{Binding}" />
-            </TabItem>
-            <TabItem x:Name="SettingsTab" Header="{lex:Loc Tab_Settings}">
-                <views:SettingsPanelView DataContext="{Binding}" />
-            </TabItem>
-        </TabControl>
+  <Grid x:Name="RootGrid" Background="{StaticResource Brush.PrimaryBackground}">
+    <Grid.LayoutTransform>
+      <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
+    </Grid.LayoutTransform>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <TabControl x:Name="MainTabControl" Grid.Row="0" Margin="8"
+                SelectedIndex="{Binding MainTabIndex, Mode=TwoWay}"
+                SelectionChanged="TabControl_OnSelectionChanged">
+      <TabItem x:Name="DistributionTab" Header="{lex:Loc Tab_Distribution}">
+        <views:DistributionView DataContext="{Binding Distribution}" />
+      </TabItem>
+      <TabItem x:Name="OutfitCreatorTab" Header="{lex:Loc Tab_OutfitCreator}">
+        <views:OutfitCreatorView DataContext="{Binding}" />
+      </TabItem>
+      <TabItem x:Name="ArmorPatchTab" Header="{lex:Loc Tab_ArmorPatch}">
+        <views:ArmorPatchView DataContext="{Binding}" />
+      </TabItem>
+      <TabItem x:Name="SettingsTab" Header="{lex:Loc Tab_Settings}">
+        <views:SettingsPanelView DataContext="{Binding}" />
+      </TabItem>
+    </TabControl>
 
-        <Grid Grid.Row="1" Margin="8,0,8,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <Grid Grid.Row="1" Margin="8,0,8,8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
 
-            <!-- Left: Progress/Status -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <ProgressBar Width="200"
-                             Height="18"
-                             Minimum="0"
-                             Maximum="{Binding ProgressTotal}"
-                             Value="{Binding ProgressCurrent}"
-                             Visibility="{Binding IsProgressActive, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBlock Text="{Binding StatusMessage}" Margin="6,0,0,0" VerticalAlignment="Center" />
-            </StackPanel>
+      <!-- Left: Progress/Status -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+        <ProgressBar Width="200"
+                     Height="18"
+                     Minimum="0"
+                     Maximum="{Binding ProgressTotal}"
+                     Value="{Binding ProgressCurrent}"
+                     Visibility="{Binding IsProgressActive, Converter={StaticResource BoolToVisConverter}}" />
+        <TextBlock Text="{Binding StatusMessage}" Margin="6,0,0,0" VerticalAlignment="Center" />
+      </StackPanel>
 
-            <!-- Right: Output Patch Name + Refresh -->
-            <StackPanel x:Name="PatchFileNamePanel" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{lex:Loc Status_Patch}" Margin="0,0,6,0" VerticalAlignment="Center"
-                           Foreground="{StaticResource Brush.TextSecondary}" />
-                <TextBox Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}"
-                         MinWidth="160" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center" />
-                <Button x:Name="RefreshButton" Command="{Binding Distribution.RefreshCommand}"
-                        ToolTip="{lex:Loc Button_Refresh}"
-                        MinWidth="0" Width="24" Height="24" Padding="0" Margin="8,0,0,0"
-                        VerticalAlignment="Center">
-                    <TextBlock Text="↻" FontSize="14" />
-                </Button>
-            </StackPanel>
-        </Grid>
-
-        <!-- Tutorial overlay - must be last to render on top -->
-        <guideline:GuideLine_View x:Name="MainGuideline"
-                                  Grid.RowSpan="2"
-                                  PreviewKeyDown="MainGuideline_PreviewKeyDown"
-                                  HighlightCornerRadius="8"
-                                  HighlightMargin="8"
-                                  AnimateDialog="True"
-                                  AnimationDuration="0:0:0.25"
-                                  Background="{DynamicResource Brush.Tutorial.Overlay}"
-                                  Foreground="{DynamicResource Brush.Tutorial.DialogForeground}" />
+      <!-- Right: Output Patch Name + Refresh -->
+      <StackPanel x:Name="PatchFileNamePanel" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+        <TextBlock Text="{lex:Loc Status_Patch}" Margin="0,0,6,0" VerticalAlignment="Center"
+                   Foreground="{StaticResource Brush.TextSecondary}" />
+        <TextBox Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}"
+                 MinWidth="160" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center" />
+        <Button x:Name="RefreshButton" Command="{Binding Distribution.RefreshCommand}"
+                ToolTip="{lex:Loc Button_Refresh}"
+                MinWidth="0" Width="24" Height="24" Padding="0" Margin="8,0,0,0"
+                VerticalAlignment="Center">
+          <TextBlock Text="↻" FontSize="14" />
+        </Button>
+      </StackPanel>
     </Grid>
+
+    <!-- Tutorial overlay - must be last to render on top -->
+    <guideline:GuideLine_View x:Name="MainGuideline"
+                              Grid.RowSpan="2"
+                              PreviewKeyDown="MainGuideline_PreviewKeyDown"
+                              HighlightCornerRadius="8"
+                              HighlightMargin="8"
+                              AnimateDialog="True"
+                              AnimationDuration="0:0:0.25"
+                              Background="{DynamicResource Brush.Tutorial.Overlay}"
+                              Foreground="{DynamicResource Brush.Tutorial.DialogForeground}" />
+  </Grid>
 </Window>

@@ -16,79 +16,79 @@ public enum SpidFormType
 }
 
 /// <summary>
-/// Represents a parsed SPID distribution line with all filter sections.
-/// SPID syntax: FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
+///     Represents a parsed SPID distribution line with all filter sections.
+///     SPID syntax: FormType = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
 /// </summary>
 public sealed class SpidDistributionFilter
 {
     /// <summary>
-    /// The type of form being distributed (Outfit, Keyword, Spell, etc.)
+    ///     The type of form being distributed (Outfit, Keyword, Spell, etc.)
     /// </summary>
     public SpidFormType FormType { get; init; } = SpidFormType.Outfit;
 
     /// <summary>
-    /// The form identifier - either an EditorID or FormKey string (0x800~Plugin.esp)
+    ///     The form identifier - either an EditorID or FormKey string (0x800~Plugin.esp)
     /// </summary>
     public string FormIdentifier { get; init; } = string.Empty;
 
     /// <summary>
-    /// Alias for FormIdentifier for backward compatibility with outfit-specific code.
+    ///     Alias for FormIdentifier for backward compatibility with outfit-specific code.
     /// </summary>
     public string OutfitIdentifier => FormIdentifier;
 
     /// <summary>
-    /// String filters (position 2): NPC name, EditorID, or keyword filters.
-    /// Can include wildcards (*Guard), exclusions (-Bandit), and combinations (+).
+    ///     String filters (position 2): NPC name, EditorID, or keyword filters.
+    ///     Can include wildcards (*Guard), exclusions (-Bandit), and combinations (+).
     /// </summary>
     public SpidFilterSection StringFilters { get; init; } = new();
 
     /// <summary>
-    /// Form filters (position 3): Race, Class, Faction, CombatStyle, Outfit, Perk, VoiceType, Location, or specific NPC.
+    ///     Form filters (position 3): Race, Class, Faction, CombatStyle, Outfit, Perk, VoiceType, Location, or specific NPC.
     /// </summary>
     public SpidFilterSection FormFilters { get; init; } = new();
 
     /// <summary>
-    /// Level filters (position 4): Min/max level requirements, skill requirements.
+    ///     Level filters (position 4): Min/max level requirements, skill requirements.
     /// </summary>
     public string? LevelFilters { get; init; }
 
     /// <summary>
-    /// Trait filters (position 5): F=Female, M=Male, U=Unique, S=Summonable, C=Child, L=Leveled, T=Teammate, D=Dead
+    ///     Trait filters (position 5): F=Female, M=Male, U=Unique, S=Summonable, C=Child, L=Leveled, T=Teammate, D=Dead
     /// </summary>
     public SpidTraitFilters TraitFilters { get; init; } = new();
 
     /// <summary>
-    /// Count or package index (position 6).
+    ///     Count or package index (position 6).
     /// </summary>
     public string? CountOrPackageIdx { get; init; }
 
     /// <summary>
-    /// Chance percentage 0-100 (position 7), default 100.
+    ///     Chance percentage 0-100 (position 7), default 100.
     /// </summary>
     public int Chance { get; init; } = 100;
 
     /// <summary>
-    /// The raw line text for reference.
+    ///     The raw line text for reference.
     /// </summary>
     public string RawLine { get; init; } = string.Empty;
 
     /// <summary>
-    /// True if this distribution targets all NPCs (no string or form filters).
+    ///     True if this distribution targets all NPCs (no string or form filters).
     /// </summary>
     public bool TargetsAllNpcs => StringFilters.IsEmpty && FormFilters.IsEmpty;
 
     /// <summary>
-    /// True if this distribution uses keyword-based targeting (not specific NPC names).
+    ///     True if this distribution uses keyword-based targeting (not specific NPC names).
     /// </summary>
     public bool UsesKeywordTargeting => StringFilters.HasKeywords;
 
     /// <summary>
-    /// True if this distribution uses faction-based targeting.
+    ///     True if this distribution uses faction-based targeting.
     /// </summary>
     public bool UsesFactionTargeting => FormFilters.HasFactions;
 
     /// <summary>
-    /// Gets a human-readable description of the targeting criteria.
+    ///     Gets a human-readable description of the targeting criteria.
     /// </summary>
     public string GetTargetingDescription()
     {
@@ -98,7 +98,8 @@ public sealed class SpidDistributionFilter
 
         if (!FormFilters.IsEmpty) parts.Add($"Factions/Forms: {FormFilters}");
 
-        if (!string.IsNullOrEmpty(LevelFilters) && !LevelFilters.Equals("NONE", StringComparison.OrdinalIgnoreCase)) parts.Add($"Level: {LevelFilters}");
+        if (!string.IsNullOrEmpty(LevelFilters) && !LevelFilters.Equals("NONE", StringComparison.OrdinalIgnoreCase))
+            parts.Add($"Level: {LevelFilters}");
 
         if (!TraitFilters.IsEmpty) parts.Add($"Traits: {TraitFilters}");
 
@@ -109,31 +110,31 @@ public sealed class SpidDistributionFilter
 }
 
 /// <summary>
-/// Represents a filter section that can contain multiple OR-expressions and AND-combined values.
+///     Represents a filter section that can contain multiple OR-expressions and AND-combined values.
 /// </summary>
 public sealed class SpidFilterSection
 {
     /// <summary>
-    /// List of filter expressions (comma-separated in SPID = OR logic).
-    /// Each expression can have AND-combined parts (+ separator).
+    ///     List of filter expressions (comma-separated in SPID = OR logic).
+    ///     Each expression can have AND-combined parts (+ separator).
     /// </summary>
     public List<SpidFilterExpression> Expressions { get; init; } = [];
 
     /// <summary>
-    /// Global exclusions (comma-separated negated terms that apply to ALL expressions as AND NOT).
-    /// These are formatted with comma prefix (,-ExclusionX) rather than plus (+-ExclusionX).
+    ///     Global exclusions (comma-separated negated terms that apply to ALL expressions as AND NOT).
+    ///     These are formatted with comma prefix (,-ExclusionX) rather than plus (+-ExclusionX).
     /// </summary>
     public List<SpidFilterPart> GlobalExclusions { get; init; } = [];
 
     public bool IsEmpty => Expressions.Count == 0 && GlobalExclusions.Count == 0;
 
     /// <summary>
-    /// True if any expression contains keywords (non-NPC identifiers like ActorTypeNPC).
+    ///     True if any expression contains keywords (non-NPC identifiers like ActorTypeNPC).
     /// </summary>
     public bool HasKeywords => Expressions.Any(e => e.Parts.Any(p => p.LooksLikeKeyword));
 
     /// <summary>
-    /// True if any expression looks like a faction (contains "Faction" or similar).
+    ///     True if any expression looks like a faction (contains "Faction" or similar).
     /// </summary>
     public bool HasFactions => Expressions.Any(e => e.Parts.Any(p => p.LooksLikeFaction));
 
@@ -148,13 +149,13 @@ public sealed class SpidFilterSection
 }
 
 /// <summary>
-/// Represents a single filter expression that may be AND-combined with +.
-/// Example: "ActorTypeNPC+Bandit" has two parts combined with AND logic.
+///     Represents a single filter expression that may be AND-combined with +.
+///     Example: "ActorTypeNPC+Bandit" has two parts combined with AND logic.
 /// </summary>
 public sealed class SpidFilterExpression
 {
     /// <summary>
-    /// Individual filter parts combined with AND logic (+ separator in SPID).
+    ///     Individual filter parts combined with AND logic (+ separator in SPID).
     /// </summary>
     public List<SpidFilterPart> Parts { get; init; } = [];
 
@@ -162,27 +163,27 @@ public sealed class SpidFilterExpression
 }
 
 /// <summary>
-/// Represents a single filter value, which may be negated or have wildcards.
+///     Represents a single filter value, which may be negated or have wildcards.
 /// </summary>
 public sealed class SpidFilterPart
 {
     /// <summary>
-    /// The raw filter value (without negation prefix).
+    ///     The raw filter value (without negation prefix).
     /// </summary>
     public string Value { get; init; } = string.Empty;
 
     /// <summary>
-    /// True if this filter is negated (prefixed with - in SPID).
+    ///     True if this filter is negated (prefixed with - in SPID).
     /// </summary>
     public bool IsNegated { get; init; }
 
     /// <summary>
-    /// True if this filter contains wildcards (* in SPID for partial matching).
+    ///     True if this filter contains wildcards (* in SPID for partial matching).
     /// </summary>
     public bool HasWildcard => Value.Contains('*');
 
     /// <summary>
-    /// True if this looks like a keyword (starts with ActorType, has common keyword patterns).
+    ///     True if this looks like a keyword (starts with ActorType, has common keyword patterns).
     /// </summary>
     public bool LooksLikeKeyword =>
         Value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
@@ -191,20 +192,20 @@ public sealed class SpidFilterPart
         Value.Contains("Type");
 
     /// <summary>
-    /// True if this looks like a faction reference.
+    ///     True if this looks like a faction reference.
     /// </summary>
     public bool LooksLikeFaction =>
         Value.Contains("Faction", StringComparison.OrdinalIgnoreCase) ||
         Value.StartsWith("Crime", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// True if this looks like a race reference.
+    ///     True if this looks like a race reference.
     /// </summary>
     public bool LooksLikeRace =>
         Value.EndsWith("Race", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// True if this looks like a class reference.
+    ///     True if this looks like a class reference.
     /// </summary>
     public bool LooksLikeClass =>
         Value.EndsWith("Class", StringComparison.OrdinalIgnoreCase);
@@ -217,42 +218,42 @@ public sealed class SpidFilterPart
 }
 
 /// <summary>
-/// Parsed trait filters from SPID position 5.
+///     Parsed trait filters from SPID position 5.
 /// </summary>
 public sealed record SpidTraitFilters
 {
     /// <summary>
-    /// Gender filter: null = any, true = female, false = male
+    ///     Gender filter: null = any, true = female, false = male
     /// </summary>
     public bool? IsFemale { get; init; }
 
     /// <summary>
-    /// Unique NPC filter: null = any, true = must be unique, false = must not be unique
+    ///     Unique NPC filter: null = any, true = must be unique, false = must not be unique
     /// </summary>
     public bool? IsUnique { get; init; }
 
     /// <summary>
-    /// Summonable filter.
+    ///     Summonable filter.
     /// </summary>
     public bool? IsSummonable { get; init; }
 
     /// <summary>
-    /// Child filter.
+    ///     Child filter.
     /// </summary>
     public bool? IsChild { get; init; }
 
     /// <summary>
-    /// Leveled NPC filter.
+    ///     Leveled NPC filter.
     /// </summary>
     public bool? IsLeveled { get; init; }
 
     /// <summary>
-    /// Teammate filter.
+    ///     Teammate filter.
     /// </summary>
     public bool? IsTeammate { get; init; }
 
     /// <summary>
-    /// Dead filter.
+    ///     Dead filter.
     /// </summary>
     public bool? IsDead { get; init; }
 

@@ -3,54 +3,58 @@
 ![Build](https://github.com/aglowinthefield/Boutique/actions/workflows/build.yml/badge.svg)
 ![Release](https://github.com/aglowinthefield/Boutique/actions/workflows/release.yml/badge.svg)
 
-Boutique helps you create and manage outfit distribution files for SPID and SkyPatcher, browse NPCs and their outfit assignments, create custom outfit records, and sync armor stats between mods.
+Boutique helps you create and manage outfit distribution files for SPID and SkyPatcher, browse NPCs and their outfit
+assignments, create custom outfit records, and sync armor stats between mods.
 
 ## Features
 
 ### Distribution Management
 
--   **Browse Distribution Files**: Scan and view all SPID (`*_DISTR.ini`) and SkyPatcher distribution files in your Data folder
--   **Preview Distributions**: See which outfits are being distributed and preview them in 3D
--   **Create Distribution Entries**: Build new distribution rules with an intuitive UI
--   **Conflict Detection**: Automatically detects when your distributions conflict with existing files and suggests Z-prefixed filenames for proper load order priority
--   **Dual Format Support**: Generate both SPID and SkyPatcher syntax from the same filters
+- **Browse Distribution Files**: Scan and view all SPID (`*_DISTR.ini`) and SkyPatcher distribution files in your Data
+  folder
+- **Preview Distributions**: See which outfits are being distributed and preview them in 3D
+- **Create Distribution Entries**: Build new distribution rules with an intuitive UI
+- **Conflict Detection**: Automatically detects when your distributions conflict with existing files and suggests
+  Z-prefixed filenames for proper load order priority
+- **Dual Format Support**: Generate both SPID and SkyPatcher syntax from the same filters
 
 ### NPC Browser
 
--   **View All NPCs**: Browse every NPC in your load order with their current outfit assignments
--   **See Distribution Sources**: For each NPC, see which distribution files are affecting their outfit
--   **Conflict Highlighting**: Easily spot NPCs with multiple conflicting outfit distributions
--   **Advanced Filtering**: Filter NPCs by gender, unique status, faction, race, keyword, and more
--   **Copy Filters**: Build a filter in the NPC browser and copy it directly to your distribution entries
--   **Live Syntax Preview**: See the generated SPID and SkyPatcher syntax as you adjust filters
+- **View All NPCs**: Browse every NPC in your load order with their current outfit assignments
+- **See Distribution Sources**: For each NPC, see which distribution files are affecting their outfit
+- **Conflict Highlighting**: Easily spot NPCs with multiple conflicting outfit distributions
+- **Advanced Filtering**: Filter NPCs by gender, unique status, faction, race, keyword, and more
+- **Copy Filters**: Build a filter in the NPC browser and copy it directly to your distribution entries
+- **Live Syntax Preview**: See the generated SPID and SkyPatcher syntax as you adjust filters
 
 ### Outfit Browser
 
--   **Browse All Outfits**: View every outfit record (OTFT) in your load order
--   **NPC Assignments**: Select an outfit to see which NPCs have it assigned (via ESP or distribution)
--   **Hide Vanilla**: Filter out base game outfits to focus on modded content
--   **3D Preview**: Preview any outfit's armor pieces in a 3D viewer
+- **Browse All Outfits**: View every outfit record (OTFT) in your load order
+- **NPC Assignments**: Select an outfit to see which NPCs have it assigned (via ESP or distribution)
+- **Hide Vanilla**: Filter out base game outfits to focus on modded content
+- **3D Preview**: Preview any outfit's armor pieces in a 3D viewer
 
 ### Outfit Creator
 
--   **Create OTFT Records**: Build new outfit records by selecting armor pieces from any plugin
--   **Drag & Drop**: Drag armors between plugins and outfit drafts
--   **Slot Conflict Detection**: Prevents adding armor pieces with conflicting body slots
--   **Edit Existing Outfits**: Load and modify outfits from your output plugin
--   **3D Preview**: Preview outfit drafts before saving
+- **Create OTFT Records**: Build new outfit records by selecting armor pieces from any plugin
+- **Drag & Drop**: Drag armors between plugins and outfit drafts
+- **Slot Conflict Detection**: Prevents adding armor pieces with conflicting body slots
+- **Edit Existing Outfits**: Load and modify outfits from your output plugin
+- **3D Preview**: Preview outfit drafts before saving
 
 ### Armor Patching
 
--   **Sync Armor Stats**: Copy stats, keywords, enchantments, and tempering recipes from one armor to another
--   **Glam Mode**: Zero out armor rating for purely cosmetic armors
--   **Batch Processing**: Map multiple armors at once for efficient patching
+- **Sync Armor Stats**: Copy stats, keywords, enchantments, and tempering recipes from one armor to another
+- **Glam Mode**: Zero out armor rating for purely cosmetic armors
+- **Batch Processing**: Map multiple armors at once for efficient patching
 
 ## Requirements
 
--   Windows 10/11
--   [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (download the "Desktop Runtime" for Windows x64)
--   Skyrim Special Edition
--   For distribution features: SPID or SkyPatcher installed
+- Windows 10/11
+- [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (download the "Desktop Runtime" for
+  Windows x64)
+- Skyrim Special Edition
+- For distribution features: SPID or SkyPatcher installed
 
 ## Installation
 
@@ -148,19 +152,20 @@ Boutique can generate both formats from the same filter configuration.
 
 This project uses the following libraries:
 
--   [Mutagen](https://github.com/Mutagen-Modding/Mutagen) - GPL3 License
--   [ReactiveUI](https://github.com/reactiveui/ReactiveUI) - MIT License
--   [Autofac](https://github.com/autofac/Autofac) - MIT License
--   [NiflySharp](https://github.com/ousnius/NiflySharp) - For NIF mesh reading
--   [HelixToolkit](https://github.com/helix-toolkit/helix-toolkit) - MIT License (3D rendering)
+- [Mutagen](https://github.com/Mutagen-Modding/Mutagen) - GPL3 License
+- [ReactiveUI](https://github.com/reactiveui/ReactiveUI) - MIT License
+- [Autofac](https://github.com/autofac/Autofac) - MIT License
+- [NiflySharp](https://github.com/ousnius/NiflySharp) - For NIF mesh reading
+- [HelixToolkit](https://github.com/helix-toolkit/helix-toolkit) - MIT License (3D rendering)
 
 ## Credits
 
--   **Mutagen** by Noggog and contributors
--   **SPID** by powerofthree
--   **SkyPatcher** by SkyPatcher team
--   Skyrim modding community
+- **Mutagen** by Noggog and contributors
+- **SPID** by powerofthree
+- **SkyPatcher** by SkyPatcher team
+- Skyrim modding community
 
 ## Disclaimer
 
-This tool creates and modifies Skyrim plugin and INI files. Always backup your Data folder before using. The author is not responsible for any issues that may arise from using this tool.
+This tool creates and modifies Skyrim plugin and INI files. Always backup your Data folder before using. The author is
+not responsible for any issues that may arise from using this tool.

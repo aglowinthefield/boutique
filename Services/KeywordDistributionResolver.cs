@@ -1,18 +1,19 @@
 using Boutique.Models;
 using Boutique.Utilities;
+using Mutagen.Bethesda.Plugins;
 using Serilog;
 
 namespace Boutique.Services;
 
 /// <summary>
-/// Resolves SPID keyword distribution dependencies and simulates keyword assignment to NPCs.
+///     Resolves SPID keyword distribution dependencies and simulates keyword assignment to NPCs.
 /// </summary>
 public class KeywordDistributionResolver(ILogger logger)
 {
     private readonly ILogger _logger = logger.ForContext<KeywordDistributionResolver>();
 
     /// <summary>
-    /// Parses all keyword distribution entries from a list of distribution files.
+    ///     Parses all keyword distribution entries from a list of distribution files.
     /// </summary>
     public IReadOnlyList<KeywordDistributionEntry> ParseKeywordDistributions(IReadOnlyList<DistributionFile> files)
     {
@@ -29,9 +30,7 @@ public class KeywordDistributionResolver(ILogger logger)
                     continue;
 
                 if (SpidLineParser.TryParseKeyword(line.RawText, out var filter) && filter != null)
-                {
                     entries.Add(KeywordDistributionEntry.FromFilter(filter, file.FullPath, line.LineNumber));
-                }
             }
         }
 
@@ -40,7 +39,7 @@ public class KeywordDistributionResolver(ILogger logger)
     }
 
     /// <summary>
-    /// Builds a dependency graph and returns keywords in topological order (dependencies first).
+    ///     Builds a dependency graph and returns keywords in topological order (dependencies first).
     /// </summary>
     public (IReadOnlyList<KeywordDistributionEntry> Sorted, IReadOnlyList<string> CyclicKeywords) TopologicalSort(
         IReadOnlyList<KeywordDistributionEntry> entries)
@@ -67,10 +66,7 @@ public class KeywordDistributionResolver(ILogger logger)
                 if (!keywordToEntry.ContainsKey(dep))
                     continue;
 
-                if (graph[dep].Add(keyword))
-                {
-                    inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
-                }
+                if (graph[dep].Add(keyword)) inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
             }
         }
 
@@ -108,9 +104,7 @@ public class KeywordDistributionResolver(ILogger logger)
             .ToList();
 
         if (cyclicKeywords.Count > 0)
-        {
             _logger.Warning("Detected circular keyword dependencies: {Keywords}", string.Join(", ", cyclicKeywords));
-        }
 
         _logger.Debug(
             "Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
@@ -120,18 +114,16 @@ public class KeywordDistributionResolver(ILogger logger)
     }
 
     /// <summary>
-    /// Simulates keyword distribution for all NPCs, returning a dictionary of NPC FormKey -> assigned keywords.
+    ///     Simulates keyword distribution for all NPCs, returning a dictionary of NPC FormKey -> assigned keywords.
     /// </summary>
-    public Dictionary<Mutagen.Bethesda.Plugins.FormKey, HashSet<string>> SimulateKeywordDistribution(
+    public Dictionary<FormKey, HashSet<string>> SimulateKeywordDistribution(
         IReadOnlyList<KeywordDistributionEntry> sortedKeywords,
         IReadOnlyList<NpcFilterData> allNpcs)
     {
-        var npcKeywords = new Dictionary<Mutagen.Bethesda.Plugins.FormKey, HashSet<string>>();
+        var npcKeywords = new Dictionary<FormKey, HashSet<string>>();
 
         foreach (var npc in allNpcs)
-        {
             npcKeywords[npc.FormKey] = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
-        }
 
         _logger.Debug(
             "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
@@ -142,12 +134,8 @@ public class KeywordDistributionResolver(ILogger logger)
             var matchingNpcs = GetMatchingNpcs(entry, allNpcs, npcKeywords);
 
             foreach (var npc in matchingNpcs)
-            {
                 if (ShouldApplyChance(entry.Chance, npc.FormKey))
-                {
                     npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
-                }
-            }
 
             _logger.Debug(
                 "Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
@@ -163,11 +151,11 @@ public class KeywordDistributionResolver(ILogger logger)
     }
 
     /// <summary>
-    /// Gets the set of virtual (SPID-distributed) keywords for a specific NPC.
+    ///     Gets the set of virtual (SPID-distributed) keywords for a specific NPC.
     /// </summary>
     public static IReadOnlySet<string> GetVirtualKeywordsForNpc(
-        Mutagen.Bethesda.Plugins.FormKey npcFormKey,
-        Dictionary<Mutagen.Bethesda.Plugins.FormKey, HashSet<string>> simulatedKeywords,
+        FormKey npcFormKey,
+        Dictionary<FormKey, HashSet<string>> simulatedKeywords,
         NpcFilterData npc)
     {
         if (!simulatedKeywords.TryGetValue(npcFormKey, out var keywords))
@@ -181,7 +169,7 @@ public class KeywordDistributionResolver(ILogger logger)
     private static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
         KeywordDistributionEntry entry,
         IReadOnlyList<NpcFilterData> allNpcs,
-        Dictionary<Mutagen.Bethesda.Plugins.FormKey, HashSet<string>> currentKeywords)
+        Dictionary<FormKey, HashSet<string>> currentKeywords)
     {
         var filter = new SpidDistributionFilter
         {
@@ -198,7 +186,7 @@ public class KeywordDistributionResolver(ILogger logger)
         return SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
     }
 
-    private static bool ShouldApplyChance(int chance, Mutagen.Bethesda.Plugins.FormKey npcFormKey)
+    private static bool ShouldApplyChance(int chance, FormKey npcFormKey)
     {
         if (chance >= 100)
             return true;

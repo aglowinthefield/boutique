@@ -1,8 +1,8 @@
 namespace Boutique.Models;
 
 /// <summary>
-/// Base class for items in the distribution file dropdown.
-/// Can be either a group header or a selectable file.
+///     Base class for items in the distribution file dropdown.
+///     Can be either a group header or a selectable file.
 /// </summary>
 public abstract record DistributionDropdownItem
 {
@@ -11,7 +11,7 @@ public abstract record DistributionDropdownItem
 }
 
 /// <summary>
-/// A non-selectable group header in the dropdown.
+///     A non-selectable group header in the dropdown.
 /// </summary>
 public sealed record DistributionGroupHeader(string GroupName) : DistributionDropdownItem
 {
@@ -20,7 +20,7 @@ public sealed record DistributionGroupHeader(string GroupName) : DistributionDro
 }
 
 /// <summary>
-/// A selectable file item in the dropdown.
+///     A selectable file item in the dropdown.
 /// </summary>
 public sealed record DistributionFileItem(
     string FileName,
@@ -33,21 +33,22 @@ public sealed record DistributionFileItem(
 }
 
 /// <summary>
-/// Special item for creating a new file.
+///     Special item for creating a new file.
 /// </summary>
 public sealed record DistributionNewFileItem : DistributionDropdownItem
 {
-    public static DistributionNewFileItem Instance { get; } = new();
     private DistributionNewFileItem()
     {
     }
+
+    public static DistributionNewFileItem Instance { get; } = new();
 
     public override string DisplayText => "<New File>";
     public override bool IsSelectable => true;
 }
 
 /// <summary>
-/// Result of organizing distribution files into a dropdown structure.
+///     Result of organizing distribution files into a dropdown structure.
 /// </summary>
 public sealed record DistributionDropdownStructure(
     IReadOnlyList<DistributionDropdownItem> Items,

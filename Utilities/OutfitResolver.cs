@@ -8,12 +8,12 @@ using Mutagen.Bethesda.Skyrim;
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Helper class for resolving outfits from various identifier formats.
+///     Helper class for resolving outfits from various identifier formats.
 /// </summary>
 public static class OutfitResolver
 {
     /// <summary>
-    /// Tries to resolve an outfit from a string identifier (FormKey or EditorID format).
+    ///     Tries to resolve an outfit from a string identifier (FormKey or EditorID format).
     /// </summary>
     public static bool TryResolve(
         string identifier,
@@ -44,7 +44,7 @@ public static class OutfitResolver
     }
 
     /// <summary>
-    /// Tries to resolve an outfit by EditorID, optionally filtering by ModKey.
+    ///     Tries to resolve an outfit by EditorID, optionally filtering by ModKey.
     /// </summary>
     public static bool TryResolveByEditorId(
         string identifier,
@@ -59,7 +59,7 @@ public static class OutfitResolver
 
         cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
 
-        IEnumerable<IOutfitGetter> query = cachedOutfits
+        var query = cachedOutfits
             .Where(o => string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
         if (modKey.HasValue)
@@ -70,9 +70,9 @@ public static class OutfitResolver
     }
 
     /// <summary>
-    /// Gathers armor pieces from an outfit for preview, including those nested within leveled lists.
-    /// For leveled lists, respects the "Use All" flag - if set, all entries are used;
-    /// otherwise only the first entry is taken to represent the random selection.
+    ///     Gathers armor pieces from an outfit for preview, including those nested within leveled lists.
+    ///     For leveled lists, respects the "Use All" flag - if set, all entries are used;
+    ///     otherwise only the first entry is taken to represent the random selection.
     /// </summary>
     public static List<ArmorRecordViewModel> GatherArmorPieces(
         IOutfitGetter outfit,
@@ -99,7 +99,7 @@ public static class OutfitResolver
     }
 
     /// <summary>
-    /// Recursively gathers armor pieces from an item, traversing leveled lists as needed.
+    ///     Recursively gathers armor pieces from an item, traversing leveled lists as needed.
     /// </summary>
     private static void GatherArmorsFromItem(
         FormKey itemFormKey,
@@ -126,9 +126,9 @@ public static class OutfitResolver
     }
 
     /// <summary>
-    /// Gathers armor pieces from a leveled item list.
-    /// If the leveled list has "Use All" flag, all entries are traversed.
-    /// Otherwise, only the first entry is taken to represent what would be randomly selected.
+    ///     Gathers armor pieces from a leveled item list.
+    ///     If the leveled list has "Use All" flag, all entries are traversed.
+    ///     Otherwise, only the first entry is taken to represent what would be randomly selected.
     /// </summary>
     private static void GatherArmorsFromLeveledItem(
         ILeveledItemGetter leveledItem,

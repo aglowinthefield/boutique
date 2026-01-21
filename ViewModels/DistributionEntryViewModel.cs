@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Windows;
 using Boutique.Models;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
@@ -25,19 +26,40 @@ public enum UniqueFilter
 
 public partial class DistributionEntryViewModel : ReactiveObject
 {
-    private ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
+    [Reactive] private int _chance = 100;
+
+    [Reactive] private GenderFilter _gender = GenderFilter.Any;
+
+    [Reactive] private bool? _isChild;
+
+    [Reactive] private bool _isSelected;
+
+    [Reactive] private string _keywordToDistribute = string.Empty;
+
+    [Reactive] private string _levelFilters = string.Empty;
+
+    [Reactive] private string _rawFormFilters = string.Empty;
+
+    [Reactive] private string _rawStringFilters = string.Empty;
+
+    private ObservableCollection<ClassRecordViewModel> _selectedClasses = [];
     private ObservableCollection<FactionRecordViewModel> _selectedFactions = [];
     private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
+    private ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
+
+    [Reactive] private IOutfitGetter? _selectedOutfit;
+
     private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
-    private ObservableCollection<ClassRecordViewModel> _selectedClasses = [];
 
-    public event EventHandler? EntryChanged;
+    [Reactive] private DistributionType _type = DistributionType.Outfit;
 
-    private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
+    [Reactive] private UniqueFilter _unique = UniqueFilter.Any;
+
+    [Reactive] private bool _useChance;
 
     public DistributionEntryViewModel(
         DistributionEntry entry,
-        System.Action<DistributionEntryViewModel>? removeAction = null,
+        Action<DistributionEntryViewModel>? removeAction = null,
         Func<bool>? isFormatChangingToSpid = null)
     {
         Entry = entry;
@@ -70,10 +92,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 .Select(fk => new NpcRecordViewModel(new NpcRecord(fk, null, null, fk.ModKey)))
                 .ToList();
 
-            foreach (var npcVm in npcVms)
-            {
-                _selectedNpcs.Add(npcVm);
-            }
+            foreach (var npcVm in npcVms) _selectedNpcs.Add(npcVm);
         }
 
         foreach (var filter in entry.FactionFilters)
@@ -109,10 +128,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 .Select(fk => new ClassRecordViewModel(new ClassRecord(fk, null, null, fk.ModKey)))
                 .ToList();
 
-            foreach (var classVm in classVms)
-            {
-                _selectedClasses.Add(classVm);
-            }
+            foreach (var classVm in classVms) _selectedClasses.Add(classVm);
         }
 
         this.WhenAnyValue(x => x.Type)
@@ -198,16 +214,16 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 {
                     if (isFormatChangingToSpid())
                     {
-                        var result = System.Windows.MessageBox.Show(
+                        var result = MessageBox.Show(
                             "Enabling chance-based distribution will change the file format to SPID.\n\n" +
                             "SkyPatcher does not support chance-based outfit distribution. " +
                             "The file will be saved in SPID format to support this feature.\n\n" +
                             "Do you want to continue?",
                             "Format Change Required",
-                            System.Windows.MessageBoxButton.YesNo,
-                            System.Windows.MessageBoxImage.Warning);
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
 
-                        if (result == System.Windows.MessageBoxResult.No)
+                        if (result == MessageBoxResult.No)
                         {
                             previousUseChance = false;
                             UseChance = false;
@@ -262,85 +278,24 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     public DistributionEntry Entry { get; }
 
-    [Reactive]
-    private DistributionType _type = DistributionType.Outfit;
-
-    [Reactive]
-    private IOutfitGetter? _selectedOutfit;
-
-    [Reactive]
-    private string _keywordToDistribute = string.Empty;
-
     public bool IsOutfitDistribution => Type == DistributionType.Outfit;
     public bool IsKeywordDistribution => Type == DistributionType.Keyword;
 
-    [Reactive]
-    private bool _useChance;
-
-    [Reactive]
-    private int _chance = 100;
-
-    [Reactive]
-    private string _levelFilters = string.Empty;
-
-    [Reactive]
-    private string _rawStringFilters = string.Empty;
-
-    [Reactive]
-    private string _rawFormFilters = string.Empty;
-
-    [Reactive]
-    private GenderFilter _gender = GenderFilter.Any;
-
-    [Reactive]
-    private UniqueFilter _unique = UniqueFilter.Any;
-
-    [Reactive]
-    private bool? _isChild;
-
     public static DistributionType[] TypeOptions { get; } = [DistributionType.Outfit, DistributionType.Keyword];
     public static GenderFilter[] GenderOptions { get; } = [GenderFilter.Any, GenderFilter.Female, GenderFilter.Male];
-    public static UniqueFilter[] UniqueOptions { get; } = [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
+
+    public static UniqueFilter[] UniqueOptions { get; } =
+        [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
 
     public bool HasTraitFilters => Gender != GenderFilter.Any || Unique != UniqueFilter.Any || IsChild.HasValue;
 
     public string TargetDisplayName => Type == DistributionType.Outfit
         ? SelectedOutfit?.EditorID ?? "(No outfit)"
-        : !string.IsNullOrWhiteSpace(KeywordToDistribute) ? KeywordToDistribute : "(No keyword)";
+        : !string.IsNullOrWhiteSpace(KeywordToDistribute)
+            ? KeywordToDistribute
+            : "(No keyword)";
 
     public string FilterSummary => BuildFilterSummary();
-
-    private string BuildFilterSummary()
-    {
-        var parts = new List<string>();
-
-        if (_selectedNpcs.Count > 0)
-            parts.Add($"{_selectedNpcs.Count} NPC(s)");
-        if (_selectedFactions.Count > 0)
-            parts.Add($"{_selectedFactions.Count} faction(s)");
-        if (_selectedKeywords.Count > 0)
-            parts.Add($"{_selectedKeywords.Count} keyword(s)");
-        if (_selectedRaces.Count > 0)
-            parts.Add($"{_selectedRaces.Count} race(s)");
-        if (_selectedClasses.Count > 0)
-            parts.Add($"{_selectedClasses.Count} class(es)");
-
-        if (Gender != GenderFilter.Any)
-            parts.Add(Gender.ToString());
-        if (Unique != UniqueFilter.Any)
-            parts.Add(Unique == UniqueFilter.UniqueOnly ? "Unique" : "Non-Unique");
-
-        if (UseChance && Chance < 100)
-            parts.Add($"{Chance}%");
-
-        return parts.Count > 0 ? string.Join(", ", parts) : "No filters";
-    }
-
-    private void RaiseFilterSummaryChanged()
-    {
-        this.RaisePropertyChanged(nameof(FilterSummary));
-        this.RaisePropertyChanged(nameof(TargetDisplayName));
-    }
 
     public ObservableCollection<NpcRecordViewModel> SelectedNpcs
     {
@@ -394,8 +349,41 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
 
-    [Reactive]
-    private bool _isSelected;
+    public event EventHandler? EntryChanged;
+
+    private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
+
+    private string BuildFilterSummary()
+    {
+        var parts = new List<string>();
+
+        if (_selectedNpcs.Count > 0)
+            parts.Add($"{_selectedNpcs.Count} NPC(s)");
+        if (_selectedFactions.Count > 0)
+            parts.Add($"{_selectedFactions.Count} faction(s)");
+        if (_selectedKeywords.Count > 0)
+            parts.Add($"{_selectedKeywords.Count} keyword(s)");
+        if (_selectedRaces.Count > 0)
+            parts.Add($"{_selectedRaces.Count} race(s)");
+        if (_selectedClasses.Count > 0)
+            parts.Add($"{_selectedClasses.Count} class(es)");
+
+        if (Gender != GenderFilter.Any)
+            parts.Add(Gender.ToString());
+        if (Unique != UniqueFilter.Any)
+            parts.Add(Unique == UniqueFilter.UniqueOnly ? "Unique" : "Non-Unique");
+
+        if (UseChance && Chance < 100)
+            parts.Add($"{Chance}%");
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "No filters";
+    }
+
+    private void RaiseFilterSummaryChanged()
+    {
+        this.RaisePropertyChanged(nameof(FilterSummary));
+        this.RaisePropertyChanged(nameof(TargetDisplayName));
+    }
 
     public void UpdateEntryNpcs()
     {
@@ -420,9 +408,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         {
             var editorId = keyword.KeywordRecord.EditorID;
             if (!string.IsNullOrWhiteSpace(editorId))
-            {
                 Entry.KeywordFilters.Add(new KeywordFilter(editorId, keyword.IsExcluded));
-            }
         }
 
         RaiseFilterSummaryChanged();
@@ -469,15 +455,23 @@ public partial class DistributionEntryViewModel : ReactiveObject
     public void AddNpc(NpcRecordViewModel npc) => AddCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
     public void RemoveNpc(NpcRecordViewModel npc) => RemoveCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
 
-    public void AddFaction(FactionRecordViewModel faction) => AddCriterion(faction, _selectedFactions, UpdateEntryFactions);
-    public void RemoveFaction(FactionRecordViewModel faction) => RemoveCriterion(faction, _selectedFactions, UpdateEntryFactions);
+    public void AddFaction(FactionRecordViewModel faction) =>
+        AddCriterion(faction, _selectedFactions, UpdateEntryFactions);
 
-    public void AddKeyword(KeywordRecordViewModel keyword) => AddCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
-    public void RemoveKeyword(KeywordRecordViewModel keyword) => RemoveCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
+    public void RemoveFaction(FactionRecordViewModel faction) =>
+        RemoveCriterion(faction, _selectedFactions, UpdateEntryFactions);
+
+    public void AddKeyword(KeywordRecordViewModel keyword) =>
+        AddCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
+
+    public void RemoveKeyword(KeywordRecordViewModel keyword) =>
+        RemoveCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
 
     public void AddRace(RaceRecordViewModel race) => AddCriterion(race, _selectedRaces, UpdateEntryRaces);
     public void RemoveRace(RaceRecordViewModel race) => RemoveCriterion(race, _selectedRaces, UpdateEntryRaces);
 
     public void AddClass(ClassRecordViewModel classVm) => AddCriterion(classVm, _selectedClasses, UpdateEntryClasses);
-    public void RemoveClass(ClassRecordViewModel classVm) => RemoveCriterion(classVm, _selectedClasses, UpdateEntryClasses);
+
+    public void RemoveClass(ClassRecordViewModel classVm) =>
+        RemoveCriterion(classVm, _selectedClasses, UpdateEntryClasses);
 }

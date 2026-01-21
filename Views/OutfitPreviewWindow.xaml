@@ -7,222 +7,226 @@
         Title="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Title}}"
         Width="900"
         Height="700"
-        WindowStartupLocation="CenterOwner"
-        >
-    <Grid x:Name="RootGrid">
-        <Grid.LayoutTransform>
-            <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
-        </Grid.LayoutTransform>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        WindowStartupLocation="CenterOwner">
+  <Grid x:Name="RootGrid">
+    <Grid.LayoutTransform>
+      <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
+    </Grid.LayoutTransform>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" x:Name="NavigationHeader"
-                Background="{DynamicResource Brush.CardBackground}"
-                BorderBrush="{DynamicResource Brush.Border}"
-                BorderThickness="0,0,0,1"
-                Padding="12,8"
-                Visibility="Collapsed">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+    <Border Grid.Row="0" x:Name="NavigationHeader"
+            Background="{DynamicResource Brush.CardBackground}"
+            BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="0,0,0,1"
+            Padding="12,8"
+            Visibility="Collapsed">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-                <Button x:Name="PreviousOutfitButton" Content="◀" Grid.Column="0"
-                        Padding="8,4" FontSize="16"
-                        Click="OnPreviousOutfit"
-                        ToolTip="Previous outfit (Left Arrow)" />
+        <Button x:Name="PreviousOutfitButton" Content="◀" Grid.Column="0"
+                Padding="8,4" FontSize="16"
+                Click="OnPreviousOutfit"
+                ToolTip="Previous outfit (Left Arrow)" />
 
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock x:Name="OutfitCounterText"
-                               Foreground="{DynamicResource Brush.TextSecondary}"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center" FontSize="11" />
-                    <TextBlock x:Name="OutfitLabelText"
-                               Foreground="{DynamicResource Brush.TextPrimary}"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Center" FontSize="13"
-                               Margin="0,2,0,0" />
-                    <TextBlock x:Name="OutfitSourceText"
-                               Foreground="{DynamicResource Brush.TextSecondary}"
-                               FontSize="11"
-                               HorizontalAlignment="Center"
-                               Margin="0,2,0,0" />
-                </StackPanel>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock x:Name="OutfitCounterText"
+                     Foreground="{DynamicResource Brush.TextSecondary}"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Center" FontSize="11" />
+          <TextBlock x:Name="OutfitLabelText"
+                     Foreground="{DynamicResource Brush.TextPrimary}"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" FontSize="13"
+                     Margin="0,2,0,0" />
+          <TextBlock x:Name="OutfitSourceText"
+                     Foreground="{DynamicResource Brush.TextSecondary}"
+                     FontSize="11"
+                     HorizontalAlignment="Center"
+                     Margin="0,2,0,0" />
+        </StackPanel>
 
-                <Button x:Name="NextOutfitButton" Content="▶" Grid.Column="2"
-                        Padding="8,4" FontSize="16"
-                        Click="OnNextOutfit"
-                        ToolTip="Next outfit (Right Arrow)" />
-            </Grid>
-        </Border>
-        <helix:Viewport3DX x:Name="PreviewViewport" Grid.Row="1"
-                           ClipToBounds="True"
-                           HorizontalAlignment="Stretch"
-                           VerticalAlignment="Stretch"
-                           Focusable="True"
-                           ShowCoordinateSystem="False"
-                           ShowFrameRate="False"
-                           EnableCursorPosition="False"
-                           UseDefaultGestures="True" />
+        <Button x:Name="NextOutfitButton" Content="▶" Grid.Column="2"
+                Padding="8,4" FontSize="16"
+                Click="OnNextOutfit"
+                ToolTip="Next outfit (Right Arrow)" />
+      </Grid>
+    </Border>
+    <helix:Viewport3DX x:Name="PreviewViewport" Grid.Row="1"
+                       ClipToBounds="True"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Focusable="True"
+                       ShowCoordinateSystem="False"
+                       ShowFrameRate="False"
+                       EnableCursorPosition="False"
+                       UseDefaultGestures="True" />
 
-        <Border Grid.Row="2"
-                Background="{DynamicResource Brush.CardBackground}"
-                BorderBrush="{DynamicResource Brush.Border}"
-                BorderThickness="0,1,0,0"
-                Padding="12">
-            <StackPanel>
-                <StackPanel x:Name="LoadingPanel"
-                            Margin="0,0,0,8"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <TextBlock Text="Loading preview..."
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource Brush.TextPrimary}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,4" />
-                </StackPanel>
+    <Border Grid.Row="2"
+            Background="{DynamicResource Brush.CardBackground}"
+            BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="0,1,0,0"
+            Padding="12">
+      <StackPanel>
+        <StackPanel x:Name="LoadingPanel"
+                    Margin="0,0,0,8"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <TextBlock Text="Loading preview..."
+                     FontSize="14"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource Brush.TextPrimary}"
+                     HorizontalAlignment="Center"
+                     Margin="0,4,0,4" />
+        </StackPanel>
 
-                <StackPanel x:Name="MissingAssetsPanel"
-                            Margin="0,0,0,8"
-                            Visibility="Collapsed">
-                    <Border Background="#FFF3CD"
-                            BorderBrush="#FFECB5"
-                            BorderThickness="1"
-                            CornerRadius="4"
-                            Padding="12"
-                            Margin="0,0,0,10">
-                        <TextBlock TextWrapping="Wrap"
-                                   Foreground="#664D03">
-                            <Run FontWeight="SemiBold" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssetsWarning}}" />
-                            <LineBreak /><LineBreak />
-                            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.BodySlideHint}}" />
-                        </TextBlock>
-                    </Border>
-                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssets}}" FontWeight="Bold" />
-                    <ItemsControl x:Name="MissingAssetsList" Margin="0,4,0,0">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+        <StackPanel x:Name="MissingAssetsPanel"
+                    Margin="0,0,0,8"
+                    Visibility="Collapsed">
+          <Border Background="#FFF3CD"
+                  BorderBrush="#FFECB5"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="12"
+                  Margin="0,0,0,10">
+            <TextBlock TextWrapping="Wrap"
+                       Foreground="#664D03">
+              <Run FontWeight="SemiBold"
+                   Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssetsWarning}}" />
+              <LineBreak /><LineBreak />
+              <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.BodySlideHint}}" />
+            </TextBlock>
+          </Border>
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.MissingAssets}}" FontWeight="Bold" />
+          <ItemsControl x:Name="MissingAssetsList" Margin="0,4,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
 
-                <Expander Header="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.LightingDebug}}"
-                          IsExpanded="False"
-                          Margin="0,0,0,12">
-                    <Grid Margin="0,6,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+        <Expander Header="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.LightingDebug}}"
+                  IsExpanded="False"
+                  Margin="0,0,0,12">
+          <Grid Margin="0,6,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Ambient}}" Margin="0,0,8,0"
-                                   VerticalAlignment="Center" />
-                        <Slider x:Name="AmbientMultiplierSlider"
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Minimum="0"
-                                Maximum="5"
-                                Value="0"
-                                TickFrequency="0.1"
-                                ValueChanged="OnAmbientMultiplierChanged"
-                                Margin="0,0,8,0" />
-                        <TextBlock Grid.Row="0" Grid.Column="2"
-                                   Text="{Binding Value, ElementName=AmbientMultiplierSlider, StringFormat=F2}"
-                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
+            <TextBlock Grid.Row="0" Grid.Column="0"
+                       Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Ambient}}" Margin="0,0,8,0"
+                       VerticalAlignment="Center" />
+            <Slider x:Name="AmbientMultiplierSlider"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Minimum="0"
+                    Maximum="5"
+                    Value="0"
+                    TickFrequency="0.1"
+                    ValueChanged="OnAmbientMultiplierChanged"
+                    Margin="0,0,8,0" />
+            <TextBlock Grid.Row="0" Grid.Column="2"
+                       Text="{Binding Value, ElementName=AmbientMultiplierSlider, StringFormat=F2}"
+                       Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.KeyFill}}" Margin="0,6,8,0"
-                                   VerticalAlignment="Center" />
-                        <Slider x:Name="KeyFillMultiplierSlider"
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Minimum="0"
-                                Maximum="5"
-                                Value="1.6"
-                                TickFrequency="0.1"
-                                ValueChanged="OnKeyFillMultiplierChanged"
-                                Margin="0,6,8,0" />
-                        <TextBlock Grid.Row="1" Grid.Column="2"
-                                   Text="{Binding Value, ElementName=KeyFillMultiplierSlider, StringFormat=F2}"
-                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
+            <TextBlock Grid.Row="1" Grid.Column="0"
+                       Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.KeyFill}}" Margin="0,6,8,0"
+                       VerticalAlignment="Center" />
+            <Slider x:Name="KeyFillMultiplierSlider"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Minimum="0"
+                    Maximum="5"
+                    Value="1.6"
+                    TickFrequency="0.1"
+                    ValueChanged="OnKeyFillMultiplierChanged"
+                    Margin="0,6,8,0" />
+            <TextBlock Grid.Row="1" Grid.Column="2"
+                       Text="{Binding Value, ElementName=KeyFillMultiplierSlider, StringFormat=F2}"
+                       Width="48" VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Rim}}" Margin="0,6,8,0" VerticalAlignment="Center" />
-                        <Slider x:Name="RimMultiplierSlider"
-                                Grid.Row="2"
-                                Grid.Column="1"
-                                Minimum="0"
-                                Maximum="5"
-                                Value="1"
-                                TickFrequency="0.1"
-                                ValueChanged="OnRimMultiplierChanged"
-                                Margin="0,6,8,0" />
-                        <TextBlock Grid.Row="2" Grid.Column="2"
-                                   Text="{Binding Value, ElementName=RimMultiplierSlider, StringFormat=F2}" Width="48"
-                                   VerticalAlignment="Center" TextAlignment="Right" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Rim}}"
+                       Margin="0,6,8,0" VerticalAlignment="Center" />
+            <Slider x:Name="RimMultiplierSlider"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Minimum="0"
+                    Maximum="5"
+                    Value="1"
+                    TickFrequency="0.1"
+                    ValueChanged="OnRimMultiplierChanged"
+                    Margin="0,6,8,0" />
+            <TextBlock Grid.Row="2" Grid.Column="2"
+                       Text="{Binding Value, ElementName=RimMultiplierSlider, StringFormat=F2}" Width="48"
+                       VerticalAlignment="Center" TextAlignment="Right" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Frontal}}" Margin="0,6,8,0"
-                                   VerticalAlignment="Center" />
-                        <Slider x:Name="FrontalMultiplierSlider"
-                                Grid.Row="3"
-                                Grid.Column="1"
-                                Minimum="0"
-                                Maximum="10"
-                                Value="7"
-                                TickFrequency="0.1"
-                                ValueChanged="OnFrontalMultiplierChanged"
-                                Margin="0,6,8,0" />
-                        <TextBlock Grid.Row="3" Grid.Column="2"
-                                   Text="{Binding Value, ElementName=FrontalMultiplierSlider, StringFormat=F2}"
-                                   Width="48" VerticalAlignment="Center" TextAlignment="Right" />
-                    </Grid>
-                </Expander>
+            <TextBlock Grid.Row="3" Grid.Column="0"
+                       Text="{lex:Loc Key={x:Static res:LocalizationKeys+Preview.Frontal}}" Margin="0,6,8,0"
+                       VerticalAlignment="Center" />
+            <Slider x:Name="FrontalMultiplierSlider"
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Minimum="0"
+                    Maximum="10"
+                    Value="7"
+                    TickFrequency="0.1"
+                    ValueChanged="OnFrontalMultiplierChanged"
+                    Margin="0,6,8,0" />
+            <TextBlock Grid.Row="3" Grid.Column="2"
+                       Text="{Binding Value, ElementName=FrontalMultiplierSlider, StringFormat=F2}"
+                       Width="48" VerticalAlignment="Center" TextAlignment="Right" />
+          </Grid>
+        </Expander>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Gender:"
-                                   Margin="0,0,8,0"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource Brush.TextPrimary}" />
-                        <ComboBox x:Name="GenderComboBox"
-                                  Width="100"
-                                  SelectionChanged="OnGenderChanged"
-                                  ToolTip="Toggle with Tab key">
-                            <ComboBoxItem Content="Female" Tag="Female" />
-                            <ComboBoxItem Content="Male" Tag="Male" />
-                        </ComboBox>
-                    </StackPanel>
+          <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Gender:"
+                       Margin="0,0,8,0"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextPrimary}" />
+            <ComboBox x:Name="GenderComboBox"
+                      Width="100"
+                      SelectionChanged="OnGenderChanged"
+                      ToolTip="Toggle with Tab key">
+              <ComboBoxItem Content="Female" Tag="Female" />
+              <ComboBoxItem Content="Male" Tag="Male" />
+            </ComboBox>
+          </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ResetView}}"
-                                Margin="0,0,8,0"
-                                Padding="14,6"
-                                Click="OnResetView" />
-                        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Close}}"
-                                Padding="14,6"
-                                IsCancel="True"
-                                Click="OnClose" />
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </Border>
-    </Grid>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ResetView}}"
+                    Margin="0,0,8,0"
+                    Padding="14,6"
+                    Click="OnResetView" />
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Close}}"
+                    Padding="14,6"
+                    IsCancel="True"
+                    Click="OnClose" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+  </Grid>
 </Window>

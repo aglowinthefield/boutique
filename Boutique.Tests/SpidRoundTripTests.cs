@@ -4,11 +4,54 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Round-trip tests for SPID distribution line parsing and formatting.
-/// Ensures that parsing a line and formatting it back produces equivalent output.
+///     Round-trip tests for SPID distribution line parsing and formatting.
+///     Ensures that parsing a line and formatting it back produces equivalent output.
 /// </summary>
 public class SpidRoundTripTests
 {
+    #region Chance (Position 7)
+
+    [Theory]
+    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|5")]
+    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|50")]
+    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|1")]
+    public void RoundTrip_Chance_PreservesLine(string input)
+    {
+        var parsed = SpidLineParser.TryParse(input, out var filter);
+        Assert.True(parsed);
+        Assert.NotNull(filter);
+
+        var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter);
+        Assert.Equal(input, formatted);
+    }
+
+    #endregion
+
+    #region Bulk File Round-Trip Tests
+
+    [Fact]
+    public void RoundTrip_MultipleLines_AllPreserved()
+    {
+        var lines = new[]
+        {
+            "Outfit = VampireOutfit|Serana", "Outfit = BanditOutfit|ActorTypeNPC+Bandit",
+            "Outfit = GuardOutfit|*Guard+-Stormcloak", "Outfit = 0x800~MyMod.esp|NONE|VampireFaction|NONE|F|NONE|5",
+            "Keyword = MyKeyword|ActorTypeNPC|NordRace"
+        };
+
+        foreach (var line in lines)
+        {
+            var parsed = SpidLineParser.TryParse(line, out var filter);
+            Assert.True(parsed, $"Failed to parse: {line}");
+            Assert.NotNull(filter);
+
+            var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter);
+            Assert.Equal(line, formatted);
+        }
+    }
+
+    #endregion
+
     #region Simple Outfit Lines
 
     [Theory]
@@ -269,24 +312,6 @@ public class SpidRoundTripTests
 
     #endregion
 
-    #region Chance (Position 7)
-
-    [Theory]
-    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|5")]
-    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|50")]
-    [InlineData("Outfit = RareOutfit|NONE|NONE|NONE|NONE|NONE|1")]
-    public void RoundTrip_Chance_PreservesLine(string input)
-    {
-        var parsed = SpidLineParser.TryParse(input, out var filter);
-        Assert.True(parsed);
-        Assert.NotNull(filter);
-
-        var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter);
-        Assert.Equal(input, formatted);
-    }
-
-    #endregion
-
     #region Complex Combined Lines
 
     [Theory]
@@ -419,8 +444,10 @@ public class SpidRoundTripTests
     }
 
     [Theory]
-    [InlineData("Keyword = MAGECORE_isGroupB|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA|NONE|NONE|NONE|NONE|50")]
-    [InlineData("Keyword = MAGECORE_isGroupC|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA,-MAGECORE_isGroupB|NONE|NONE|NONE|NONE|25")]
+    [InlineData(
+        "Keyword = MAGECORE_isGroupB|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA|NONE|NONE|NONE|NONE|50")]
+    [InlineData(
+        "Keyword = MAGECORE_isGroupC|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA,-MAGECORE_isGroupB|NONE|NONE|NONE|NONE|25")]
     public void RoundTrip_GlobalExclusions_PreservesLine(string input)
     {
         var parsed = SpidLineParser.TryParse(input, out var filter);
@@ -447,40 +474,15 @@ public class SpidRoundTripTests
 
     #endregion
 
-    #region Bulk File Round-Trip Tests
-
-    [Fact]
-    public void RoundTrip_MultipleLines_AllPreserved()
-    {
-        var lines = new[]
-        {
-            "Outfit = VampireOutfit|Serana",
-            "Outfit = BanditOutfit|ActorTypeNPC+Bandit",
-            "Outfit = GuardOutfit|*Guard+-Stormcloak",
-            "Outfit = 0x800~MyMod.esp|NONE|VampireFaction|NONE|F|NONE|5",
-            "Keyword = MyKeyword|ActorTypeNPC|NordRace"
-        };
-
-        foreach (var line in lines)
-        {
-            var parsed = SpidLineParser.TryParse(line, out var filter);
-            Assert.True(parsed, $"Failed to parse: {line}");
-            Assert.NotNull(filter);
-
-            var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter);
-            Assert.Equal(line, formatted);
-        }
-    }
-
-    #endregion
-
     #region Magecore Test Data Lines
 
     [Theory]
-    [InlineData("Keyword = MAGECORE_isMage|*Conjurer,*Cryomancer,*Electromancer,*Mage,*Necro,*Pyromancer,*Wizard,*Warlock,*Sorcerer")]
+    [InlineData(
+        "Keyword = MAGECORE_isMage|*Conjurer,*Cryomancer,*Electromancer,*Mage,*Necro,*Pyromancer,*Wizard,*Warlock,*Sorcerer")]
     [InlineData("Keyword = MAGECORE_isFemale|MAGECORE_isMage|NONE|NONE|F/-U/-C")]
     [InlineData("Keyword = MAGECORE_isGroupA|MAGECORE_isMage+MAGECORE_isFemale|NONE|NONE|NONE|NONE|33")]
-    [InlineData("Keyword = MAGECORE_isGroupB|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA|NONE|NONE|NONE|NONE|50")]
+    [InlineData(
+        "Keyword = MAGECORE_isGroupB|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA|NONE|NONE|NONE|NONE|50")]
     [InlineData("Keyword = MAGECORE_isGroupC|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA,-MAGECORE_isGroupB")]
     public void RoundTrip_MagecoreKeywordLines_PreservesLine(string input)
     {
@@ -495,7 +497,8 @@ public class SpidRoundTripTests
     [Fact]
     public void Parse_MagecoreWildcards_ParsesAllExpressions()
     {
-        var input = "Keyword = MAGECORE_isMage|*Conjurer,*Cryomancer,*Electromancer,*Mage,*Necro,*Pyromancer,*Wizard,*Warlock,*Sorcerer";
+        var input =
+            "Keyword = MAGECORE_isMage|*Conjurer,*Cryomancer,*Electromancer,*Mage,*Necro,*Pyromancer,*Wizard,*Warlock,*Sorcerer";
         var parsed = SpidLineParser.TryParse(input, out var filter);
 
         Assert.True(parsed);
@@ -515,7 +518,8 @@ public class SpidRoundTripTests
     [Fact]
     public void Parse_MagecoreGlobalExclusions_ParsesCorrectly()
     {
-        var input = "Keyword = MAGECORE_isGroupC|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA,-MAGECORE_isGroupB|NONE|NONE|NONE|NONE|100";
+        var input =
+            "Keyword = MAGECORE_isGroupC|MAGECORE_isMage+MAGECORE_isFemale,-MAGECORE_isGroupA,-MAGECORE_isGroupB|NONE|NONE|NONE|NONE|100";
         var parsed = SpidLineParser.TryParse(input, out var filter);
 
         Assert.True(parsed);
@@ -532,8 +536,10 @@ public class SpidRoundTripTests
     }
 
     [Theory]
-    [InlineData("Outfit = MAGECOREMasterResearcherMagickaOutfit|MAGECORE_isFemale+MAGECORE_isMage+MAGECORE_isMasterLevel+MAGECORE_isGroupA,-MAGECORE_hasMasterSkill")]
-    [InlineData("Outfit = MAGECOREExpertResearcherAlterationOutfit|MAGECORE_isFemale+MAGECORE_isMage+MAGECORE_isExpertAlteration+MAGECORE_isGroupA,-MAGECORE_reachMasterLevel,-MAGECORE_hasMasterSkill")]
+    [InlineData(
+        "Outfit = MAGECOREMasterResearcherMagickaOutfit|MAGECORE_isFemale+MAGECORE_isMage+MAGECORE_isMasterLevel+MAGECORE_isGroupA,-MAGECORE_hasMasterSkill")]
+    [InlineData(
+        "Outfit = MAGECOREExpertResearcherAlterationOutfit|MAGECORE_isFemale+MAGECORE_isMage+MAGECORE_isExpertAlteration+MAGECORE_isGroupA,-MAGECORE_reachMasterLevel,-MAGECORE_hasMasterSkill")]
     public void RoundTrip_MagecoreOutfitLines_PreservesLine(string input)
     {
         var parsed = SpidLineParser.TryParse(input, out var filter);

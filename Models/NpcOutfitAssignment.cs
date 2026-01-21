@@ -3,8 +3,8 @@ using Mutagen.Bethesda.Plugins;
 namespace Boutique.Models;
 
 /// <summary>
-/// Represents an NPC and all outfit distributions targeting them,
-/// along with the final resolved outfit.
+///     Represents an NPC and all outfit distributions targeting them,
+///     along with the final resolved outfit.
 /// </summary>
 public sealed record NpcOutfitAssignment(
     /// <summary>The NPC's FormKey</summary>

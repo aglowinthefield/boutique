@@ -19,13 +19,13 @@ public static class SpidLineParser
     };
 
     public static bool TryParse(string line, out SpidDistributionFilter? result) =>
-        TryParse(line, out result, formTypeFilter: null);
+        TryParse(line, out result, null);
 
     public static bool TryParseOutfit(string line, out SpidDistributionFilter? result) =>
-        TryParse(line, out result, formTypeFilter: SpidFormType.Outfit);
+        TryParse(line, out result, SpidFormType.Outfit);
 
     public static bool TryParseKeyword(string line, out SpidDistributionFilter? result) =>
-        TryParse(line, out result, formTypeFilter: SpidFormType.Keyword);
+        TryParse(line, out result, SpidFormType.Keyword);
 
     public static bool TryParse(string line, out SpidDistributionFilter? result, SpidFormType? formTypeFilter)
     {
@@ -133,10 +133,7 @@ public static class SpidLineParser
                         return (identifier, remainder);
                     }
                 }
-                else if (FormKeyHelper.LooksLikeFormId(afterFirstPipe))
-                {
-                    return (valuePart, string.Empty);
-                }
+                else if (FormKeyHelper.LooksLikeFormId(afterFirstPipe)) return (valuePart, string.Empty);
             }
 
             return (firstPart, valuePart[(firstPipe + 1)..]);
@@ -181,21 +178,14 @@ public static class SpidLineParser
                 var exclusionValue = trimmedExpr[1..].Trim();
                 if (!string.IsNullOrWhiteSpace(exclusionValue))
                 {
-                    globalExclusions.Add(new SpidFilterPart
-                    {
-                        Value = exclusionValue,
-                        IsNegated = true
-                    });
+                    globalExclusions.Add(new SpidFilterPart { Value = exclusionValue, IsNegated = true });
                 }
 
                 continue;
             }
 
             var expression = ParseFilterExpression(trimmedExpr);
-            if (expression.Parts.Count > 0)
-            {
-                section.Expressions.Add(expression);
-            }
+            if (expression.Parts.Count > 0) section.Expressions.Add(expression);
         }
 
         if (globalExclusions.Count > 0)
@@ -225,11 +215,7 @@ public static class SpidLineParser
 
             if (!string.IsNullOrWhiteSpace(value))
             {
-                expression.Parts.Add(new SpidFilterPart
-                {
-                    Value = value,
-                    IsNegated = isNegated
-                });
+                expression.Parts.Add(new SpidFilterPart { Value = value, IsNegated = isNegated });
             }
         }
 
@@ -354,13 +340,13 @@ public static class SpidLineParser
             .ToList();
 
     public static bool IsSpidLine(string line) =>
-        TryParse(line, out _, formTypeFilter: null);
+        TryParse(line, out _, null);
 
     public static bool IsOutfitLine(string line) =>
-        TryParse(line, out _, formTypeFilter: SpidFormType.Outfit);
+        TryParse(line, out _, SpidFormType.Outfit);
 
     public static bool IsKeywordLine(string line) =>
-        TryParse(line, out _, formTypeFilter: SpidFormType.Keyword);
+        TryParse(line, out _, SpidFormType.Keyword);
 
     public static SpidFormType? GetFormType(string line)
     {
@@ -381,12 +367,8 @@ public static class SpidLineParser
         var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var expr in filter.StringFilters.Expressions)
-        {
-            foreach (var part in expr.Parts)
-            {
-                results.Add(part.Value);
-            }
-        }
+        foreach (var part in expr.Parts)
+            results.Add(part.Value);
 
         return results.ToList();
     }

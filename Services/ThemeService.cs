@@ -21,34 +21,38 @@ public class ThemeService
     private const int DWMWAUSEIMMERSIVEDARKMODE = 20;
     private const int DWMWABORDERCOLOR = 34;
 
-    [DllImport("dwmapi.dll", PreserveSig = true)]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-
-    [DllImport("dwmapi.dll", PreserveSig = true)]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref uint attrValue, int attrSize);
-
     private static readonly string ConfigPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory, ".config", ThemeConfigFileName);
+
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     private static readonly double[] BaseFontSizes = { 10, 13, 14, 16, 18 };
-    private static readonly string[] FontSizeKeys = { "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading" };
+
+    private static readonly string[] FontSizeKeys =
+    {
+        "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading"
+    };
 
     private readonly ILogger _logger;
-    private AppTheme _currentThemeSetting = AppTheme.System;
-    private bool _isCurrentlyDark = true;
-    private double _currentFontScale = 1.0;
-
-    public static ThemeService? Current { get; private set; }
 
     public ThemeService(ILogger logger)
     {
         _logger = logger;
     }
 
-    public AppTheme CurrentThemeSetting => _currentThemeSetting;
-    public bool IsCurrentlyDark => _isCurrentlyDark;
-    public double CurrentFontScale => _currentFontScale;
+    public static ThemeService? Current { get; private set; }
+
+    public AppTheme CurrentThemeSetting { get; private set; } = AppTheme.System;
+
+    public bool IsCurrentlyDark { get; private set; } = true;
+
+    public double CurrentFontScale { get; private set; } = 1.0;
+
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref uint attrValue, int attrSize);
 
     public event EventHandler<bool>? ThemeChanged;
     public event EventHandler<double>? FontScaleChanged;
@@ -56,32 +60,32 @@ public class ThemeService
     public void Initialize()
     {
         Current = this;
-        (_currentThemeSetting, _currentFontScale) = LoadSettings();
-        ApplyTheme(_currentThemeSetting);
-        ApplyFontScale(_currentFontScale);
+        (CurrentThemeSetting, CurrentFontScale) = LoadSettings();
+        ApplyTheme(CurrentThemeSetting);
+        ApplyFontScale(CurrentFontScale);
 
         SystemEvents.UserPreferenceChanged += OnSystemPreferenceChanged;
     }
 
     public void SetTheme(AppTheme theme)
     {
-        _currentThemeSetting = theme;
+        CurrentThemeSetting = theme;
         ApplyTheme(theme);
-        SaveSettings(_currentThemeSetting, _currentFontScale);
+        SaveSettings(CurrentThemeSetting, CurrentFontScale);
     }
 
     public void SetFontScale(double scale)
     {
-        _currentFontScale = scale;
+        CurrentFontScale = scale;
         ApplyFontScale(scale);
-        SaveSettings(_currentThemeSetting, _currentFontScale);
+        SaveSettings(CurrentThemeSetting, CurrentFontScale);
         FontScaleChanged?.Invoke(this, scale);
         _logger.Information("Applied font scale: {Scale}x", scale);
     }
 
     public void ToggleTheme()
     {
-        var newTheme = _isCurrentlyDark ? AppTheme.Light : AppTheme.Dark;
+        var newTheme = IsCurrentlyDark ? AppTheme.Light : AppTheme.Dark;
         SetTheme(newTheme);
     }
 
@@ -95,7 +99,7 @@ public class ThemeService
             _ => true
         };
 
-        _isCurrentlyDark = isDark;
+        IsCurrentlyDark = isDark;
         var palettePath = isDark ? "Themes/ColorPaletteDark.xaml" : "Themes/ColorPaletteLight.xaml";
 
         try
@@ -112,10 +116,7 @@ public class ThemeService
                 app.Resources.MergedDictionaries.Remove(dict);
 
             // Add the new color palette FIRST (before Controls.xaml references it)
-            var paletteDict = new ResourceDictionary
-            {
-                Source = new Uri(palettePath, UriKind.Relative)
-            };
+            var paletteDict = new ResourceDictionary { Source = new Uri(palettePath, UriKind.Relative) };
             app.Resources.MergedDictionaries.Insert(0, paletteDict);
 
             // Ensure Controls.xaml is loaded after the palette
@@ -153,12 +154,12 @@ public class ThemeService
         var hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd == IntPtr.Zero) return;
 
-        var useDarkMode = _isCurrentlyDark ? 1 : 0;
+        var useDarkMode = IsCurrentlyDark ? 1 : 0;
         _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
         // Set window border color (Windows 11+)
         // Color format: 0x00BBGGRR
-        uint borderColor = _isCurrentlyDark ? 0x00232323u : 0x00E0E0E0u;
+        var borderColor = IsCurrentlyDark ? 0x00232323u : 0x00E0E0E0u;
         _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
     }
 
@@ -170,7 +171,7 @@ public class ThemeService
         _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
         // Set window border color (Windows 11+)
-        uint borderColor = isDark ? 0x00232323u : 0x00E0E0E0u;
+        var borderColor = isDark ? 0x00232323u : 0x00E0E0E0u;
         _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
     }
 
@@ -183,10 +184,7 @@ public class ThemeService
         if (!hasControls)
         {
             // Load Controls.xaml after the color palette
-            var controlsDict = new ResourceDictionary
-            {
-                Source = new Uri("Themes/Controls.xaml", UriKind.Relative)
-            };
+            var controlsDict = new ResourceDictionary { Source = new Uri("Themes/Controls.xaml", UriKind.Relative) };
             app.Resources.MergedDictionaries.Add(controlsDict);
         }
 
@@ -215,7 +213,7 @@ public class ThemeService
     private void OnSystemPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
         if (e.Category != UserPreferenceCategory.General) return;
-        if (_currentThemeSetting != AppTheme.System) return;
+        if (CurrentThemeSetting != AppTheme.System) return;
 
         // Re-apply system theme when Windows theme changes
         Application.Current?.Dispatcher.BeginInvoke(() => ApplyTheme(AppTheme.System));
@@ -243,9 +241,7 @@ public class ThemeService
 
             if (doc.RootElement.TryGetProperty("FontScale", out var fontScaleElement) &&
                 fontScaleElement.TryGetDouble(out var parsedFontScale))
-            {
                 fontScale = parsedFontScale;
-            }
 
             return (theme, fontScale);
         }

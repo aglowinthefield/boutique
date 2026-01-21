@@ -1,10 +1,10 @@
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Centralized resource key constants for XAML resources.
-/// Using these constants prevents typos and enables compile-time checking.
-/// Usage in XAML: {DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}
-/// Usage in C#: Application.Current.Resources[ResourceKeys.BrushCardBackground]
+///     Centralized resource key constants for XAML resources.
+///     Using these constants prevents typos and enables compile-time checking.
+///     Usage in XAML: {DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}
+///     Usage in C#: Application.Current.Resources[ResourceKeys.BrushCardBackground]
 /// </summary>
 public static class ResourceKeys
 {

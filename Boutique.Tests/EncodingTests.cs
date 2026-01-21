@@ -43,9 +43,9 @@ public class EncodingTests
         // Various Russian armor-related words
         var testStrings = new[]
         {
-            "Стальной шлем",      // Steel Helmet
-            "Кожаные сапоги",     // Leather Boots
-            "Железная кираса",    // Iron Cuirass
+            "Стальной шлем", // Steel Helmet
+            "Кожаные сапоги", // Leather Boots
+            "Железная кираса", // Iron Cuirass
             "Эбонитовые перчатки" // Ebony Gauntlets
         };
 

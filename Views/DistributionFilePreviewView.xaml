@@ -12,70 +12,76 @@
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="200"
              d:DesignWidth="400">
-    <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.FilePreview}}" Padding="6">
+  <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.FilePreview}}" Padding="6">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <!-- Parse Errors -->
+      <Expander Grid.Row="0"
+                Visibility="{Binding HasParseErrors, Converter={StaticResource BoolToVisConverter}}"
+                IsExpanded="True" Margin="0,0,0,6">
+        <Expander.Header>
+          <TextBlock>
+            <Run Text="{Binding ActualParseErrors.Count, Mode=OneWay}" />
+            <Run Text=" parsing error(s) - these lines will be preserved on save" />
+          </TextBlock>
+        </Expander.Header>
+        <Border Padding="6" Background="{DynamicResource Brush.Error.Background}"
+                BorderBrush="{DynamicResource Brush.Error.Border}" BorderThickness="1" CornerRadius="0,0,4,4">
+          <ItemsControl ItemsSource="{Binding ActualParseErrors}" MaxHeight="100">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.Template>
+              <ControlTemplate TargetType="ItemsControl">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                  <ItemsPresenter />
+                </ScrollViewer>
+              </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,2">
+                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas"
+                           FontSize="11"
+                           Foreground="{DynamicResource Brush.Error.Title}" IsReadOnlyCaretVisible="False"
+                           Text="{Binding ErrorHeader, Mode=OneWay}" />
+                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas"
+                           FontSize="10"
+                           Foreground="{DynamicResource Brush.Error.Text}" IsReadOnlyCaretVisible="False"
+                           Text="{Binding LineContent, Mode=OneWay}" ToolTip="{Binding LineContent}" Margin="12,0,0,0" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Border>
+      </Expander>
+
+      <!-- File Content Preview -->
+      <Border Grid.Row="1" Padding="6" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
+              BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1"
+              CornerRadius="4">
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <!-- Parse Errors -->
-            <Expander Grid.Row="0"
-                      Visibility="{Binding HasParseErrors, Converter={StaticResource BoolToVisConverter}}"
-                      IsExpanded="True" Margin="0,0,0,6">
-                <Expander.Header>
-                    <TextBlock>
-                        <Run Text="{Binding ActualParseErrors.Count, Mode=OneWay}" />
-                        <Run Text=" parsing error(s) - these lines will be preserved on save" />
-                    </TextBlock>
-                </Expander.Header>
-                <Border Padding="6" Background="{DynamicResource Brush.Error.Background}" BorderBrush="{DynamicResource Brush.Error.Border}" BorderThickness="1" CornerRadius="0,0,4,4">
-                    <ItemsControl ItemsSource="{Binding ActualParseErrors}" MaxHeight="100">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <VirtualizingStackPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.Template>
-                            <ControlTemplate TargetType="ItemsControl">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <ItemsPresenter />
-                                </ScrollViewer>
-                            </ControlTemplate>
-                        </ItemsControl.Template>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="0,2">
-                                    <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas" FontSize="11"
-                                             Foreground="{DynamicResource Brush.Error.Title}" IsReadOnlyCaretVisible="False"
-                                             Text="{Binding ErrorHeader, Mode=OneWay}" />
-                                    <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas" FontSize="10"
-                                             Foreground="{DynamicResource Brush.Error.Text}" IsReadOnlyCaretVisible="False"
-                                             Text="{Binding LineContent, Mode=OneWay}" ToolTip="{Binding LineContent}" Margin="12,0,0,0" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Border>
-            </Expander>
-
-            <!-- File Content Preview -->
-            <Border Grid.Row="1" Padding="6" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
-                    BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1" CornerRadius="4">
-                <Grid>
-                    <TextBox x:Name="PreviewTextBox"
-                             Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
-                    <Border x:Name="HighlightOverlay"
-                            Background="{DynamicResource Brush.Accent}"
-                            Opacity="0"
-                            IsHitTestVisible="False"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Stretch"
-                            Height="16"
-                            Margin="0" />
-                </Grid>
-            </Border>
+          <TextBox x:Name="PreviewTextBox"
+                   Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                   AcceptsReturn="True"
+                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas"
+                   FontSize="11" />
+          <Border x:Name="HighlightOverlay"
+                  Background="{DynamicResource Brush.Accent}"
+                  Opacity="0"
+                  IsHitTestVisible="False"
+                  VerticalAlignment="Top"
+                  HorizontalAlignment="Stretch"
+                  Height="16"
+                  Margin="0" />
         </Grid>
-    </GroupBox>
+      </Border>
+    </Grid>
+  </GroupBox>
 </UserControl>

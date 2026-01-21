@@ -1,19 +1,21 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Boutique.ViewModels;
 
 namespace Boutique.Views;
 
 public partial class DistributionEntryEditorView
 {
-    public DistributionEntryEditorView() => InitializeComponent();
+    public DistributionEntryEditorView()
+    {
+        InitializeComponent();
+    }
 
     private void FilterableSelector_DropDownOpened(object? sender, EventArgs e)
     {
-        if (DataContext is DistributionEditTabViewModel viewModel)
-        {
-            viewModel.EnsureOutfitsLoaded();
-        }
+        if (DataContext is DistributionEditTabViewModel viewModel) viewModel.EnsureOutfitsLoaded();
     }
 
     private void RemoveNpc_Click(object sender, RoutedEventArgs e)
@@ -21,10 +23,7 @@ public partial class DistributionEntryEditorView
         if (sender is Button button && button.Tag is NpcRecordViewModel npcVm)
         {
             var itemsControl = FindVisualParent<ItemsControl>(button);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.RemoveNpc(npcVm);
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.RemoveNpc(npcVm);
         }
     }
 
@@ -33,23 +32,17 @@ public partial class DistributionEntryEditorView
         if (sender is Button button && button.Tag is FactionRecordViewModel factionVm)
         {
             var itemsControl = FindVisualParent<ItemsControl>(button);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.RemoveFaction(factionVm);
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.RemoveFaction(factionVm);
         }
     }
 
-    private void ToggleFactionNegation_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void ToggleFactionNegation_Click(object sender, MouseButtonEventArgs e)
     {
         if (sender is StackPanel panel && panel.Tag is FactionRecordViewModel factionVm)
         {
             factionVm.IsExcluded = !factionVm.IsExcluded;
             var itemsControl = FindVisualParent<ItemsControl>(panel);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.UpdateEntryFactions();
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.UpdateEntryFactions();
         }
     }
 
@@ -58,23 +51,17 @@ public partial class DistributionEntryEditorView
         if (sender is Button button && button.Tag is KeywordRecordViewModel keywordVm)
         {
             var itemsControl = FindVisualParent<ItemsControl>(button);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.RemoveKeyword(keywordVm);
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.RemoveKeyword(keywordVm);
         }
     }
 
-    private void ToggleKeywordNegation_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void ToggleKeywordNegation_Click(object sender, MouseButtonEventArgs e)
     {
         if (sender is StackPanel panel && panel.Tag is KeywordRecordViewModel keywordVm)
         {
             keywordVm.IsExcluded = !keywordVm.IsExcluded;
             var itemsControl = FindVisualParent<ItemsControl>(panel);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.UpdateEntryKeywords();
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.UpdateEntryKeywords();
         }
     }
 
@@ -83,23 +70,17 @@ public partial class DistributionEntryEditorView
         if (sender is Button button && button.Tag is RaceRecordViewModel raceVm)
         {
             var itemsControl = FindVisualParent<ItemsControl>(button);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.RemoveRace(raceVm);
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.RemoveRace(raceVm);
         }
     }
 
-    private void ToggleRaceNegation_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void ToggleRaceNegation_Click(object sender, MouseButtonEventArgs e)
     {
         if (sender is StackPanel panel && panel.Tag is RaceRecordViewModel raceVm)
         {
             raceVm.IsExcluded = !raceVm.IsExcluded;
             var itemsControl = FindVisualParent<ItemsControl>(panel);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.UpdateEntryRaces();
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.UpdateEntryRaces();
         }
     }
 
@@ -108,22 +89,19 @@ public partial class DistributionEntryEditorView
         if (sender is Button button && button.Tag is ClassRecordViewModel classVm)
         {
             var itemsControl = FindVisualParent<ItemsControl>(button);
-            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
-            {
-                entryVm.RemoveClass(classVm);
-            }
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm) entryVm.RemoveClass(classVm);
         }
     }
 
     private static T? FindVisualParent<T>(DependencyObject child)
         where T : DependencyObject
     {
-        var parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
+        var parent = VisualTreeHelper.GetParent(child);
         while (parent != null)
         {
             if (parent is T t)
                 return t;
-            parent = System.Windows.Media.VisualTreeHelper.GetParent(parent);
+            parent = VisualTreeHelper.GetParent(parent);
         }
 
         return null;

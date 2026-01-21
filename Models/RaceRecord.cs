@@ -9,10 +9,11 @@ public sealed record RaceRecord(
     ModKey ModKey) : IGameRecord
 {
     /// <summary>
-    /// Display name prefers EditorID over localized Name to avoid duplicates in dropdowns.
-    /// EditorIDs are unique per record while Names can be duplicated across mods.
+    ///     Display name prefers EditorID over localized Name to avoid duplicates in dropdowns.
+    ///     EditorIDs are unique per record while Names can be duplicated across mods.
     /// </summary>
     public string DisplayName => !string.IsNullOrWhiteSpace(EditorID) ? EditorID : Name ?? "(No EditorID)";
+
     public string FormKeyString => FormKey.ToString();
     public string ModDisplayName => ModKey.FileName;
 }

@@ -1,9 +1,10 @@
 using System.IO;
 using System.Reactive.Linq;
-using System.Windows.Input;
+using System.Windows;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using Boutique.Views;
 using Microsoft.Win32;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Installs;
@@ -23,11 +24,21 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
-    private readonly PatcherSettings _settings;
     private readonly GuiSettingsService _guiSettings;
+    private readonly LocalizationService _localizationService;
+    private readonly PatcherSettings _settings;
     private readonly ThemeService _themeService;
     private readonly TutorialService _tutorialService;
-    private readonly LocalizationService _localizationService;
+    [Reactive] private bool _detectionFailed;
+    [Reactive] private string _detectionSource = string.Empty;
+
+    [Reactive] private bool _isRunningFromMO2;
+    [Reactive] private string _outputPatchPath = string.Empty;
+    [Reactive] private string _patchFileName = string.Empty;
+    [Reactive] private LanguageOption? _selectedLanguage;
+    [Reactive] private SkyrimRelease _selectedSkyrimRelease;
+    [Reactive] private ThemeOption _selectedTheme;
+    [Reactive] private string _skyrimDataPath = string.Empty;
 
     public SettingsViewModel(
         PatcherSettings settings,
@@ -114,16 +125,6 @@ public partial class SettingsViewModel : ReactiveObject
         if (string.IsNullOrEmpty(SkyrimDataPath))
             AutoDetectPath();
     }
-
-    [Reactive] private bool _isRunningFromMO2;
-    [Reactive] private string _detectionSource = string.Empty;
-    [Reactive] private bool _detectionFailed;
-    [Reactive] private string _skyrimDataPath = string.Empty;
-    [Reactive] private string _outputPatchPath = string.Empty;
-    [Reactive] private string _patchFileName = string.Empty;
-    [Reactive] private SkyrimRelease _selectedSkyrimRelease;
-    [Reactive] private ThemeOption _selectedTheme;
-    [Reactive] private LanguageOption? _selectedLanguage;
 
     [Reactive] public partial double SelectedFontScale { get; set; }
 
@@ -235,9 +236,7 @@ public partial class SettingsViewModel : ReactiveObject
             DetectionFailed = false;
         }
         else
-        {
             DetectionFailed = true;
-        }
 
         DetectionSource = GetDetectionMessage(gameName, !DetectionFailed);
     }
@@ -269,10 +268,10 @@ public partial class SettingsViewModel : ReactiveObject
 
     private static void ShowRestartDialog()
     {
-        var dialog = new Views.RestartDialog { Owner = System.Windows.Application.Current.MainWindow };
+        var dialog = new RestartDialog { Owner = Application.Current.MainWindow };
         dialog.ShowDialog();
 
         if (dialog.QuitNow)
-            System.Windows.Application.Current.Shutdown();
+            Application.Current.Shutdown();
     }
 }

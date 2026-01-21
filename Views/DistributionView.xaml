@@ -12,35 +12,35 @@
              x:Name="Root"
              d:DesignHeight="800"
              d:DesignWidth="1200">
-   <Grid Margin="4,0,0,6">
-       <Grid.RowDefinitions>
-           <RowDefinition Height="*" />
-           <RowDefinition Height="Auto" />
-       </Grid.RowDefinitions>
+  <Grid Margin="4,0,0,6">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
 
-       <!-- TabControl with Create, NPCs, and Outfits tabs -->
-       <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
+    <!-- TabControl with Create, NPCs, and Outfits tabs -->
+    <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
 
-           <!-- CREATE TAB -->
-           <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Create}}">
-               <views:DistributionCreateTabView DataContext="{Binding EditTab}" />
-           </TabItem>
+      <!-- CREATE TAB -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Create}}">
+        <views:DistributionCreateTabView DataContext="{Binding EditTab}" />
+      </TabItem>
 
 
-           <!-- NPCs TAB -->
-           <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}">
-               <views:DistributionNpcsTabView DataContext="{Binding NpcsTab}" />
-           </TabItem>
+      <!-- NPCs TAB -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}">
+        <views:DistributionNpcsTabView DataContext="{Binding NpcsTab}" />
+      </TabItem>
 
-           <!-- OUTFITS TAB -->
-           <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Outfits}}">
-               <views:DistributionOutfitsTabView DataContext="{Binding OutfitsTab}" />
-           </TabItem>
-       </TabControl>
+      <!-- OUTFITS TAB -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Outfits}}">
+        <views:DistributionOutfitsTabView DataContext="{Binding OutfitsTab}" />
+      </TabItem>
+    </TabControl>
 
-       <TextBlock Grid.Row="1"
-                  Margin="0,6,0,0"
-                  Text="{Binding StatusMessage}"
-                  FontStyle="Italic" />
-   </Grid>
+    <TextBlock Grid.Row="1"
+               Margin="0,6,0,0"
+               Text="{Binding StatusMessage}"
+               FontStyle="Italic" />
+  </Grid>
 </UserControl>

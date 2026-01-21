@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using Boutique.Services;
 using Boutique.ViewModels;
 using GuideLine.Core;
@@ -15,12 +16,13 @@ namespace Boutique.Views;
 public partial class MainWindow : Window
 {
     private readonly CompositeDisposable _bindings = [];
+    private readonly GuiSettingsService _guiSettings;
     private readonly ThemeService _themeService;
     private readonly TutorialService _tutorialService;
-    private readonly GuiSettingsService _guiSettings;
     private bool _initialized;
 
-    public MainWindow(MainViewModel viewModel, ThemeService themeService, TutorialService tutorialService, GuiSettingsService guiSettings)
+    public MainWindow(MainViewModel viewModel, ThemeService themeService, TutorialService tutorialService,
+        GuiSettingsService guiSettings)
     {
         InitializeComponent();
         DataContext = viewModel;
@@ -75,10 +77,7 @@ public partial class MainWindow : Window
             var sceneCollection = interaction.Input;
             await Dispatcher.InvokeAsync(() =>
             {
-                var window = new OutfitPreviewWindow(sceneCollection, _themeService)
-                {
-                    Owner = this
-                };
+                var window = new OutfitPreviewWindow(sceneCollection, _themeService) { Owner = this };
                 window.Show();
             });
             interaction.SetOutput(Unit.Default);
@@ -90,10 +89,7 @@ public partial class MainWindow : Window
             var result = interaction.Input;
             var shouldClean = await Dispatcher.InvokeAsync(() =>
             {
-                var dialog = new MissingMastersDialog(result)
-                {
-                    Owner = this
-                };
+                var dialog = new MissingMastersDialog(result) { Owner = this };
                 dialog.ShowDialog();
                 return dialog.CleanPatch;
             });
@@ -168,9 +164,7 @@ public partial class MainWindow : Window
         }
 
         if (FeatureFlags.TutorialEnabled && !_tutorialService.HasCompletedTutorial)
-        {
-            Dispatcher.BeginInvoke(() => _tutorialService.StartTutorial(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        }
+            Dispatcher.BeginInvoke(() => _tutorialService.StartTutorial(), DispatcherPriority.ApplicationIdle);
     }
 
     private void MainGuideline_PreviewKeyDown(object sender, KeyEventArgs e)

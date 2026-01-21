@@ -5,7 +5,7 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for the SpidLineParser which parses full SPID distribution syntax.
+///     Tests for the SpidLineParser which parses full SPID distribution syntax.
 /// </summary>
 public class SpidLineParserTests
 {
@@ -201,7 +201,8 @@ public class SpidLineParserTests
     [Fact]
     public void TryParse_WithMultipleFactions_ParsesCorrectly()
     {
-        var result = SpidLineParser.TryParse("Outfit = CriminalOutfit|NONE|CrimeFactionWhiterun,CrimeFactionRiften", out var filter);
+        var result = SpidLineParser.TryParse("Outfit = CriminalOutfit|NONE|CrimeFactionWhiterun,CrimeFactionRiften",
+            out var filter);
 
         Assert.True(result);
         Assert.NotNull(filter);
@@ -241,7 +242,7 @@ public class SpidLineParserTests
         Assert.NotNull(filter);
         Assert.False(filter.TraitFilters.IsUnique); // -U = not unique
         Assert.False(filter.TraitFilters.IsFemale); // M = male
-        Assert.False(filter.TraitFilters.IsChild);  // -C = not child
+        Assert.False(filter.TraitFilters.IsChild); // -C = not child
     }
 
     [Fact]

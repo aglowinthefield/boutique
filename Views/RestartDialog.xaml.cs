@@ -5,8 +5,6 @@ namespace Boutique.Views;
 
 public partial class RestartDialog : Window
 {
-    public bool QuitNow { get; private set; }
-
     public RestartDialog()
     {
         InitializeComponent();
@@ -16,6 +14,8 @@ public partial class RestartDialog : Window
             RootScaleTransform.ScaleY = themeService.CurrentFontScale;
         }
     }
+
+    public bool QuitNow { get; private set; }
 
     private void QuitButton_Click(object sender, RoutedEventArgs e)
     {

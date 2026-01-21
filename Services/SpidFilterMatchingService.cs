@@ -7,15 +7,17 @@ namespace Boutique.Services;
 public class SpidFilterMatchingService
 {
     private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter) =>
-        NpcMatchesFilter(npc, filter, virtualKeywords: null);
+        NpcMatchesFilter(npc, filter, null);
 
-    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter, IReadOnlySet<string>? virtualKeywords) =>
+    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter,
+        IReadOnlySet<string>? virtualKeywords) =>
         MatchesStringFilters(npc, filter.StringFilters, virtualKeywords) &&
         MatchesFormFilters(npc, filter.FormFilters) &&
         MatchesLevelFilters(npc, filter.LevelFilters) &&
         MatchesTraitFilters(npc, filter.TraitFilters);
 
-    public static IReadOnlyList<NpcFilterData> GetMatchingNpcs(IReadOnlyList<NpcFilterData> allNpcs, SpidDistributionFilter filter)
+    public static IReadOnlyList<NpcFilterData> GetMatchingNpcs(IReadOnlyList<NpcFilterData> allNpcs,
+        SpidDistributionFilter filter)
     {
         if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
             filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
@@ -40,14 +42,16 @@ public class SpidFilterMatchingService
         }).ToList();
     }
 
-    private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters, IReadOnlySet<string>? virtualKeywords)
+    private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters,
+        IReadOnlySet<string>? virtualKeywords)
     {
         if (filters.IsEmpty)
             return true;
 
         foreach (var exclusion in filters.GlobalExclusions)
         {
-            if (MatchesStringPart(npc, new SpidFilterPart { Value = exclusion.Value, IsNegated = false }, virtualKeywords))
+            if (MatchesStringPart(npc, new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
+                    virtualKeywords))
                 return false;
         }
 
@@ -57,7 +61,8 @@ public class SpidFilterMatchingService
         return filters.Expressions.Any(e => MatchesStringExpression(npc, e, virtualKeywords));
     }
 
-    private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression, IReadOnlySet<string>? virtualKeywords) =>
+    private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression,
+        IReadOnlySet<string>? virtualKeywords) =>
         expression.Parts.All(part => MatchesStringPart(npc, part, virtualKeywords));
 
     private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part, IReadOnlySet<string>? virtualKeywords)
@@ -69,19 +74,24 @@ public class SpidFilterMatchingService
         return part.IsNegated ? !matches : matches;
     }
 
-    private static bool ExactMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
+    private static bool
+        ExactMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
         (!string.IsNullOrWhiteSpace(npc.Name) && npc.Name.Equals(value, StringComparison.OrdinalIgnoreCase)) ||
         (!string.IsNullOrWhiteSpace(npc.EditorId) && npc.EditorId.Equals(value, StringComparison.OrdinalIgnoreCase)) ||
         npc.Keywords.Contains(value) ||
         (virtualKeywords?.Contains(value) ?? false) ||
-        (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) && npc.TemplateEditorId.Equals(value, StringComparison.OrdinalIgnoreCase));
+        (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) &&
+         npc.TemplateEditorId.Equals(value, StringComparison.OrdinalIgnoreCase));
 
-    private static bool PartialMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
+    private static bool
+        PartialMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
         (!string.IsNullOrWhiteSpace(npc.Name) && npc.Name.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
-        (!string.IsNullOrWhiteSpace(npc.EditorId) && npc.EditorId.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
+        (!string.IsNullOrWhiteSpace(npc.EditorId) &&
+         npc.EditorId.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
         npc.Keywords.Any(k => k.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
         (virtualKeywords?.Any(k => k.Contains(value, StringComparison.OrdinalIgnoreCase)) ?? false) ||
-        (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) && npc.TemplateEditorId.Contains(value, StringComparison.OrdinalIgnoreCase));
+        (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) &&
+         npc.TemplateEditorId.Contains(value, StringComparison.OrdinalIgnoreCase));
 
     private static bool MatchesFormFilters(NpcFilterData npc, SpidFilterSection filters)
     {
@@ -233,10 +243,7 @@ public class SpidFilterMatchingService
         if (!int.TryParse(minPart, out minLevel))
             return false;
 
-        if (!string.IsNullOrWhiteSpace(maxPart) && int.TryParse(maxPart, out var max))
-        {
-            maxLevel = max;
-        }
+        if (!string.IsNullOrWhiteSpace(maxPart) && int.TryParse(maxPart, out var max)) maxLevel = max;
 
         return true;
     }

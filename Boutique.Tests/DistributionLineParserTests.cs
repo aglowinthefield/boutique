@@ -200,32 +200,32 @@ public class DistributionLineParserTests
 
     private static DistributionLine CreateLine(string rawText, bool isOutfitDistribution) =>
         new(
-            LineNumber: 1,
-            RawText: rawText,
-            Kind: DistributionLineKind.KeyValue,
-            SectionName: null,
-            Key: null,
-            Value: null,
-            IsOutfitDistribution: isOutfitDistribution,
-            OutfitFormKeys: []);
+            1,
+            rawText,
+            DistributionLineKind.KeyValue,
+            null,
+            null,
+            null,
+            isOutfitDistribution,
+            []);
 
     private static DistributionFileViewModel CreateSpidFileViewModel(string fileName) =>
         new(new DistributionFile(
-            FileName: fileName,
-            FullPath: $"Data/{fileName}",
-            RelativePath: fileName,
-            Type: DistributionFileType.Spid,
-            Lines: [],
-            OutfitDistributionCount: 0));
+            fileName,
+            $"Data/{fileName}",
+            fileName,
+            DistributionFileType.Spid,
+            [],
+            0));
 
     private static DistributionFileViewModel CreateSkyPatcherFileViewModel(string fileName) =>
         new(new DistributionFile(
-            FileName: fileName,
-            FullPath: $"Data/{fileName}",
-            RelativePath: fileName,
-            Type: DistributionFileType.SkyPatcher,
-            Lines: [],
-            OutfitDistributionCount: 0));
+            fileName,
+            $"Data/{fileName}",
+            fileName,
+            DistributionFileType.SkyPatcher,
+            [],
+            0));
 
     #endregion
 }

@@ -16,15 +16,25 @@ namespace Boutique.ViewModels;
 
 public partial class DistributionOutfitsTabViewModel : ReactiveObject
 {
-    private readonly NpcScanningService _npcScanningService;
-    private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
     private readonly ArmorPreviewService _armorPreviewService;
-    private readonly MutagenService _mutagenService;
     private readonly GameDataCacheService _cache;
-    private readonly SettingsViewModel _settings;
     private readonly ILogger _logger;
+    private readonly MutagenService _mutagenService;
 
-    private IObservable<bool> _notLoading;
+    private readonly IObservable<bool> _notLoading;
+    private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
+    private readonly NpcScanningService _npcScanningService;
+    private readonly SettingsViewModel _settings;
+
+    [Reactive] private bool _hideVanillaOutfits;
+
+    [Reactive] private bool _isLoading;
+
+    private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
+
+    [Reactive] private string _outfitSearchText = string.Empty;
+
+    [Reactive] private string _statusMessage = string.Empty;
 
     public DistributionOutfitsTabViewModel(
         NpcScanningService npcScanningService,
@@ -58,13 +68,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             .Subscribe(async _ => await UpdateSelectedOutfitNpcAssignmentsAsync());
     }
 
-    [Reactive]
-    private bool _isLoading;
-
-    [Reactive]
-    private string _statusMessage = string.Empty;
-
-    public ObservableCollection<OutfitRecordViewModel> Outfits { get; private set; } = [];
+    public ObservableCollection<OutfitRecordViewModel> Outfits { get; } = [];
 
     public OutfitRecordViewModel? SelectedOutfit
     {
@@ -81,31 +85,23 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
     }
 
-    [Reactive]
-    private string _outfitSearchText = string.Empty;
+    public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; } = [];
 
-    [Reactive]
-    private bool _hideVanillaOutfits;
-
-    public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; private set; } = [];
-
-    public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; private set; } = [];
+    public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; } = [];
 
     public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
-    /// <summary>
-    /// Event raised when an outfit is copied to create a distribution entry.
-    /// </summary>
-    public event EventHandler<CopiedOutfit>? OutfitCopied;
-
     public bool IsInitialized => _mutagenService.IsInitialized;
 
-    private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
-
     /// <summary>
-    /// Gets distribution files from the cache for NPC outfit resolution.
+    ///     Gets distribution files from the cache for NPC outfit resolution.
     /// </summary>
     private IReadOnlyList<DistributionFileViewModel> DistributionFiles => _cache.AllDistributionFiles;
+
+    /// <summary>
+    ///     Event raised when an outfit is copied to create a distribution entry.
+    /// </summary>
+    public event EventHandler<CopiedOutfit>? OutfitCopied;
 
     [ReactiveCommand(CanExecute = nameof(_notLoading))]
     public async Task LoadOutfitsAsync()
@@ -181,10 +177,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             UpdateFilteredOutfits();
 
             // Update NPC counts for each outfit (after both outfits and assignments are loaded)
-            if (_npcAssignments != null)
-            {
-                UpdateOutfitNpcCounts();
-            }
+            if (_npcAssignments != null) UpdateOutfitNpcCounts();
 
             StatusMessage = $"Loaded {outfits.Count} outfits from load order.";
             _logger.Information("Loaded {Count} outfits from load order.", outfits.Count);
@@ -231,19 +224,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
 
             var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false);
             var collection = new ArmorPreviewSceneCollection(
-                count: 1,
-                initialIndex: 0,
-                metadata: new[] { metadata },
-                sceneBuilder: async (_, gender) =>
+                1,
+                0,
+                new[] { metadata },
+                async (_, gender) =>
                 {
                     var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
-                    return scene with
-                    {
-                        OutfitLabel = label,
-                        SourceFile = outfit.FormKey.ModKey.FileName.String
-                    };
+                    return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
                 },
-                initialGender: GenderedModelVariant.Female);
+                GenderedModelVariant.Female);
 
             await ShowPreview.Handle(collection);
             StatusMessage = $"Preview ready for {label}.";
@@ -264,7 +253,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             return;
         }
 
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        if (!_mutagenService.IsInitialized ||
+            _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
         {
             StatusMessage = "Initialize Skyrim data path before previewing outfits.";
             return;
@@ -301,20 +291,21 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
                 clickedDistribution.FileName,
                 clickedDistribution.IsWinner);
             var collection = new ArmorPreviewSceneCollection(
-                count: 1,
-                initialIndex: 0,
-                metadata: new[] { metadata },
-                sceneBuilder: async (_, gender) =>
+                1,
+                0,
+                new[] { metadata },
+                async (_, gender) =>
                 {
                     var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
                     return scene with
                     {
-                        OutfitLabel = clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
+                        OutfitLabel =
+                        clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
                         SourceFile = clickedDistribution.FileName,
                         IsWinner = clickedDistribution.IsWinner
                     };
                 },
-                initialGender: initialGender);
+                initialGender);
 
             await ShowPreview.Handle(collection);
             StatusMessage = $"Preview ready for {label}.";
@@ -327,10 +318,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     }
 
     [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private Task CopyOutfit(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, isOverride: false);
+    private Task CopyOutfit(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, false);
 
     [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private Task CopyOutfitAsOverride(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, isOverride: true);
+    private Task CopyOutfitAsOverride(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, true);
 
     private Task CopyOutfitInternal(OutfitRecordViewModel outfitVm, bool isOverride)
     {
@@ -363,21 +354,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
 
         // Filter out outfits where all NPCs have it as their default (no distribution changed anything)
-        if (HideVanillaOutfits)
-        {
-            filtered = filtered.Where(o => !IsVanillaDistribution(o.FormKey));
-        }
+        if (HideVanillaOutfits) filtered = filtered.Where(o => !IsVanillaDistribution(o.FormKey));
 
         FilteredOutfits.Clear();
-        foreach (var outfit in filtered)
-        {
-            FilteredOutfits.Add(outfit);
-        }
+        foreach (var outfit in filtered) FilteredOutfits.Add(outfit);
     }
 
     /// <summary>
-    /// Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
-    /// An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
+    ///     Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
+    ///     An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
     /// </summary>
     private bool IsVanillaDistribution(FormKey outfitFormKey)
     {
@@ -411,10 +396,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     {
         SelectedOutfitNpcAssignments.Clear();
 
-        if (SelectedOutfit == null || _npcAssignments == null)
-        {
-            return;
-        }
+        if (SelectedOutfit == null || _npcAssignments == null) return;
 
         var outfitFormKey = SelectedOutfit.FormKey;
         var selectedOutfitRef = SelectedOutfit;
@@ -433,10 +415,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         if (SelectedOutfit != selectedOutfitRef)
             return;
 
-        foreach (var vm in matchingAssignments)
-        {
-            SelectedOutfitNpcAssignments.Add(vm);
-        }
+        foreach (var vm in matchingAssignments) SelectedOutfitNpcAssignments.Add(vm);
 
         _logger.Debug(
             "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}",
@@ -447,10 +426,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
     {
         if (_npcAssignments == null)
         {
-            foreach (var outfit in Outfits)
-            {
-                outfit.NpcCount = 0;
-            }
+            foreach (var outfit in Outfits) outfit.NpcCount = 0;
 
             return;
         }
@@ -475,17 +451,14 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         foreach (var outfit in Outfits)
         {
             if (outfitNpcSets.TryGetValue(outfit.FormKey, out var npcSet))
-            {
                 outfit.NpcCount = npcSet.Count;
-            }
             else
-            {
                 outfit.NpcCount = 0;
-            }
         }
     }
 
-    private static GenderedModelVariant GetNpcGender(FormKey npcFormKey, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private static GenderedModelVariant GetNpcGender(FormKey npcFormKey,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
         {

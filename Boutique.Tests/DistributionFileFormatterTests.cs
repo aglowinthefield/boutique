@@ -1,17 +1,41 @@
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
-using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Skyrim;
 using Xunit;
 
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for DistributionFileFormatter to ensure consistent file output.
+///     Tests for DistributionFileFormatter to ensure consistent file output.
 /// </summary>
 public class DistributionFileFormatterTests
 {
+    #region SPID Line Format Structure Tests
+
+    [Fact]
+    public void FormatSpidLine_ThrowsIfNoOutfit()
+    {
+        var entry = new DistributionEntry();
+        var vm = new DistributionEntryViewModel(entry);
+
+        Assert.Throws<ArgumentException>(() => DistributionFileFormatter.FormatSpidLine(vm));
+    }
+
+    #endregion
+
+    #region SkyPatcher Line Format Structure Tests
+
+    [Fact]
+    public void FormatSkyPatcherLine_ThrowsIfNoOutfit()
+    {
+        var entry = new DistributionEntry();
+        var vm = new DistributionEntryViewModel(entry);
+
+        Assert.Throws<ArgumentException>(() => DistributionFileFormatter.FormatSkyPatcherLine(vm));
+    }
+
+    #endregion
+
     #region FormatTraitFilters Tests
 
     [Fact]
@@ -87,12 +111,7 @@ public class DistributionFileFormatterTests
     [Fact]
     public void FormatTraitFilters_MultipleTraits_JoinsWithSlash()
     {
-        var traits = new SpidTraitFilters
-        {
-            IsFemale = true,
-            IsUnique = false,
-            IsChild = false
-        };
+        var traits = new SpidTraitFilters { IsFemale = true, IsUnique = false, IsChild = false };
 
         var result = DistributionFileFormatter.FormatTraitFilters(traits);
 
@@ -189,32 +208,6 @@ public class DistributionFileFormatterTests
         // Should only contain header, no outfit lines
         var lines = result.Split(Environment.NewLine).Where(l => l.StartsWith("Outfit")).ToList();
         Assert.Empty(lines);
-    }
-
-    #endregion
-
-    #region SPID Line Format Structure Tests
-
-    [Fact]
-    public void FormatSpidLine_ThrowsIfNoOutfit()
-    {
-        var entry = new DistributionEntry();
-        var vm = new DistributionEntryViewModel(entry);
-
-        Assert.Throws<ArgumentException>(() => DistributionFileFormatter.FormatSpidLine(vm));
-    }
-
-    #endregion
-
-    #region SkyPatcher Line Format Structure Tests
-
-    [Fact]
-    public void FormatSkyPatcherLine_ThrowsIfNoOutfit()
-    {
-        var entry = new DistributionEntry();
-        var vm = new DistributionEntryViewModel(entry);
-
-        Assert.Throws<ArgumentException>(() => DistributionFileFormatter.FormatSkyPatcherLine(vm));
     }
 
     #endregion

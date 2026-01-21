@@ -45,7 +45,8 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
             if (outfitIndex >= 0 && outfitIndex < parts.Length - 1)
                 return string.Join("/", parts.Skip(outfitIndex + 1));
 
-            var skypatcherIndex = Array.FindIndex(parts, p => p.Equals("SkyPatcher", StringComparison.OrdinalIgnoreCase));
+            var skypatcherIndex =
+                Array.FindIndex(parts, p => p.Equals("SkyPatcher", StringComparison.OrdinalIgnoreCase));
             if (skypatcherIndex >= 0 && skypatcherIndex < parts.Length - 1)
                 return string.Join("/", parts.Skip(skypatcherIndex + 1));
         }

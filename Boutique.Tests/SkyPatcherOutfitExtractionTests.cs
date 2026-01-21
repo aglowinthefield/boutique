@@ -4,10 +4,25 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for SkyPatcher outfit extraction from distribution lines.
+///     Tests for SkyPatcher outfit extraction from distribution lines.
 /// </summary>
 public class SkyPatcherOutfitExtractionTests
 {
+    #region ExtractSkyPatcherOutfitKeys - Tilde format support
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_TildeFormat_ExtractsAndNormalizes()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=0x800~MyMod.esp");
+
+        Assert.Single(result);
+        // The normalization should produce ModKey|FormID format
+        Assert.Contains("MyMod.esp|0x800", result);
+    }
+
+    #endregion
+
     #region ExtractSkyPatcherOutfitKeys - filterByOutfits format
 
     [Fact]
@@ -67,21 +82,6 @@ public class SkyPatcherOutfitExtractionTests
 
     #endregion
 
-    #region ExtractSkyPatcherOutfitKeys - Tilde format support
-
-    [Fact]
-    public void ExtractSkyPatcherOutfitKeys_TildeFormat_ExtractsAndNormalizes()
-    {
-        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "outfitDefault=0x800~MyMod.esp");
-
-        Assert.Single(result);
-        // The normalization should produce ModKey|FormID format
-        Assert.Contains("MyMod.esp|0x800", result);
-    }
-
-    #endregion
-
     #region Edge cases
 
     [Fact]
@@ -114,4 +114,3 @@ public class SkyPatcherOutfitExtractionTests
 
     #endregion
 }
-

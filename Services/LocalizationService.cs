@@ -13,8 +13,8 @@ public record LanguageOption(string Code, string DisplayName)
 
 public class LocalizationService
 {
-    private readonly ILogger _logger;
     private readonly GuiSettingsService _guiSettings;
+    private readonly ILogger _logger;
 
     public LocalizationService(ILogger logger, GuiSettingsService guiSettings)
     {
@@ -24,15 +24,15 @@ public class LocalizationService
 
     public ObservableCollection<LanguageOption> AvailableLanguages { get; } =
     [
-        new LanguageOption("en", "English"),
-        new LanguageOption("de", "Deutsch"),
-        new LanguageOption("fr", "Français"),
-        new LanguageOption("es", "Español"),
-        new LanguageOption("pt-BR", "Português (Brasil)"),
-        new LanguageOption("ru", "Русский"),
-        new LanguageOption("zh-Hans", "简体中文"),
-        new LanguageOption("ja", "日本語"),
-        new LanguageOption("ko", "한국어")
+        new("en", "English"),
+        new("de", "Deutsch"),
+        new("fr", "Français"),
+        new("es", "Español"),
+        new("pt-BR", "Português (Brasil)"),
+        new("ru", "Русский"),
+        new("zh-Hans", "简体中文"),
+        new("ja", "日本語"),
+        new("ko", "한국어")
     ];
 
     public string CurrentLanguageCode
@@ -64,9 +64,7 @@ public class LocalizationService
 
         var savedLanguage = _guiSettings.Language;
         if (!string.IsNullOrEmpty(savedLanguage))
-        {
-            SetLanguage(savedLanguage, save: false);
-        }
+            SetLanguage(savedLanguage, false);
         else
         {
             var systemCulture = CultureInfo.CurrentUICulture;
@@ -75,13 +73,9 @@ public class LocalizationService
                 l.Code.Equals(systemCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase));
 
             if (matchingLanguage != null)
-            {
-                SetLanguage(matchingLanguage.Code, save: false);
-            }
+                SetLanguage(matchingLanguage.Code, false);
             else
-            {
-                SetLanguage("en", save: false);
-            }
+                SetLanguage("en", false);
         }
 
         _logger.Information("Localization initialized with language: {Language}", CurrentLanguageCode);
@@ -95,10 +89,7 @@ public class LocalizationService
             LocalizeDictionary.Instance.Culture = culture;
             _logger.Information("Language changed to: {Language}", languageCode);
 
-            if (save)
-            {
-                _guiSettings.Language = languageCode;
-            }
+            if (save) _guiSettings.Language = languageCode;
         }
         catch (CultureNotFoundException ex)
         {

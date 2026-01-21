@@ -86,9 +86,7 @@ public class DistributionDiscoveryService(ILogger logger)
                 _logger.Debug("Found {Count} SkyPatcher distribution files", skyPatcherFileCount);
             }
             else
-            {
                 _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
-            }
         }
         catch (OperationCanceledException)
         {
@@ -127,9 +125,7 @@ public class DistributionDiscoveryService(ILogger logger)
                 parsedCount++;
             }
             else
-            {
                 skippedCount++;
-            }
         }
     }
 
@@ -174,13 +170,9 @@ public class DistributionDiscoveryService(ILogger logger)
                 string? value = null;
 
                 if (string.IsNullOrEmpty(trimmed))
-                {
                     kind = DistributionLineKind.Blank;
-                }
                 else if (trimmed.StartsWith(';') || trimmed.StartsWith('#'))
-                {
                     kind = DistributionLineKind.Comment;
-                }
                 else if (trimmed.StartsWith('[') && trimmed.EndsWith(']') && trimmed.Length > 2)
                 {
                     kind = DistributionLineKind.Section;
@@ -197,9 +189,7 @@ public class DistributionDiscoveryService(ILogger logger)
                         value = trimmed[(equalsIndex + 1)..].Trim();
                     }
                     else
-                    {
                         kind = DistributionLineKind.Other;
-                    }
                 }
 
                 var isOutfitDistribution = IsOutfitDistributionLine(type, kind, trimmed);
@@ -376,9 +366,7 @@ public class DistributionDiscoveryService(ILogger logger)
                         return cleaned[..(pipeIndex + 1 + secondPipe)];
                 }
                 else
-                {
                     return cleaned;
-                }
             }
 
             return firstPart;

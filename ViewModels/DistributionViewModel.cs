@@ -19,9 +19,14 @@ public enum DistributionTab
 
 public partial class DistributionViewModel : ReactiveObject
 {
-    private readonly ILogger _logger;
-    private readonly SettingsViewModel _settings;
     private readonly GameDataCacheService _cache;
+    private readonly ILogger _logger;
+
+    [Reactive] private bool _isLoading;
+
+    [Reactive] private int _selectedTabIndex;
+
+    [Reactive] private string _statusMessage = "Ready";
 
     public DistributionViewModel(
         DistributionFileWriterService fileWriterService,
@@ -34,7 +39,7 @@ public partial class DistributionViewModel : ReactiveObject
         GuiSettingsService guiSettings,
         ILogger logger)
     {
-        _settings = settings;
+        Settings = settings;
         _cache = gameDataCache;
         _logger = logger.ForContext<DistributionViewModel>();
 
@@ -221,17 +226,17 @@ public partial class DistributionViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(SelectedOutfitNpcAssignments));
 
         this.WhenAnyValue(
-            vm => vm.EditTab.IsLoading,
-            vm => vm.NpcsTab.IsLoading,
-            vm => vm.OutfitsTab.IsLoading,
-            (edit, npcs, outfits) => edit || npcs || outfits)
+                vm => vm.EditTab.IsLoading,
+                vm => vm.NpcsTab.IsLoading,
+                vm => vm.OutfitsTab.IsLoading,
+                (edit, npcs, outfits) => edit || npcs || outfits)
             .Subscribe(loading => IsLoading = loading);
 
         this.WhenAnyValue(
-            vm => vm.EditTab.StatusMessage,
-            vm => vm.NpcsTab.StatusMessage,
-            vm => vm.OutfitsTab.StatusMessage,
-            (edit, npcs, outfits) => GetFirstNonEmptyStatus(edit, npcs, outfits))
+                vm => vm.EditTab.StatusMessage,
+                vm => vm.NpcsTab.StatusMessage,
+                vm => vm.OutfitsTab.StatusMessage,
+                (edit, npcs, outfits) => GetFirstNonEmptyStatus(edit, npcs, outfits))
             .Subscribe(msg => StatusMessage = msg);
 
         this.WhenAnyValue(vm => vm.SelectedTabIndex)
@@ -246,10 +251,7 @@ public partial class DistributionViewModel : ReactiveObject
                         if (EditTab.SelectedDistributionFile == null)
                         {
                             var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-                            if (newFileItem != null)
-                            {
-                                EditTab.SelectedDistributionFile = newFileItem;
-                            }
+                            if (newFileItem != null) EditTab.SelectedDistributionFile = newFileItem;
                         }
 
                         break;
@@ -271,30 +273,22 @@ public partial class DistributionViewModel : ReactiveObject
             });
     }
 
-    public SettingsViewModel Settings => _settings;
+    public SettingsViewModel Settings { get; }
 
-    private static string GetFirstNonEmptyStatus(params string[] statuses) =>
-        statuses.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ?? "Ready";
-
-    [Reactive]
-    private int _selectedTabIndex;
     public bool IsEditMode => SelectedTabIndex == (int)DistributionTab.Create;
-
-    [Reactive]
-    private bool _isLoading;
-
-    [Reactive]
-    private string _statusMessage = "Ready";
 
     public DistributionEditTabViewModel EditTab { get; }
     public DistributionNpcsTabViewModel NpcsTab { get; }
     public DistributionOutfitsTabViewModel OutfitsTab { get; }
+    public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
+
+    private static string GetFirstNonEmptyStatus(params string[] statuses) =>
+        statuses.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ?? "Ready";
 
     /// <summary>
-    /// Event raised when an outfit should be copied to the Outfit Creator tab.
+    ///     Event raised when an outfit should be copied to the Outfit Creator tab.
     /// </summary>
     public event EventHandler<CopiedOutfit>? OutfitCopiedToCreator;
-    public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
     #region Distribution Files
 
@@ -315,7 +309,9 @@ public partial class DistributionViewModel : ReactiveObject
     }
 
     public ObservableCollection<IOutfitGetter> AvailableOutfits => EditTab.AvailableOutfits;
-    public ObservableCollection<DistributionFileSelectionItem> AvailableDistributionFiles => EditTab.AvailableDistributionFiles;
+
+    public ObservableCollection<DistributionFileSelectionItem> AvailableDistributionFiles =>
+        EditTab.AvailableDistributionFiles;
 
     public DistributionFileSelectionItem? SelectedDistributionFile
     {
@@ -380,7 +376,10 @@ public partial class DistributionViewModel : ReactiveObject
     }
 
     public ReactiveCommand<Unit, Unit> AddDistributionEntryCommand => EditTab.AddDistributionEntryCommand;
-    public ReactiveCommand<DistributionEntryViewModel, Unit> RemoveDistributionEntryCommand => EditTab.RemoveDistributionEntryCommand;
+
+    public ReactiveCommand<DistributionEntryViewModel, Unit> RemoveDistributionEntryCommand =>
+        EditTab.RemoveDistributionEntryCommand;
+
     public ReactiveCommand<DistributionEntryViewModel, Unit> SelectEntryCommand => EditTab.SelectEntryCommand;
     public ReactiveCommand<Unit, Unit> AddSelectedNpcsToEntryCommand => EditTab.AddSelectedNpcsToEntryCommand;
     public ReactiveCommand<Unit, Unit> AddSelectedFactionsToEntryCommand => EditTab.AddSelectedFactionsToEntryCommand;
@@ -408,7 +407,8 @@ public partial class DistributionViewModel : ReactiveObject
         set => NpcsTab.SelectedNpcAssignment = value;
     }
 
-    public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments => NpcsTab.FilteredNpcOutfitAssignments;
+    public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments =>
+        NpcsTab.FilteredNpcOutfitAssignments;
 
     public string NpcOutfitSearchText
     {
@@ -419,8 +419,13 @@ public partial class DistributionViewModel : ReactiveObject
     public string SelectedNpcOutfitContents => NpcsTab.SelectedNpcOutfitContents;
     public NpcFilterData? SelectedNpcFilterData => NpcsTab.SelectedNpcFilterData;
     public ReactiveCommand<Unit, Unit> ScanNpcOutfitsCommand => NpcsTab.ScanNpcOutfitsCommand;
-    public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand => NpcsTab.PreviewNpcOutfitCommand;
-    public ReactiveCommand<OutfitDistribution, Unit> PreviewDistributionOutfitCommand => NpcsTab.PreviewDistributionOutfitCommand;
+
+    public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand =>
+        NpcsTab.PreviewNpcOutfitCommand;
+
+    public ReactiveCommand<OutfitDistribution, Unit> PreviewDistributionOutfitCommand =>
+        NpcsTab.PreviewDistributionOutfitCommand;
+
     public IReadOnlyList<string> GenderFilterOptions => NpcsTab.GenderFilterOptions;
 
     public string SelectedGenderFilter
@@ -512,7 +517,9 @@ public partial class DistributionViewModel : ReactiveObject
         set => OutfitsTab.HideVanillaOutfits = value;
     }
 
-    public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments => OutfitsTab.SelectedOutfitNpcAssignments;
+    public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments =>
+        OutfitsTab.SelectedOutfitNpcAssignments;
+
     public ReactiveCommand<Unit, Unit> LoadOutfitsCommand => OutfitsTab.LoadOutfitsCommand;
     public ReactiveCommand<OutfitRecordViewModel, Unit> PreviewOutfitCommand => OutfitsTab.PreviewOutfitCommand;
 
@@ -521,7 +528,7 @@ public partial class DistributionViewModel : ReactiveObject
     #region Shared Properties
 
     public bool IsInitialized => EditTab.IsInitialized || NpcsTab.IsInitialized || OutfitsTab.IsInitialized;
-    public string DataPath => _settings.SkyrimDataPath;
+    public string DataPath => Settings.SkyrimDataPath;
 
     #endregion
 }

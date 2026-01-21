@@ -1,4 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
@@ -11,13 +14,11 @@ namespace Boutique.Services;
 
 public class GameDataCacheService
 {
-    private readonly MutagenService _mutagenService;
     private readonly DistributionDiscoveryService _discoveryService;
+    private readonly ILogger _logger;
+    private readonly MutagenService _mutagenService;
     private readonly NpcOutfitResolutionService _outfitResolutionService;
     private readonly SettingsViewModel _settings;
-    private readonly ILogger _logger;
-    private bool _isLoaded;
-    private bool _isLoading;
 
     public GameDataCacheService(
         MutagenService mutagenService,
@@ -34,9 +35,9 @@ public class GameDataCacheService
         _mutagenService.Initialized += OnMutagenInitialized;
     }
 
-    public bool IsLoaded => _isLoaded;
-    public bool IsLoading => _isLoading;
-    public event EventHandler? CacheLoaded;
+    public bool IsLoaded { get; private set; }
+
+    public bool IsLoading { get; private set; }
 
     public ObservableCollection<NpcFilterData> AllNpcs { get; } = [];
     public ObservableCollection<FactionRecordViewModel> AllFactions { get; } = [];
@@ -53,6 +54,7 @@ public class GameDataCacheService
     public Dictionary<FormKey, RaceRecordViewModel> RacesByFormKey { get; } = [];
     public Dictionary<FormKey, KeywordRecordViewModel> KeywordsByFormKey { get; } = [];
     public Dictionary<FormKey, ClassRecordViewModel> ClassesByFormKey { get; } = [];
+    public event EventHandler? CacheLoaded;
 
     private async void OnMutagenInitialized(object? sender, EventArgs e)
     {
@@ -62,7 +64,7 @@ public class GameDataCacheService
 
     public async Task LoadAsync()
     {
-        if (_isLoading)
+        if (IsLoading)
         {
             _logger.Debug("Cache is already loading, skipping duplicate request.");
             return;
@@ -82,7 +84,7 @@ public class GameDataCacheService
 
         try
         {
-            _isLoading = true;
+            IsLoading = true;
             _logger.Information("Loading game data cache...");
 
             var npcsResult = await Task.Run(() => LoadNpcs(linkCache));
@@ -102,7 +104,7 @@ public class GameDataCacheService
             var classesList = await classesTask;
             var outfitsList = await outfitsTask;
 
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 AllNpcs.Clear();
                 NpcsByFormKey.Clear();
@@ -113,10 +115,7 @@ public class GameDataCacheService
                     NpcsByFormKey[npc.FormKey] = npc;
                 }
 
-                foreach (var npc in npcRecordsList)
-                {
-                    AllNpcRecords.Add(npc);
-                }
+                foreach (var npc in npcRecordsList) AllNpcRecords.Add(npc);
 
                 AllFactions.Clear();
                 FactionsByFormKey.Clear();
@@ -151,15 +150,12 @@ public class GameDataCacheService
                 }
 
                 AllOutfits.Clear();
-                foreach (var outfit in outfitsList)
-                {
-                    AllOutfits.Add(outfit);
-                }
+                foreach (var outfit in outfitsList) AllOutfits.Add(outfit);
             });
 
             await LoadDistributionDataAsync(npcFilterDataList);
 
-            _isLoaded = true;
+            IsLoaded = true;
             _logger.Information(
                 "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
                 npcFilterDataList.Count,
@@ -179,20 +175,20 @@ public class GameDataCacheService
         }
         finally
         {
-            _isLoading = false;
+            IsLoading = false;
         }
     }
 
     public async Task ReloadAsync()
     {
-        _isLoaded = false;
+        IsLoaded = false;
         await _mutagenService.RefreshLinkCacheAsync(_settings.PatchFileName);
         await LoadAsync();
     }
 
     /// <summary>
-    /// Refreshes only the outfits from the output patch file without reloading the entire LinkCache.
-    /// Much faster than a full ReloadAsync when only outfit changes need to be reflected.
+    ///     Refreshes only the outfits from the output patch file without reloading the entire LinkCache.
+    ///     Much faster than a full ReloadAsync when only outfit changes need to be reflected.
     /// </summary>
     public async Task RefreshOutfitsFromPatchAsync()
     {
@@ -204,19 +200,13 @@ public class GameDataCacheService
         if (patchOutfits.Count == 0)
             return;
 
-        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var patchModKey = Mutagen.Bethesda.Plugins.ModKey.FromFileName(patchFileName);
+            var patchModKey = ModKey.FromFileName(patchFileName);
             var existingPatchOutfits = AllOutfits.Where(o => o.FormKey.ModKey == patchModKey).ToList();
-            foreach (var outfit in existingPatchOutfits)
-            {
-                AllOutfits.Remove(outfit);
-            }
+            foreach (var outfit in existingPatchOutfits) AllOutfits.Remove(outfit);
 
-            foreach (var outfit in patchOutfits)
-            {
-                AllOutfits.Add(outfit);
-            }
+            foreach (var outfit in patchOutfits) AllOutfits.Add(outfit);
         });
 
         _logger.Information("Refreshed {Count} outfit(s) from patch file {Patch}.", patchOutfits.Count, patchFileName);
@@ -224,12 +214,12 @@ public class GameDataCacheService
 
     public async Task EnsureLoadedAsync()
     {
-        if (_isLoaded)
+        if (IsLoaded)
             return;
 
-        if (_isLoading)
+        if (IsLoading)
         {
-            while (_isLoading)
+            while (IsLoading)
                 await Task.Delay(50);
             return;
         }
@@ -237,9 +227,10 @@ public class GameDataCacheService
         if (!_mutagenService.IsInitialized)
         {
             var dataPath = _settings.SkyrimDataPath;
-            if (string.IsNullOrWhiteSpace(dataPath) || !System.IO.Directory.Exists(dataPath))
+            if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
             {
-                _logger.Warning("Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}", dataPath);
+                _logger.Warning("Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}",
+                    dataPath);
                 return;
             }
 
@@ -253,7 +244,7 @@ public class GameDataCacheService
     private async Task LoadDistributionDataAsync(List<NpcFilterData> npcFilterDataList)
     {
         var dataPath = _settings.SkyrimDataPath;
-        if (string.IsNullOrWhiteSpace(dataPath) || !System.IO.Directory.Exists(dataPath))
+        if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
         {
             _logger.Warning("Cannot load distribution data - Skyrim data path not set or doesn't exist.");
             return;
@@ -265,7 +256,8 @@ public class GameDataCacheService
             var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
 
             var virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
-            _logger.Information("Extracted {Count} virtual keywords from SPID distribution files.", virtualKeywords.Count);
+            _logger.Information("Extracted {Count} virtual keywords from SPID distribution files.",
+                virtualKeywords.Count);
 
             var outfitFiles = discoveredFiles
                 .Where(f => f.OutfitDistributionCount > 0)
@@ -284,27 +276,19 @@ public class GameDataCacheService
 
             _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
 
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 AllDistributionFiles.Clear();
-                foreach (var file in fileViewModels)
-                {
-                    AllDistributionFiles.Add(file);
-                }
+                foreach (var file in fileViewModels) AllDistributionFiles.Add(file);
 
                 AllNpcOutfitAssignments.Clear();
                 foreach (var assignment in assignments)
-                {
                     AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
-                }
 
                 foreach (var keyword in virtualKeywords)
-                {
-                    if (!AllKeywords.Any(k => string.Equals(k.EditorID, keyword.EditorID, StringComparison.OrdinalIgnoreCase)))
-                    {
+                    if (!AllKeywords.Any(k =>
+                            string.Equals(k.EditorID, keyword.EditorID, StringComparison.OrdinalIgnoreCase)))
                         AllKeywords.Add(keyword);
-                    }
-                }
             });
         }
         catch (Exception ex)
@@ -328,18 +312,12 @@ public class GameDataCacheService
             foreach (var line in file.Lines)
             {
                 if (line.IsKeywordDistribution && !string.IsNullOrWhiteSpace(line.KeywordIdentifier))
-                {
                     AddKeywordIfNew(line.KeywordIdentifier, sourceName);
-                }
 
                 if ((line.IsKeywordDistribution || line.IsOutfitDistribution) &&
                     SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
-                {
                     foreach (var keyword in GetAllKeywordIdentifiers(filter))
-                    {
                         AddKeywordIfNew(keyword, sourceName);
-                    }
-                }
             }
         }
 
@@ -357,7 +335,7 @@ public class GameDataCacheService
 
     private static string? ExtractModFolderName(string fullPath)
     {
-        var fileName = System.IO.Path.GetFileNameWithoutExtension(fullPath);
+        var fileName = Path.GetFileNameWithoutExtension(fullPath);
         if (!string.IsNullOrEmpty(fileName))
         {
             var distrSuffix = "_DISTR";
@@ -365,11 +343,11 @@ public class GameDataCacheService
                 return fileName[..^distrSuffix.Length];
         }
 
-        var directory = System.IO.Path.GetDirectoryName(fullPath);
+        var directory = Path.GetDirectoryName(fullPath);
         if (string.IsNullOrEmpty(directory))
             return fileName;
 
-        return new System.IO.DirectoryInfo(directory).Name;
+        return new DirectoryInfo(directory).Name;
     }
 
     private static IEnumerable<string> GetAllKeywordIdentifiers(SpidDistributionFilter filter)
@@ -377,12 +355,8 @@ public class GameDataCacheService
         foreach (var expr in filter.StringFilters.Expressions)
         {
             foreach (var part in expr.Parts)
-            {
                 if (part.LooksLikeKeyword)
-                {
                     yield return part.Value;
-                }
-            }
         }
     }
 
@@ -394,10 +368,10 @@ public class GameDataCacheService
             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
             .ToList();
 
-        var filterDataBag = new System.Collections.Concurrent.ConcurrentBag<NpcFilterData>();
-        var recordsBag = new System.Collections.Concurrent.ConcurrentBag<NpcRecordViewModel>();
+        var filterDataBag = new ConcurrentBag<NpcFilterData>();
+        var recordsBag = new ConcurrentBag<NpcRecordViewModel>();
 
-        System.Threading.Tasks.Parallel.ForEach(validNpcs, npc =>
+        Parallel.ForEach(validNpcs, npc =>
         {
             try
             {
@@ -409,7 +383,7 @@ public class GameDataCacheService
                 var record = new NpcRecord(
                     npc.FormKey,
                     npc.EditorID,
-                    Utilities.NpcDataExtractor.GetName(npc),
+                    NpcDataExtractor.GetName(npc),
                     originalModKey);
                 recordsBag.Add(new NpcRecordViewModel(record));
             }
@@ -419,28 +393,29 @@ public class GameDataCacheService
         return ([.. filterDataBag], [.. recordsBag]);
     }
 
-    private static NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache, ModKey originalModKey)
+    private static NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        ModKey originalModKey)
     {
         try
         {
-            var keywords = Utilities.NpcDataExtractor.ExtractKeywords(npc, linkCache);
-            var factions = Utilities.NpcDataExtractor.ExtractFactions(npc, linkCache);
-            var (raceFormKey, raceEditorId) = Utilities.NpcDataExtractor.ExtractRace(npc, linkCache);
-            var (classFormKey, classEditorId) = Utilities.NpcDataExtractor.ExtractClass(npc, linkCache);
-            var (combatStyleFormKey, combatStyleEditorId) = Utilities.NpcDataExtractor.ExtractCombatStyle(npc, linkCache);
-            var (voiceTypeFormKey, voiceTypeEditorId) = Utilities.NpcDataExtractor.ExtractVoiceType(npc, linkCache);
-            var (outfitFormKey, outfitEditorId) = Utilities.NpcDataExtractor.ExtractDefaultOutfit(npc, linkCache);
-            var (templateFormKey, templateEditorId) = Utilities.NpcDataExtractor.ExtractTemplate(npc, linkCache);
-            var (isFemale, isUnique, isSummonable, isLeveled) = Utilities.NpcDataExtractor.ExtractTraits(npc);
-            var isChild = Utilities.NpcDataExtractor.IsChildRace(raceEditorId);
-            var level = Utilities.NpcDataExtractor.ExtractLevel(npc);
-            var skillValues = Utilities.NpcDataExtractor.ExtractSkillValues(npc);
+            var keywords = NpcDataExtractor.ExtractKeywords(npc, linkCache);
+            var factions = NpcDataExtractor.ExtractFactions(npc, linkCache);
+            var (raceFormKey, raceEditorId) = NpcDataExtractor.ExtractRace(npc, linkCache);
+            var (classFormKey, classEditorId) = NpcDataExtractor.ExtractClass(npc, linkCache);
+            var (combatStyleFormKey, combatStyleEditorId) = NpcDataExtractor.ExtractCombatStyle(npc, linkCache);
+            var (voiceTypeFormKey, voiceTypeEditorId) = NpcDataExtractor.ExtractVoiceType(npc, linkCache);
+            var (outfitFormKey, outfitEditorId) = NpcDataExtractor.ExtractDefaultOutfit(npc, linkCache);
+            var (templateFormKey, templateEditorId) = NpcDataExtractor.ExtractTemplate(npc, linkCache);
+            var (isFemale, isUnique, isSummonable, isLeveled) = NpcDataExtractor.ExtractTraits(npc);
+            var isChild = NpcDataExtractor.IsChildRace(raceEditorId);
+            var level = NpcDataExtractor.ExtractLevel(npc);
+            var skillValues = NpcDataExtractor.ExtractSkillValues(npc);
 
             return new NpcFilterData
             {
                 FormKey = npc.FormKey,
                 EditorId = npc.EditorID,
-                Name = Utilities.NpcDataExtractor.GetName(npc),
+                Name = NpcDataExtractor.GetName(npc),
                 SourceMod = originalModKey,
                 Keywords = keywords,
                 Factions = factions,
@@ -522,5 +497,6 @@ public class GameDataCacheService
             .ToList();
     }
 
-    private static List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) => linkCache.WinningOverrides<IOutfitGetter>().ToList();
+    private static List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        linkCache.WinningOverrides<IOutfitGetter>().ToList();
 }

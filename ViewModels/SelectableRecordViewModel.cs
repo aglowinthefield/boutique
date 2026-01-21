@@ -10,6 +10,10 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
 {
     private readonly string _searchCache;
 
+    [Reactive] private bool _isExcluded;
+
+    [Reactive] private bool _isSelected;
+
     public SelectableRecordViewModel(TRecord record)
     {
         Record = record;
@@ -23,12 +27,6 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
     public string ModDisplayName => Record.ModDisplayName;
     public string FormKeyString => Record.FormKeyString;
     public FormKey FormKey => Record.FormKey;
-
-    [Reactive]
-    private bool _isSelected;
-
-    [Reactive]
-    private bool _isExcluded;
 
     public bool MatchesSearch(string searchTerm) =>
         string.IsNullOrWhiteSpace(searchTerm) ||

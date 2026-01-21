@@ -34,13 +34,8 @@ public sealed record OutfitMetadata(
 
 public sealed class ArmorPreviewSceneCollection
 {
-    private readonly Dictionary<(int Index, GenderedModelVariant Gender), ArmorPreviewScene> _sceneCache = new();
     private readonly Func<int, GenderedModelVariant, Task<ArmorPreviewScene>> _sceneBuilder;
-
-    public int Count { get; }
-    public int InitialIndex { get; }
-    public GenderedModelVariant InitialGender { get; }
-    public IReadOnlyList<OutfitMetadata> Metadata { get; }
+    private readonly Dictionary<(int Index, GenderedModelVariant Gender), ArmorPreviewScene> _sceneCache = new();
 
     public ArmorPreviewSceneCollection(
         int count,
@@ -56,6 +51,11 @@ public sealed class ArmorPreviewSceneCollection
         _sceneBuilder = sceneBuilder;
     }
 
+    public int Count { get; }
+    public int InitialIndex { get; }
+    public GenderedModelVariant InitialGender { get; }
+    public IReadOnlyList<OutfitMetadata> Metadata { get; }
+
     public async Task<ArmorPreviewScene> GetSceneAsync(int index, GenderedModelVariant gender)
     {
         if (_sceneCache.TryGetValue((index, gender), out var cached))
@@ -66,8 +66,5 @@ public sealed class ArmorPreviewSceneCollection
         return scene;
     }
 
-    public void ClearCache()
-    {
-        _sceneCache.Clear();
-    }
+    public void ClearCache() => _sceneCache.Clear();
 }

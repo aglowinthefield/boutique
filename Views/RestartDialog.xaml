@@ -11,32 +11,32 @@
         WindowStyle="ToolWindow"
         Background="{StaticResource Brush.PrimaryBackground}">
 
-    <Grid x:Name="RootGrid" Margin="20">
-        <Grid.LayoutTransform>
-            <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
-        </Grid.LayoutTransform>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+  <Grid x:Name="RootGrid" Margin="20">
+    <Grid.LayoutTransform>
+      <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
+    </Grid.LayoutTransform>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Message}}"
-                   TextWrapping="Wrap"
-                   VerticalAlignment="Center"
-                   FontSize="14"
-                   Foreground="{StaticResource Brush.TextPrimary}" />
+    <TextBlock Grid.Row="0"
+               Text="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Message}}"
+               TextWrapping="Wrap"
+               VerticalAlignment="Center"
+               FontSize="14"
+               Foreground="{StaticResource Brush.TextPrimary}" />
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Later}}"
-                    Click="LaterButton_Click"
-                    MinWidth="110"
-                    Margin="0,0,10,0"
-                    Padding="12,6" />
-            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.QuitNow}}"
-                    Click="QuitButton_Click"
-                    MinWidth="90"
-                    Padding="12,6" />
-        </StackPanel>
-    </Grid>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.Later}}"
+              Click="LaterButton_Click"
+              MinWidth="110"
+              Margin="0,0,10,0"
+              Padding="12,6" />
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Restart.QuitNow}}"
+              Click="QuitButton_Click"
+              MinWidth="90"
+              Padding="12,6" />
+    </StackPanel>
+  </Grid>
 </Window>

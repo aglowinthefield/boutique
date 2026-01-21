@@ -3,74 +3,74 @@ using Mutagen.Bethesda.Plugins;
 namespace Boutique.Models;
 
 /// <summary>
-/// Represents SPID-style filter criteria for filtering NPCs.
-/// Used to filter the NPC list and generate equivalent SPID/SkyPatcher syntax.
+///     Represents SPID-style filter criteria for filtering NPCs.
+///     Used to filter the NPC list and generate equivalent SPID/SkyPatcher syntax.
 /// </summary>
 public class NpcSpidFilter
 {
     /// <summary>
-    /// Gender filter: null = any, true = female, false = male
+    ///     Gender filter: null = any, true = female, false = male
     /// </summary>
     public bool? IsFemale { get; set; }
 
     /// <summary>
-    /// Unique NPC filter: null = any, true = unique only, false = non-unique only
+    ///     Unique NPC filter: null = any, true = unique only, false = non-unique only
     /// </summary>
     public bool? IsUnique { get; set; }
 
     /// <summary>
-    /// Templated NPC filter: null = any, true = templated only, false = non-templated only
-    /// NPCs with a TemplateFormKey are considered templated.
+    ///     Templated NPC filter: null = any, true = templated only, false = non-templated only
+    ///     NPCs with a TemplateFormKey are considered templated.
     /// </summary>
     public bool? IsTemplated { get; set; }
 
     /// <summary>
-    /// Child NPC filter: null = any, true = children only, false = adults only
+    ///     Child NPC filter: null = any, true = children only, false = adults only
     /// </summary>
     public bool? IsChild { get; set; }
 
     /// <summary>
-    /// Summonable NPC filter: null = any, true = summonable only, false = non-summonable only
+    ///     Summonable NPC filter: null = any, true = summonable only, false = non-summonable only
     /// </summary>
     public bool? IsSummonable { get; set; }
 
     /// <summary>
-    /// Leveled NPC filter: null = any, true = leveled only, false = non-leveled only
+    ///     Leveled NPC filter: null = any, true = leveled only, false = non-leveled only
     /// </summary>
     public bool? IsLeveled { get; set; }
 
     /// <summary>
-    /// Factions to filter by (AND logic - NPC must be in ALL selected factions).
+    ///     Factions to filter by (AND logic - NPC must be in ALL selected factions).
     /// </summary>
     public List<FormKey> Factions { get; set; } = [];
 
     /// <summary>
-    /// Races to filter by (OR logic - NPC must match ANY selected race).
+    ///     Races to filter by (OR logic - NPC must match ANY selected race).
     /// </summary>
     public List<FormKey> Races { get; set; } = [];
 
     /// <summary>
-    /// Keywords to filter by (AND logic - NPC must have ALL selected keywords).
+    ///     Keywords to filter by (AND logic - NPC must have ALL selected keywords).
     /// </summary>
     public List<FormKey> Keywords { get; set; } = [];
 
     /// <summary>
-    /// Classes to filter by (OR logic - NPC must match ANY selected class).
+    ///     Classes to filter by (OR logic - NPC must match ANY selected class).
     /// </summary>
     public List<FormKey> Classes { get; set; } = [];
 
     /// <summary>
-    /// Minimum level filter (inclusive). Null means no minimum.
+    ///     Minimum level filter (inclusive). Null means no minimum.
     /// </summary>
     public int? MinLevel { get; set; }
 
     /// <summary>
-    /// Maximum level filter (inclusive). Null means no maximum.
+    ///     Maximum level filter (inclusive). Null means no maximum.
     /// </summary>
     public int? MaxLevel { get; set; }
 
     /// <summary>
-    /// Returns true if no filters are active.
+    ///     Returns true if no filters are active.
     /// </summary>
     public bool IsEmpty =>
         IsFemale == null &&
@@ -87,7 +87,7 @@ public class NpcSpidFilter
         MaxLevel == null;
 
     /// <summary>
-    /// Returns true if any trait filters are active.
+    ///     Returns true if any trait filters are active.
     /// </summary>
     public bool HasTraitFilters =>
         IsFemale != null ||
@@ -98,7 +98,7 @@ public class NpcSpidFilter
         IsLeveled != null;
 
     /// <summary>
-    /// Resets all filters to their default (unfiltered) state.
+    ///     Resets all filters to their default (unfiltered) state.
     /// </summary>
     public void Clear()
     {
@@ -117,7 +117,7 @@ public class NpcSpidFilter
     }
 
     /// <summary>
-    /// Tests if the given NPC matches all active filter criteria.
+    ///     Tests if the given NPC matches all active filter criteria.
     /// </summary>
     public bool Matches(NpcFilterData npc)
     {

@@ -3,23 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Boutique.Controls;
 
 public class FilterableSelector : Control
 {
-    private TextBox? _textBox;
-    private ListBox? _listBox;
-    private ListCollectionView? _filteredView;
-    private bool _isUpdatingText;
-
-    static FilterableSelector()
-    {
-        DefaultStyleKeyProperty.OverrideMetadata(
-            typeof(FilterableSelector),
-            new FrameworkPropertyMetadata(typeof(FilterableSelector)));
-    }
-
     public static readonly DependencyProperty ItemsSourceProperty =
         DependencyProperty.Register(
             nameof(ItemsSource),
@@ -32,7 +21,8 @@ public class FilterableSelector : Control
             nameof(SelectedItem),
             typeof(object),
             typeof(FilterableSelector),
-            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedItemChanged));
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OnSelectedItemChanged));
 
     public static readonly DependencyProperty DisplayMemberPathProperty =
         DependencyProperty.Register(
@@ -62,7 +52,17 @@ public class FilterableSelector : Control
             typeof(FilterableSelector),
             new PropertyMetadata(false, OnIsDropDownOpenChanged));
 
-    public event EventHandler? DropDownOpened;
+    private ListCollectionView? _filteredView;
+    private bool _isUpdatingText;
+    private ListBox? _listBox;
+    private TextBox? _textBox;
+
+    static FilterableSelector()
+    {
+        DefaultStyleKeyProperty.OverrideMetadata(
+            typeof(FilterableSelector),
+            new FrameworkPropertyMetadata(typeof(FilterableSelector)));
+    }
 
     public IEnumerable? ItemsSource
     {
@@ -99,6 +99,8 @@ public class FilterableSelector : Control
         get => (bool)GetValue(IsDropDownOpenProperty);
         set => SetValue(IsDropDownOpenProperty, value);
     }
+
+    public event EventHandler? DropDownOpened;
 
     public override void OnApplyTemplate()
     {
@@ -167,9 +169,7 @@ public class FilterableSelector : Control
                 _textBox.Text = value ?? string.Empty;
             }
             else
-            {
                 _textBox.Text = SelectedItem?.ToString() ?? string.Empty;
-            }
         }
         finally
         {
@@ -186,9 +186,7 @@ public class FilterableSelector : Control
         var filterPath = FilterPath ?? DisplayMemberPath;
 
         if (string.IsNullOrEmpty(filterText))
-        {
             _filteredView.Filter = null;
-        }
         else
         {
             _filteredView.Filter = item =>
@@ -216,10 +214,10 @@ public class FilterableSelector : Control
         // Delay closing to allow click on listbox item
         Dispatcher.BeginInvoke(
             new Action(() =>
-        {
-            if (_listBox?.IsKeyboardFocusWithin != true)
-                IsDropDownOpen = false;
-        }), System.Windows.Threading.DispatcherPriority.Background);
+            {
+                if (_listBox?.IsKeyboardFocusWithin != true)
+                    IsDropDownOpen = false;
+            }), DispatcherPriority.Background);
     }
 
     private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
@@ -231,9 +229,7 @@ public class FilterableSelector : Control
         {
             case Key.Down:
                 if (!IsDropDownOpen)
-                {
                     IsDropDownOpen = true;
-                }
                 else if (_listBox.Items.Count > 0)
                 {
                     _listBox.SelectedIndex = Math.Min(_listBox.SelectedIndex + 1, _listBox.Items.Count - 1);
@@ -254,10 +250,7 @@ public class FilterableSelector : Control
                 break;
 
             case Key.Enter:
-                if (IsDropDownOpen && _listBox.SelectedItem != null)
-                {
-                    SelectItem(_listBox.SelectedItem);
-                }
+                if (IsDropDownOpen && _listBox.SelectedItem != null) SelectItem(_listBox.SelectedItem);
 
                 e.Handled = true;
                 break;

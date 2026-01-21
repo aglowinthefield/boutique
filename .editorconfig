@@ -43,7 +43,7 @@ dotnet_style_predefined_type_for_member_access = true:suggestion
 
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:suggestion
 
 # Expression-level preferences
 dotnet_style_object_initializer = true:suggestion
@@ -93,7 +93,7 @@ csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:warning
 
 # Code block preferences
-csharp_prefer_braces = when_multiline:suggestion
+csharp_prefer_braces = true:warning
 csharp_prefer_simple_using_statement = true:suggestion
 
 # 'using' directive placement
@@ -227,54 +227,54 @@ dotnet_naming_style.async_suffix.capitalization = pascal_case
 ###############################
 
 # IDE diagnostics (built-in)
-dotnet_diagnostic.IDE0051.severity = warning  # Private member is never used
-dotnet_diagnostic.IDE0052.severity = warning  # Private member value assigned but never read
-dotnet_diagnostic.IDE0005.severity = warning  # Remove unnecessary using
-dotnet_diagnostic.IDE0060.severity = warning  # Remove unused parameter
-dotnet_diagnostic.IDE0059.severity = warning  # Unnecessary assignment
-dotnet_diagnostic.IDE0058.severity = none     # Expression value is never used (too noisy for WPF)
+dotnet_diagnostic.IDE0051.severity = warning # Private member is never used
+dotnet_diagnostic.IDE0052.severity = warning # Private member value assigned but never read
+dotnet_diagnostic.IDE0005.severity = warning # Remove unnecessary using
+dotnet_diagnostic.IDE0060.severity = warning # Remove unused parameter
+dotnet_diagnostic.IDE0059.severity = warning # Unnecessary assignment
+dotnet_diagnostic.IDE0058.severity = none # Expression value is never used (too noisy for WPF)
 dotnet_diagnostic.IDE0290.severity = suggestion # Use primary constructor
 
 # CS diagnostics
-dotnet_diagnostic.CS0169.severity = warning   # Field is never used
-dotnet_diagnostic.CS0649.severity = warning   # Field is never assigned
-dotnet_diagnostic.CS8019.severity = warning   # Unnecessary using directive
+dotnet_diagnostic.CS0169.severity = warning # Field is never used
+dotnet_diagnostic.CS0649.severity = warning # Field is never assigned
+dotnet_diagnostic.CS8019.severity = warning # Unnecessary using directive
 
 # Roslynator diagnostics
-dotnet_diagnostic.RCS1036.severity = warning     # Remove unnecessary blank line
-dotnet_diagnostic.RCS1037.severity = warning     # Remove trailing whitespace
-dotnet_diagnostic.RCS1102.severity = suggestion  # Make method static if possible
-dotnet_diagnostic.RCS1118.severity = suggestion  # Mark local variable as const
-dotnet_diagnostic.RCS1123.severity = warning     # Add parentheses for clarity
-dotnet_diagnostic.RCS1138.severity = suggestion  # Add summary to documentation
-dotnet_diagnostic.RCS1139.severity = suggestion  # Add summary element to documentation
-dotnet_diagnostic.RCS1163.severity = warning     # Unused parameter
-dotnet_diagnostic.RCS1168.severity = suggestion  # Parameter is never used
-dotnet_diagnostic.RCS1169.severity = suggestion  # Make field readonly
-dotnet_diagnostic.RCS1170.severity = suggestion  # Use readonly auto-property
-dotnet_diagnostic.RCS1175.severity = warning     # Unused 'this' parameter
-dotnet_diagnostic.RCS1181.severity = warning     # Convert comment to documentation comment
-dotnet_diagnostic.RCS1194.severity = suggestion  # Implement exception constructors
-dotnet_diagnostic.RCS1197.severity = warning     # Optimize StringBuilder.Append/AppendLine
-dotnet_diagnostic.RCS1201.severity = suggestion  # Use method chaining
-dotnet_diagnostic.RCS1205.severity = suggestion  # Order named arguments according to parameters
-dotnet_diagnostic.RCS1211.severity = warning     # Remove unnecessary else clause
-dotnet_diagnostic.RCS1212.severity = suggestion  # Remove redundant assignment
-dotnet_diagnostic.RCS1213.severity = warning     # Remove unused member declaration
-dotnet_diagnostic.RCS1214.severity = warning     # Unnecessary interpolated string
-dotnet_diagnostic.RCS1215.severity = warning     # Expression is always true/false
-dotnet_diagnostic.RCS1228.severity = suggestion  # Unused element in documentation comment
-dotnet_diagnostic.RCS1229.severity = suggestion  # Use async/await when necessary
-dotnet_diagnostic.RCS1232.severity = warning     # Order elements in documentation comment
-dotnet_diagnostic.RCS1238.severity = warning     # Avoid nested ternary operators
-dotnet_diagnostic.RCS1239.severity = suggestion  # Use for statement instead of while
-dotnet_diagnostic.RCS1241.severity = suggestion  # Implement non-generic counterpart
-dotnet_diagnostic.RCS1246.severity = suggestion  # Use element access
+dotnet_diagnostic.RCS1036.severity = warning # Remove unnecessary blank line
+dotnet_diagnostic.RCS1037.severity = warning # Remove trailing whitespace
+dotnet_diagnostic.RCS1102.severity = suggestion # Make method static if possible
+dotnet_diagnostic.RCS1118.severity = suggestion # Mark local variable as const
+dotnet_diagnostic.RCS1123.severity = warning # Add parentheses for clarity
+dotnet_diagnostic.RCS1138.severity = suggestion # Add summary to documentation
+dotnet_diagnostic.RCS1139.severity = suggestion # Add summary element to documentation
+dotnet_diagnostic.RCS1163.severity = warning # Unused parameter
+dotnet_diagnostic.RCS1168.severity = suggestion # Parameter is never used
+dotnet_diagnostic.RCS1169.severity = suggestion # Make field readonly
+dotnet_diagnostic.RCS1170.severity = suggestion # Use readonly auto-property
+dotnet_diagnostic.RCS1175.severity = warning # Unused 'this' parameter
+dotnet_diagnostic.RCS1181.severity = warning # Convert comment to documentation comment
+dotnet_diagnostic.RCS1194.severity = suggestion # Implement exception constructors
+dotnet_diagnostic.RCS1197.severity = warning # Optimize StringBuilder.Append/AppendLine
+dotnet_diagnostic.RCS1201.severity = suggestion # Use method chaining
+dotnet_diagnostic.RCS1205.severity = suggestion # Order named arguments according to parameters
+dotnet_diagnostic.RCS1211.severity = warning # Remove unnecessary else clause
+dotnet_diagnostic.RCS1212.severity = suggestion # Remove redundant assignment
+dotnet_diagnostic.RCS1213.severity = warning # Remove unused member declaration
+dotnet_diagnostic.RCS1214.severity = warning # Unnecessary interpolated string
+dotnet_diagnostic.RCS1215.severity = warning # Expression is always true/false
+dotnet_diagnostic.RCS1228.severity = suggestion # Unused element in documentation comment
+dotnet_diagnostic.RCS1229.severity = suggestion # Use async/await when necessary
+dotnet_diagnostic.RCS1232.severity = warning # Order elements in documentation comment
+dotnet_diagnostic.RCS1238.severity = warning # Avoid nested ternary operators
+dotnet_diagnostic.RCS1239.severity = suggestion # Use for statement instead of while
+dotnet_diagnostic.RCS1241.severity = suggestion # Implement non-generic counterpart
+dotnet_diagnostic.RCS1246.severity = suggestion # Use element access
 
 # Disable overly noisy rules
-dotnet_diagnostic.RCS1090.severity = none     # Add call to ConfigureAwait (not needed in WPF)
-dotnet_diagnostic.RCS1021.severity = none     # Use expression-bodied lambda (preference)
-dotnet_diagnostic.RCS1080.severity = none     # Use 'Count/Length' property instead of 'Any' (perf micro-optimization)
+dotnet_diagnostic.RCS1090.severity = none # Add call to ConfigureAwait (not needed in WPF)
+dotnet_diagnostic.RCS1021.severity = none # Use expression-bodied lambda (preference)
+dotnet_diagnostic.RCS1080.severity = none # Use 'Count/Length' property instead of 'Any' (perf micro-optimization)
 
 ###############################
 # StyleCop Rules              #
@@ -295,8 +295,8 @@ dotnet_diagnostic.SA1309.severity = none
 # SA1413: Use trailing comma in multi-line initializers
 dotnet_diagnostic.SA1413.severity = none
 
-# SA1503: Braces should not be omitted (we prefer when_multiline)
-dotnet_diagnostic.SA1503.severity = none
+# SA1503: Braces should not be omitted
+dotnet_diagnostic.SA1503.severity = warning
 
 # SA1516: Elements should be separated by blank line
 dotnet_diagnostic.SA1516.severity = suggestion

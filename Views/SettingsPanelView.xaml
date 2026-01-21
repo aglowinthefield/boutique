@@ -10,118 +10,128 @@
              d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="400"
              d:DesignWidth="1200">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+  <Grid Margin="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="{lex:Loc Settings_Title}"
-                   Style="{DynamicResource {x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}}"
-                   FontSize="18" Margin="0,0,0,20" />
+    <TextBlock Grid.Row="0" Text="{lex:Loc Settings_Title}"
+               Style="{DynamicResource {x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}}"
+               FontSize="18" Margin="0,0,0,20" />
 
-        <!-- Settings Grid -->
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="140" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <!-- Settings Grid -->
+    <Grid Grid.Row="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="140" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
 
-            <!-- Row 0: Skyrim Release -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_SkyrimRelease}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <ComboBox Grid.Row="0" Grid.Column="1"
-                      ItemsSource="{Binding Settings.SkyrimReleaseOptions}"
-                      SelectedItem="{Binding Settings.SelectedSkyrimRelease}"
-                      Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+      <!-- Row 0: Skyrim Release -->
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_SkyrimRelease}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <ComboBox Grid.Row="0" Grid.Column="1"
+                ItemsSource="{Binding Settings.SkyrimReleaseOptions}"
+                SelectedItem="{Binding Settings.SelectedSkyrimRelease}"
+                Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 1: Skyrim Data Path -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_SkyrimDataPath}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
-                     Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
-            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
-                <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0" MinWidth="80" />
-                <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
-            </StackPanel>
+      <!-- Row 1: Skyrim Data Path -->
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_SkyrimDataPath}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
+               Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
+      <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
+        <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0"
+                MinWidth="80" />
+        <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
+      </StackPanel>
 
-            <!-- Row 2: Patch File Name -->
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,12,12"
-                     Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" VerticalAlignment="Center" Margin="0,0,0,12" />
+      <!-- Row 2: Patch File Name -->
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,12,12"
+               Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
+      <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
+                 VerticalAlignment="Center" Margin="0,0,0,12" />
 
-            <!-- Row 3: Output Path -->
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc Settings_OutputPath}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,12,12"
-                     Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"
-                     ToolTip="{lex:Loc Settings_OutputPathTooltip}" />
-            <Button Grid.Row="3" Grid.Column="2" Content="{lex:Loc Button_Browse}" Margin="0,0,0,12"
-                    Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
+      <!-- Row 3: Output Path -->
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc Settings_OutputPath}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,12,12"
+               Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"
+               ToolTip="{lex:Loc Settings_OutputPathTooltip}" />
+      <Button Grid.Row="3" Grid.Column="2" Content="{lex:Loc Button_Browse}" Margin="0,0,0,12"
+              Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
 
-            <!-- Row 4: Detection -->
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="{lex:Loc Settings_Detection}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
-                       Text="{Binding Settings.DetectionSource}"
-                       FontStyle="Italic" VerticalAlignment="Center" Margin="0,0,0,12">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="Green" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Settings.DetectionFailed}" Value="True">
-                                <Setter Property="Foreground" Value="Red" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+      <!-- Row 4: Detection -->
+      <TextBlock Grid.Row="4" Grid.Column="0" Text="{lex:Loc Settings_Detection}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                 Text="{Binding Settings.DetectionSource}"
+                 FontStyle="Italic" VerticalAlignment="Center" Margin="0,0,0,12">
+        <TextBlock.Style>
+          <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Green" />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding Settings.DetectionFailed}" Value="True">
+                <Setter Property="Foreground" Value="Red" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </TextBlock.Style>
+      </TextBlock>
 
-            <!-- Row 5: Theme -->
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="{lex:Loc Settings_Theme}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <ComboBox Grid.Row="5" Grid.Column="1"
-                      ItemsSource="{Binding Settings.ThemeOptions}"
-                      SelectedItem="{Binding Settings.SelectedTheme}"
-                      Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+      <!-- Row 5: Theme -->
+      <TextBlock Grid.Row="5" Grid.Column="0" Text="{lex:Loc Settings_Theme}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <ComboBox Grid.Row="5" Grid.Column="1"
+                ItemsSource="{Binding Settings.ThemeOptions}"
+                SelectedItem="{Binding Settings.SelectedTheme}"
+                Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 6: Font Size -->
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="{lex:Loc Settings_FontSize}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <ComboBox Grid.Row="6" Grid.Column="1"
-                      ItemsSource="{Binding Settings.FontScaleOptions}"
-                      SelectedItem="{Binding Settings.SelectedFontScale}"
-                      Width="100" Margin="0,0,0,12" HorizontalAlignment="Left">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding StringFormat={}{0:P0}}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+      <!-- Row 6: Font Size -->
+      <TextBlock Grid.Row="6" Grid.Column="0" Text="{lex:Loc Settings_FontSize}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <ComboBox Grid.Row="6" Grid.Column="1"
+                ItemsSource="{Binding Settings.FontScaleOptions}"
+                SelectedItem="{Binding Settings.SelectedFontScale}"
+                Width="100" Margin="0,0,0,12" HorizontalAlignment="Left">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding StringFormat={}{0:P0}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
 
-            <!-- Row 7: Language -->
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="{lex:Loc Settings_Language}" Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <ComboBox Grid.Row="7" Grid.Column="1"
-                      ItemsSource="{Binding Settings.AvailableLanguages}"
-                      SelectedItem="{Binding Settings.SelectedLanguage}"
-                      Width="180" Margin="0,0,0,12" HorizontalAlignment="Left" />
+      <!-- Row 7: Language -->
+      <TextBlock Grid.Row="7" Grid.Column="0" Text="{lex:Loc Settings_Language}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <ComboBox Grid.Row="7" Grid.Column="1"
+                ItemsSource="{Binding Settings.AvailableLanguages}"
+                SelectedItem="{Binding Settings.SelectedLanguage}"
+                Width="180" Margin="0,0,0,12" HorizontalAlignment="Left" />
 
-            <!-- Row 8: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="8" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
-                       Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="8" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
-                    Command="{Binding Settings.RestartTutorialCommand}"
-                    HorizontalAlignment="Left" MinWidth="120"
-                    Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-        </Grid>
+      <!-- Row 8: Tutorial (hidden when feature is disabled) -->
+      <TextBlock Grid.Row="8" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
+                 Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
+      <Button Grid.Row="8" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
+              Command="{Binding Settings.RestartTutorialCommand}"
+              HorizontalAlignment="Left" MinWidth="120"
+              Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
     </Grid>
+  </Grid>
 </UserControl>

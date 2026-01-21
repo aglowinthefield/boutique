@@ -6,7 +6,10 @@ namespace Boutique.Views;
 
 public partial class DistributionFilterTabsView
 {
-    public DistributionFilterTabsView() => InitializeComponent();
+    public DistributionFilterTabsView()
+    {
+        InitializeComponent();
+    }
 
     private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
     {

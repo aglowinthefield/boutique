@@ -6,12 +6,12 @@ using Mutagen.Bethesda.Skyrim;
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Generates SPID and SkyPatcher distribution syntax from NPC filter criteria.
+///     Generates SPID and SkyPatcher distribution syntax from NPC filter criteria.
 /// </summary>
 public static class NpcSpidSyntaxGenerator
 {
     /// <summary>
-    /// Generates both SPID and SkyPatcher syntax for the given filter criteria.
+    ///     Generates both SPID and SkyPatcher syntax for the given filter criteria.
     /// </summary>
     /// <param name="filter">The filter criteria to convert to syntax.</param>
     /// <param name="linkCache">Link cache for resolving FormKeys to EditorIDs.</param>
@@ -36,8 +36,8 @@ public static class NpcSpidSyntaxGenerator
     }
 
     /// <summary>
-    /// Generates SPID distribution syntax for the given filter criteria.
-    /// SPID syntax: Outfit = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
+    ///     Generates SPID distribution syntax for the given filter criteria.
+    ///     SPID syntax: Outfit = FormOrEditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|CountOrPackageIdx|Chance
     /// </summary>
     public static string GenerateSpidSyntax(
         NpcSpidFilter filter,
@@ -57,9 +57,7 @@ public static class NpcSpidSyntaxGenerator
             {
                 if (linkCache.TryResolve<IKeywordGetter>(keywordFormKey, out var keyword) &&
                     !string.IsNullOrWhiteSpace(keyword.EditorID))
-                {
                     stringFilters.Add(keyword.EditorID);
-                }
             }
         }
 
@@ -73,27 +71,21 @@ public static class NpcSpidSyntaxGenerator
             {
                 if (linkCache.TryResolve<IFactionGetter>(factionFormKey, out var faction) &&
                     !string.IsNullOrWhiteSpace(faction.EditorID))
-                {
                     formFilters.Add(faction.EditorID);
-                }
             }
 
             foreach (var raceFormKey in filter.Races)
             {
                 if (linkCache.TryResolve<IRaceGetter>(raceFormKey, out var race) &&
                     !string.IsNullOrWhiteSpace(race.EditorID))
-                {
                     formFilters.Add(race.EditorID);
-                }
             }
 
             foreach (var classFormKey in filter.Classes)
             {
                 if (linkCache.TryResolve<IClassGetter>(classFormKey, out var classRecord) &&
                     !string.IsNullOrWhiteSpace(classRecord.EditorID))
-                {
                     formFilters.Add(classRecord.EditorID);
-                }
             }
         }
 
@@ -106,13 +98,9 @@ public static class NpcSpidSyntaxGenerator
             var min = filter.MinLevel ?? 1;
             var max = filter.MaxLevel ?? 0; // 0 means no max in SPID
             if (max > 0)
-            {
                 levelFiltersPart = $"{min}/{max}";
-            }
             else
-            {
                 levelFiltersPart = $"{min}/";
-            }
         }
 
         // Position 5: TraitFilters
@@ -125,7 +113,10 @@ public static class NpcSpidSyntaxGenerator
         string? chancePart = null;
 
         // Build the line, preserving intermediate NONEs but trimming trailing ones
-        var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
+        var parts = new[]
+        {
+            stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart
+        };
 
         // Find the last non-null position
         var lastNonNullIndex = -1;
@@ -149,8 +140,8 @@ public static class NpcSpidSyntaxGenerator
     }
 
     /// <summary>
-    /// Generates SkyPatcher distribution syntax for the given filter criteria.
-    /// SkyPatcher syntax: filterByFactions=...:filterByKeywords=...:filterByRaces=...:filterByGender=...:outfitDefault=...
+    ///     Generates SkyPatcher distribution syntax for the given filter criteria.
+    ///     SkyPatcher syntax: filterByFactions=...:filterByKeywords=...:filterByRaces=...:filterByGender=...:outfitDefault=...
     /// </summary>
     public static string GenerateSkyPatcherSyntax(
         NpcSpidFilter filter,
@@ -199,10 +190,7 @@ public static class NpcSpidSyntaxGenerator
         }
 
         // Gender filter
-        if (filter.IsFemale.HasValue)
-        {
-            filterParts.Add($"filterByGender={(filter.IsFemale.Value ? "female" : "male")}");
-        }
+        if (filter.IsFemale.HasValue) filterParts.Add($"filterByGender={(filter.IsFemale.Value ? "female" : "male")}");
 
         // Note: SkyPatcher doesn't have direct filters for unique, templated, child, summonable, leveled
         // These are SPID-specific traits. We'll add a comment about this.
@@ -235,7 +223,7 @@ public static class NpcSpidSyntaxGenerator
     }
 
     /// <summary>
-    /// Formats trait filters for SPID output.
+    ///     Formats trait filters for SPID output.
     /// </summary>
     private static string? FormatTraitFilters(NpcSpidFilter filter)
     {
@@ -276,7 +264,7 @@ public static class NpcSpidSyntaxGenerator
     }
 
     /// <summary>
-    /// Gets a human-readable description of the active filters.
+    ///     Gets a human-readable description of the active filters.
     /// </summary>
     public static string GetFilterDescription(NpcSpidFilter filter)
     {

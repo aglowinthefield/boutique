@@ -1,13 +1,12 @@
+using System.ComponentModel;
+
 namespace Boutique.Models;
 
 public enum DistributionFileType
 {
-    [System.ComponentModel.Description("SPID")]
-    Spid,
-    [System.ComponentModel.Description("SkyPatcher")]
-    SkyPatcher,
-    [System.ComponentModel.Description("ESP")]
-    Esp
+    [Description("SPID")] Spid,
+    [Description("SkyPatcher")] SkyPatcher,
+    [Description("ESP")] Esp
 }
 
 public enum DistributionLineKind

@@ -21,17 +21,18 @@ public sealed class DistributionEntry
     public List<FormKey> NpcFormKeys { get; set; } = [];
 
     /// <summary>
-    /// Keyword filters with negation support. EditorIDs of game keywords or virtual keywords (SPID-distributed via Keyword = lines).
+    ///     Keyword filters with negation support. EditorIDs of game keywords or virtual keywords (SPID-distributed via Keyword
+    ///     = lines).
     /// </summary>
     public List<KeywordFilter> KeywordFilters { get; set; } = [];
 
     /// <summary>
-    /// Faction filters with negation support.
+    ///     Faction filters with negation support.
     /// </summary>
     public List<FormKeyFilter> FactionFilters { get; set; } = [];
 
     /// <summary>
-    /// Race filters with negation support.
+    ///     Race filters with negation support.
     /// </summary>
     public List<FormKeyFilter> RaceFilters { get; set; } = [];
 
@@ -46,22 +47,22 @@ public sealed class DistributionEntry
     public SpidTraitFilters TraitFilters { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets SPID level filters (position 4). Supports level ranges (e.g., "5/20") and
-    /// skill filters (e.g., "12(85/999)" for Alteration skill 85+).
+    ///     Gets or sets SPID level filters (position 4). Supports level ranges (e.g., "5/20") and
+    ///     skill filters (e.g., "12(85/999)" for Alteration skill 85+).
     /// </summary>
     public string? LevelFilters { get; set; }
 
     public int? Chance { get; set; }
 
     /// <summary>
-    /// Raw/advanced string filters that can't be represented by dropdowns.
-    /// Supports wildcards (*Mage, *Guard), virtual keywords, and other SPID syntax.
+    ///     Raw/advanced string filters that can't be represented by dropdowns.
+    ///     Supports wildcards (*Mage, *Guard), virtual keywords, and other SPID syntax.
     /// </summary>
     public string? RawStringFilters { get; set; }
 
     /// <summary>
-    /// Raw/advanced form filters that can't be represented by dropdowns.
-    /// Supports SPID form filter syntax for advanced use cases.
+    ///     Raw/advanced form filters that can't be represented by dropdowns.
+    ///     Supports SPID form filter syntax for advanced use cases.
     /// </summary>
     public string? RawFormFilters { get; set; }
 }

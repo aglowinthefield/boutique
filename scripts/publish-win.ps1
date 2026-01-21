@@ -125,12 +125,12 @@ foreach ($folder in $cultureFolders)
     $destFolder = Join-Path $tempZipDir $folder.Name
     New-Item -ItemType Directory -Path $destFolder -Force | Out-Null
     Copy-Item (Join-Path $folder.FullName "Boutique.resources.dll") $destFolder
-    Write-Host "  Including translation: $($folder.Name)" -ForegroundColor DarkGray
+    Write-Host "  Including translation: $( $folder.Name )" -ForegroundColor DarkGray
 }
 
 if ($cultureFolders.Count -gt 0)
 {
-    Write-Host "Included $($cultureFolders.Count) translation(s)" -ForegroundColor Green
+    Write-Host "Included $( $cultureFolders.Count ) translation(s)" -ForegroundColor Green
 }
 
 # Create the zip

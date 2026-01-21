@@ -29,7 +29,8 @@ public partial class ArmorPatchView : UserControl
 
     private void OnUnloaded(object sender, RoutedEventArgs e) => AttachToViewModel(null);
 
-    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) => AttachToViewModel(e.NewValue as MainViewModel);
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) =>
+        AttachToViewModel(e.NewValue as MainViewModel);
 
     private void AttachToViewModel(MainViewModel? viewModel)
     {

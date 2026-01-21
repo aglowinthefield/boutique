@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using Boutique.ViewModels;
 using ReactiveUI;
 
@@ -9,10 +10,7 @@ public partial class DistributionFilePreviewView
 {
     private static readonly DoubleAnimation HighlightAnimation = new()
     {
-        From = 0.35,
-        To = 0,
-        Duration = TimeSpan.FromMilliseconds(600),
-        BeginTime = TimeSpan.FromMilliseconds(200)
+        From = 0.35, To = 0, Duration = TimeSpan.FromMilliseconds(600), BeginTime = TimeSpan.FromMilliseconds(200)
     };
 
     private IDisposable? _highlightSubscription;
@@ -63,6 +61,6 @@ public partial class DistributionFilePreviewView
                 HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
                 HighlightOverlay.BeginAnimation(OpacityProperty, HighlightAnimation);
             }
-        }, System.Windows.Threading.DispatcherPriority.Loaded);
+        }, DispatcherPriority.Loaded);
     }
 }

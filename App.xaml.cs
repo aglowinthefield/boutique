@@ -190,8 +190,8 @@ public partial class App
     {
         var mo2Vars = new[]
         {
-            "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR",
-            "MO_MODSDIR", "USVFS_LOGFILE", "VIRTUAL_STORE"
+            "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR", "MO_MODSDIR", "USVFS_LOGFILE",
+            "VIRTUAL_STORE"
         };
 
         var detected = mo2Vars
@@ -206,9 +206,7 @@ public partial class App
                 string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
         }
         else
-        {
             Log.Debug("No MO2 environment variables detected - running standalone or MO2 env vars not set");
-        }
     }
 
     protected override void OnExit(ExitEventArgs e)

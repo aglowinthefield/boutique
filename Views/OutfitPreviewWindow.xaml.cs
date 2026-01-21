@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Media3D;
@@ -22,7 +23,6 @@ namespace Boutique.Views;
 
 public sealed partial class OutfitPreviewWindow : IDisposable
 {
-    private bool _disposed;
     private const float AmbientSrgb = 0.2f;
     private const float KeyFillSrgb = 0.6f;
     private const float RimSrgb = 0.85f;
@@ -43,12 +43,13 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     private readonly ThemeService _themeService;
 
     private float _ambientMultiplier;
+    private GenderedModelVariant _currentGender;
+    private int _currentSceneIndex;
+    private bool _disposed;
     private float _frontalMultiplier = 7f;
     private PerspectiveCamera? _initialCamera;
     private float _keyFillMultiplier = 1.6f;
     private float _rimMultiplier = 1f;
-    private int _currentSceneIndex;
-    private GenderedModelVariant _currentGender;
 
     public OutfitPreviewWindow(ArmorPreviewSceneCollection sceneCollection, ThemeService themeService)
     {
@@ -74,16 +75,20 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         PreviewKeyDown += OnWindowPreviewKeyDown;
     }
 
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
     private void OnThemeChanged(object? sender, bool isDark)
     {
         var hwnd = new WindowInteropHelper(this).Handle;
         ThemeService.ApplyTitleBarTheme(hwnd, isDark);
     }
 
-    private void InitializeGenderDropdown()
-    {
+    private void InitializeGenderDropdown() =>
         GenderComboBox.SelectedIndex = _currentGender == GenderedModelVariant.Female ? 0 : 1;
-    }
 
     private void InitializeViewport()
     {
@@ -181,12 +186,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
                     ? $"from {metadata.SourceFile} (Winner)"
                     : $"from {metadata.SourceFile}";
                 var brushKey = metadata.IsWinner ? "Brush.Accent" : "Brush.TextSecondary";
-                OutfitSourceText.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, brushKey);
+                OutfitSourceText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
             }
             else
-            {
                 OutfitSourceText.Text = string.Empty;
-            }
         }
     }
 
@@ -198,9 +201,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             MissingAssetsList.ItemsSource = scene.MissingAssets;
         }
         else
-        {
             MissingAssetsPanel.Visibility = Visibility.Collapsed;
-        }
     }
 
     private void RenderScene(ArmorPreviewScene scene)
@@ -224,10 +225,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             var material = CreateMaterialForMesh(evaluated.Shape);
             var model = new MeshGeometryModel3D
             {
-                Geometry = geometry,
-                Material = material,
-                CullMode = CullMode.None,
-                IsHitTestVisible = false
+                Geometry = geometry, Material = material, CullMode = CullMode.None, IsHitTestVisible = false
             };
 
             _meshGroup.Children.Add(model);
@@ -295,8 +293,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
         var geometry = new MeshGeometry3D
         {
-            Positions = positions,
-            Indices = new IntCollection(evaluated.Shape.Indices)
+            Positions = positions, Indices = new IntCollection(evaluated.Shape.Indices)
         };
 
         if (evaluated.Normals.Count == evaluated.Vertices.Count)
@@ -409,7 +406,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         return MathF.Pow(srgbValue, 2.2f);
     }
 
-    private static float ApplyExposure(float linearValue, float exposureMultiplier) => Math.Max(0f, linearValue * exposureMultiplier);
+    private static float ApplyExposure(float linearValue, float exposureMultiplier) =>
+        Math.Max(0f, linearValue * exposureMultiplier);
 
     private static void SetSceneLightColor(Light3D light, Color4 color)
     {
@@ -518,16 +516,16 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
         const double scale = 0.6;
         const byte min = 70;
-        r = (byte)(min + (r * scale));
-        g = (byte)(min + (g * scale));
-        b = (byte)(min + (b * scale));
+        r = (byte)(min + r * scale);
+        g = (byte)(min + g * scale);
+        b = (byte)(min + b * scale);
 
         return Color.FromRgb(r, g, b);
     }
 
     private static Color ToMediaColor(Color4 color) => Color.FromScRgb(color.Alpha, color.Red, color.Green, color.Blue);
 
-    private static Color4 ToColor4(Color color) => new Color4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
+    private static Color4 ToColor4(Color color) => new(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
 
     private static Color GetViewportBackgroundColor() =>
 
@@ -547,18 +545,16 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             activeCamera.FieldOfView = _initialCamera.FieldOfView;
         }
         else
-        {
             PreviewViewport.Camera = (PerspectiveCamera)_initialCamera.Clone();
-        }
 
         UpdateFrontalLightDirection();
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
-    private void OnGenderChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void OnGenderChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (GenderComboBox.SelectedItem is not System.Windows.Controls.ComboBoxItem selectedItem)
+        if (GenderComboBox.SelectedItem is not ComboBoxItem selectedItem)
             return;
 
         var newGender = selectedItem.Tag?.ToString() == "Male"
@@ -592,7 +588,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
             return;
 
         _currentSceneIndex = (_currentSceneIndex + direction + _sceneCollection.Count)
-            % _sceneCollection.Count;
+                             % _sceneCollection.Count;
         BuildScene();
     }
 
@@ -646,12 +642,6 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     {
         base.OnClosed(e);
         Dispose();
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
     }
 
     private void Dispose(bool disposing)

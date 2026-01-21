@@ -1,3 +1,4 @@
+using System.Globalization;
 using Boutique.Models;
 using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
@@ -9,9 +10,9 @@ namespace Boutique.Services;
 
 public class NpcOutfitResolutionService
 {
-    private readonly MutagenService _mutagenService;
     private readonly KeywordDistributionResolver _keywordResolver;
     private readonly ILogger _logger;
+    private readonly MutagenService _mutagenService;
 
     public NpcOutfitResolutionService(
         MutagenService mutagenService,
@@ -31,87 +32,89 @@ public class NpcOutfitResolutionService
 
         return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
             () =>
-        {
-            if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
-                _logger.Warning("LinkCache not available for NPC outfit resolution.");
-                return [];
-            }
-
-            _logger.Debug("LinkCache is available");
-
-            try
-            {
-                var sortedFiles = SortDistributionFiles(distributionFiles);
-                _logger.Information("Processing {Count} distribution files in order", sortedFiles.Count);
-
-                foreach (var file in sortedFiles)
+                if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
                 {
-                    var outfitLineCount = file.Lines.Count(l => l.IsOutfitDistribution);
-                    _logger.Debug(
-                        "File: {FileName} ({Type}) - {TotalLines} lines, {OutfitLines} outfit distributions",
-                        file.FileName, file.Type, file.Lines.Count, outfitLineCount);
+                    _logger.Warning("LinkCache not available for NPC outfit resolution.");
+                    return [];
                 }
 
-                var npcDistributions = new Dictionary<FormKey, List<OutfitDistribution>>();
+                _logger.Debug("LinkCache is available");
 
-                _logger.Debug("Loading all NPCs from LinkCache...");
-                var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
-                _logger.Debug("Loaded {Count} NPCs from LinkCache", allNpcs.Count);
-
-                var npcByEditorId = allNpcs
-                    .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-                    .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-                _logger.Debug("Built NPC EditorID lookup with {Count} entries", npcByEditorId.Count);
-
-                var npcByName = allNpcs
-                    .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-                    .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-                _logger.Debug("Built NPC Name lookup with {Count} entries", npcByName.Count);
-
-                var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
-                _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
-
-                _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
-                ProcessEspProvidedOutfits(linkCache, allNpcs, npcDistributions);
-                _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions", npcDistributions.Count);
-
-                for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var file = sortedFiles[fileIndex];
+                    var sortedFiles = SortDistributionFiles(distributionFiles);
+                    _logger.Information("Processing {Count} distribution files in order", sortedFiles.Count);
 
-                    _logger.Debug(
-                        "Processing file {Index}/{Total}: {FileName}",
-                        fileIndex + 1, sortedFiles.Count, file.FileName);
+                    foreach (var file in sortedFiles)
+                    {
+                        var outfitLineCount = file.Lines.Count(l => l.IsOutfitDistribution);
+                        _logger.Debug(
+                            "File: {FileName} ({Type}) - {TotalLines} lines, {OutfitLines} outfit distributions",
+                            file.FileName, file.Type, file.Lines.Count, outfitLineCount);
+                    }
 
-                    ProcessDistributionFile(file, fileIndex + 1, linkCache, npcByEditorId, npcByName, outfitByEditorId, npcDistributions);
+                    var npcDistributions = new Dictionary<FormKey, List<OutfitDistribution>>();
 
-                    _logger.Debug(
-                        "After processing {FileName}: {NpcCount} unique NPCs with distributions",
-                        file.FileName, npcDistributions.Count);
+                    _logger.Debug("Loading all NPCs from LinkCache...");
+                    var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
+                    _logger.Debug("Loaded {Count} NPCs from LinkCache", allNpcs.Count);
+
+                    var npcByEditorId = allNpcs
+                        .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+                        .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                    _logger.Debug("Built NPC EditorID lookup with {Count} entries", npcByEditorId.Count);
+
+                    var npcByName = allNpcs
+                        .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
+                        .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                    _logger.Debug("Built NPC Name lookup with {Count} entries", npcByName.Count);
+
+                    var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
+                    _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
+
+                    _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
+                    ProcessEspProvidedOutfits(linkCache, allNpcs, npcDistributions);
+                    _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions",
+                        npcDistributions.Count);
+
+                    for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var file = sortedFiles[fileIndex];
+
+                        _logger.Debug(
+                            "Processing file {Index}/{Total}: {FileName}",
+                            fileIndex + 1, sortedFiles.Count, file.FileName);
+
+                        ProcessDistributionFile(file, fileIndex + 1, linkCache, npcByEditorId, npcByName,
+                            outfitByEditorId, npcDistributions);
+
+                        _logger.Debug(
+                            "After processing {FileName}: {NpcCount} unique NPCs with distributions",
+                            file.FileName, npcDistributions.Count);
+                    }
+
+                    _logger.Debug("Total unique NPCs with distributions: {Count}", npcDistributions.Count);
+
+                    var assignments = BuildNpcOutfitAssignments(npcDistributions, linkCache, allNpcs);
+
+                    _logger.Information("Resolved outfit assignments for {Count} NPCs", assignments.Count);
+                    return assignments;
                 }
-
-                _logger.Debug("Total unique NPCs with distributions: {Count}", npcDistributions.Count);
-
-                var assignments = BuildNpcOutfitAssignments(npcDistributions, linkCache, allNpcs);
-
-                _logger.Information("Resolved outfit assignments for {Count} NPCs", assignments.Count);
-                return assignments;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.Information("NPC outfit resolution cancelled.");
-                return [];
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
-                return [];
-            }
-        }, cancellationToken);
+                catch (OperationCanceledException)
+                {
+                    _logger.Information("NPC outfit resolution cancelled.");
+                    return [];
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
+                    return [];
+                }
+            }, cancellationToken);
     }
 
     public async Task<IReadOnlyList<NpcOutfitAssignment>> ResolveNpcOutfitsWithFiltersAsync(
@@ -125,76 +128,79 @@ public class NpcOutfitResolutionService
 
         return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
             () =>
-        {
-            if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
             {
-                _logger.Warning("LinkCache not available for NPC outfit resolution.");
-                return [];
-            }
-
-            try
-            {
-                var sortedFiles = SortDistributionFiles(distributionFiles);
-                _logger.Information("Processing {Count} distribution files in order", sortedFiles.Count);
-
-                var npcDistributions = new Dictionary<FormKey, List<OutfitDistribution>>();
-
-                var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
-                _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
-
-                var keywordEntries = _keywordResolver.ParseKeywordDistributions(sortedFiles);
-                var (sortedKeywords, cyclicKeywords) = _keywordResolver.TopologicalSort(keywordEntries);
-
-                if (cyclicKeywords.Count > 0)
+                if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
                 {
-                    _logger.Warning(
-                        "Skipping {Count} keywords with circular dependencies: {Keywords}",
-                        cyclicKeywords.Count, string.Join(", ", cyclicKeywords.Take(5)));
+                    _logger.Warning("LinkCache not available for NPC outfit resolution.");
+                    return [];
                 }
 
-                var simulatedKeywords = _keywordResolver.SimulateKeywordDistribution(sortedKeywords, npcFilterData);
-                _logger.Debug(
-                    "Keyword simulation: {KeywordCount} keyword types, {NpcCount} NPCs with assignments",
-                    sortedKeywords.Count, simulatedKeywords.Count(kvp => kvp.Value.Count > 0));
-
-                _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
-                ProcessEspProvidedOutfitsFromFilterData(linkCache, npcFilterData, npcDistributions);
-                _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions", npcDistributions.Count);
-
-                for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var file = sortedFiles[fileIndex];
+                    var sortedFiles = SortDistributionFiles(distributionFiles);
+                    _logger.Information("Processing {Count} distribution files in order", sortedFiles.Count);
 
+                    var npcDistributions = new Dictionary<FormKey, List<OutfitDistribution>>();
+
+                    var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
+                    _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
+
+                    var keywordEntries = _keywordResolver.ParseKeywordDistributions(sortedFiles);
+                    var (sortedKeywords, cyclicKeywords) = _keywordResolver.TopologicalSort(keywordEntries);
+
+                    if (cyclicKeywords.Count > 0)
+                    {
+                        _logger.Warning(
+                            "Skipping {Count} keywords with circular dependencies: {Keywords}",
+                            cyclicKeywords.Count, string.Join(", ", cyclicKeywords.Take(5)));
+                    }
+
+                    var simulatedKeywords = _keywordResolver.SimulateKeywordDistribution(sortedKeywords, npcFilterData);
                     _logger.Debug(
-                        "Processing file {Index}/{Total}: {FileName}",
-                        fileIndex + 1, sortedFiles.Count, file.FileName);
+                        "Keyword simulation: {KeywordCount} keyword types, {NpcCount} NPCs with assignments",
+                        sortedKeywords.Count, simulatedKeywords.Count(kvp => kvp.Value.Count > 0));
 
-                    ProcessDistributionFileWithFilters(file, fileIndex + 1, linkCache, npcFilterData, outfitByEditorId, npcDistributions, simulatedKeywords);
+                    _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
+                    ProcessEspProvidedOutfitsFromFilterData(linkCache, npcFilterData, npcDistributions);
+                    _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions",
+                        npcDistributions.Count);
 
-                    _logger.Debug(
-                        "After processing {FileName}: {NpcCount} unique NPCs with distributions",
-                        file.FileName, npcDistributions.Count);
+                    for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var file = sortedFiles[fileIndex];
+
+                        _logger.Debug(
+                            "Processing file {Index}/{Total}: {FileName}",
+                            fileIndex + 1, sortedFiles.Count, file.FileName);
+
+                        ProcessDistributionFileWithFilters(file, fileIndex + 1, linkCache, npcFilterData,
+                            outfitByEditorId, npcDistributions, simulatedKeywords);
+
+                        _logger.Debug(
+                            "After processing {FileName}: {NpcCount} unique NPCs with distributions",
+                            file.FileName, npcDistributions.Count);
+                    }
+
+                    _logger.Debug("Total unique NPCs with distributions: {Count}", npcDistributions.Count);
+
+                    var assignments = BuildNpcOutfitAssignmentsFromFilterData(npcDistributions, npcFilterData);
+
+                    _logger.Information("Resolved outfit assignments for {Count} NPCs using full filter matching",
+                        assignments.Count);
+                    return assignments;
                 }
-
-                _logger.Debug("Total unique NPCs with distributions: {Count}", npcDistributions.Count);
-
-                var assignments = BuildNpcOutfitAssignmentsFromFilterData(npcDistributions, npcFilterData);
-
-                _logger.Information("Resolved outfit assignments for {Count} NPCs using full filter matching", assignments.Count);
-                return assignments;
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.Information("NPC outfit resolution cancelled.");
-                return [];
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
-                return [];
-            }
-        }, cancellationToken);
+                catch (OperationCanceledException)
+                {
+                    _logger.Information("NPC outfit resolution cancelled.");
+                    return [];
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
+                    return [];
+                }
+            }, cancellationToken);
     }
 
     private void ProcessDistributionFileWithFilters(
@@ -217,13 +223,11 @@ public class NpcOutfitResolutionService
             outfitLineCount++;
 
             if (file.Type == DistributionFileType.Spid)
-            {
-                ProcessSpidLineWithFilters(file, line, processingOrder, linkCache, allNpcs, npcDistributions, simulatedKeywords, ref matchedNpcCount);
-            }
+                ProcessSpidLineWithFilters(file, line, processingOrder, linkCache, allNpcs, npcDistributions,
+                    simulatedKeywords, ref matchedNpcCount);
             else if (file.Type == DistributionFileType.SkyPatcher)
-            {
-                ProcessSkyPatcherLineWithFilters(file, line, processingOrder, linkCache, outfitByEditorId, npcDistributions, ref matchedNpcCount);
-            }
+                ProcessSkyPatcherLineWithFilters(file, line, processingOrder, linkCache, outfitByEditorId,
+                    npcDistributions, ref matchedNpcCount);
         }
 
         _logger.Debug(
@@ -255,12 +259,10 @@ public class NpcOutfitResolutionService
         }
 
         string? outfitEditorId = null;
-        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
-        {
-            outfitEditorId = outfit.EditorID;
-        }
+        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit)) outfitEditorId = outfit.EditorID;
 
-        var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, simulatedKeywords);
+        var matchingNpcs =
+            SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, simulatedKeywords);
 
         _logger.Information("SPID line matched {Count} NPCs: {Line}", matchingNpcs.Count,
             line.RawText.Length > 80 ? line.RawText[..80] + "..." : line.RawText);
@@ -276,21 +278,21 @@ public class NpcOutfitResolutionService
             }
 
             distributions.Add(new OutfitDistribution(
-                FilePath: file.FullPath,
-                FileName: file.FileName,
-                FileType: file.Type,
-                OutfitFormKey: outfitFormKey.Value,
-                OutfitEditorId: outfitEditorId,
-                ProcessingOrder: processingOrder,
-                IsWinner: false,
-                RawLine: line.RawText,
-                TargetingDescription: filter.GetTargetingDescription(),
-                Chance: filter.Chance,
-                TargetsAllNpcs: filter.TargetsAllNpcs,
-                UsesKeywordTargeting: filter.UsesKeywordTargeting,
-                UsesFactionTargeting: filter.UsesFactionTargeting,
-                UsesRaceTargeting: hasRaceTargeting,
-                UsesTraitTargeting: !filter.TraitFilters.IsEmpty));
+                file.FullPath,
+                file.FileName,
+                file.Type,
+                outfitFormKey.Value,
+                outfitEditorId,
+                processingOrder,
+                false,
+                line.RawText,
+                filter.GetTargetingDescription(),
+                filter.Chance,
+                filter.TargetsAllNpcs,
+                filter.UsesKeywordTargeting,
+                filter.UsesFactionTargeting,
+                hasRaceTargeting,
+                !filter.TraitFilters.IsEmpty));
 
             matchedNpcCount++;
         }
@@ -318,15 +320,15 @@ public class NpcOutfitResolutionService
             }
 
             distributions.Add(new OutfitDistribution(
-                FilePath: file.FullPath,
-                FileName: file.FileName,
-                FileType: file.Type,
-                OutfitFormKey: outfitFormKey,
-                OutfitEditorId: outfitEditorId,
-                ProcessingOrder: processingOrder,
-                IsWinner: false,
-                RawLine: line.RawText,
-                TargetingDescription: "Specific NPC targeting"));
+                file.FullPath,
+                file.FileName,
+                file.Type,
+                outfitFormKey,
+                outfitEditorId,
+                processingOrder,
+                false,
+                line.RawText,
+                "Specific NPC targeting"));
 
             matchedNpcCount++;
         }
@@ -369,13 +371,8 @@ public class NpcOutfitResolutionService
         foreach (var npcIdentifier in npcIdentifiers)
         {
             if (FormKeyHelper.TryParse(npcIdentifier, out var formKey))
-            {
                 npcFormKeys.Add(formKey);
-            }
-            else if (linkCache.TryResolve<INpcGetter>(npcIdentifier, out var npc))
-            {
-                npcFormKeys.Add(npc.FormKey);
-            }
+            else if (linkCache.TryResolve<INpcGetter>(npcIdentifier, out var npc)) npcFormKeys.Add(npc.FormKey);
         }
 
         return npcFormKeys;
@@ -387,7 +384,7 @@ public class NpcOutfitResolutionService
         IReadOnlyDictionary<string, FormKey> outfitByEditorId)
     {
         var outfitString = SkyPatcherSyntax.ExtractFilterValue(lineText, "outfitDefault")
-                        ?? SkyPatcherSyntax.ExtractFilterValue(lineText, "filterByOutfits");
+                           ?? SkyPatcherSyntax.ExtractFilterValue(lineText, "filterByOutfits");
 
         if (string.IsNullOrWhiteSpace(outfitString))
             return (null, null);
@@ -433,8 +430,9 @@ public class NpcOutfitResolutionService
                 {
                     // Mark as winner if it's the last INI distribution, or if there are no INI distributions and it's the last overall
                     var isWinner = hasIniDistributions
-                        ? (d.FileType != DistributionFileType.Esp && i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex]))
-                        : (i == sortedDistributions.Count - 1);
+                        ? d.FileType != DistributionFileType.Esp &&
+                          i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex])
+                        : i == sortedDistributions.Count - 1;
                     return d with { IsWinner = isWinner };
                 })
                 .ToList();
@@ -443,7 +441,7 @@ public class NpcOutfitResolutionService
 
             string? editorId = null;
             string? name = null;
-            ModKey sourceMod = npcFormKey.ModKey;
+            var sourceMod = npcFormKey.ModKey;
 
             if (npcLookup.TryGetValue(npcFormKey, out var npcData))
             {
@@ -458,14 +456,14 @@ public class NpcOutfitResolutionService
             var hasConflict = iniOnlyDistributions.Count > 1;
 
             assignments.Add(new NpcOutfitAssignment(
-                NpcFormKey: npcFormKey,
-                EditorId: editorId,
-                Name: name,
-                SourceMod: sourceMod,
-                FinalOutfitFormKey: winner.OutfitFormKey,
-                FinalOutfitEditorId: winner.OutfitEditorId,
-                Distributions: updatedDistributions,
-                HasConflict: hasConflict));
+                npcFormKey,
+                editorId,
+                name,
+                sourceMod,
+                winner.OutfitFormKey,
+                winner.OutfitEditorId,
+                updatedDistributions,
+                hasConflict));
         }
 
         // Sort by display name for UI
@@ -515,9 +513,11 @@ public class NpcOutfitResolutionService
                 "Processing outfit line {LineNum} in {File}: {Text}",
                 line.LineNumber, file.FileName, line.RawText.Length > 100 ? line.RawText[..100] + "..." : line.RawText);
 
-            var parsedEntries = ParseDistributionLine(file, line, linkCache, npcByEditorId, npcByName, outfitByEditorId);
+            var parsedEntries =
+                ParseDistributionLine(file, line, linkCache, npcByEditorId, npcByName, outfitByEditorId);
 
-            _logger.Debug("Parsed {Count} NPC-outfit entries from line {LineNum}", parsedEntries.Count, line.LineNumber);
+            _logger.Debug("Parsed {Count} NPC-outfit entries from line {LineNum}", parsedEntries.Count,
+                line.LineNumber);
 
             foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in parsedEntries)
             {
@@ -530,13 +530,13 @@ public class NpcOutfitResolutionService
                 }
 
                 distributions.Add(new OutfitDistribution(
-                    FilePath: file.FullPath,
-                    FileName: file.FileName,
-                    FileType: file.Type,
-                    OutfitFormKey: outfitFormKey,
-                    OutfitEditorId: outfitEditorId,
-                    ProcessingOrder: processingOrder,
-                    IsWinner: false)); // Will be set later
+                    file.FullPath,
+                    file.FileName,
+                    file.Type,
+                    outfitFormKey,
+                    outfitEditorId,
+                    processingOrder,
+                    false)); // Will be set later
 
                 _logger.Debug(
                     "Added distribution: NPC={NpcFormKey}, Outfit={OutfitFormKey} ({OutfitEditorId})",
@@ -560,13 +560,9 @@ public class NpcOutfitResolutionService
         var results = new List<(FormKey, FormKey, string?)>();
 
         if (file.Type == DistributionFileType.SkyPatcher)
-        {
             ParseSkyPatcherLine(line.RawText, linkCache, outfitByEditorId, results);
-        }
         else if (file.Type == DistributionFileType.Spid)
-        {
             ParseSpidLine(line.RawText, linkCache, npcByEditorId, npcByName, results);
-        }
 
         return results;
     }
@@ -643,7 +639,7 @@ public class NpcOutfitResolutionService
         var rest = valuePart.Substring(tildeIndex + 1).Trim();
 
         formIdString = formIdString.Replace("0x", string.Empty).Replace("0X", string.Empty);
-        if (!uint.TryParse(formIdString, System.Globalization.NumberStyles.HexNumber, null, out var formId))
+        if (!uint.TryParse(formIdString, NumberStyles.HexNumber, null, out var formId))
         {
             _logger.Debug("Failed to parse FormID: {FormIdString}", formIdString);
             return;
@@ -668,7 +664,7 @@ public class NpcOutfitResolutionService
         var outfitFormKey = new FormKey(modKey, formId);
         _logger.Debug("Parsed outfit FormKey: {FormKey}", outfitFormKey);
 
-        string? outfitEditorId = linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)
+        var outfitEditorId = linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)
             ? outfit.EditorID
             : null;
 
@@ -702,9 +698,7 @@ public class NpcOutfitResolutionService
                 _logger.Debug("Resolved NPC '{Identifier}' by Name: {FormKey}", identifier, npc.FormKey);
             }
             else
-            {
                 _logger.Debug("Could not resolve NPC identifier: {Identifier}", identifier);
-            }
 
             if (npc is null)
                 continue;
@@ -742,21 +736,15 @@ public class NpcOutfitResolutionService
             var sourcePlugin = npcFormKey.ModKey.FileName;
 
             distributions.Add(new OutfitDistribution(
-                FilePath: $"{sourcePlugin} (ESP)",
-                FileName: sourcePlugin,
-                FileType: DistributionFileType.Esp,
-                OutfitFormKey: outfit.FormKey,
-                OutfitEditorId: outfit.EditorID,
-                ProcessingOrder: 0, // ESP has lowest priority
-                IsWinner: false, // Will be determined later
-                RawLine: null,
-                TargetingDescription: "Default outfit from ESP",
-                Chance: 100,
-                TargetsAllNpcs: false,
-                UsesKeywordTargeting: false,
-                UsesFactionTargeting: false,
-                UsesRaceTargeting: false,
-                UsesTraitTargeting: false));
+                $"{sourcePlugin} (ESP)",
+                sourcePlugin,
+                DistributionFileType.Esp,
+                outfit.FormKey,
+                outfit.EditorID,
+                0, // ESP has lowest priority
+                false, // Will be determined later
+                null,
+                "Default outfit from ESP"));
 
             espOutfitCount++;
         }
@@ -790,21 +778,15 @@ public class NpcOutfitResolutionService
             var sourcePlugin = npcData.SourceMod.FileName;
 
             distributions.Add(new OutfitDistribution(
-                FilePath: $"{sourcePlugin} (ESP)",
-                FileName: sourcePlugin,
-                FileType: DistributionFileType.Esp,
-                OutfitFormKey: outfit.FormKey,
-                OutfitEditorId: outfit.EditorID ?? npcData.DefaultOutfitEditorId,
-                ProcessingOrder: 0, // ESP has lowest priority
-                IsWinner: false, // Will be determined later
-                RawLine: null,
-                TargetingDescription: "Default outfit from ESP",
-                Chance: 100,
-                TargetsAllNpcs: false,
-                UsesKeywordTargeting: false,
-                UsesFactionTargeting: false,
-                UsesRaceTargeting: false,
-                UsesTraitTargeting: false));
+                $"{sourcePlugin} (ESP)",
+                sourcePlugin,
+                DistributionFileType.Esp,
+                outfit.FormKey,
+                outfit.EditorID ?? npcData.DefaultOutfitEditorId,
+                0, // ESP has lowest priority
+                false, // Will be determined later
+                null,
+                "Default outfit from ESP"));
 
             espOutfitCount++;
         }
@@ -843,8 +825,9 @@ public class NpcOutfitResolutionService
                 {
                     // Mark as winner if it's the last INI distribution, or if there are no INI distributions and it's the last overall
                     var isWinner = hasIniDistributions
-                        ? (d.FileType != DistributionFileType.Esp && i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex]))
-                        : (i == sortedDistributions.Count - 1);
+                        ? d.FileType != DistributionFileType.Esp &&
+                          i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex])
+                        : i == sortedDistributions.Count - 1;
                     return d with { IsWinner = isWinner };
                 })
                 .ToList();
@@ -853,7 +836,7 @@ public class NpcOutfitResolutionService
 
             string? editorId = null;
             string? name = null;
-            ModKey sourceMod = npcFormKey.ModKey;
+            var sourceMod = npcFormKey.ModKey;
 
             if (npcLookup.TryGetValue(npcFormKey, out var npc))
             {
@@ -876,14 +859,14 @@ public class NpcOutfitResolutionService
             var hasConflict = iniOnlyDistributions.Count > 1;
 
             assignments.Add(new NpcOutfitAssignment(
-                NpcFormKey: npcFormKey,
-                EditorId: editorId,
-                Name: name,
-                SourceMod: sourceMod,
-                FinalOutfitFormKey: winner.OutfitFormKey,
-                FinalOutfitEditorId: winner.OutfitEditorId,
-                Distributions: updatedDistributions,
-                HasConflict: hasConflict));
+                npcFormKey,
+                editorId,
+                name,
+                sourceMod,
+                winner.OutfitFormKey,
+                winner.OutfitEditorId,
+                updatedDistributions,
+                hasConflict));
         }
 
         return assignments

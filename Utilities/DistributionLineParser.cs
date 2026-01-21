@@ -35,17 +35,11 @@ public static class DistributionLineParser
         var results = new List<FormKey>();
 
         // Use SpidLineParser for robust SPID parsing
-        if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null)
-        {
-            return results;
-        }
+        if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null) return results;
 
         // Get specific NPC identifiers from the parsed filter
         var npcIdentifiers = SpidLineParser.GetSpecificNpcIdentifiers(filter);
-        if (npcIdentifiers.Count == 0)
-        {
-            return results;
-        }
+        if (npcIdentifiers.Count == 0) return results;
 
         // Build lookup dictionaries if not provided
         if (npcByEditorId == null || npcByName == null)
@@ -66,18 +60,10 @@ public static class DistributionLineParser
         {
             INpcGetter? npc = null;
             if (npcByEditorId.TryGetValue(identifier, out var npcById))
-            {
                 npc = npcById;
-            }
-            else if (npcByName.TryGetValue(identifier, out var npcByNameMatch))
-            {
-                npc = npcByNameMatch;
-            }
+            else if (npcByName.TryGetValue(identifier, out var npcByNameMatch)) npc = npcByNameMatch;
 
-            if (npc != null)
-            {
-                results.Add(npc.FormKey);
-            }
+            if (npc != null) results.Add(npc.FormKey);
         }
 
         return results;
@@ -130,9 +116,7 @@ public static class DistributionLineParser
         {
             var formKey = TryParseFormKey(formKeyString);
             if (formKey.HasValue && linkCache.TryResolve<IOutfitGetter>(formKey.Value, out var outfit))
-            {
                 return outfit.EditorID ?? outfit.FormKey.ToString();
-            }
         }
 
         return null;

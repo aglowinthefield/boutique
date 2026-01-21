@@ -6,6 +6,10 @@ namespace Boutique.ViewModels;
 
 public partial class NpcRecordViewModel : SelectableRecordViewModel<NpcRecord>
 {
+    [Reactive] private string? _conflictingFileName;
+
+    [Reactive] private bool _hasConflict;
+
     public NpcRecordViewModel(NpcRecord npcRecord) : base(npcRecord)
     {
         this.WhenAnyValue(x => x.HasConflict, x => x.ConflictingFileName)
@@ -13,12 +17,6 @@ public partial class NpcRecordViewModel : SelectableRecordViewModel<NpcRecord>
     }
 
     public NpcRecord NpcRecord => Record;
-
-    [Reactive]
-    private bool _hasConflict;
-
-    [Reactive]
-    private string? _conflictingFileName;
 
     public string ConflictTooltip => HasConflict && !string.IsNullOrEmpty(ConflictingFileName)
         ? $"Conflict: This NPC already has an outfit distribution in '{ConflictingFileName}'"

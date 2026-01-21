@@ -52,29 +52,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
     private static readonly string[] _nonDiffuseSubstrings =
     {
-        "normalmap",
-        "_normal",
-        "_nmap",
-        "_smap",
-        "_msn",
-        "_spec",
-        "_specmap",
-        "_glow",
-        "_env",
-        "_envmap",
-        "_cubemap",
-        "_cmap",
-        "_emit",
-        "_emissive",
-        "_mask",
-        "_rough",
-        "_roughness",
-        "_metal",
-        "_metallic",
-        "_height",
-        "_displace",
-        "_opacity",
-        "_alpha"
+        "normalmap", "_normal", "_nmap", "_smap", "_msn", "_spec", "_specmap", "_glow", "_env", "_envmap",
+        "_cubemap", "_cmap", "_emit", "_emissive", "_mask", "_rough", "_roughness", "_metal", "_metallic",
+        "_height", "_displace", "_opacity", "_alpha"
     };
 
     private readonly ILogger _logger = logger.ForContext<ArmorPreviewService>();
@@ -121,9 +101,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var bodyAssetKey = PathUtilities.NormalizeAssetPath(bodyRelative);
         var bodyPath = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
         if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
-        {
             meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, gender, _skyrimBaseModKey, cancellationToken));
-        }
         else
         {
             var expected = FormatExpectedPath(dataPath, bodyAssetKey);
@@ -308,17 +286,13 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         List<Vector3> normals;
 
         if (extractedNormals != null && extractedNormals.Count == vertices.Count)
-        {
             normals = extractedNormals;
-        }
         else
         {
             normals = ComputeNormals(vertices, indices);
             var shapeName = shape.Name?.ToString() ?? "<unnamed>";
             if (extractedNormals == null)
-            {
                 _logger.Debug("Shape {ShapeName} provided no normals; computed fallback.", shapeName);
-            }
             else
             {
                 _logger.Debug(
@@ -606,16 +580,12 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 candidates.Count, shapeName);
         }
         else
-        {
             _logger.Debug("No texture path resolved for shape {Shape}", shapeName);
-        }
 
         return null;
 
-        void CollectCandidates(BSLightingShaderProperty? shader)
-        {
+        void CollectCandidates(BSLightingShaderProperty? shader) =>
             candidates.AddRange(EnumerateTexturePaths(nif, shader));
-        }
     }
 
     private static IEnumerable<string> EnumerateTexturePaths(NifFile nif, BSLightingShaderProperty? shader)
@@ -650,7 +620,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var lower = name.ToLowerInvariant();
         var segments = lower.Split(['_', '-', ' '], StringSplitOptions.RemoveEmptyEntries);
 
-        return !segments.Any(segment => _nonDiffuseSegments.Contains(segment)) && _nonDiffuseSubstrings.All(keyword => !lower.Contains(keyword));
+        return !segments.Any(segment => _nonDiffuseSegments.Contains(segment)) &&
+               _nonDiffuseSubstrings.All(keyword => !lower.Contains(keyword));
     }
 
     private static IModelGetter? SelectModel(
@@ -705,7 +676,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         return !string.IsNullOrWhiteSpace(file.GivenPath) ? PathUtilities.NormalizeAssetPath(file.GivenPath) : null;
     }
 
-    private static string GetBodyRelativePath(GenderedModelVariant gender) => gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
+    private static string GetBodyRelativePath(GenderedModelVariant gender) =>
+        gender == GenderedModelVariant.Female ? FemaleBodyRelativePath : MaleBodyRelativePath;
 
     private static string FormatExpectedPath(string dataPath, string assetKey)
     {

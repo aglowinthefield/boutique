@@ -4,7 +4,6 @@ using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
-using Noggog;
 using Serilog;
 
 namespace Boutique.Services;
@@ -45,10 +44,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     private void RequireInitialized()
     {
         if (!mutagenService.IsInitialized)
-            throw new InvalidOperationException("Mutagen service is not initialized. Please set the Skyrim data path first.");
+            throw new InvalidOperationException(
+                "Mutagen service is not initialized. Please set the Skyrim data path first.");
     }
 
-    private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(string outputPath, string operationName)
+    private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(string outputPath,
+        string operationName)
     {
         var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
         SkyrimMod patchMod;
@@ -59,9 +60,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             patchMod = SkyrimMod.CreateFromBinary(outputPath, mutagenService.SkyrimRelease);
         }
         else
-        {
             patchMod = new SkyrimMod(modKey, mutagenService.SkyrimRelease);
-        }
 
         EnsureMinimumFormId(patchMod);
 
@@ -72,7 +71,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         return (patchMod, requiredMasters);
     }
 
-    private void FinalizePatch(SkyrimMod patchMod, HashSet<ModKey> requiredMasters, string outputPath, IProgress<(int current, int total, string message)>? progress)
+    private void FinalizePatch(SkyrimMod patchMod, HashSet<ModKey> requiredMasters, string outputPath,
+        IProgress<(int current, int total, string message)>? progress)
     {
         EnsureMasters(patchMod, requiredMasters);
         TryApplyEslFlag(patchMod);
@@ -83,7 +83,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         WritePatchWithRetry(patchMod, outputPath, requiredMasters);
     }
 
-    private async Task RefreshAfterWrite(string outputPath, IProgress<(int current, int total, string message)>? progress)
+    private async Task RefreshAfterWrite(string outputPath,
+        IProgress<(int current, int total, string message)>? progress)
     {
         progress?.Report((1, 1, "Refreshing load order..."));
         var pluginName = Path.GetFileName(outputPath);
@@ -179,7 +180,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 var outfitList = outfits.ToList();
                 if (outfitList.Count == 0)
-                    return (false, "No outfits to create.", (IReadOnlyList<OutfitCreationResult>)[]);
+                    return (false, "No outfits to create.", []);
 
                 _logger.Information(
                     "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
@@ -198,9 +199,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                     if (isOverride && existingFormKey.HasValue)
                     {
-                        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(existingFormKey.Value, out var sourceOutfit))
+                        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(existingFormKey.Value,
+                                out var sourceOutfit))
                         {
-                            _logger.Warning("Override outfit {FormKey} not found in LinkCache, skipping.", existingFormKey.Value);
+                            _logger.Warning("Override outfit {FormKey} not found in LinkCache, skipping.",
+                                existingFormKey.Value);
                             continue;
                         }
 
@@ -226,7 +229,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         }
 
                         results.Add(new OutfitCreationResult(editorId, overrideOutfit.FormKey));
-                        _logger.Information("Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
+                        _logger.Information(
+                            "Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
                             editorId, existingFormKey.Value, pieces.Count);
                         continue;
                     }
@@ -251,9 +255,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                             results.Add(new OutfitCreationResult(editorId, existing.FormKey));
                         }
                         else
-                        {
                             _logger.Debug("Skipping deletion of {EditorId} — not in patch.", editorId);
-                        }
 
                         continue;
                     }
@@ -298,11 +300,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
 
-                return (true, $"Saved {results.Count} outfit(s) to {outputPath}", (IReadOnlyList<OutfitCreationResult>)results);
+                return (true, $"Saved {results.Count} outfit(s) to {outputPath}", results);
             }
             catch (InvalidOperationException ex)
             {
-                return (false, ex.Message, (IReadOnlyList<OutfitCreationResult>)[]);
+                return (false, ex.Message, []);
             }
             catch (Exception ex)
             {
@@ -415,10 +417,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
             try
             {
-                File.Move(tempPath, outputPath, overwrite: true);
+                File.Move(tempPath, outputPath, true);
                 return;
             }
-            catch (Exception ex) when ((ex is IOException or UnauthorizedAccessException) && attempt < maxRetries)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < maxRetries)
             {
                 var delay = initialDelayMs * attempt;
                 _logger.Debug(
@@ -428,7 +430,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             }
         }
 
-        File.Move(tempPath, outputPath, overwrite: true);
+        File.Move(tempPath, outputPath, true);
     }
 
     private void TryApplyEslFlag(SkyrimMod patchMod)
@@ -543,9 +545,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         }
                     }
                     else
-                    {
                         validOutfitsList.Add(outfit);
-                    }
                 }
 
                 var missingMasterInfos = missingMasters

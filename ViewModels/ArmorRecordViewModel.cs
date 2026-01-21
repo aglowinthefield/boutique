@@ -11,6 +11,10 @@ public partial class ArmorRecordViewModel : ReactiveObject
     private readonly ILinkCache? _linkCache;
     private readonly string _searchCache;
 
+    [Reactive] private bool _isMapped;
+
+    [Reactive] private bool _isSlotCompatible = true;
+
     public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
     {
         Armor = armor;
@@ -38,26 +42,6 @@ public partial class ArmorRecordViewModel : ReactiveObject
     public string FormIdDisplay { get; }
 
     public uint FormIdSortable { get; }
-
-    public static string FormatSlotMask(BipedObjectFlag mask)
-    {
-        var parts = new List<string>();
-        var value = (uint)mask;
-
-        for (var i = 0; i < 32 && value != 0; i++)
-        {
-            var bit = 1u << i;
-            if ((value & bit) == 0) continue;
-
-            var singleFlag = (BipedObjectFlag)bit;
-            var flagName = singleFlag.ToString();
-            parts.Add(uint.TryParse(flagName, out _) ? $"Slot{i + 30}" : flagName);
-
-            value &= ~bit; // Clear this bit
-        }
-
-        return parts.Count > 0 ? string.Join(", ", parts) : mask.ToString();
-    }
 
     public string Keywords
     {
@@ -104,15 +88,28 @@ public partial class ArmorRecordViewModel : ReactiveObject
     }
 
     public int SlotCompatibilityPriority => IsSlotCompatible ? 0 : 1;
-
-    [Reactive]
-    private bool _isSlotCompatible = true;
-
-    [Reactive]
-    private bool _isMapped;
     public string FormKeyString => Armor.FormKey.ToString();
     public string SummaryLine => $"{DisplayName} ({SlotSummary})";
 
+    public static string FormatSlotMask(BipedObjectFlag mask)
+    {
+        var parts = new List<string>();
+        var value = (uint)mask;
+
+        for (var i = 0; i < 32 && value != 0; i++)
+        {
+            var bit = 1u << i;
+            if ((value & bit) == 0) continue;
+
+            var singleFlag = (BipedObjectFlag)bit;
+            var flagName = singleFlag.ToString();
+            parts.Add(uint.TryParse(flagName, out _) ? $"Slot{i + 30}" : flagName);
+
+            value &= ~bit; // Clear this bit
+        }
+
+        return parts.Count > 0 ? string.Join(", ", parts) : mask.ToString();
+    }
 
     public bool MatchesSearch(string searchTerm)
     {

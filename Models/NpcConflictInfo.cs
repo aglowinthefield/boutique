@@ -3,7 +3,7 @@ using Mutagen.Bethesda.Plugins;
 namespace Boutique.Models;
 
 /// <summary>
-/// Represents conflict information for an NPC when creating a new distribution file.
+///     Represents conflict information for an NPC when creating a new distribution file.
 /// </summary>
 public sealed record NpcConflictInfo(
     /// <summary>The NPC's FormKey</summary>

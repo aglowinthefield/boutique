@@ -6,8 +6,6 @@ namespace Boutique.Views;
 
 public partial class MissingMastersDialog : Window
 {
-    public bool CleanPatch { get; private set; }
-
     public MissingMastersDialog(MissingMastersResult result)
     {
         InitializeComponent();
@@ -30,6 +28,8 @@ public partial class MissingMastersDialog : Window
                            $"{totalMasters} missing master(s) need to be added back to keep them.";
     }
 
+    public bool CleanPatch { get; private set; }
+
     private void AddMastersButton_Click(object sender, RoutedEventArgs e)
     {
         CleanPatch = false;
@@ -47,15 +47,15 @@ public partial class MissingMastersDialog : Window
 
 public class MissingMasterViewModel
 {
-    public string MasterFileName { get; }
-
-    public IReadOnlyList<AffectedOutfitViewModel> AffectedOutfits { get; }
-
     public MissingMasterViewModel(MissingMasterInfo info)
     {
         MasterFileName = info.MissingMaster.FileName;
         AffectedOutfits = [.. info.AffectedOutfits.Select(o => new AffectedOutfitViewModel(o))];
     }
+
+    public string MasterFileName { get; }
+
+    public IReadOnlyList<AffectedOutfitViewModel> AffectedOutfits { get; }
 }
 
 public class AffectedOutfitViewModel(AffectedOutfitInfo info)

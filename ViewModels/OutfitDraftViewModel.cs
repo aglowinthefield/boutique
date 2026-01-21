@@ -10,12 +10,15 @@ namespace Boutique.ViewModels;
 
 public partial class OutfitDraftViewModel : ReactiveObject
 {
+    private readonly Func<OutfitDraftViewModel, Task> _duplicateDraft;
     private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
     private readonly Func<OutfitDraftViewModel, Task> _previewDraft;
-    private readonly Func<OutfitDraftViewModel, Task> _duplicateDraft;
     private readonly Action<OutfitDraftViewModel> _removeDraft;
     private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
     private string _editorId = string.Empty;
+
+    [Reactive] private FormKey? _formKey;
+
     private string _name = string.Empty;
     private string _previousValidName = "Outfit";
 
@@ -70,9 +73,6 @@ public partial class OutfitDraftViewModel : ReactiveObject
 
     public bool HasPieces => _pieces.Count > 0;
 
-    [Reactive]
-    private FormKey? _formKey;
-
     public bool IsOverride { get; init; }
 
     public ModKey? OverrideSourceMod { get; init; }
@@ -121,7 +121,8 @@ public partial class OutfitDraftViewModel : ReactiveObject
         return (added, []);
     }
 
-    private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => this.RaisePropertyChanged(nameof(HasPieces));
+    private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+        this.RaisePropertyChanged(nameof(HasPieces));
 
     public void RevertName() => SetNameInternal(_previousValidName, false);
 

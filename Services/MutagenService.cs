@@ -14,14 +14,10 @@ namespace Boutique.Services;
 
 public class MutagenService(ILoggingService loggingService, PatcherSettings settings)
 {
+    private readonly SemaphoreSlim _initLock = new(1, 1);
     private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
     private readonly PatcherSettings _settings = settings;
-    private readonly SemaphoreSlim _initLock = new(1, 1);
     private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
-
-    public event EventHandler? PluginsChanged;
-
-    public event EventHandler? Initialized;
 
     public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
@@ -32,6 +28,10 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     public SkyrimRelease SkyrimRelease => GetSkyrimRelease();
 
     public GameRelease GameRelease => GetGameRelease();
+
+    public event EventHandler? PluginsChanged;
+
+    public event EventHandler? Initialized;
 
     private GameRelease GetGameRelease() => GetSkyrimRelease() switch
     {
@@ -271,15 +271,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                     expectedPlugin, fileInfo.Length, fileInfo.LastWriteTime);
 
                 var inLoadOrder = _environment?.LoadOrder
-                    .Any(entry => string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
+                    .Any(entry =>
+                        string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
 
                 if (!inLoadOrder)
-                    _logger.Debug("{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.", expectedPlugin);
+                    _logger.Debug(
+                        "{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.",
+                        expectedPlugin);
             }
             else
-            {
                 _logger.Warning("Expected plugin {Plugin} was NOT found at {Path}!", expectedPlugin, pluginPath);
-            }
         }
 
         PluginsChanged?.Invoke(this, EventArgs.Empty);

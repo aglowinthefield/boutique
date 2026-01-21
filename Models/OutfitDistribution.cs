@@ -3,7 +3,7 @@ using Mutagen.Bethesda.Plugins;
 namespace Boutique.Models;
 
 /// <summary>
-/// Represents a single outfit distribution from a SPID or SkyPatcher file.
+///     Represents a single outfit distribution from a SPID or SkyPatcher file.
 /// </summary>
 public sealed record OutfitDistribution(
     /// <summary>The source distribution file path</summary>

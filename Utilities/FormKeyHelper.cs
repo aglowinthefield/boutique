@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -76,9 +77,7 @@ public static class FormKeyHelper
             modPart = parts[1].Trim();
         }
         else
-        {
             return false;
-        }
 
         if (!TryParseModKey(modPart, out var modKey))
             return false;
@@ -114,7 +113,7 @@ public static class FormKeyHelper
         if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             trimmed = trimmed[2..];
 
-        return uint.TryParse(trimmed, System.Globalization.NumberStyles.HexNumber, null, out id);
+        return uint.TryParse(trimmed, NumberStyles.HexNumber, null, out id);
     }
 
     public static bool TryParseEditorIdReference(string identifier, out ModKey? modKey, out string editorId)
@@ -173,11 +172,10 @@ public static class FormKeyHelper
             }
         }
         else
-        {
             editorCandidate = trimmed;
-        }
 
-        if (!modKey.HasValue && !string.IsNullOrWhiteSpace(modCandidate) && TryParseModKey(modCandidate, out var parsedMod))
+        if (!modKey.HasValue && !string.IsNullOrWhiteSpace(modCandidate) &&
+            TryParseModKey(modCandidate, out var parsedMod))
             modKey = parsedMod;
 
         if (string.IsNullOrWhiteSpace(editorCandidate))

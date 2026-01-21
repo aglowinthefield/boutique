@@ -3,8 +3,8 @@ using Mutagen.Bethesda.Plugins;
 namespace Boutique.ViewModels;
 
 /// <summary>
-/// Interface for selectable record view models that can be used in filter criteria.
-/// Provides common properties for selection state, form key, and search matching.
+///     Interface for selectable record view models that can be used in filter criteria.
+///     Provides common properties for selection state, form key, and search matching.
 /// </summary>
 public interface ISelectableRecordViewModel
 {

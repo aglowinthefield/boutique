@@ -9,6 +9,14 @@ public partial class OutfitRecordViewModel : ReactiveObject
 {
     private readonly string _searchCache;
 
+    [Reactive] private bool _isSelected;
+
+    /// <summary>
+    ///     Number of NPCs that have this outfit distributed to them.
+    ///     Updated by the parent ViewModel.
+    /// </summary>
+    [Reactive] private int _npcCount;
+
     public OutfitRecordViewModel(IOutfitGetter outfit)
     {
         Outfit = outfit;
@@ -25,16 +33,6 @@ public partial class OutfitRecordViewModel : ReactiveObject
     public FormKey FormKey { get; }
     public string FormKeyString { get; }
     public string ModDisplayName { get; }
-
-    [Reactive]
-    private bool _isSelected;
-
-    /// <summary>
-    /// Number of NPCs that have this outfit distributed to them.
-    /// Updated by the parent ViewModel.
-    /// </summary>
-    [Reactive]
-    private int _npcCount;
 
     public bool MatchesSearch(string searchTerm)
     {

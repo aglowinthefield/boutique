@@ -147,22 +147,20 @@ public class GuiSettingsService
             }
         }
 
-        if (_settings.WindowState.HasValue && _settings.WindowState.Value != System.Windows.WindowState.Minimized)
-        {
+        if (_settings.WindowState.HasValue && _settings.WindowState.Value != WindowState.Minimized)
             window.WindowState = _settings.WindowState.Value;
-        }
     }
 
     public void SaveWindowGeometry(Window window)
     {
-        if (window.WindowState == System.Windows.WindowState.Normal)
+        if (window.WindowState == WindowState.Normal)
         {
             _settings.WindowLeft = window.Left;
             _settings.WindowTop = window.Top;
             _settings.WindowWidth = window.Width;
             _settings.WindowHeight = window.Height;
         }
-        else if (window.WindowState == System.Windows.WindowState.Maximized)
+        else if (window.WindowState == WindowState.Maximized)
         {
             _settings.WindowLeft = window.RestoreBounds.Left;
             _settings.WindowTop = window.RestoreBounds.Top;
@@ -206,7 +204,8 @@ public class GuiSettingsService
             if (loaded != null)
             {
                 _settings = loaded;
-                _logger.Debug("Loaded GUI settings: IsFilePreviewExpanded={IsExpanded}", _settings.IsFilePreviewExpanded);
+                _logger.Debug("Loaded GUI settings: IsFilePreviewExpanded={IsExpanded}",
+                    _settings.IsFilePreviewExpanded);
             }
         }
         catch (Exception ex)

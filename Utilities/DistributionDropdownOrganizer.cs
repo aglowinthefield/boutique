@@ -4,13 +4,13 @@ using Boutique.ViewModels;
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Organizes distribution files into a grouped dropdown structure.
+///     Organizes distribution files into a grouped dropdown structure.
 /// </summary>
 public static class DistributionDropdownOrganizer
 {
     /// <summary>
-    /// Organizes files into a dropdown structure with headers and items.
-    /// Files with duplicate names get their unique path shown.
+    ///     Organizes files into a dropdown structure with headers and items.
+    ///     Files with duplicate names get their unique path shown.
     /// </summary>
     /// <returns>Tree-like structure for rendering.</returns>
     public static DistributionDropdownStructure Organize(IEnumerable<DistributionFileViewModel> files)

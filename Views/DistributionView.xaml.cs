@@ -36,10 +36,7 @@ public partial class DistributionView
                 var themeService = ThemeService.Current;
                 if (themeService == null) return;
 
-                var window = new OutfitPreviewWindow(interaction.Input, themeService)
-                {
-                    Owner = owner
-                };
+                var window = new OutfitPreviewWindow(interaction.Input, themeService) { Owner = owner };
                 window.Show();
             });
 
@@ -47,19 +44,13 @@ public partial class DistributionView
         });
 
         // Trigger refresh and NPC scan if view is already loaded
-        if (IsLoaded)
-        {
-            TriggerInitialLoadIfNeeded(viewModel);
-        }
+        if (IsLoaded) TriggerInitialLoadIfNeeded(viewModel);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Automatically load distribution files and scan NPCs when the view first loads
-        if (DataContext is DistributionViewModel viewModel)
-        {
-            TriggerInitialLoadIfNeeded(viewModel);
-        }
+        if (DataContext is DistributionViewModel viewModel) TriggerInitialLoadIfNeeded(viewModel);
     }
 
     private static void TriggerInitialLoadIfNeeded(DistributionViewModel viewModel)
@@ -82,10 +73,7 @@ public partial class DistributionView
     private static void TriggerNpcScanIfNeeded(DistributionViewModel viewModel)
     {
         // Only scan if NPCs haven't been loaded yet and we're not already loading
-        if (viewModel.AvailableNpcs.Count == 0 && !viewModel.IsLoading)
-        {
-            _ = viewModel.ScanNpcsCommand.Execute();
-        }
+        if (viewModel.AvailableNpcs.Count == 0 && !viewModel.IsLoading) _ = viewModel.ScanNpcsCommand.Execute();
     }
 
     private void DisposePreviewSubscription()

@@ -5,8 +5,8 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for DistributionEntryViewModel to verify trait filter changes
-/// are properly propagated to the underlying Entry.
+///     Tests for DistributionEntryViewModel to verify trait filter changes
+///     are properly propagated to the underlying Entry.
 /// </summary>
 public class DistributionEntryViewModelTests
 {
@@ -43,9 +43,11 @@ public class DistributionEntryViewModelTests
     {
         // Arrange
         var entry = new DistributionEntry { TraitFilters = new SpidTraitFilters { IsFemale = true } };
-        var vm = new DistributionEntryViewModel(entry) {
+        var vm = new DistributionEntryViewModel(entry)
+        {
             // Act
-            Gender = GenderFilter.Any };
+            Gender = GenderFilter.Any
+        };
 
         // Assert
         Assert.Null(entry.TraitFilters.IsFemale);

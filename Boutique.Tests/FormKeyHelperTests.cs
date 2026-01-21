@@ -5,10 +5,29 @@ using Xunit;
 namespace Boutique.Tests;
 
 /// <summary>
-/// Tests for FormKeyHelper parsing utilities.
+///     Tests for FormKeyHelper parsing utilities.
 /// </summary>
 public class FormKeyHelperTests
 {
+    #region TryParseModKey
+
+    [Theory]
+    [InlineData("Skyrim.esm", true)]
+    [InlineData("MyMod.esp", true)]
+    [InlineData("Light.esl", true)]
+    [InlineData("SKYRIM.ESM", true)]
+    [InlineData("NotAMod", false)]
+    [InlineData("", false)]
+    public void TryParseModKey_VariousInputs_ReturnsCorrectly(string input, bool expected)
+    {
+        var result = FormKeyHelper.TryParseModKey(input, out var modKey);
+        Assert.Equal(expected, result);
+
+        if (expected) Assert.NotEqual(ModKey.Null, modKey);
+    }
+
+    #endregion
+
     #region TryParse - FormKey parsing
 
     [Fact]
@@ -343,25 +362,6 @@ public class FormKeyHelperTests
         var result = FormKeyHelper.FormatForSpid(formKey);
 
         Assert.Equal(expected, result);
-    }
-
-    #endregion
-
-    #region TryParseModKey
-
-    [Theory]
-    [InlineData("Skyrim.esm", true)]
-    [InlineData("MyMod.esp", true)]
-    [InlineData("Light.esl", true)]
-    [InlineData("SKYRIM.ESM", true)]
-    [InlineData("NotAMod", false)]
-    [InlineData("", false)]
-    public void TryParseModKey_VariousInputs_ReturnsCorrectly(string input, bool expected)
-    {
-        var result = FormKeyHelper.TryParseModKey(input, out var modKey);
-        Assert.Equal(expected, result);
-
-        if (expected) Assert.NotEqual(ModKey.Null, modKey);
     }
 
     #endregion

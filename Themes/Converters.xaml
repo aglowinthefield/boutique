@@ -1,17 +1,17 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:utilities="clr-namespace:Boutique.Utilities">
-    <!-- Built-in -->
-    <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+  <!-- Built-in -->
+  <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
 
-    <!-- Custom converters -->
-    <utilities:DistributionFileTypeConverter x:Key="DistributionFileTypeConverter" />
-    <utilities:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
-    <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
-    <utilities:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisConverter" />
-    <utilities:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisConverter" />
-    <utilities:NullToVisibilityConverter x:Key="NullToVisConverter" />
-    <utilities:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
-    <utilities:InequalityToVisibilityConverter x:Key="InequalityToVisConverter" />
-    <utilities:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+  <!-- Custom converters -->
+  <utilities:DistributionFileTypeConverter x:Key="DistributionFileTypeConverter" />
+  <utilities:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
+  <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
+  <utilities:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisConverter" />
+  <utilities:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisConverter" />
+  <utilities:NullToVisibilityConverter x:Key="NullToVisConverter" />
+  <utilities:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
+  <utilities:InequalityToVisibilityConverter x:Key="InequalityToVisConverter" />
+  <utilities:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
 </ResourceDictionary>

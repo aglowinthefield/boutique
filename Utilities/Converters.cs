@@ -6,7 +6,7 @@ using System.Windows.Data;
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Converts a boolean to Visibility, returning Collapsed when true (inverse of BooleanToVisibilityConverter).
+///     Converts a boolean to Visibility, returning Collapsed when true (inverse of BooleanToVisibilityConverter).
 /// </summary>
 public class InverseBoolToVisibilityConverter : IValueConverter
 {
@@ -18,8 +18,8 @@ public class InverseBoolToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts a collection count to Visibility. Visible when count > 0, Collapsed otherwise.
-/// Use ConverterParameter="Inverse" to invert behavior.
+///     Converts a collection count to Visibility. Visible when count > 0, Collapsed otherwise.
+///     Use ConverterParameter="Inverse" to invert behavior.
 /// </summary>
 public class CollectionCountToVisibilityConverter : IValueConverter
 {
@@ -44,8 +44,8 @@ public class CollectionCountToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts a string to Visibility. Visible when not null/empty, Collapsed otherwise.
-/// Use ConverterParameter="Inverse" to show when empty.
+///     Converts a string to Visibility. Visible when not null/empty, Collapsed otherwise.
+///     Use ConverterParameter="Inverse" to show when empty.
 /// </summary>
 public class StringEmptyToVisibilityConverter : IValueConverter
 {
@@ -61,8 +61,8 @@ public class StringEmptyToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts null to Visibility. Visible when not null, Collapsed when null.
-/// Use ConverterParameter="Inverse" to invert behavior.
+///     Converts null to Visibility. Visible when not null, Collapsed when null.
+///     Use ConverterParameter="Inverse" to invert behavior.
 /// </summary>
 public class NullToVisibilityConverter : IValueConverter
 {
@@ -78,7 +78,7 @@ public class NullToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts a boolean to its inverse.
+///     Converts a boolean to its inverse.
 /// </summary>
 public class InverseBoolConverter : IValueConverter
 {
@@ -90,7 +90,7 @@ public class InverseBoolConverter : IValueConverter
 }
 
 /// <summary>
-/// Returns Visibility.Visible when value equals parameter, Collapsed otherwise.
+///     Returns Visibility.Visible when value equals parameter, Collapsed otherwise.
 /// </summary>
 public class EqualityToVisibilityConverter : IValueConverter
 {
@@ -102,7 +102,7 @@ public class EqualityToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Returns Visibility.Collapsed when value equals parameter, Visible otherwise.
+///     Returns Visibility.Collapsed when value equals parameter, Visible otherwise.
 /// </summary>
 public class InequalityToVisibilityConverter : IValueConverter
 {
@@ -114,7 +114,7 @@ public class InequalityToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// Returns true if the string is not null/empty/whitespace, false otherwise.
+///     Returns true if the string is not null/empty/whitespace, false otherwise.
 /// </summary>
 public class StringNotEmptyConverter : IValueConverter
 {

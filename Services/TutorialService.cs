@@ -13,6 +13,8 @@ public class TutorialService
     private static readonly string TutorialCompletedFile = Path.Combine(SettingsDirectory, ".tutorial_completed");
 
     private readonly ILogger _logger;
+
+    private GuideLineManager? _currentManager;
     private GuideLine_View? _guidelineView;
 
     public TutorialService(ILogger logger)
@@ -60,8 +62,6 @@ public class TutorialService
         manager.StartGuideLine(_guidelineView.Name);
     }
 
-    private GuideLineManager? _currentManager;
-
     private void OnTutorialCompleted()
     {
         CompleteTutorial();
@@ -86,43 +86,43 @@ public class TutorialService
         new(
         [
             new GuideLineStep(
-                title: "Welcome to Boutique!",
-                message: "This quick tour will show you the main features. Use the arrow buttons or keyboard arrows to navigate.",
-                uiElementName: "MainTabControl"),
+                "Welcome to Boutique!",
+                "This quick tour will show you the main features. Use the arrow buttons or keyboard arrows to navigate.",
+                "MainTabControl"),
 
             new GuideLineStep(
-                title: "Distribution Tab",
-                message: "Create and manage outfit distributions for NPCs using SPID or SkyPatcher. This is the main workflow for assigning outfits to NPCs.",
-                uiElementName: "DistributionTab"),
+                "Distribution Tab",
+                "Create and manage outfit distributions for NPCs using SPID or SkyPatcher. This is the main workflow for assigning outfits to NPCs.",
+                "DistributionTab"),
 
             new GuideLineStep(
-                title: "Outfit Creator Tab",
-                message: "Create new outfit records (OTFT) from armor pieces. Useful when you need custom outfit combinations.",
-                uiElementName: "OutfitCreatorTab"),
+                "Outfit Creator Tab",
+                "Create new outfit records (OTFT) from armor pieces. Useful when you need custom outfit combinations.",
+                "OutfitCreatorTab"),
 
             new GuideLineStep(
-                title: "Armor Patch Tab",
-                message: "Sync armor stats, keywords, and enchantments from master mods (like Requiem) to cosmetic armor mods.",
-                uiElementName: "ArmorPatchTab"),
+                "Armor Patch Tab",
+                "Sync armor stats, keywords, and enchantments from master mods (like Requiem) to cosmetic armor mods.",
+                "ArmorPatchTab"),
 
             new GuideLineStep(
-                title: "Settings Tab",
-                message: "Configure your Skyrim Data path, output location, and application preferences.",
-                uiElementName: "SettingsTab"),
+                "Settings Tab",
+                "Configure your Skyrim Data path, output location, and application preferences.",
+                "SettingsTab"),
 
             new GuideLineStep(
-                title: "Refresh Button",
-                message: "Click here to reload game data after making changes to your load order or mod files.",
-                uiElementName: "RefreshButton"),
+                "Refresh Button",
+                "Click here to reload game data after making changes to your load order or mod files.",
+                "RefreshButton"),
 
             new GuideLineStep(
-                title: "Patch File Name",
-                message: "Set the name of the ESP file that Boutique will create. All changes are written to this file.",
-                uiElementName: "PatchFileNamePanel"),
+                "Patch File Name",
+                "Set the name of the ESP file that Boutique will create. All changes are written to this file.",
+                "PatchFileNamePanel"),
 
             new GuideLineStep(
-                title: "You're Ready!",
-                message: "That's it! Start by configuring your Skyrim Data path in Settings, then explore the Distribution tab to assign outfits to NPCs.\n\nYou can restart this tutorial anytime from the Help menu.",
-                uiElementName: "MainTabControl"),
+                "You're Ready!",
+                "That's it! Start by configuring your Skyrim Data path in Settings, then explore the Distribution tab to assign outfits to NPCs.\n\nYou can restart this tutorial anytime from the Help menu.",
+                "MainTabControl")
         ]);
 }

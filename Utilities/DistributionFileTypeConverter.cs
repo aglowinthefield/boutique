@@ -6,8 +6,8 @@ using System.Windows.Data;
 namespace Boutique.Utilities;
 
 /// <summary>
-/// Converts enum values to their [Description] attribute strings.
-/// Falls back to ToString() if no description is defined.
+///     Converts enum values to their [Description] attribute strings.
+///     Falls back to ToString() if no description is defined.
 /// </summary>
 public class DistributionFileTypeConverter : IValueConverter
 {

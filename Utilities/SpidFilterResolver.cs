@@ -15,7 +15,7 @@ public static class SpidFilterResolver
         IReadOnlyList<INpcGetter> cachedNpcs,
         IReadOnlyList<IOutfitGetter> cachedOutfits,
         ILogger? logger = null) =>
-        Resolve(filter, linkCache, cachedNpcs, cachedOutfits, knownVirtualKeywords: null, logger);
+        Resolve(filter, linkCache, cachedNpcs, cachedOutfits, null, logger);
 
     public static DistributionEntry? Resolve(
         SpidDistributionFilter filter,
@@ -53,7 +53,8 @@ public static class SpidFilterResolver
             // Process FormFilters - can contain factions, races, classes, combat styles, outfits, perks, voice types, locations, formlists
             var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             ProcessFormFilters(filter.FormFilters, linkCache, factionFilters, raceFilters, classFormKeys,
-                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys, formListFormKeys,
+                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys,
+                formListFormKeys,
                 resolvedExcludedFormEditorIds, logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
@@ -62,7 +63,8 @@ public static class SpidFilterResolver
             var hasAnyFilter = npcFormKeys.Count > 0 || factionFilters.Count > 0 ||
                                keywordFilters.Count > 0 || raceFilters.Count > 0 ||
                                classFormKeys.Count > 0 || combatStyleFormKeys.Count > 0 ||
-                               outfitFilterFormKeys.Count > 0 || perkFormKeys.Count > 0 || voiceTypeFormKeys.Count > 0 ||
+                               outfitFilterFormKeys.Count > 0 || perkFormKeys.Count > 0 ||
+                               voiceTypeFormKeys.Count > 0 ||
                                locationFormKeys.Count > 0 || formListFormKeys.Count > 0 ||
                                !string.IsNullOrEmpty(rawStringFilters) || !string.IsNullOrEmpty(rawFormFilters);
 
@@ -92,10 +94,7 @@ public static class SpidFilterResolver
                 RawFormFilters = rawFormFilters
             };
 
-            if (filter.Chance != 100)
-            {
-                entry.Chance = filter.Chance;
-            }
+            if (filter.Chance != 100) entry.Chance = filter.Chance;
 
             return entry;
         }
@@ -139,7 +138,8 @@ public static class SpidFilterResolver
 
             var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             ProcessFormFilters(filter.FormFilters, linkCache, factionFilters, raceFilters, classFormKeys,
-                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys, formListFormKeys,
+                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys,
+                formListFormKeys,
                 resolvedExcludedFormEditorIds, logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
@@ -166,10 +166,7 @@ public static class SpidFilterResolver
                 RawFormFilters = rawFormFilters
             };
 
-            if (filter.Chance != 100)
-            {
-                entry.Chance = filter.Chance;
-            }
+            if (filter.Chance != 100) entry.Chance = filter.Chance;
 
             return entry;
         }
@@ -198,10 +195,7 @@ public static class SpidFilterResolver
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {
                 var outfitFormKey = new FormKey(modKey, formId);
-                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-                {
-                    return outfit;
-                }
+                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)) return outfit;
             }
 
             logger?.Debug("Failed to resolve tilde-format outfit: {Identifier}", outfitIdentifier);
@@ -220,10 +214,7 @@ public static class SpidFilterResolver
                 ModKey.TryFromNameAndExtension(modKeyString, out var modKey))
             {
                 var outfitFormKey = new FormKey(modKey, formId);
-                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-                {
-                    return outfit;
-                }
+                if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit)) return outfit;
             }
 
             logger?.Debug("Failed to resolve pipe-format outfit: {Identifier}", outfitIdentifier);
@@ -234,10 +225,7 @@ public static class SpidFilterResolver
         var resolvedOutfit = cachedOutfits.FirstOrDefault(o =>
             string.Equals(o.EditorID, outfitIdentifier, StringComparison.OrdinalIgnoreCase));
 
-        if (resolvedOutfit == null)
-        {
-            logger?.Debug("Failed to resolve EditorID outfit: {Identifier}", outfitIdentifier);
-        }
+        if (resolvedOutfit == null) logger?.Debug("Failed to resolve EditorID outfit: {Identifier}", outfitIdentifier);
 
         return resolvedOutfit;
     }
@@ -279,9 +267,10 @@ public static class SpidFilterResolver
                 {
                     if (LooksLikeKeywordEditorId(part.Value))
                     {
-                        keywordFilters.Add(new KeywordFilter(part.Value, IsExcluded: true));
+                        keywordFilters.Add(new KeywordFilter(part.Value, true));
                         logger?.Verbose("Treating negated string filter as excluded keyword: {Value}", part.Value);
                     }
+
                     continue;
                 }
 
@@ -299,13 +288,11 @@ public static class SpidFilterResolver
                 // (either virtual keyword from SPID or an unrecognized game keyword)
                 if (LooksLikeKeywordEditorId(part.Value))
                 {
-                    keywordFilters.Add(new KeywordFilter(part.Value, IsExcluded: false));
+                    keywordFilters.Add(new KeywordFilter(part.Value, false));
                     logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
                 }
                 else
-                {
                     logger?.Verbose("Could not resolve string filter: {Value}", part.Value);
-                }
             }
         }
 
@@ -318,19 +305,19 @@ public static class SpidFilterResolver
                 .FirstOrDefault(k => string.Equals(k.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
             if (keyword != null)
             {
-                keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? exclusion.Value, IsExcluded: true));
+                keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? exclusion.Value, true));
                 continue;
             }
 
             if (knownVirtualKeywords != null && knownVirtualKeywords.Contains(exclusion.Value))
             {
-                keywordFilters.Add(new KeywordFilter(exclusion.Value, IsExcluded: true));
+                keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
                 continue;
             }
 
             if (LooksLikeKeywordEditorId(exclusion.Value))
             {
-                keywordFilters.Add(new KeywordFilter(exclusion.Value, IsExcluded: true));
+                keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
                 logger?.Verbose("Treating global exclusion as excluded keyword: {Value}", exclusion.Value);
             }
         }
@@ -470,7 +457,8 @@ public static class SpidFilterResolver
         }
     }
 
-    private static string? ExtractUnresolvableStringFilters(SpidFilterSection stringFilters, List<KeywordFilter> resolvedKeywordFilters)
+    private static string? ExtractUnresolvableStringFilters(SpidFilterSection stringFilters,
+        List<KeywordFilter> resolvedKeywordFilters)
     {
         var resolvedSet = new HashSet<string>(
             resolvedKeywordFilters.Where(k => k.IsExcluded).Select(k => k.EditorId),
@@ -483,28 +471,16 @@ public static class SpidFilterResolver
             foreach (var part in expr.Parts)
             {
                 if (part.HasWildcard)
-                {
                     exprParts.Add(part.Value);
-                }
-                else if (part.IsNegated && !resolvedSet.Contains(part.Value))
-                {
-                    exprParts.Add($"-{part.Value}");
-                }
+                else if (part.IsNegated && !resolvedSet.Contains(part.Value)) exprParts.Add($"-{part.Value}");
             }
 
-            if (exprParts.Count > 0)
-            {
-                unresolvableParts.Add(string.Join("+", exprParts));
-            }
+            if (exprParts.Count > 0) unresolvableParts.Add(string.Join("+", exprParts));
         }
 
         foreach (var exclusion in stringFilters.GlobalExclusions)
-        {
             if (!resolvedSet.Contains(exclusion.Value))
-            {
                 unresolvableParts.Add($"-{exclusion.Value}");
-            }
-        }
 
         return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
     }
@@ -523,25 +499,15 @@ public static class SpidFilterResolver
                 if (!part.IsNegated)
                     continue;
 
-                if (!resolvedExcludedEditorIds.Contains(part.Value))
-                {
-                    exprParts.Add($"-{part.Value}");
-                }
+                if (!resolvedExcludedEditorIds.Contains(part.Value)) exprParts.Add($"-{part.Value}");
             }
 
-            if (exprParts.Count > 0)
-            {
-                unresolvableParts.Add(string.Join("+", exprParts));
-            }
+            if (exprParts.Count > 0) unresolvableParts.Add(string.Join("+", exprParts));
         }
 
         foreach (var exclusion in formFilters.GlobalExclusions)
-        {
             if (!resolvedExcludedEditorIds.Contains(exclusion.Value))
-            {
                 unresolvableParts.Add($"-{exclusion.Value}");
-            }
-        }
 
         return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
     }

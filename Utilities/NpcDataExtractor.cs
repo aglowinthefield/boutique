@@ -16,30 +16,23 @@ public static class NpcDataExtractor
         if (npc.Keywords != null)
         {
             foreach (var keywordLink in npc.Keywords)
-            {
                 if (keywordLink.TryResolve(linkCache, out var keyword) && !string.IsNullOrWhiteSpace(keyword.EditorID))
-                {
                     keywords.Add(keyword.EditorID);
-                }
-            }
         }
 
         // Collect race keywords
         if (npc.Race.TryResolve(linkCache, out var race) && race.Keywords != null)
         {
             foreach (var keywordLink in race.Keywords)
-            {
                 if (keywordLink.TryResolve(linkCache, out var keyword) && !string.IsNullOrWhiteSpace(keyword.EditorID))
-                {
                     keywords.Add(keyword.EditorID);
-                }
-            }
         }
 
         return keywords;
     }
 
-    public static List<FactionMembership> ExtractFactions(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static List<FactionMembership> ExtractFactions(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var factions = new List<FactionMembership>();
 
@@ -49,23 +42,19 @@ public static class NpcDataExtractor
         foreach (var factionRank in npc.Factions)
         {
             string? editorId = null;
-            if (factionRank.Faction.TryResolve(linkCache, out var faction))
-            {
-                editorId = faction.EditorID;
-            }
+            if (factionRank.Faction.TryResolve(linkCache, out var faction)) editorId = faction.EditorID;
 
             factions.Add(new FactionMembership
             {
-                FactionFormKey = factionRank.Faction.FormKey,
-                FactionEditorId = editorId,
-                Rank = factionRank.Rank
+                FactionFormKey = factionRank.Faction.FormKey, FactionEditorId = editorId, Rank = factionRank.Rank
             });
         }
 
         return factions;
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractRace(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractRace(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Race.IsNull)
             return (null, null);
@@ -73,15 +62,13 @@ public static class NpcDataExtractor
         var formKey = npc.Race.FormKey;
         string? editorId = null;
 
-        if (npc.Race.TryResolve(linkCache, out var race))
-        {
-            editorId = race.EditorID;
-        }
+        if (npc.Race.TryResolve(linkCache, out var race)) editorId = race.EditorID;
 
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractClass(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractClass(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Class.IsNull)
             return (null, null);
@@ -89,15 +76,13 @@ public static class NpcDataExtractor
         var formKey = npc.Class.FormKey;
         string? editorId = null;
 
-        if (npc.Class.TryResolve(linkCache, out var npcClass))
-        {
-            editorId = npcClass.EditorID;
-        }
+        if (npc.Class.TryResolve(linkCache, out var npcClass)) editorId = npcClass.EditorID;
 
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.CombatStyle.IsNull)
             return (null, null);
@@ -105,15 +90,13 @@ public static class NpcDataExtractor
         var formKey = npc.CombatStyle.FormKey;
         string? editorId = null;
 
-        if (npc.CombatStyle.TryResolve(linkCache, out var combatStyle))
-        {
-            editorId = combatStyle.EditorID;
-        }
+        if (npc.CombatStyle.TryResolve(linkCache, out var combatStyle)) editorId = combatStyle.EditorID;
 
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Voice.IsNull)
             return (null, null);
@@ -121,15 +104,13 @@ public static class NpcDataExtractor
         var formKey = npc.Voice.FormKey;
         string? editorId = null;
 
-        if (npc.Voice.TryResolve(linkCache, out var voice))
-        {
-            editorId = voice.EditorID;
-        }
+        if (npc.Voice.TryResolve(linkCache, out var voice)) editorId = voice.EditorID;
 
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.DefaultOutfit.IsNull)
             return (null, null);
@@ -137,15 +118,13 @@ public static class NpcDataExtractor
         var formKey = npc.DefaultOutfit.FormKey;
         string? editorId = null;
 
-        if (npc.DefaultOutfit.TryResolve(linkCache, out var outfit))
-        {
-            editorId = outfit.EditorID;
-        }
+        if (npc.DefaultOutfit.TryResolve(linkCache, out var outfit)) editorId = outfit.EditorID;
 
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractTemplate(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public static (FormKey? FormKey, string? EditorId) ExtractTemplate(INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Template.IsNull)
             return (null, null);
@@ -155,13 +134,9 @@ public static class NpcDataExtractor
 
         // Template can be either an NPC or a LeveledNpc
         if (linkCache.TryResolve<INpcGetter>(formKey, out var templateNpc))
-        {
             editorId = templateNpc.EditorID;
-        }
         else if (linkCache.TryResolve<ILeveledNpcGetter>(formKey, out var templateLvln))
-        {
             editorId = templateLvln.EditorID;
-        }
 
         return (formKey, editorId);
     }
@@ -178,7 +153,8 @@ public static class NpcDataExtractor
                raceEditorId.Contains("DA13", StringComparison.OrdinalIgnoreCase); // Daedric child form
     }
 
-    public static short ExtractLevel(INpcGetter npc) => npc.Configuration.Level is NpcLevel npcLevel ? npcLevel.Level : (short)1;
+    public static short ExtractLevel(INpcGetter npc) =>
+        npc.Configuration.Level is NpcLevel npcLevel ? npcLevel.Level : (short)1;
 
     public static (bool IsFemale, bool IsUnique, bool IsSummonable, bool IsLeveled) ExtractTraits(INpcGetter npc)
     {
@@ -191,11 +167,11 @@ public static class NpcDataExtractor
     }
 
     /// <summary>
-    /// Extracts NPC skill values. Returns an array of 24 skill values indexed by SPID skill index.
-    /// SPID skill indices: 6=OneHanded, 7=TwoHanded, 8=Marksman, 9=Block, 10=Smithing,
-    /// 11=HeavyArmor, 12=LightArmor, 13=Pickpocket, 14=Lockpicking, 15=Sneak,
-    /// 16=Alchemy, 17=Speechcraft, 18=Alteration, 19=Conjuration, 20=Destruction,
-    /// 21=Illusion, 22=Restoration, 23=Enchanting
+    ///     Extracts NPC skill values. Returns an array of 24 skill values indexed by SPID skill index.
+    ///     SPID skill indices: 6=OneHanded, 7=TwoHanded, 8=Marksman, 9=Block, 10=Smithing,
+    ///     11=HeavyArmor, 12=LightArmor, 13=Pickpocket, 14=Lockpicking, 15=Sneak,
+    ///     16=Alchemy, 17=Speechcraft, 18=Alteration, 19=Conjuration, 20=Destruction,
+    ///     21=Illusion, 22=Restoration, 23=Enchanting
     /// </summary>
     public static byte[] ExtractSkillValues(INpcGetter npc)
     {

@@ -1,5 +1,4 @@
 using Boutique.Utilities;
-using Mutagen.Bethesda.Plugins;
 using Xunit;
 
 namespace Boutique.Tests;
@@ -275,7 +274,8 @@ public class SkyPatcherSyntaxTests
     [Fact]
     public void RealExample_ComplexSkyPatcherLine_ParsesCorrectly()
     {
-        var line = "filterByNpcs=Skyrim.esm|0x13BBF,Skyrim.esm|0x1B07A:filterByGender=female:outfitDefault=MyMod.esp|0x800";
+        var line =
+            "filterByNpcs=Skyrim.esm|0x13BBF,Skyrim.esm|0x1B07A:filterByGender=female:outfitDefault=MyMod.esp|0x800";
 
         var npcs = SkyPatcherSyntax.ParseFormKeys(line, "filterByNpcs");
         var gender = SkyPatcherSyntax.ParseGenderFilter(line);
@@ -358,7 +358,8 @@ public class SkyPatcherSyntaxTests
     [Fact]
     public void ExtractFilterValuesWithVariants_CombinesBothFormats()
     {
-        var line = "filterByFactions=Skyrim.esm|0x100:filterByFactionsOr=Skyrim.esm|0x200,Skyrim.esm|0x300:outfitDefault=MyMod.esp|0x800";
+        var line =
+            "filterByFactions=Skyrim.esm|0x100:filterByFactionsOr=Skyrim.esm|0x200,Skyrim.esm|0x300:outfitDefault=MyMod.esp|0x800";
 
         var values = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
 

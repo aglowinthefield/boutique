@@ -26,11 +26,11 @@ public class DistributionConflictDetectionService
         if (npcFormKeysInEntries.Count == 0)
         {
             return new ConflictDetectionResult(
-                HasConflicts: false,
-                ConflictsResolvedByFilename: false,
-                ConflictSummary: string.Empty,
-                SuggestedFileName: newFileName,
-                Conflicts: []);
+                false,
+                false,
+                string.Empty,
+                newFileName,
+                []);
         }
 
         // Build a map of NPC FormKey -> (FileName, OutfitEditorId) from existing distribution files
@@ -87,7 +87,7 @@ public class DistributionConflictDetectionService
 
         // Check if conflicts are from an "all NPCs" distribution
         var hasAllNpcsConflict = allNpcsDistributions.Count > 0 &&
-            conflicts.Any(c => allNpcsDistributions.Exists(d => d.FileName == c.ExistingFileName));
+                                 conflicts.Any(c => allNpcsDistributions.Exists(d => d.FileName == c.ExistingFileName));
 
         if (conflicts.Count > 0)
         {
@@ -97,7 +97,8 @@ public class DistributionConflictDetectionService
                 var allNpcsNote = hasAllNpcsConflict
                     ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
                     : string.Empty;
-                conflictSummary = $"✓ {conflicts.Count} NPC(s) have existing distributions{allNpcsNote}, but your filename '{newFileName}' will load after them.";
+                conflictSummary =
+                    $"✓ {conflicts.Count} NPC(s) have existing distributions{allNpcsNote}, but your filename '{newFileName}' will load after them.";
                 suggestedFileName = newFileName;
             }
             else
@@ -107,22 +108,25 @@ public class DistributionConflictDetectionService
 
                 if (hasAllNpcsConflict)
                 {
-                    sb.Append(CultureInfo.InvariantCulture, $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.").AppendLine();
-                    sb.Append(CultureInfo.InvariantCulture, $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
+                    sb.Append(CultureInfo.InvariantCulture,
+                            $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.")
+                        .AppendLine();
+                    sb.Append(CultureInfo.InvariantCulture,
+                        $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
                 }
                 else
                 {
-                    sb.Append(CultureInfo.InvariantCulture, $"⚠ {conflicts.Count} NPC(s) already have outfit distributions in existing files:").AppendLine();
+                    sb.Append(CultureInfo.InvariantCulture,
+                            $"⚠ {conflicts.Count} NPC(s) already have outfit distributions in existing files:")
+                        .AppendLine();
 
                     foreach (var conflict in conflicts.Take(5)) // Show first 5
-                    {
-                        sb.Append(CultureInfo.InvariantCulture, $"  • {conflict.DisplayName ?? conflict.NpcFormKey.ToString()} ({conflict.ExistingFileName})").AppendLine();
-                    }
+                        sb.Append(CultureInfo.InvariantCulture,
+                                $"  • {conflict.DisplayName ?? conflict.NpcFormKey.ToString()} ({conflict.ExistingFileName})")
+                            .AppendLine();
 
                     if (conflicts.Count > 5)
-                    {
                         sb.Append(CultureInfo.InvariantCulture, $"  ... and {conflicts.Count - 5} more").AppendLine();
-                    }
                 }
 
                 conflictSummary = sb.ToString().TrimEnd();
@@ -138,11 +142,11 @@ public class DistributionConflictDetectionService
         }
 
         return new ConflictDetectionResult(
-            HasConflicts: hasConflicts,
-            ConflictsResolvedByFilename: conflictsResolvedByFilename,
-            ConflictSummary: conflictSummary,
-            SuggestedFileName: suggestedFileName,
-            Conflicts: conflicts);
+            hasConflicts,
+            conflictsResolvedByFilename,
+            conflictSummary,
+            suggestedFileName,
+            conflicts);
     }
 
     private static bool DoesFileLoadAfterAll(string fileName, HashSet<string> conflictingFileNames)
@@ -155,19 +159,15 @@ public class DistributionConflictDetectionService
             return true;
 
         foreach (var conflictingFile in conflictingFileNames)
-        {
             // Compare alphabetically (case-insensitive, like file systems)
             if (string.Compare(fileName, conflictingFile, StringComparison.OrdinalIgnoreCase) <= 0)
-            {
                 return false;
-            }
-        }
 
         return true;
     }
 
     private static (Dictionary<FormKey, (string FileName, string? OutfitName)> SpecificNpcDistributions,
-                    List<(string FileName, string? OutfitName)> AllNpcsDistributions)
+        List<(string FileName, string? OutfitName)> AllNpcsDistributions)
         BuildExistingDistributionMap(
             IReadOnlyList<DistributionFileViewModel> files,
             ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
@@ -204,25 +204,19 @@ public class DistributionConflictDetectionService
                 if (DistributionLineParser.LineTargetsAllNpcs(file, line))
                 {
                     // Only track the first "all NPCs" distribution
-                    if (allNpcsDistributions.Count == 0)
-                    {
-                        allNpcsDistributions.Add((file.FileName, outfitName));
-                    }
+                    if (allNpcsDistributions.Count == 0) allNpcsDistributions.Add((file.FileName, outfitName));
 
                     continue;
                 }
 
                 // Parse the line to extract specific NPC FormKeys
-                var npcFormKeys = DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache, npcByEditorId, npcByName);
+                var npcFormKeys =
+                    DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache, npcByEditorId, npcByName);
 
                 foreach (var npcFormKey in npcFormKeys)
-                {
                     // Only track first occurrence (earlier files in load order)
                     if (!map.ContainsKey(npcFormKey))
-                    {
                         map[npcFormKey] = (file.FileName, outfitName);
-                    }
-                }
             }
         }
 
