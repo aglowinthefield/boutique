@@ -130,8 +130,14 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 }
 
                 var partName = $"{armorName} ({addon.EditorID ?? addon.FormKey.ToString()})";
-                meshes.AddRange(LoadMeshesFromNif(partName, fullPath, variantForAddon, addon.FormKey.ModKey,
-                    cancellationToken));
+                meshes.AddRange(LoadMeshesFromNif(
+                    partName,
+                    fullPath,
+                    variantForAddon,
+                    addon.FormKey.ModKey,
+                    cancellationToken,
+                    addon,
+                    linkCache));
             }
         }
 
@@ -162,7 +168,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         string meshPath,
         GenderedModelVariant variant,
         ModKey? ownerModKey,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IArmorAddonGetter? addon = null,
+        ILinkCache? linkCache = null)
     {
         var meshes = new List<PreviewMeshShape>();
         var nif = new NifFile();
@@ -185,7 +193,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!TryExtractMesh(nif, shape, ownerModKey, out var meshData))
+                if (!TryExtractMesh(nif, shape, ownerModKey, variant, addon, linkCache, out var meshData))
                 {
                     _logger.Debug(
                         "Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
@@ -222,7 +230,14 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         return meshes;
     }
 
-    private bool TryExtractMesh(NifFile nif, INiShape shape, ModKey? ownerModKey, out MeshData meshData)
+    private bool TryExtractMesh(
+        NifFile nif,
+        INiShape shape,
+        ModKey? ownerModKey,
+        GenderedModelVariant variant,
+        IArmorAddonGetter? addon,
+        ILinkCache? linkCache,
+        out MeshData meshData)
     {
         meshData = default;
 
@@ -279,7 +294,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         var transform = MeshUtilities.ComputeWorldTransform(nif, shape);
-        var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey);
+        var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey, addon, variant, linkCache);
 
         if (diffuse == null)
         {
@@ -290,10 +305,59 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         return true;
     }
 
-    private string? ExtractDiffuseTexturePath(NifFile nif, INiShape shape, ModKey? ownerModKey)
+    private string? ExtractDiffuseTexturePath(
+        NifFile nif,
+        INiShape shape,
+        ModKey? ownerModKey,
+        IArmorAddonGetter? addon,
+        GenderedModelVariant variant,
+        ILinkCache? linkCache)
     {
-        var shapeName = shape.Name?.ToString() ?? "<unnamed>";
+        var shapeName = shape.Name?.String ?? shape.Name?.ToString() ?? "<unnamed>";
         var candidates = new List<string>();
+
+        if (addon?.WorldModel == null || linkCache == null)
+        {
+            goto FallbackToNif;
+        }
+
+        var model = variant == GenderedModelVariant.Female
+            ? addon.WorldModel.Female
+            : addon.WorldModel.Male;
+
+        if (model?.AlternateTextures == null)
+        {
+            goto FallbackToNif;
+        }
+
+        var matchingTexture = model.AlternateTextures
+            .Where(t => t?.NewTexture != null && !t.NewTexture.IsNull)
+            .FirstOrDefault(t =>
+            {
+                var meshName = t.Name ?? string.Empty;
+                return string.IsNullOrEmpty(meshName) || shapeName.Equals(meshName, StringComparison.OrdinalIgnoreCase);
+            });
+
+        if (matchingTexture != null &&
+            linkCache.TryResolve<ITextureSetGetter>(matchingTexture.NewTexture.FormKey, out var textureSet) &&
+            !string.IsNullOrWhiteSpace(textureSet.Diffuse))
+        {
+            var textureSetModKey = matchingTexture.NewTexture.FormKey.ModKey;
+            var resolvedPath = assetLocator.ResolveAssetPath(textureSet.Diffuse.ToString(), textureSetModKey);
+
+            if (!string.IsNullOrWhiteSpace(resolvedPath) && File.Exists(resolvedPath))
+            {
+                _logger.Debug(
+                    "Using alternate texture for ArmorAddon {Addon} shape '{Shape}': {Texture}",
+                    addon.EditorID,
+                    shapeName,
+                    textureSet.Diffuse);
+
+                return resolvedPath;
+            }
+        }
+
+        FallbackToNif:
 
         CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
