@@ -20,7 +20,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public record PreviewLineHighlightRequest(int LineNumber, string LineContent);
+public record PreviewLineHighlightRequest(int LineNumber, string LineContent, Guid RequestId);
 
 public partial class DistributionEditTabViewModel : ReactiveObject
 {
@@ -249,19 +249,19 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     }
 
     /// <summary>Available NPCs for distribution entry selection (from cache).</summary>
-    public ObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
+    public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
 
     /// <summary>Available factions for distribution entry selection (from cache).</summary>
-    public ObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
 
     /// <summary>Available keywords for distribution entry selection (from cache).</summary>
-    public ObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
 
     /// <summary>Available races for distribution entry selection (from cache).</summary>
-    public ObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
 
     /// <summary>Available classes for distribution entry selection (from cache).</summary>
-    public ObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
+    public ReadOnlyObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
 
     /// <summary>
     ///     The currently selected dropdown item. Headers are not selectable.
@@ -398,7 +398,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         ? Path.GetFileName(DistributionFilePath)
         : string.Empty;
 
-    [Reactive] public PreviewLineHighlightRequest? HighlightRequest { get; private set; }
+    [Reactive] private PreviewLineHighlightRequest? _highlightRequest;
 
     /// <summary>
     ///     The distribution file format (SPID or SkyPatcher).
@@ -416,7 +416,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
             _logger.Debug(
                 "DistributionFormat changing from {OldFormat} to {NewFormat}, EntryCount={Count}",
-                _distributionFormat, value, DistributionEntries.Count);
+                _distributionFormat,
+                value,
+                DistributionEntries.Count);
 
             this.RaiseAndSetIfChanged(ref _distributionFormat, value);
             UpdateFileContent();
@@ -442,7 +444,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         _logger.Debug(
             "OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}",
-            e.Action, e.NewItems?.Count ?? 0, e.OldItems?.Count ?? 0);
+            e.Action,
+            e.NewItems?.Count ?? 0,
+            e.OldItems?.Count ?? 0);
 
         this.RaisePropertyChanged(nameof(DistributionEntriesCount));
 
@@ -535,7 +539,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 {
                     SelectedEntry = entryVm;
                     _logger.Debug("SelectedEntry set");
-                }), DispatcherPriority.Background);
+                }),
+                DispatcherPriority.Background);
 
             _logger.Debug("AddDistributionEntry completed successfully");
         }
@@ -668,7 +673,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                         {
                             ApplyFilterToEntry(SelectedEntry, CopiedFilter);
                         }
-                    }), DispatcherPriority.Background);
+                    }),
+                    DispatcherPriority.Background);
                 return;
             }
         }
@@ -704,7 +710,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         {
             var keywordVm = ResolveKeywordByFormKey(keywordFormKey);
             if (keywordVm != null && !entry.SelectedKeywords.Any(k =>
-                    string.Equals(k.KeywordRecord.EditorID, keywordVm.KeywordRecord.EditorID,
+                    string.Equals(
+                        k.KeywordRecord.EditorID,
+                        keywordVm.KeywordRecord.EditorID,
                         StringComparison.OrdinalIgnoreCase)))
             {
                 entry.AddKeyword(keywordVm);
@@ -875,7 +883,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
             _logger.Information(
                 "Saved distribution file: {FilePath} ({LineCount} lines)",
-                finalFilePath, DistributionFileContent.Split('\n').Length);
+                finalFilePath,
+                DistributionFileContent.Split('\n').Length);
 
             // Track the saved file path so RefreshAvailableDistributionFiles can select it
             _justSavedFilePath = finalFilePath;
@@ -901,7 +910,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     {
         _logger.Debug(
             "LoadDistributionFileAsync called. DistributionFilePath: {Path}, Exists: {Exists}",
-            DistributionFilePath, File.Exists(DistributionFilePath ?? string.Empty));
+            DistributionFilePath,
+            File.Exists(DistributionFilePath ?? string.Empty));
 
         if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
         {
@@ -965,7 +975,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = statusMsg;
             _logger.Information(
                 "Loaded distribution file: {FilePath} with {Count} entries, {ErrorCount} parse errors",
-                DistributionFilePath, entries.Count, parseErrors.Count);
+                DistributionFilePath,
+                entries.Count,
+                parseErrors.Count);
         }
         catch (Exception ex)
         {
@@ -1028,7 +1040,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 $"Loaded: {AvailableNpcs.Count:N0} NPCs, {AvailableFactions.Count:N0} factions, {AvailableRaces.Count:N0} races, {AvailableClasses.Count:N0} classes, {AvailableKeywords.Count:N0} keywords.";
             _logger.Information(
                 "Game data loaded: {NpcCount} NPCs, {FactionCount} factions.",
-                AvailableNpcs.Count, AvailableFactions.Count);
+                AvailableNpcs.Count,
+                AvailableFactions.Count);
             await LoadAvailableOutfitsAsync();
         }
         catch (Exception ex)
@@ -1098,7 +1111,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         _logger.Debug(
             "Refreshing distribution files dropdown. Previous selection: {Selection}, NewFileName: {NewFileName}, JustSaved: {JustSaved}",
-            previousSelected?.DisplayName, previousNewFileName, justSaved);
+            previousSelected?.DisplayName,
+            previousNewFileName,
+            justSaved);
 
         AvailableDistributionFiles.Clear();
         AvailableDistributionFiles.Add(new DistributionFileSelectionItem(true, null));
@@ -1211,7 +1226,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             : dataPath;
 
         DistributionFilePath = GetDistributionFilePath(baseDirectory, baseName, DistributionFormat);
-        _logger.Debug("Updated distribution file path for format {Format}: {Path}", DistributionFormat,
+        _logger.Debug(
+            "Updated distribution file path for format {Format}: {Path}",
+            DistributionFormat,
             DistributionFilePath);
     }
 
@@ -1270,7 +1287,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
             _logger.Debug(
                 "UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, anyEntryUsesChance={UsesChance}",
-                DistributionEntries.Count, effectiveFormat, anyEntryUsesChance);
+                DistributionEntries.Count,
+                effectiveFormat,
+                anyEntryUsesChance);
 
             DistributionFileContent =
                 DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat, ParseErrors);
@@ -1306,7 +1325,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         var lines = DistributionFileContent.Split('\n');
         var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
-        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent);
+        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
     }
 
     private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry, DistributionFileType format)
@@ -1388,7 +1407,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             outfits.AddRange(newOutfits);
             _logger.Information(
                 "Added {Count} outfit(s) from patch file {Patch} (not in active load order).",
-                newOutfits.Count, Path.GetFileName(patchPath));
+                newOutfits.Count,
+                Path.GetFileName(patchPath));
         }
     }
 
@@ -1467,8 +1487,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(IsInitialized));
                 _logger.Information(
                     "Initialization complete: {NpcCount} NPCs, {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races, {FileCount} files. Restored file: {FilePath}",
-                    FilteredNpcs.Count, FilteredFactions.Count, FilteredKeywords.Count, FilteredRaces.Count,
-                    files.Count, lastFilePath);
+                    FilteredNpcs.Count,
+                    FilteredFactions.Count,
+                    FilteredKeywords.Count,
+                    FilteredRaces.Count,
+                    files.Count,
+                    lastFilePath);
                 _ = LoadDistributionFileAsync();
                 return;
             }
@@ -1491,7 +1515,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(IsInitialized));
         _logger.Information(
             "Initialization complete: {NpcCount} NPCs, {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races, {FileCount} files. NewFileName={NewFileName}",
-            FilteredNpcs.Count, FilteredFactions.Count, FilteredKeywords.Count, FilteredRaces.Count, files.Count,
+            FilteredNpcs.Count,
+            FilteredFactions.Count,
+            FilteredKeywords.Count,
+            FilteredRaces.Count,
+            files.Count,
             NewFileName);
     }
 

@@ -328,7 +328,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         {
             Log.Warning(
                 "Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}",
-                uvs.Count, evaluated.Vertices.Count, evaluated.Shape.Name);
+                uvs.Count,
+                evaluated.Vertices.Count,
+                evaluated.Shape.Name);
         }
 
         geometry.UpdateBounds();
@@ -440,7 +442,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     private static Color4 ScaleColor(Color4 baseColor, float multiplier)
     {
-        return new Color4(baseColor.Red * multiplier, baseColor.Green * multiplier, baseColor.Blue * multiplier,
+        return new Color4(
+            baseColor.Red * multiplier,
+            baseColor.Green * multiplier,
+            baseColor.Blue * multiplier,
             baseColor.Alpha);
     }
 

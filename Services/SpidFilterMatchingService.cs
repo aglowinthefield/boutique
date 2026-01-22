@@ -9,7 +9,9 @@ public class SpidFilterMatchingService
     private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter) =>
         NpcMatchesFilter(npc, filter, null);
 
-    private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter,
+    private static bool NpcMatchesFilter(
+        NpcFilterData npc,
+        SpidDistributionFilter filter,
         IReadOnlySet<string>? virtualKeywords) =>
         MatchesStringFilters(npc, filter.StringFilters, virtualKeywords) &&
         MatchesFormFilters(npc, filter.FormFilters) &&
@@ -46,7 +48,9 @@ public class SpidFilterMatchingService
         }).ToList();
     }
 
-    private static bool MatchesStringFilters(NpcFilterData npc, SpidFilterSection filters,
+    private static bool MatchesStringFilters(
+        NpcFilterData npc,
+        SpidFilterSection filters,
         IReadOnlySet<string>? virtualKeywords)
     {
         if (filters.IsEmpty)
@@ -56,7 +60,9 @@ public class SpidFilterMatchingService
 
         foreach (var exclusion in filters.GlobalExclusions)
         {
-            if (MatchesStringPart(npc, new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
+            if (MatchesStringPart(
+                    npc,
+                    new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
                     virtualKeywords))
             {
                 return false;
@@ -71,7 +77,9 @@ public class SpidFilterMatchingService
         return filters.Expressions.Any(e => MatchesStringExpression(npc, e, virtualKeywords));
     }
 
-    private static bool MatchesStringExpression(NpcFilterData npc, SpidFilterExpression expression,
+    private static bool MatchesStringExpression(
+        NpcFilterData npc,
+        SpidFilterExpression expression,
         IReadOnlySet<string>? virtualKeywords) =>
         expression.Parts.All(part => MatchesStringPart(npc, part, virtualKeywords));
 

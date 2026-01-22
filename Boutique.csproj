@@ -43,6 +43,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="DynamicData" Version="9.4.1" />
         <PackageReference Include="GuideLine.WPF" Version="1.0.3" />
         <PackageReference Include="Loqui" Version="3.2.0" />
         <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.52.0" />

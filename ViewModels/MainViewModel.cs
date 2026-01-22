@@ -462,7 +462,9 @@ public partial class MainViewModel : ReactiveObject
                 {
                     _logger.Debug(
                         "Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
-                        formKey, outfit.EditorID ?? "(No EditorID)", plugin);
+                        formKey,
+                        outfit.EditorID ?? "(No EditorID)",
+                        plugin);
                     continue;
                 }
 
@@ -470,7 +472,9 @@ public partial class MainViewModel : ReactiveObject
                 {
                     _logger.Debug(
                         "Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
-                        formKey, item.GetType().Name, outfit.EditorID ?? "(No EditorID)");
+                        formKey,
+                        item.GetType().Name,
+                        outfit.EditorID ?? "(No EditorID)");
                     continue;
                 }
 
@@ -501,7 +505,9 @@ public partial class MainViewModel : ReactiveObject
 
             _logger.Information(
                 "Discovered existing outfit {EditorId} in {Plugin} with {PieceCount} piece(s).",
-                editorId, plugin, distinctPieces.Count);
+                editorId,
+                plugin,
+                distinctPieces.Count);
         }
 
         return discoveredCount;
@@ -544,7 +550,8 @@ public partial class MainViewModel : ReactiveObject
             {
                 _logger.Debug(
                     "Adjusted outfit name from {Original} to {Adjusted} when copying existing outfit.",
-                    baseName, uniqueName);
+                    baseName,
+                    uniqueName);
             }
 
             var pieces = existing.Pieces
@@ -695,7 +702,9 @@ public partial class MainViewModel : ReactiveObject
 
                 if (!ValidateOutfitPieces(pieces, out var validationMessage))
                 {
-                    _logger.Warning("Skipping outfit {EditorId} due to slot conflict: {Message}", editorId,
+                    _logger.Warning(
+                        "Skipping outfit {EditorId} due to slot conflict: {Message}",
+                        editorId,
                         validationMessage);
                     continue;
                 }
@@ -737,7 +746,8 @@ public partial class MainViewModel : ReactiveObject
             StatusMessage = $"Loaded {loadedCount} existing outfit(s) from {outputPlugin} for editing.";
             _logger.Information(
                 "Loaded {Count} existing outfit(s) from output plugin {Plugin} for editing.",
-                loadedCount, outputPlugin);
+                loadedCount,
+                outputPlugin);
         }
     }
 
@@ -849,7 +859,8 @@ public partial class MainViewModel : ReactiveObject
         {
             _logger.Debug(
                 "MapSelected invoked without valid selections. SourceCount={SourceCount}, HasTarget={HasTarget}",
-                sources.Count, target is not null);
+                sources.Count,
+                target is not null);
             return;
         }
 
@@ -873,12 +884,18 @@ public partial class MainViewModel : ReactiveObject
             }
 
             StatusMessage = $"Mapped {sources.Count} armors to {target.DisplayName}";
-            _logger.Information("Mapped {SourceCount} armor(s) to target {TargetName} ({TargetFormKey})", sources.Count,
-                target.DisplayName, target.Armor.FormKey);
+            _logger.Information(
+                "Mapped {SourceCount} armor(s) to target {TargetName} ({TargetFormKey})",
+                sources.Count,
+                target.DisplayName,
+                target.Armor.FormKey);
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to map {SourceCount} armor(s) to {TargetName}", sources.Count,
+            _logger.Error(
+                ex,
+                "Failed to map {SourceCount} armor(s) to {TargetName}",
+                sources.Count,
                 target.DisplayName);
             StatusMessage = $"Error mapping armors: {ex.Message}";
         }
@@ -979,7 +996,9 @@ public partial class MainViewModel : ReactiveObject
         Matches.Remove(mapping);
         mapping.Source.IsMapped = Matches.Any(m => m.Source.Armor.FormKey == mapping.Source.Armor.FormKey);
         StatusMessage = $"Removed mapping for {mapping.Source.DisplayName}";
-        _logger.Information("Removed mapping for source {SourceName} ({SourceFormKey})", mapping.Source.DisplayName,
+        _logger.Information(
+            "Removed mapping for source {SourceName} ({SourceFormKey})",
+            mapping.Source.DisplayName,
             mapping.Source.Armor.FormKey);
     }
 
@@ -1051,7 +1070,9 @@ public partial class MainViewModel : ReactiveObject
             AvailablePlugins = new ObservableCollection<string>(plugins);
 
             StatusMessage = $"Loaded {AvailablePlugins.Count} plugins";
-            _logger.Information("Loaded {PluginCount} plugins from {DataPath}", AvailablePlugins.Count,
+            _logger.Information(
+                "Loaded {PluginCount} plugins from {DataPath}",
+                AvailablePlugins.Count,
                 Settings.SkyrimDataPath);
 
             await LoadOutfitsFromOutputPluginAsync();
@@ -1079,7 +1100,8 @@ public partial class MainViewModel : ReactiveObject
 
             _logger.Information(
                 "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
-                previousCount, AvailablePlugins.Count);
+                previousCount,
+                AvailablePlugins.Count);
 
             await LoadOutfitsFromOutputPluginAsync();
         }
@@ -1388,8 +1410,11 @@ public partial class MainViewModel : ReactiveObject
         _outfitDrafts.Add(draft);
 
         StatusMessage = $"Added override for '{editorId}' with {armorPieces.Count} piece(s).";
-        _logger.Information("Added override for {EditorId} ({FormKey}) with {PieceCount} pieces.",
-            editorId, outfit.FormKey, armorPieces.Count);
+        _logger.Information(
+            "Added override for {EditorId} ({FormKey}) with {PieceCount} pieces.",
+            editorId,
+            outfit.FormKey,
+            armorPieces.Count);
 
         return Task.CompletedTask;
     }
@@ -1496,7 +1521,9 @@ public partial class MainViewModel : ReactiveObject
         _outfitDrafts.Add(draft);
 
         StatusMessage = $"Added outfit '{draft.Name}' with {distinctPieces.Count} piece(s).";
-        _logger.Information("Added outfit {EditorId} with {PieceCount} pieces.", draft.EditorId,
+        _logger.Information(
+            "Added outfit {EditorId} with {PieceCount} pieces.",
+            draft.EditorId,
             distinctPieces.Count);
     }
 
@@ -1535,7 +1562,9 @@ public partial class MainViewModel : ReactiveObject
         _outfitDrafts.Add(newDraft);
 
         StatusMessage = $"Duplicated outfit as '{sanitizedName}' with {pieces.Count} piece(s).";
-        _logger.Information("Duplicated outfit draft {OriginalEditorId} to {NewEditorId}", draft.EditorId,
+        _logger.Information(
+            "Duplicated outfit draft {OriginalEditorId} to {NewEditorId}",
+            draft.EditorId,
             sanitizedName);
     }
 
@@ -1627,7 +1656,10 @@ public partial class MainViewModel : ReactiveObject
                 StatusMessage = $"Slot conflict: {piece.DisplayName} overlaps {existingConflict.DisplayName} ({slot}).";
                 _logger.Warning(
                     "Prevented adding {Piece} to outfit {EditorId} due to conflict with {Existing} on slot {Slot}.",
-                    piece.DisplayName, draft.EditorId, existingConflict.DisplayName, slot);
+                    piece.DisplayName,
+                    draft.EditorId,
+                    existingConflict.DisplayName,
+                    slot);
                 return false;
             }
 
@@ -1639,7 +1671,10 @@ public partial class MainViewModel : ReactiveObject
                 StatusMessage = $"Slot conflict: {piece.DisplayName} overlaps {stagedConflict.DisplayName} ({slot}).";
                 _logger.Warning(
                     "Prevented adding {Piece} to outfit {EditorId} due to conflict with staged piece {Staged} on slot {Slot}.",
-                    piece.DisplayName, draft.EditorId, stagedConflict.DisplayName, slot);
+                    piece.DisplayName,
+                    draft.EditorId,
+                    stagedConflict.DisplayName,
+                    slot);
                 return false;
             }
 
@@ -1712,7 +1747,8 @@ public partial class MainViewModel : ReactiveObject
             draft.Name = uniqueName;
             _logger.Information(
                 "Adjusted outfit draft name from {Original} to {Adjusted} to ensure uniqueness.",
-                original, uniqueName);
+                original,
+                uniqueName);
             return;
         }
 
@@ -1911,7 +1947,8 @@ public partial class MainViewModel : ReactiveObject
 
             _logger.Information(
                 "Starting patch creation for {MatchCount} matches to {OutputPath}",
-                matchesToPatch.Count, Settings.FullOutputPath);
+                matchesToPatch.Count,
+                Settings.FullOutputPath);
 
             var (success, message) = await _patchingService.CreatePatchAsync(
                 matchesToPatch,

@@ -260,14 +260,16 @@ public partial class SettingsViewModel : ReactiveObject
             {
                 Log.Information(
                     "Auto-corrected data path: {Original} -> {Corrected} (found Data subfolder with plugins)",
-                    path, dataSubfolder);
+                    path,
+                    dataSubfolder);
                 return dataSubfolder;
             }
         }
 
         Log.Warning(
             "Data path {Path} contains no .esp/.esm files and no Data subfolder was found. " +
-            "Plugins may not load correctly. For Wabbajack modlists, select the 'Game Root\\Data' folder.", path);
+            "Plugins may not load correctly. For Wabbajack modlists, select the 'Game Root\\Data' folder.",
+            path);
         return path;
     }
 

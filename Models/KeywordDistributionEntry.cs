@@ -54,7 +54,9 @@ public sealed class KeywordDistributionEntry
     /// <summary>
     ///     Creates a KeywordDistributionEntry from a parsed SpidDistributionFilter.
     /// </summary>
-    public static KeywordDistributionEntry FromFilter(SpidDistributionFilter filter, string? sourceFile = null,
+    public static KeywordDistributionEntry FromFilter(
+        SpidDistributionFilter filter,
+        string? sourceFile = null,
         int lineNumber = 0) =>
         new()
         {

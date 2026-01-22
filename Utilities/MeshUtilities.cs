@@ -316,10 +316,22 @@ public static class MeshUtilities
 
         var rot = avObject.Rotation;
         var rotationMatrix = new Matrix4x4(
-            rot.M11, rot.M12, rot.M13, 0,
-            rot.M21, rot.M22, rot.M23, 0,
-            rot.M31, rot.M32, rot.M33, 0,
-            0, 0, 0, 1);
+            rot.M11,
+            rot.M12,
+            rot.M13,
+            0,
+            rot.M21,
+            rot.M22,
+            rot.M23,
+            0,
+            rot.M31,
+            rot.M32,
+            rot.M33,
+            0,
+            0,
+            0,
+            0,
+            1);
 
         var translationMatrix = Matrix4x4.CreateTranslation(avObject.Translation);
 

@@ -168,7 +168,9 @@ public class DistributionFileWriterService
                     File.WriteAllLines(filePath, lines, Encoding.UTF8);
                     _logger.Information(
                         "Wrote {Format} distribution file: {FilePath} with {EntryCount} entries",
-                        effectiveFormat, filePath, entries.Count);
+                        effectiveFormat,
+                        filePath,
+                        entries.Count);
                 }
                 catch (OperationCanceledException)
                 {
@@ -180,7 +182,8 @@ public class DistributionFileWriterService
                     _logger.Error(ex, "Failed to write distribution file: {FilePath}", filePath);
                     throw;
                 }
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     public async Task<IReadOnlyList<DistributionEntry>> LoadDistributionFileAsync(
@@ -265,7 +268,11 @@ public class DistributionFileWriterService
                             {
                                 cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
                                 cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                                entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits,
+                                entry = SpidFilterResolver.Resolve(
+                                    spidFilter,
+                                    linkCache,
+                                    cachedNpcs,
+                                    cachedOutfits,
                                     _logger);
                                 if (entry == null)
                                 {
@@ -275,7 +282,11 @@ public class DistributionFileWriterService
                             else if (spidFilter.FormType == SpidFormType.Keyword)
                             {
                                 cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                                entry = SpidFilterResolver.ResolveKeyword(spidFilter, linkCache, cachedNpcs, null,
+                                entry = SpidFilterResolver.ResolveKeyword(
+                                    spidFilter,
+                                    linkCache,
+                                    cachedNpcs,
+                                    null,
                                     _logger);
                                 if (entry == null)
                                 {
@@ -285,8 +296,9 @@ public class DistributionFileWriterService
                             }
                             else
                             {
-                                // Other SPID types (Spell, Perk, Item, Shout) - preserve unchanged
-                                parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed,
+                                parseErrors.Add(new DistributionParseError(
+                                    lineNumber + 1,
+                                    trimmed,
                                     $"{spidFilter.FormType} distribution (preserved)"));
                             }
                         }
@@ -309,7 +321,10 @@ public class DistributionFileWriterService
 
                     _logger.Information(
                         "Loaded {Count} distribution entries from {FilePath} (detected format: {Format}, {ErrorCount} parse errors)",
-                        entries.Count, filePath, detectedFormat, parseErrors.Count);
+                        entries.Count,
+                        filePath,
+                        detectedFormat,
+                        parseErrors.Count);
                 }
                 catch (OperationCanceledException)
                 {
@@ -321,7 +336,8 @@ public class DistributionFileWriterService
                 }
 
                 return (entries, detectedFormat, parseErrors);
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     private (DistributionEntry? Entry, string? Reason) ParseDistributionLine(

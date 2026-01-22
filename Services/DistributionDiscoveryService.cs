@@ -225,8 +225,17 @@ public class DistributionDiscoveryService(ILogger logger)
                     keywordIdentifier = ExtractKeywordIdentifier(trimmed);
                 }
 
-                lines.Add(new DistributionLine(lineNumber, raw, kind, sectionName, key, value, isOutfitDistribution,
-                    outfitFormKeys, isKeywordDistribution, keywordIdentifier));
+                lines.Add(new DistributionLine(
+                    lineNumber,
+                    raw,
+                    kind,
+                    sectionName,
+                    key,
+                    value,
+                    isOutfitDistribution,
+                    outfitFormKeys,
+                    isKeywordDistribution,
+                    keywordIdentifier));
             }
 
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);

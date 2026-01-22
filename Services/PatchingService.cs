@@ -75,7 +75,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         return (patchMod, requiredMasters);
     }
 
-    private void FinalizePatch(SkyrimMod patchMod, HashSet<ModKey> requiredMasters, string outputPath,
+    private void FinalizePatch(
+        SkyrimMod patchMod,
+        HashSet<ModKey> requiredMasters,
+        string outputPath,
         IProgress<(int current, int total, string message)>? progress)
     {
         EnsureMasters(patchMod, requiredMasters);
@@ -110,7 +113,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 _logger.Information(
                     "Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}",
-                    outputPath, validMatches.Count);
+                    outputPath,
+                    validMatches.Count);
 
                 if (validMatches.Count == 0)
                 {
@@ -192,7 +196,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 _logger.Information(
                     "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
-                    outputPath, outfitList.Count);
+                    outputPath,
+                    outfitList.Count);
 
                 var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit creation");
 
@@ -239,7 +244,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         results.Add(new OutfitCreationResult(editorId, overrideOutfit.FormKey));
                         _logger.Information(
                             "Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
-                            editorId, existingFormKey.Value, pieces.Count);
+                            editorId,
+                            existingFormKey.Value,
+                            pieces.Count);
                         continue;
                     }
 
@@ -278,13 +285,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         {
                             _logger.Information(
                                 "Renaming outfit {OldEditorId} to {NewEditorId}.",
-                                outfit.EditorID, editorId);
+                                outfit.EditorID,
+                                editorId);
                             outfit.EditorID = editorId;
                         }
 
                         _logger.Information(
                             "Updating existing outfit {EditorId} with {PieceCount} piece(s).",
-                            editorId, pieces.Count);
+                            editorId,
+                            pieces.Count);
                     }
                     else
                     {
@@ -292,7 +301,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         outfit.EditorID = editorId;
                         _logger.Information(
                             "Creating new outfit {EditorId} with {PieceCount} piece(s).",
-                            editorId, pieces.Count);
+                            editorId,
+                            pieces.Count);
                     }
 
                     var items = outfit.Items ??= [];
@@ -339,7 +349,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             patchMod.ModHeader.Stats.NextFormID = MinimumFormId;
             _logger.Warning(
                 "NextFormID was {Current:X}, bumped to {Minimum:X} for ESL compatibility.",
-                current, MinimumFormId);
+                current,
+                MinimumFormId);
         }
     }
 
@@ -448,7 +459,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                 var delay = initialDelayMs * attempt;
                 _logger.Debug(
                     "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
-                    attempt, maxRetries, ex.GetType().Name, delay);
+                    attempt,
+                    maxRetries,
+                    ex.GetType().Name,
+                    delay);
                 Thread.Sleep(delay);
             }
         }
@@ -475,13 +489,17 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             patchMod.ModHeader.Flags |= SkyrimModHeader.HeaderFlag.Small;
             _logger.Information(
                 "ESL flag applied. Total records: {Total} ({New} new, {Override} overrides), limit: {Limit}.",
-                totalRecordCount, newRecordCount, totalRecordCount - newRecordCount, eslRecordLimit);
+                totalRecordCount,
+                newRecordCount,
+                totalRecordCount - newRecordCount,
+                eslRecordLimit);
         }
         else
         {
             _logger.Warning(
                 "ESL flag NOT applied. Total record count {Total} exceeds limit of {Limit}.",
-                totalRecordCount, eslRecordLimit);
+                totalRecordCount,
+                eslRecordLimit);
         }
     }
 
@@ -590,7 +608,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 _logger.Information(
                     "Missing masters check complete: {MissingCount} missing master(s), {AffectedCount} affected outfit(s).",
-                    missingMasters.Count, allAffectedOutfits.Count);
+                    missingMasters.Count,
+                    allAffectedOutfits.Count);
 
                 return new MissingMastersResult(true, missingMasterInfos, allAffectedOutfits, validOutfitsList);
             }
@@ -617,7 +636,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                 _logger.Information(
                     "Cleaning patch {Path}: removing {Count} outfit(s) with missing masters.",
-                    patchPath, outfitsToRemove.Count);
+                    patchPath,
+                    outfitsToRemove.Count);
 
                 var patchMod = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
                 var outfitsToRemoveSet = outfitsToRemove.Select(o => o.FormKey).ToHashSet();
@@ -630,7 +650,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         {
                             _logger.Debug(
                                 "Removing outfit {EditorId} ({FormKey}) due to missing masters.",
-                                o.EditorID, o.FormKey);
+                                o.EditorID,
+                                o.FormKey);
                             removedCount++;
                             return false;
                         }

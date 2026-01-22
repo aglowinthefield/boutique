@@ -21,7 +21,9 @@ public class FilterableSelector : Control
             nameof(SelectedItem),
             typeof(object),
             typeof(FilterableSelector),
-            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            new FrameworkPropertyMetadata(
+                null,
+                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnSelectedItemChanged));
 
     public static readonly DependencyProperty DisplayMemberPathProperty =
@@ -238,7 +240,8 @@ public class FilterableSelector : Control
                 {
                     IsDropDownOpen = false;
                 }
-            }), DispatcherPriority.Background);
+            }),
+            DispatcherPriority.Background);
     }
 
     private void OnTextBoxKeyDown(object sender, KeyEventArgs e)

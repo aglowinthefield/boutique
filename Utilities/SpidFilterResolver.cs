@@ -47,15 +47,31 @@ public static class SpidFilterResolver
             var formListFormKeys = new List<FormKey>();
 
             // Process StringFilters - can contain NPC names, keywords, etc.
-            ProcessStringFilters(filter.StringFilters, linkCache, cachedNpcs, npcFormKeys, keywordFilters,
-                knownVirtualKeywords, logger);
+            ProcessStringFilters(
+                filter.StringFilters,
+                linkCache,
+                cachedNpcs,
+                npcFormKeys,
+                keywordFilters,
+                knownVirtualKeywords,
+                logger);
 
             // Process FormFilters - can contain factions, races, classes, combat styles, outfits, perks, voice types, locations, formlists
             var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            ProcessFormFilters(filter.FormFilters, linkCache, factionFilters, raceFilters, classFormKeys,
-                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys,
+            ProcessFormFilters(
+                filter.FormFilters,
+                linkCache,
+                factionFilters,
+                raceFilters,
+                classFormKeys,
+                combatStyleFormKeys,
+                outfitFilterFormKeys,
+                perkFormKeys,
+                voiceTypeFormKeys,
+                locationFormKeys,
                 formListFormKeys,
-                resolvedExcludedFormEditorIds, logger);
+                resolvedExcludedFormEditorIds,
+                logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
             var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedExcludedFormEditorIds);
@@ -68,7 +84,7 @@ public static class SpidFilterResolver
                                locationFormKeys.Count > 0 || formListFormKeys.Count > 0 ||
                                !string.IsNullOrEmpty(rawStringFilters) || !string.IsNullOrEmpty(rawFormFilters);
 
-            if (!hasAnyFilter)
+            if (!hasAnyFilter && !filter.TargetsAllNpcs)
             {
                 logger?.Debug("No filters could be resolved for SPID line: {Line}", filter.RawLine);
                 return null;
@@ -136,14 +152,30 @@ public static class SpidFilterResolver
             var locationFormKeys = new List<FormKey>();
             var formListFormKeys = new List<FormKey>();
 
-            ProcessStringFilters(filter.StringFilters, linkCache, cachedNpcs, npcFormKeys, keywordFilters,
-                knownVirtualKeywords, logger);
+            ProcessStringFilters(
+                filter.StringFilters,
+                linkCache,
+                cachedNpcs,
+                npcFormKeys,
+                keywordFilters,
+                knownVirtualKeywords,
+                logger);
 
             var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            ProcessFormFilters(filter.FormFilters, linkCache, factionFilters, raceFilters, classFormKeys,
-                combatStyleFormKeys, outfitFilterFormKeys, perkFormKeys, voiceTypeFormKeys, locationFormKeys,
+            ProcessFormFilters(
+                filter.FormFilters,
+                linkCache,
+                factionFilters,
+                raceFilters,
+                classFormKeys,
+                combatStyleFormKeys,
+                outfitFilterFormKeys,
+                perkFormKeys,
+                voiceTypeFormKeys,
+                locationFormKeys,
                 formListFormKeys,
-                resolvedExcludedFormEditorIds, logger);
+                resolvedExcludedFormEditorIds,
+                logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
             var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedExcludedFormEditorIds);

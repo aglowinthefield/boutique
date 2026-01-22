@@ -73,7 +73,8 @@ public class NpcScanningService
                 }
 
                 return npcs;
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     public async Task<IReadOnlyList<NpcFilterData>> ScanNpcsWithFilterDataAsync(
@@ -127,7 +128,8 @@ public class NpcScanningService
                 }
 
                 return npcs;
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     private NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
@@ -195,7 +197,9 @@ public class NpcScanningService
         }
         catch (Exception ex)
         {
-            _logger.Debug(ex, "Failed to resolve contexts for FormKey {FormKey}, falling back to FormKey.ModKey",
+            _logger.Debug(
+                ex,
+                "Failed to resolve contexts for FormKey {FormKey}, falling back to FormKey.ModKey",
                 formKey);
         }
 

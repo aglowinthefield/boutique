@@ -65,6 +65,7 @@ public partial class DistributionFilePreviewView
                 HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
                 HighlightOverlay.BeginAnimation(OpacityProperty, HighlightAnimation);
             }
-        }, DispatcherPriority.Loaded);
+        },
+        DispatcherPriority.Loaded);
     }
 }

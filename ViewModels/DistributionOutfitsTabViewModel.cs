@@ -384,15 +384,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             return true; // No NPCs use this outfit, consider it vanilla
         }
 
-        // Check if ALL of these NPCs have this outfit as their default
         foreach (var assignment in npcsWithThisOutfit)
         {
-            if (!_cache.NpcsByFormKey.TryGetValue(assignment.NpcFormKey, out var npcData))
+            var lookup = _cache.LookupNpc(assignment.NpcFormKey);
+            if (!lookup.HasValue)
             {
-                continue; // Can't determine, assume not vanilla
+                continue;
             }
 
-            // If this NPC's default outfit is different from their final outfit, this is NOT a vanilla distribution
+            var npcData = lookup.Value;
             if (!npcData.DefaultOutfitFormKey.HasValue || npcData.DefaultOutfitFormKey.Value != outfitFormKey)
             {
                 return false;
@@ -438,7 +438,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
 
         _logger.Debug(
             "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}",
-            matchingAssignments.Count, selectedOutfitRef.EditorID);
+            matchingAssignments.Count,
+            selectedOutfitRef.EditorID);
     }
 
     private void UpdateOutfitNpcCounts()

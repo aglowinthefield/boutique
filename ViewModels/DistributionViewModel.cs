@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Reactive;
 using System.Reactive.Linq;
 using Boutique.Models;
@@ -118,10 +119,6 @@ public partial class DistributionViewModel : ReactiveObject
 
         NpcsTab.WhenAnyValue(vm => vm.SelectedNpcAssignment)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcAssignment)));
-        NpcsTab.WhenAnyValue(vm => vm.NpcOutfitAssignments)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitAssignments)));
-        NpcsTab.WhenAnyValue(vm => vm.FilteredNpcOutfitAssignments)
-            .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments)));
         NpcsTab.WhenAnyValue(vm => vm.SelectedNpcOutfitContents)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcOutfitContents)));
         NpcsTab.WhenAnyValue(vm => vm.SelectedNpcFilterData)
@@ -189,15 +186,13 @@ public partial class DistributionViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(FilteredKeywords));
         EditTab.FilteredRaces.CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredRaces));
-        NpcsTab.NpcOutfitAssignments.CollectionChanged += (sender, e) =>
-            this.RaisePropertyChanged(nameof(NpcOutfitAssignments));
-        NpcsTab.FilteredNpcOutfitAssignments.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)NpcsTab.FilteredNpcOutfitAssignments).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments));
-        NpcsTab.AvailableFactions.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)NpcsTab.AvailableFactions).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(AvailableFactionsForNpcFilter));
-        NpcsTab.AvailableRaces.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)NpcsTab.AvailableRaces).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(AvailableRacesForNpcFilter));
-        NpcsTab.AvailableKeywords.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)NpcsTab.AvailableKeywords).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(AvailableKeywordsForNpcFilter));
 
         EditTab.WhenAnyValue(vm => vm.NpcSearchText)
@@ -295,7 +290,7 @@ public partial class DistributionViewModel : ReactiveObject
 
     #region Distribution Files
 
-    public ObservableCollection<DistributionFileViewModel> Files => _cache.AllDistributionFiles;
+    public ReadOnlyObservableCollection<DistributionFileViewModel> Files => _cache.AllDistributionFiles;
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ReactiveCommand<Unit, Unit> EnsureLoadedCommand { get; }
 
@@ -345,13 +340,13 @@ public partial class DistributionViewModel : ReactiveObject
     public bool ConflictsResolvedByFilename => EditTab.ConflictsResolvedByFilename;
     public string ConflictSummary => EditTab.ConflictSummary;
     public string SuggestedFileName => EditTab.SuggestedFileName;
-    public ObservableCollection<NpcRecordViewModel> AvailableNpcs => EditTab.AvailableNpcs;
+    public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => EditTab.AvailableNpcs;
     public ObservableCollection<NpcRecordViewModel> FilteredNpcs => EditTab.FilteredNpcs;
-    public ObservableCollection<FactionRecordViewModel> AvailableFactions => EditTab.AvailableFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactions => EditTab.AvailableFactions;
     public ObservableCollection<FactionRecordViewModel> FilteredFactions => EditTab.FilteredFactions;
-    public ObservableCollection<KeywordRecordViewModel> AvailableKeywords => EditTab.AvailableKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywords => EditTab.AvailableKeywords;
     public ObservableCollection<KeywordRecordViewModel> FilteredKeywords => EditTab.FilteredKeywords;
-    public ObservableCollection<RaceRecordViewModel> AvailableRaces => EditTab.AvailableRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRaces => EditTab.AvailableRaces;
     public ObservableCollection<RaceRecordViewModel> FilteredRaces => EditTab.FilteredRaces;
 
     public string NpcSearchText
@@ -402,15 +397,13 @@ public partial class DistributionViewModel : ReactiveObject
 
     #region NPCs Tab Properties
 
-    public ObservableCollection<NpcOutfitAssignmentViewModel> NpcOutfitAssignments => NpcsTab.NpcOutfitAssignments;
-
     public NpcOutfitAssignmentViewModel? SelectedNpcAssignment
     {
         get => NpcsTab.SelectedNpcAssignment;
         set => NpcsTab.SelectedNpcAssignment = value;
     }
 
-    public ObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments =>
+    public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments =>
         NpcsTab.FilteredNpcOutfitAssignments;
 
     public string NpcOutfitSearchText
@@ -461,7 +454,7 @@ public partial class DistributionViewModel : ReactiveObject
         set => NpcsTab.SelectedChildFilter = value;
     }
 
-    public ObservableCollection<FactionRecordViewModel> AvailableFactionsForNpcFilter => NpcsTab.AvailableFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactionsForNpcFilter => NpcsTab.AvailableFactions;
 
     public FactionRecordViewModel? SelectedFactionForNpcFilter
     {
@@ -469,7 +462,7 @@ public partial class DistributionViewModel : ReactiveObject
         set => NpcsTab.SelectedFaction = value;
     }
 
-    public ObservableCollection<RaceRecordViewModel> AvailableRacesForNpcFilter => NpcsTab.AvailableRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRacesForNpcFilter => NpcsTab.AvailableRaces;
 
     public RaceRecordViewModel? SelectedRaceForNpcFilter
     {
@@ -477,7 +470,7 @@ public partial class DistributionViewModel : ReactiveObject
         set => NpcsTab.SelectedRace = value;
     }
 
-    public ObservableCollection<KeywordRecordViewModel> AvailableKeywordsForNpcFilter => NpcsTab.AvailableKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywordsForNpcFilter => NpcsTab.AvailableKeywords;
 
     public KeywordRecordViewModel? SelectedKeywordForNpcFilter
     {
