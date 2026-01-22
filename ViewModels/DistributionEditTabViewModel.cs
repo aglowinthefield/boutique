@@ -89,6 +89,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     [Reactive] private bool _hasConflicts;
 
+    [Reactive] private bool _hasIntraFileConflicts;
+
+    [Reactive] private string _intraFileConflictSummary = string.Empty;
+
     /// <summary>
     ///     True if any distribution entry is a keyword distribution.
     ///     When true, SkyPatcher format is not available (it doesn't support keyword distributions).
@@ -142,6 +146,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         _cache.CacheLoaded += OnCacheLoaded;
 
         SetupFilterPipelines();
+        SetupIntraFileConflictDetection();
 
         if (_cache.IsLoaded)
         {
@@ -185,6 +190,68 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
         this.WhenAnyValue(vm => vm.DistributionFilePath)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
+    }
+
+    private void SetupIntraFileConflictDetection()
+    {
+        var entriesChanged = _distributionEntries
+            .ToObservableChangeSet()
+            .Publish();
+
+        var npcsInEntriesChanged = entriesChanged
+            .MergeMany(entry => entry.SelectedNpcs.ToObservableChangeSet());
+
+        _disposables.Add(Observable.Merge(
+                entriesChanged.Select(_ => Unit.Default),
+                npcsInEntriesChanged.Select(_ => Unit.Default))
+            .Throttle(TimeSpan.FromMilliseconds(100))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => UpdateIntraFileConflicts()));
+
+        _disposables.Add(entriesChanged.Connect());
+    }
+
+    private void UpdateIntraFileConflicts()
+    {
+        if (_isBulkLoading || DistributionEntries.Count < 2)
+        {
+            HasIntraFileConflicts = false;
+            IntraFileConflictSummary = string.Empty;
+            return;
+        }
+
+        var npcOccurrences = DistributionEntries
+            .SelectMany(entry => entry.SelectedNpcs.Select(npc => (Entry: entry, Npc: npc)))
+            .GroupBy(x => x.Npc.FormKey)
+            .Where(g => g.Count() > 1)
+            .Select(g => (
+                NpcName: g.First().Npc.DisplayName,
+                EntryCount: g.Count(),
+                Outfits: g.Select(x => x.Entry.SelectedOutfit?.EditorID ?? "(no outfit)").Distinct().ToList()))
+            .ToList();
+
+        if (npcOccurrences.Count == 0)
+        {
+            HasIntraFileConflicts = false;
+            IntraFileConflictSummary = string.Empty;
+            return;
+        }
+
+        HasIntraFileConflicts = true;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"{npcOccurrences.Count} NPC(s) appear in multiple entries:");
+        foreach (var conflict in npcOccurrences.Take(5))
+        {
+            sb.AppendLine($"  • {conflict.NpcName} ({conflict.EntryCount}x): {string.Join(", ", conflict.Outfits)}");
+        }
+
+        if (npcOccurrences.Count > 5)
+        {
+            sb.AppendLine($"  ... and {npcOccurrences.Count - 5} more");
+        }
+
+        IntraFileConflictSummary = sb.ToString().TrimEnd();
     }
 
     private void SetupFilterPipelines()

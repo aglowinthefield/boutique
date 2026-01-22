@@ -129,6 +129,13 @@
             </StackPanel>
           </StackPanel>
         </Border>
+        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
+                Visibility="{Binding HasIntraFileConflicts, Converter={StaticResource BoolToVisConverter}}">
+          <StackPanel>
+            <TextBlock Text="Intra-file Conflicts" FontWeight="Bold" Foreground="#CC6600" FontSize="11" Margin="0,0,0,4" />
+            <TextBlock Text="{Binding IntraFileConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
+          </StackPanel>
+        </Border>
       </StackPanel>
 
       <!-- Action Buttons -->

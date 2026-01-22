@@ -330,6 +330,7 @@ public static class SpidFilterResolver
                 if (npc != null)
                 {
                     npcFormKeys.Add(npc.FormKey);
+                    logger?.Debug("Resolved NPC string filter '{Value}' to {FormKey}", part.Value, npc.FormKey);
                     continue;
                 }
 
