@@ -86,14 +86,16 @@ public class DistributionFileWriterService
                             var excludedFactions = entry.FactionFilters.Where(f => f.IsExcluded).ToList();
                             if (includedFactions.Count > 0)
                             {
-                                var factionList = string.Join(",",
+                                var factionList = string.Join(
+                                    ",",
                                     includedFactions.Select(f => FormatFormKey(f.FormKey)));
                                 filterParts.Add($"filterByFactions={factionList}");
                             }
 
                             if (excludedFactions.Count > 0)
                             {
-                                var factionList = string.Join(",",
+                                var factionList = string.Join(
+                                    ",",
                                     excludedFactions.Select(f => FormatFormKey(f.FormKey)));
                                 filterParts.Add($"filterByFactionsExcluded={factionList}");
                             }
@@ -168,7 +170,9 @@ public class DistributionFileWriterService
                     File.WriteAllLines(filePath, lines, Encoding.UTF8);
                     _logger.Information(
                         "Wrote {Format} distribution file: {FilePath} with {EntryCount} entries",
-                        effectiveFormat, filePath, entries.Count);
+                        effectiveFormat,
+                        filePath,
+                        entries.Count);
                 }
                 catch (OperationCanceledException)
                 {
@@ -180,7 +184,8 @@ public class DistributionFileWriterService
                     _logger.Error(ex, "Failed to write distribution file: {FilePath}", filePath);
                     throw;
                 }
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     public async Task<IReadOnlyList<DistributionEntry>> LoadDistributionFileAsync(
@@ -265,7 +270,11 @@ public class DistributionFileWriterService
                             {
                                 cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
                                 cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                                entry = SpidFilterResolver.Resolve(spidFilter, linkCache, cachedNpcs, cachedOutfits,
+                                entry = SpidFilterResolver.Resolve(
+                                    spidFilter,
+                                    linkCache,
+                                    cachedNpcs,
+                                    cachedOutfits,
                                     _logger);
                                 if (entry == null)
                                 {
@@ -275,7 +284,11 @@ public class DistributionFileWriterService
                             else if (spidFilter.FormType == SpidFormType.Keyword)
                             {
                                 cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                                entry = SpidFilterResolver.ResolveKeyword(spidFilter, linkCache, cachedNpcs, null,
+                                entry = SpidFilterResolver.ResolveKeyword(
+                                    spidFilter,
+                                    linkCache,
+                                    cachedNpcs,
+                                    null,
                                     _logger);
                                 if (entry == null)
                                 {
@@ -285,8 +298,9 @@ public class DistributionFileWriterService
                             }
                             else
                             {
-                                // Other SPID types (Spell, Perk, Item, Shout) - preserve unchanged
-                                parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed,
+                                parseErrors.Add(new DistributionParseError(
+                                    lineNumber + 1,
+                                    trimmed,
                                     $"{spidFilter.FormType} distribution (preserved)"));
                             }
                         }
@@ -309,7 +323,10 @@ public class DistributionFileWriterService
 
                     _logger.Information(
                         "Loaded {Count} distribution entries from {FilePath} (detected format: {Format}, {ErrorCount} parse errors)",
-                        entries.Count, filePath, detectedFormat, parseErrors.Count);
+                        entries.Count,
+                        filePath,
+                        detectedFormat,
+                        parseErrors.Count);
                 }
                 catch (OperationCanceledException)
                 {
@@ -321,7 +338,8 @@ public class DistributionFileWriterService
                 }
 
                 return (entries, detectedFormat, parseErrors);
-            }, cancellationToken);
+            },
+            cancellationToken);
     }
 
     private (DistributionEntry? Entry, string? Reason) ParseDistributionLine(
@@ -413,7 +431,8 @@ public class DistributionFileWriterService
         }
     }
 
-    private List<FormKey> ResolveNpcIdentifiers(List<string> identifiers,
+    private List<FormKey> ResolveNpcIdentifiers(
+        List<string> identifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<FormKey>();
@@ -444,7 +463,8 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<FormKeyFilter> ResolveFactionIdentifiers(List<string> identifiers,
+    private List<FormKeyFilter> ResolveFactionIdentifiers(
+        List<string> identifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<FormKeyFilter>();
@@ -472,7 +492,8 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<KeywordFilter> ResolveKeywordIdentifiersToFilters(List<string> identifiers,
+    private static List<KeywordFilter> ResolveKeywordIdentifiersToFilters(
+        List<string> identifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<KeywordFilter>();
@@ -513,7 +534,8 @@ public class DistributionFileWriterService
         return keyword?.FormKey ?? FormKey.Null;
     }
 
-    private List<FormKeyFilter> ResolveRaceIdentifiers(List<string> identifiers,
+    private List<FormKeyFilter> ResolveRaceIdentifiers(
+        List<string> identifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<FormKeyFilter>();
@@ -541,7 +563,8 @@ public class DistributionFileWriterService
         return results;
     }
 
-    private List<FormKey> ResolveClassIdentifiers(List<string> identifiers,
+    private List<FormKey> ResolveClassIdentifiers(
+        List<string> identifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<FormKey>();

@@ -240,7 +240,8 @@ public class GuiSettingsService
             if (loaded != null)
             {
                 _settings = loaded;
-                _logger.Debug("Loaded GUI settings: IsFilePreviewExpanded={IsExpanded}",
+                _logger.Debug(
+                    "Loaded GUI settings: IsFilePreviewExpanded={IsExpanded}",
                     _settings.IsFilePreviewExpanded);
             }
         }

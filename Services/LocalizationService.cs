@@ -35,7 +35,7 @@ public class LocalizationService
         new("ko", "한국어")
     ];
 
-    public string CurrentLanguageCode
+    public static string CurrentLanguageCode
     {
         get
         {

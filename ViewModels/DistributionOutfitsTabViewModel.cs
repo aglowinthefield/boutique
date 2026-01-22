@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using DynamicData;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -14,16 +16,18 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class DistributionOutfitsTabViewModel : ReactiveObject
+public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposable
 {
     private readonly ArmorPreviewService _armorPreviewService;
     private readonly GameDataCacheService _cache;
+    private readonly CompositeDisposable _disposables = new();
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
 
     private readonly IObservable<bool> _notLoading;
     private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
     private readonly NpcScanningService _npcScanningService;
+    private readonly SourceList<OutfitRecordViewModel> _outfitsSource = new();
     private readonly SettingsViewModel _settings;
 
     [Reactive] private bool _hideVanillaOutfits;
@@ -55,20 +59,22 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
 
         _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
 
-        // Outfits tab search filtering
-        this.WhenAnyValue(vm => vm.OutfitSearchText)
-            .Subscribe(_ => UpdateFilteredOutfits());
+        var filterPredicate = this.WhenAnyValue(vm => vm.OutfitSearchText, vm => vm.HideVanillaOutfits)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2));
 
-        // Vanilla outfit filtering
-        this.WhenAnyValue(vm => vm.HideVanillaOutfits)
-            .Subscribe(_ => UpdateFilteredOutfits());
+        _disposables.Add(_outfitsSource.Connect()
+            .Filter(filterPredicate)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredOutfits)
+            .Subscribe());
+        FilteredOutfits = filteredOutfits;
 
-        // Update NPC assignments when selection changes (async to avoid UI freeze)
         this.WhenAnyValue(vm => vm.SelectedOutfit)
             .Subscribe(async _ => await UpdateSelectedOutfitNpcAssignmentsAsync());
     }
 
-    public ObservableCollection<OutfitRecordViewModel> Outfits { get; } = [];
+    public IObservableList<OutfitRecordViewModel> Outfits => _outfitsSource;
 
     public OutfitRecordViewModel? SelectedOutfit
     {
@@ -85,7 +91,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; } = [];
+    public ReadOnlyObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; }
 
     public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; } = [];
 
@@ -160,16 +166,12 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
                 UpdateOutfitNpcCounts();
             }
 
-            // Create view models for outfits
-            Outfits.Clear();
-            foreach (var outfit in outfits)
+            var outfitViewModels = outfits.Select(o => new OutfitRecordViewModel(o)).ToList();
+            _outfitsSource.Edit(list =>
             {
-                var vm = new OutfitRecordViewModel(outfit);
-                Outfits.Add(vm);
-            }
-
-            // Update filtered list
-            UpdateFilteredOutfits();
+                list.Clear();
+                list.AddRange(outfitViewModels);
+            });
 
             // Update NPC counts for each outfit (after both outfits and assignments are loaded)
             if (_npcAssignments != null)
@@ -339,28 +341,23 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         return Task.CompletedTask;
     }
 
-    private void UpdateFilteredOutfits()
+    private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla)
     {
-        IEnumerable<OutfitRecordViewModel> filtered = Outfits;
-
-        // Filter by search text
-        if (!string.IsNullOrWhiteSpace(OutfitSearchText))
+        var term = searchText?.Trim().ToLowerInvariant() ?? string.Empty;
+        return outfit =>
         {
-            var term = OutfitSearchText.Trim().ToLowerInvariant();
-            filtered = filtered.Where(o => o.MatchesSearch(term));
-        }
+            if (!string.IsNullOrEmpty(term) && !outfit.MatchesSearch(term))
+            {
+                return false;
+            }
 
-        // Filter out outfits where all NPCs have it as their default (no distribution changed anything)
-        if (HideVanillaOutfits)
-        {
-            filtered = filtered.Where(o => !IsVanillaDistribution(o.FormKey));
-        }
+            if (hideVanilla && IsVanillaDistribution(outfit.FormKey))
+            {
+                return false;
+            }
 
-        FilteredOutfits.Clear();
-        foreach (var outfit in filtered)
-        {
-            FilteredOutfits.Add(outfit);
-        }
+            return true;
+        };
     }
 
     /// <summary>
@@ -384,15 +381,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             return true; // No NPCs use this outfit, consider it vanilla
         }
 
-        // Check if ALL of these NPCs have this outfit as their default
         foreach (var assignment in npcsWithThisOutfit)
         {
-            if (!_cache.NpcsByFormKey.TryGetValue(assignment.NpcFormKey, out var npcData))
+            var lookup = _cache.LookupNpc(assignment.NpcFormKey);
+            if (!lookup.HasValue)
             {
-                continue; // Can't determine, assume not vanilla
+                continue;
             }
 
-            // If this NPC's default outfit is different from their final outfit, this is NOT a vanilla distribution
+            var npcData = lookup.Value;
             if (!npcData.DefaultOutfitFormKey.HasValue || npcData.DefaultOutfitFormKey.Value != outfitFormKey)
             {
                 return false;
@@ -438,14 +435,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
 
         _logger.Debug(
             "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}",
-            matchingAssignments.Count, selectedOutfitRef.EditorID);
+            matchingAssignments.Count,
+            selectedOutfitRef.EditorID);
     }
 
     private void UpdateOutfitNpcCounts()
     {
         if (_npcAssignments == null)
         {
-            foreach (var outfit in Outfits)
+            foreach (var outfit in _outfitsSource.Items)
             {
                 outfit.NpcCount = 0;
             }
@@ -453,27 +451,24 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
             return;
         }
 
-        // Count unique NPCs for each outfit based on their FINAL resolved outfit only
-        // We don't count distributions because that would include ESP defaults for every NPC
         var outfitNpcSets = new Dictionary<FormKey, HashSet<FormKey>>();
 
         foreach (var assignment in _npcAssignments)
         {
-            // Only count NPCs where this outfit is the FINAL resolved outfit
             var finalOutfitFormKey = assignment.FinalOutfitFormKey;
             if (finalOutfitFormKey.HasValue)
             {
-                if (!outfitNpcSets.ContainsKey(finalOutfitFormKey.Value))
+                if (!outfitNpcSets.TryGetValue(finalOutfitFormKey.Value, out var npcSet))
                 {
-                    outfitNpcSets[finalOutfitFormKey.Value] = [];
+                    npcSet = [];
+                    outfitNpcSets[finalOutfitFormKey.Value] = npcSet;
                 }
 
-                outfitNpcSets[finalOutfitFormKey.Value].Add(assignment.NpcFormKey);
+                npcSet.Add(assignment.NpcFormKey);
             }
         }
 
-        // Update counts on outfit view models
-        foreach (var outfit in Outfits)
+        foreach (var outfit in _outfitsSource.Items)
         {
             if (outfitNpcSets.TryGetValue(outfit.FormKey, out var npcSet))
             {
@@ -486,7 +481,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
     }
 
-    private static GenderedModelVariant GetNpcGender(FormKey npcFormKey,
+    private static GenderedModelVariant GetNpcGender(
+        FormKey npcFormKey,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
@@ -497,5 +493,12 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject
         }
 
         return GenderedModelVariant.Female;
+    }
+
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        _outfitsSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

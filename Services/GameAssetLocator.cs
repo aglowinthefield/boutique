@@ -187,7 +187,10 @@ public class GameAssetLocator
         var directoryPath = new DirectoryPath(dataPath);
         var results = new List<CachedArchive>();
 
-        foreach (var filePath in Archive.GetApplicableArchivePaths(_mutagenService.GameRelease, directoryPath, modKey,
+        foreach (var filePath in Archive.GetApplicableArchivePaths(
+                     _mutagenService.GameRelease,
+                     directoryPath,
+                     modKey,
                      _fileSystem))
         {
             TryAddArchive(results, filePath);

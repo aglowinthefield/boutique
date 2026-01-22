@@ -270,7 +270,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
         _logger.Information(
             "LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
-            previousCount, newCount, diffText);
+            previousCount,
+            newCount,
+            diffText);
 
         if (!string.IsNullOrEmpty(expectedPlugin) && !string.IsNullOrEmpty(DataFolderPath))
         {
@@ -282,7 +284,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                 var fileInfo = new FileInfo(pluginPath);
                 _logger.Information(
                     "Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
-                    expectedPlugin, fileInfo.Length, fileInfo.LastWriteTime);
+                    expectedPlugin,
+                    fileInfo.Length,
+                    fileInfo.LastWriteTime);
 
                 var inLoadOrder = _environment?.LoadOrder
                     .Any(entry =>

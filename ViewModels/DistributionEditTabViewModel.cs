@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Windows;
@@ -10,6 +11,8 @@ using System.Windows.Threading;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using DynamicData;
+using DynamicData.Binding;
 using Microsoft.Win32;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -20,14 +23,15 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public record PreviewLineHighlightRequest(int LineNumber, string LineContent);
+public record PreviewLineHighlightRequest(int LineNumber, string LineContent, Guid RequestId);
 
-public partial class DistributionEditTabViewModel : ReactiveObject
+public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
     private readonly ArmorPreviewService _armorPreviewService;
     private readonly GameDataCacheService _cache;
     private readonly IObservable<bool> _canPaste;
     private readonly IObservable<bool> _canSave;
+    private readonly CompositeDisposable _disposables = new();
     private readonly Dictionary<DistributionEntryViewModel, IDisposable> _entryChangedSubscriptions = new();
     private readonly DistributionFileWriterService _fileWriterService;
     private readonly GuiSettingsService _guiSettings;
@@ -67,15 +71,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
     [Reactive] private string _factionSearchText = string.Empty;
 
-    [ReactiveCollection] private ObservableCollection<ClassRecordViewModel> _filteredClasses = [];
+    public ReadOnlyObservableCollection<ClassRecordViewModel> FilteredClasses { get; private set; } = null!;
 
-    [ReactiveCollection] private ObservableCollection<FactionRecordViewModel> _filteredFactions = [];
+    public ReadOnlyObservableCollection<FactionRecordViewModel> FilteredFactions { get; private set; } = null!;
 
-    [ReactiveCollection] private ObservableCollection<KeywordRecordViewModel> _filteredKeywords = [];
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> FilteredKeywords { get; private set; } = null!;
 
-    [ReactiveCollection] private ObservableCollection<NpcRecordViewModel> _filteredNpcs = [];
+    public ReadOnlyObservableCollection<NpcRecordViewModel> FilteredNpcs { get; private set; } = null!;
 
-    [ReactiveCollection] private ObservableCollection<RaceRecordViewModel> _filteredRaces = [];
+    public ReadOnlyObservableCollection<RaceRecordViewModel> FilteredRaces { get; private set; } = null!;
 
     /// <summary>
     ///     True if any distribution entry has chance-based distribution enabled.
@@ -137,6 +141,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         _mutagenService.PluginsChanged += OnPluginsChanged;
         _cache.CacheLoaded += OnCacheLoaded;
 
+        SetupFilterPipelines();
+
         if (_cache.IsLoaded)
         {
             InitializeFromCache();
@@ -165,17 +171,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         this.WhenAnyValue(vm => vm.CopiedFilter)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
 
-        this.WhenAnyValue(vm => vm.NpcSearchText)
-            .Subscribe(_ => UpdateFilteredNpcs());
-        this.WhenAnyValue(vm => vm.FactionSearchText)
-            .Subscribe(_ => UpdateFilteredFactions());
-        this.WhenAnyValue(vm => vm.KeywordSearchText)
-            .Subscribe(_ => UpdateFilteredKeywords());
-        this.WhenAnyValue(vm => vm.RaceSearchText)
-            .Subscribe(_ => UpdateFilteredRaces());
-        this.WhenAnyValue(vm => vm.ClassSearchText)
-            .Subscribe(_ => UpdateFilteredClasses());
-
         this.WhenAnyValue(vm => vm.DistributionFormat)
             .Skip(1)
             .Subscribe(_ =>
@@ -190,6 +185,74 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         this.WhenAnyValue(vm => vm.DistributionFilePath)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
+    }
+
+    private void SetupFilterPipelines()
+    {
+        var npcFilter = this.WhenAnyValue(vm => vm.NpcSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim().ToLowerInvariant() ?? string.Empty)
+            .Select(term => new Func<NpcRecordViewModel, bool>(npc =>
+                string.IsNullOrEmpty(term) || npc.MatchesSearch(term)));
+
+        _disposables.Add(_cache.AllNpcRecords.ToObservableChangeSet()
+            .Filter(npcFilter)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredNpcs)
+            .Subscribe());
+        FilteredNpcs = filteredNpcs;
+
+        var factionFilter = this.WhenAnyValue(vm => vm.FactionSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim().ToLowerInvariant() ?? string.Empty)
+            .Select(term => new Func<FactionRecordViewModel, bool>(faction =>
+                string.IsNullOrEmpty(term) || faction.MatchesSearch(term)));
+
+        _disposables.Add(_cache.AllFactions.ToObservableChangeSet()
+            .Filter(factionFilter)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredFactions)
+            .Subscribe());
+        FilteredFactions = filteredFactions;
+
+        var keywordFilter = this.WhenAnyValue(vm => vm.KeywordSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim().ToLowerInvariant() ?? string.Empty)
+            .Select(term => new Func<KeywordRecordViewModel, bool>(keyword =>
+                string.IsNullOrEmpty(term) || keyword.MatchesSearch(term)));
+
+        _disposables.Add(_cache.AllKeywords.ToObservableChangeSet()
+            .Filter(keywordFilter)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredKeywords)
+            .Subscribe());
+        FilteredKeywords = filteredKeywords;
+
+        var raceFilter = this.WhenAnyValue(vm => vm.RaceSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim().ToLowerInvariant() ?? string.Empty)
+            .Select(term => new Func<RaceRecordViewModel, bool>(race =>
+                string.IsNullOrEmpty(term) || race.MatchesSearch(term)));
+
+        _disposables.Add(_cache.AllRaces.ToObservableChangeSet()
+            .Filter(raceFilter)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredRaces)
+            .Subscribe());
+        FilteredRaces = filteredRaces;
+
+        var classFilter = this.WhenAnyValue(vm => vm.ClassSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim().ToLowerInvariant() ?? string.Empty)
+            .Select(term => new Func<ClassRecordViewModel, bool>(classVm =>
+                string.IsNullOrEmpty(term) || classVm.MatchesSearch(term)));
+
+        _disposables.Add(_cache.AllClasses.ToObservableChangeSet()
+            .Filter(classFilter)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredClasses)
+            .Subscribe());
+        FilteredClasses = filteredClasses;
     }
 
     /// <summary>
@@ -249,19 +312,19 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     }
 
     /// <summary>Available NPCs for distribution entry selection (from cache).</summary>
-    public ObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
+    public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
 
     /// <summary>Available factions for distribution entry selection (from cache).</summary>
-    public ObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
 
     /// <summary>Available keywords for distribution entry selection (from cache).</summary>
-    public ObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
 
     /// <summary>Available races for distribution entry selection (from cache).</summary>
-    public ObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
 
     /// <summary>Available classes for distribution entry selection (from cache).</summary>
-    public ObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
+    public ReadOnlyObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
 
     /// <summary>
     ///     The currently selected dropdown item. Headers are not selectable.
@@ -398,7 +461,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         ? Path.GetFileName(DistributionFilePath)
         : string.Empty;
 
-    [Reactive] public PreviewLineHighlightRequest? HighlightRequest { get; private set; }
+    [Reactive] private PreviewLineHighlightRequest? _highlightRequest;
 
     /// <summary>
     ///     The distribution file format (SPID or SkyPatcher).
@@ -416,7 +479,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
             _logger.Debug(
                 "DistributionFormat changing from {OldFormat} to {NewFormat}, EntryCount={Count}",
-                _distributionFormat, value, DistributionEntries.Count);
+                _distributionFormat,
+                value,
+                DistributionEntries.Count);
 
             this.RaiseAndSetIfChanged(ref _distributionFormat, value);
             UpdateFileContent();
@@ -442,7 +507,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         _logger.Debug(
             "OnDistributionEntriesChanged: Action={Action}, NewItems={NewCount}, OldItems={OldCount}",
-            e.Action, e.NewItems?.Count ?? 0, e.OldItems?.Count ?? 0);
+            e.Action,
+            e.NewItems?.Count ?? 0,
+            e.OldItems?.Count ?? 0);
 
         this.RaisePropertyChanged(nameof(DistributionEntriesCount));
 
@@ -535,7 +602,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 {
                     SelectedEntry = entryVm;
                     _logger.Debug("SelectedEntry set");
-                }), DispatcherPriority.Background);
+                }),
+                DispatcherPriority.Background);
 
             _logger.Debug("AddDistributionEntry completed successfully");
         }
@@ -552,7 +620,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     /// <param name="addToEntry">Action to add an item to the entry.</param>
     /// <param name="itemTypeName">The display name for the item type (e.g., "NPC", "faction").</param>
     private void AddSelectedCriteriaToEntry<T>(
-        ObservableCollection<T> filteredItems,
+        IEnumerable<T> filteredItems,
         Func<DistributionEntryViewModel, ObservableCollection<T>> getTargetCollection,
         Action<DistributionEntryViewModel, T> addToEntry,
         string itemTypeName)
@@ -668,7 +736,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                         {
                             ApplyFilterToEntry(SelectedEntry, CopiedFilter);
                         }
-                    }), DispatcherPriority.Background);
+                    }),
+                    DispatcherPriority.Background);
                 return;
             }
         }
@@ -704,7 +773,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         {
             var keywordVm = ResolveKeywordByFormKey(keywordFormKey);
             if (keywordVm != null && !entry.SelectedKeywords.Any(k =>
-                    string.Equals(k.KeywordRecord.EditorID, keywordVm.KeywordRecord.EditorID,
+                    string.Equals(
+                        k.KeywordRecord.EditorID,
+                        keywordVm.KeywordRecord.EditorID,
                         StringComparison.OrdinalIgnoreCase)))
             {
                 entry.AddKeyword(keywordVm);
@@ -875,7 +946,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
             _logger.Information(
                 "Saved distribution file: {FilePath} ({LineCount} lines)",
-                finalFilePath, DistributionFileContent.Split('\n').Length);
+                finalFilePath,
+                DistributionFileContent.Split('\n').Length);
 
             // Track the saved file path so RefreshAvailableDistributionFiles can select it
             _justSavedFilePath = finalFilePath;
@@ -901,7 +973,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     {
         _logger.Debug(
             "LoadDistributionFileAsync called. DistributionFilePath: {Path}, Exists: {Exists}",
-            DistributionFilePath, File.Exists(DistributionFilePath ?? string.Empty));
+            DistributionFilePath,
+            File.Exists(DistributionFilePath ?? string.Empty));
 
         if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
         {
@@ -965,7 +1038,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             StatusMessage = statusMsg;
             _logger.Information(
                 "Loaded distribution file: {FilePath} with {Count} entries, {ErrorCount} parse errors",
-                DistributionFilePath, entries.Count, parseErrors.Count);
+                DistributionFilePath,
+                entries.Count,
+                parseErrors.Count);
         }
         catch (Exception ex)
         {
@@ -1018,17 +1093,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 }
             }
 
-            UpdateFilteredNpcs();
-            UpdateFilteredFactions();
-            UpdateFilteredKeywords();
-            UpdateFilteredRaces();
-            UpdateFilteredClasses();
-
             StatusMessage =
                 $"Loaded: {AvailableNpcs.Count:N0} NPCs, {AvailableFactions.Count:N0} factions, {AvailableRaces.Count:N0} races, {AvailableClasses.Count:N0} classes, {AvailableKeywords.Count:N0} keywords.";
             _logger.Information(
                 "Game data loaded: {NpcCount} NPCs, {FactionCount} factions.",
-                AvailableNpcs.Count, AvailableFactions.Count);
+                AvailableNpcs.Count,
+                AvailableFactions.Count);
             await LoadAvailableOutfitsAsync();
         }
         catch (Exception ex)
@@ -1098,7 +1168,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
         _logger.Debug(
             "Refreshing distribution files dropdown. Previous selection: {Selection}, NewFileName: {NewFileName}, JustSaved: {JustSaved}",
-            previousSelected?.DisplayName, previousNewFileName, justSaved);
+            previousSelected?.DisplayName,
+            previousNewFileName,
+            justSaved);
 
         AvailableDistributionFiles.Clear();
         AvailableDistributionFiles.Add(new DistributionFileSelectionItem(true, null));
@@ -1211,7 +1283,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             : dataPath;
 
         DistributionFilePath = GetDistributionFilePath(baseDirectory, baseName, DistributionFormat);
-        _logger.Debug("Updated distribution file path for format {Format}: {Path}", DistributionFormat,
+        _logger.Debug(
+            "Updated distribution file path for format {Format}: {Path}",
+            DistributionFormat,
             DistributionFilePath);
     }
 
@@ -1270,7 +1344,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject
 
             _logger.Debug(
                 "UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, anyEntryUsesChance={UsesChance}",
-                DistributionEntries.Count, effectiveFormat, anyEntryUsesChance);
+                DistributionEntries.Count,
+                effectiveFormat,
+                anyEntryUsesChance);
 
             DistributionFileContent =
                 DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat, ParseErrors);
@@ -1306,7 +1382,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         var lines = DistributionFileContent.Split('\n');
         var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
-        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent);
+        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
     }
 
     private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry, DistributionFileType format)
@@ -1388,7 +1464,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject
             outfits.AddRange(newOutfits);
             _logger.Information(
                 "Added {Count} outfit(s) from patch file {Patch} (not in active load order).",
-                newOutfits.Count, Path.GetFileName(patchPath));
+                newOutfits.Count,
+                Path.GetFileName(patchPath));
         }
     }
 
@@ -1430,11 +1507,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject
     private void InitializeFromCache()
     {
         _logger.Debug("InitializeFromCache: Starting linear initialization...");
-        UpdateFilteredNpcs();
-        UpdateFilteredFactions();
-        UpdateFilteredKeywords();
-        UpdateFilteredRaces();
-        UpdateFilteredClasses();
         var files = _cache.AllDistributionFiles.ToList();
         var duplicateFileNames = GetDuplicateFileNames(files);
         AvailableDistributionFiles.Clear();
@@ -1467,8 +1539,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(IsInitialized));
                 _logger.Information(
                     "Initialization complete: {NpcCount} NPCs, {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races, {FileCount} files. Restored file: {FilePath}",
-                    FilteredNpcs.Count, FilteredFactions.Count, FilteredKeywords.Count, FilteredRaces.Count,
-                    files.Count, lastFilePath);
+                    FilteredNpcs.Count,
+                    FilteredFactions.Count,
+                    FilteredKeywords.Count,
+                    FilteredRaces.Count,
+                    files.Count,
+                    lastFilePath);
                 _ = LoadDistributionFileAsync();
                 return;
             }
@@ -1491,7 +1567,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(IsInitialized));
         _logger.Information(
             "Initialization complete: {NpcCount} NPCs, {FactionCount} factions, {KeywordCount} keywords, {RaceCount} races, {FileCount} files. NewFileName={NewFileName}",
-            FilteredNpcs.Count, FilteredFactions.Count, FilteredKeywords.Count, FilteredRaces.Count, files.Count,
+            FilteredNpcs.Count,
+            FilteredFactions.Count,
+            FilteredKeywords.Count,
+            FilteredRaces.Count,
+            files.Count,
             NewFileName);
     }
 
@@ -2025,112 +2105,32 @@ public partial class DistributionEditTabViewModel : ReactiveObject
         return null;
     }
 
-    /// <summary>
-    ///     Updates the FilteredNpcs collection based on the current search text.
-    ///     This uses a stable collection to avoid DataGrid binding issues with checkboxes.
-    /// </summary>
-    private void UpdateFilteredNpcs()
+    public void Dispose()
     {
-        IEnumerable<NpcRecordViewModel> filtered;
+        _disposables.Dispose();
+        _mutagenService.PluginsChanged -= OnPluginsChanged;
+        _cache.CacheLoaded -= OnCacheLoaded;
 
-        if (string.IsNullOrWhiteSpace(NpcSearchText))
+        foreach (var sub in _entryChangedSubscriptions.Values)
         {
-            filtered = AvailableNpcs;
-        }
-        else
-        {
-            var term = NpcSearchText.Trim().ToLowerInvariant();
-            filtered = AvailableNpcs.Where(npc => npc.MatchesSearch(term));
+            sub.Dispose();
         }
 
-        FilteredNpcs.Clear();
-        foreach (var npc in filtered)
-        {
-            FilteredNpcs.Add(npc);
-        }
-    }
+        _entryChangedSubscriptions.Clear();
 
-    private void UpdateFilteredFactions()
-    {
-        IEnumerable<FactionRecordViewModel> filtered;
-
-        if (string.IsNullOrWhiteSpace(FactionSearchText))
+        foreach (var sub in _useChanceSubscriptions.Values)
         {
-            filtered = AvailableFactions;
-        }
-        else
-        {
-            var term = FactionSearchText.Trim().ToLowerInvariant();
-            filtered = AvailableFactions.Where(faction => faction.MatchesSearch(term));
+            sub.Dispose();
         }
 
-        FilteredFactions.Clear();
-        foreach (var faction in filtered)
-        {
-            FilteredFactions.Add(faction);
-        }
-    }
+        _useChanceSubscriptions.Clear();
 
-    private void UpdateFilteredKeywords()
-    {
-        IEnumerable<KeywordRecordViewModel> filtered;
-
-        if (string.IsNullOrWhiteSpace(KeywordSearchText))
+        foreach (var sub in _typeSubscriptions.Values)
         {
-            filtered = AvailableKeywords;
-        }
-        else
-        {
-            var term = KeywordSearchText.Trim().ToLowerInvariant();
-            filtered = AvailableKeywords.Where(keyword => keyword.MatchesSearch(term));
+            sub.Dispose();
         }
 
-        FilteredKeywords.Clear();
-        foreach (var keyword in filtered)
-        {
-            FilteredKeywords.Add(keyword);
-        }
-    }
-
-    private void UpdateFilteredRaces()
-    {
-        IEnumerable<RaceRecordViewModel> filtered;
-
-        if (string.IsNullOrWhiteSpace(RaceSearchText))
-        {
-            filtered = AvailableRaces;
-        }
-        else
-        {
-            var term = RaceSearchText.Trim().ToLowerInvariant();
-            filtered = AvailableRaces.Where(race => race.MatchesSearch(term));
-        }
-
-        FilteredRaces.Clear();
-        foreach (var race in filtered)
-        {
-            FilteredRaces.Add(race);
-        }
-    }
-
-    private void UpdateFilteredClasses()
-    {
-        IEnumerable<ClassRecordViewModel> filtered;
-
-        if (string.IsNullOrWhiteSpace(ClassSearchText))
-        {
-            filtered = AvailableClasses;
-        }
-        else
-        {
-            var term = ClassSearchText.Trim().ToLowerInvariant();
-            filtered = AvailableClasses.Where(c => c.MatchesSearch(term));
-        }
-
-        FilteredClasses.Clear();
-        foreach (var classVm in filtered)
-        {
-            FilteredClasses.Add(classVm);
-        }
+        _typeSubscriptions.Clear();
+        GC.SuppressFinalize(this);
     }
 }

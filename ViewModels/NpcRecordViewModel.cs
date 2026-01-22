@@ -10,7 +10,8 @@ public partial class NpcRecordViewModel : SelectableRecordViewModel<NpcRecord>
 
     [Reactive] private bool _hasConflict;
 
-    public NpcRecordViewModel(NpcRecord npcRecord) : base(npcRecord)
+    public NpcRecordViewModel(NpcRecord npcRecord)
+        : base(npcRecord)
     {
         this.WhenAnyValue(x => x.HasConflict, x => x.ConflictingFileName)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictTooltip)));

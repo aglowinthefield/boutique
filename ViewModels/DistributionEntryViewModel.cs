@@ -460,7 +460,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         RaiseEntryChanged();
     }
 
-    public bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
+    public static bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
         where T : ISelectableRecordViewModel
     {
         if (collection.Any(existing => existing.FormKey == item.FormKey))
@@ -473,7 +473,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         return true;
     }
 
-    public bool RemoveCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
+    public static bool RemoveCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
         where T : class
     {
         if (!collection.Remove(item))

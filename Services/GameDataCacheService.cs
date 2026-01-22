@@ -1,25 +1,41 @@
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows;
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
+using DynamicData;
+using DynamicData.Kernel;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
+using ReactiveUI;
 using Serilog;
 
 namespace Boutique.Services;
 
-public class GameDataCacheService
+public class GameDataCacheService : IDisposable
 {
     private readonly DistributionDiscoveryService _discoveryService;
+    private readonly CompositeDisposable _disposables = new();
     private readonly GuiSettingsService _guiSettings;
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
     private readonly NpcOutfitResolutionService _outfitResolutionService;
     private readonly SettingsViewModel _settings;
+
+    private readonly SourceCache<NpcFilterData, FormKey> _npcsSource = new(x => x.FormKey);
+    private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
+    private readonly SourceCache<RaceRecordViewModel, FormKey> _racesSource = new(x => x.FormKey);
+    private readonly SourceCache<KeywordRecordViewModel, FormKey> _keywordsSource = new(x => x.FormKey);
+    private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
+    private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
+    private readonly SourceCache<NpcRecordViewModel, FormKey> _npcRecordsSource = new(x => x.FormKey);
+    private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
+    private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcOutfitAssignmentsSource = new(x => x.NpcFormKey);
 
     public GameDataCacheService(
         MutagenService mutagenService,
@@ -35,6 +51,65 @@ public class GameDataCacheService
         _settings = settings;
         _guiSettings = guiSettings;
         _logger = logger.ForContext<GameDataCacheService>();
+
+        _disposables.Add(_npcsSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allNpcs)
+            .Subscribe());
+        AllNpcs = allNpcs;
+
+        _disposables.Add(_factionsSource.Connect()
+            .SortBy(x => x.DisplayName)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allFactions)
+            .Subscribe());
+        AllFactions = allFactions;
+
+        _disposables.Add(_racesSource.Connect()
+            .SortBy(x => x.DisplayName)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allRaces)
+            .Subscribe());
+        AllRaces = allRaces;
+
+        _disposables.Add(_keywordsSource.Connect()
+            .SortBy(x => x.DisplayName)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allKeywords)
+            .Subscribe());
+        AllKeywords = allKeywords;
+
+        _disposables.Add(_classesSource.Connect()
+            .SortBy(x => x.DisplayName)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allClasses)
+            .Subscribe());
+        AllClasses = allClasses;
+
+        _disposables.Add(_outfitsSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allOutfits)
+            .Subscribe());
+        AllOutfits = allOutfits;
+
+        _disposables.Add(_npcRecordsSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allNpcRecords)
+            .Subscribe());
+        AllNpcRecords = allNpcRecords;
+
+        _disposables.Add(_distributionFilesSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allDistributionFiles)
+            .Subscribe());
+        AllDistributionFiles = allDistributionFiles;
+
+        _disposables.Add(_npcOutfitAssignmentsSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allNpcOutfitAssignments)
+            .Subscribe());
+        AllNpcOutfitAssignments = allNpcOutfitAssignments;
+
         _mutagenService.Initialized += OnMutagenInitialized;
     }
 
@@ -45,21 +120,22 @@ public class GameDataCacheService
 
     public bool IsLoading { get; private set; }
 
-    public ObservableCollection<NpcFilterData> AllNpcs { get; } = [];
-    public ObservableCollection<FactionRecordViewModel> AllFactions { get; } = [];
-    public ObservableCollection<RaceRecordViewModel> AllRaces { get; } = [];
-    public ObservableCollection<KeywordRecordViewModel> AllKeywords { get; } = [];
-    public ObservableCollection<ClassRecordViewModel> AllClasses { get; } = [];
-    public ObservableCollection<IOutfitGetter> AllOutfits { get; } = [];
-    public ObservableCollection<NpcRecordViewModel> AllNpcRecords { get; } = [];
-    public ObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; } = [];
-    public ObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; } = [];
+    public ReadOnlyObservableCollection<NpcFilterData> AllNpcs { get; }
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AllFactions { get; }
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AllRaces { get; }
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AllKeywords { get; }
+    public ReadOnlyObservableCollection<ClassRecordViewModel> AllClasses { get; }
+    public ReadOnlyObservableCollection<IOutfitGetter> AllOutfits { get; }
+    public ReadOnlyObservableCollection<NpcRecordViewModel> AllNpcRecords { get; }
+    public ReadOnlyObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; }
+    public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; }
 
-    public Dictionary<FormKey, NpcFilterData> NpcsByFormKey { get; } = [];
-    public Dictionary<FormKey, FactionRecordViewModel> FactionsByFormKey { get; } = [];
-    public Dictionary<FormKey, RaceRecordViewModel> RacesByFormKey { get; } = [];
-    public Dictionary<FormKey, KeywordRecordViewModel> KeywordsByFormKey { get; } = [];
-    public Dictionary<FormKey, ClassRecordViewModel> ClassesByFormKey { get; } = [];
+    public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
+    public Optional<FactionRecordViewModel> LookupFaction(FormKey key) => _factionsSource.Lookup(key);
+    public Optional<RaceRecordViewModel> LookupRace(FormKey key) => _racesSource.Lookup(key);
+    public Optional<KeywordRecordViewModel> LookupKeyword(FormKey key) => _keywordsSource.Lookup(key);
+    public Optional<ClassRecordViewModel> LookupClass(FormKey key) => _classesSource.Lookup(key);
+
     public event EventHandler? CacheLoaded;
 
     private async void OnMutagenInitialized(object? sender, EventArgs e)
@@ -93,6 +169,7 @@ public class GameDataCacheService
             IsLoading = true;
             _logger.Information("Loading game data cache...");
 
+            // Load data on background threads (same as before)
             var npcsResult = await Task.Run(() => LoadNpcs(linkCache));
             var (npcFilterDataList, npcRecordsList) = npcsResult;
 
@@ -110,59 +187,46 @@ public class GameDataCacheService
             var classesList = await classesTask;
             var outfitsList = await outfitsTask;
 
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            _npcsSource.Edit(cache =>
             {
-                AllNpcs.Clear();
-                NpcsByFormKey.Clear();
-                AllNpcRecords.Clear();
-                foreach (var npc in npcFilterDataList)
-                {
-                    AllNpcs.Add(npc);
-                    NpcsByFormKey[npc.FormKey] = npc;
-                }
+                cache.Clear();
+                cache.AddOrUpdate(npcFilterDataList);
+            });
 
-                foreach (var npc in npcRecordsList)
-                {
-                    AllNpcRecords.Add(npc);
-                }
+            _npcRecordsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(npcRecordsList);
+            });
 
-                AllFactions.Clear();
-                FactionsByFormKey.Clear();
-                foreach (var faction in factionsList)
-                {
-                    AllFactions.Add(faction);
-                    FactionsByFormKey[faction.FormKey] = faction;
-                }
+            _factionsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(factionsList);
+            });
 
-                AllRaces.Clear();
-                RacesByFormKey.Clear();
-                foreach (var race in racesList)
-                {
-                    AllRaces.Add(race);
-                    RacesByFormKey[race.FormKey] = race;
-                }
+            _racesSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(racesList);
+            });
 
-                AllKeywords.Clear();
-                KeywordsByFormKey.Clear();
-                foreach (var keyword in keywordsList)
-                {
-                    AllKeywords.Add(keyword);
-                    KeywordsByFormKey[keyword.FormKey] = keyword;
-                }
+            _keywordsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(keywordsList);
+            });
 
-                AllClasses.Clear();
-                ClassesByFormKey.Clear();
-                foreach (var classVm in classesList)
-                {
-                    AllClasses.Add(classVm);
-                    ClassesByFormKey[classVm.FormKey] = classVm;
-                }
+            _classesSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(classesList);
+            });
 
-                AllOutfits.Clear();
-                foreach (var outfit in outfitsList)
-                {
-                    AllOutfits.Add(outfit);
-                }
+            _outfitsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(outfitsList);
             });
 
             await LoadDistributionDataAsync(npcFilterDataList);
@@ -179,7 +243,8 @@ public class GameDataCacheService
                 AllDistributionFiles.Count,
                 AllNpcOutfitAssignments.Count);
 
-            CacheLoaded?.Invoke(this, EventArgs.Empty);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+                CacheLoaded?.Invoke(this, EventArgs.Empty));
         }
         catch (Exception ex)
         {
@@ -216,19 +281,12 @@ public class GameDataCacheService
             return;
         }
 
-        await Application.Current.Dispatcher.InvokeAsync(() =>
+        var patchModKey = ModKey.FromFileName(patchFileName);
+        _outfitsSource.Edit(cache =>
         {
-            var patchModKey = ModKey.FromFileName(patchFileName);
-            var existingPatchOutfits = AllOutfits.Where(o => o.FormKey.ModKey == patchModKey).ToList();
-            foreach (var outfit in existingPatchOutfits)
-            {
-                AllOutfits.Remove(outfit);
-            }
-
-            foreach (var outfit in patchOutfits)
-            {
-                AllOutfits.Add(outfit);
-            }
+            var existingPatchKeys = cache.Keys.Where(k => k.ModKey == patchModKey).ToList();
+            cache.Remove(existingPatchKeys);
+            cache.AddOrUpdate(patchOutfits);
         });
 
         _logger.Information("Refreshed {Count} outfit(s) from patch file {Patch}.", patchOutfits.Count, patchFileName);
@@ -256,8 +314,9 @@ public class GameDataCacheService
             var dataPath = _settings.SkyrimDataPath;
             if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
             {
-                _logger.Warning("Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}",
-                    dataPath);
+                _logger.Warning(
+                "Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}",
+                dataPath);
                 return;
             }
 
@@ -283,7 +342,8 @@ public class GameDataCacheService
             var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
 
             var virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
-            _logger.Information("Extracted {Count} virtual keywords from SPID distribution files.",
+            _logger.Information(
+                "Extracted {Count} virtual keywords from SPID distribution files.",
                 virtualKeywords.Count);
 
             var outfitFiles = discoveredFiles
@@ -303,28 +363,28 @@ public class GameDataCacheService
 
             _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
 
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            _distributionFilesSource.Edit(cache =>
             {
-                AllDistributionFiles.Clear();
-                foreach (var file in fileViewModels)
-                {
-                    AllDistributionFiles.Add(file);
-                }
+                cache.Clear();
+                cache.AddOrUpdate(fileViewModels);
+            });
 
-                AllNpcOutfitAssignments.Clear();
-                foreach (var assignment in assignments)
-                {
-                    AllNpcOutfitAssignments.Add(new NpcOutfitAssignmentViewModel(assignment));
-                }
+            _npcOutfitAssignmentsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(assignments.Select(a => new NpcOutfitAssignmentViewModel(a)));
+            });
 
-                foreach (var keyword in virtualKeywords)
-                {
-                    if (!AllKeywords.Any(k =>
-                            string.Equals(k.EditorID, keyword.EditorID, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        AllKeywords.Add(keyword);
-                    }
-                }
+            _keywordsSource.Edit(cache =>
+            {
+                var existingEditorIds = cache.Items
+                    .Select(k => k.EditorID)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var newKeywords = virtualKeywords
+                    .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty));
+
+                cache.AddOrUpdate(newKeywords);
             });
         }
         catch (Exception ex)
@@ -412,7 +472,7 @@ public class GameDataCacheService
         }
     }
 
-    private (List<NpcFilterData>, List<NpcRecordViewModel>) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private (List<NpcFilterData> filterData, List<NpcRecordViewModel> viewModels) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var validNpcs = linkCache.WinningOverrides<INpcGetter>()
             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
@@ -440,13 +500,17 @@ public class GameDataCacheService
                     originalModKey);
                 recordsBag.Add(new NpcRecordViewModel(record));
             }
-            catch { }
+            catch
+            {
+            }
         });
 
         return ([.. filterDataBag], [.. recordsBag]);
     }
 
-    private static NpcFilterData? BuildNpcFilterData(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    private static NpcFilterData? BuildNpcFilterData(
+        INpcGetter npc,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         ModKey originalModKey)
     {
         try
@@ -558,4 +622,20 @@ public class GameDataCacheService
         linkCache.WinningOverrides<IOutfitGetter>()
             .Where(o => !IsBlacklisted(o.FormKey.ModKey))
             .ToList();
+
+    public void Dispose()
+    {
+        _mutagenService.Initialized -= OnMutagenInitialized;
+        _disposables.Dispose();
+        _npcsSource.Dispose();
+        _factionsSource.Dispose();
+        _racesSource.Dispose();
+        _keywordsSource.Dispose();
+        _classesSource.Dispose();
+        _outfitsSource.Dispose();
+        _npcRecordsSource.Dispose();
+        _distributionFilesSource.Dispose();
+        _npcOutfitAssignmentsSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

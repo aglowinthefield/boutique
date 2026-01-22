@@ -243,7 +243,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         PreviewViewport.InvalidateRender();
     }
 
-    private List<EvaluatedMesh> EvaluateMeshes(ArmorPreviewScene scene, out Vector3 center, out float radius)
+    private static List<EvaluatedMesh> EvaluateMeshes(ArmorPreviewScene scene, out Vector3 center, out float radius)
     {
         var evaluatedMeshes = new List<EvaluatedMesh>();
         var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -328,7 +328,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         {
             Log.Warning(
                 "Texture coordinate count {UvCount} does not match vertex count {VertexCount} for mesh {MeshName}",
-                uvs.Count, evaluated.Vertices.Count, evaluated.Shape.Name);
+                uvs.Count,
+                evaluated.Vertices.Count,
+                evaluated.Shape.Name);
         }
 
         geometry.UpdateBounds();
@@ -440,7 +442,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     private static Color4 ScaleColor(Color4 baseColor, float multiplier)
     {
-        return new Color4(baseColor.Red * multiplier, baseColor.Green * multiplier, baseColor.Blue * multiplier,
+        return new Color4(
+            baseColor.Red * multiplier,
+            baseColor.Green * multiplier,
+            baseColor.Blue * multiplier,
             baseColor.Alpha);
     }
 
@@ -539,9 +544,9 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
         const double scale = 0.6;
         const byte min = 70;
-        r = (byte)(min + r * scale);
-        g = (byte)(min + g * scale);
-        b = (byte)(min + b * scale);
+        r = (byte)(min + (r * scale));
+        g = (byte)(min + (g * scale));
+        b = (byte)(min + (b * scale));
 
         return Color.FromRgb(r, g, b);
     }

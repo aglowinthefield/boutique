@@ -39,7 +39,8 @@ public static class NpcDataExtractor
         return keywords;
     }
 
-    public static List<FactionMembership> ExtractFactions(INpcGetter npc,
+    public static List<FactionMembership> ExtractFactions(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var factions = new List<FactionMembership>();
@@ -66,7 +67,8 @@ public static class NpcDataExtractor
         return factions;
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractRace(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractRace(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Race.IsNull)
@@ -85,7 +87,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractClass(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractClass(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Class.IsNull)
@@ -104,7 +107,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.CombatStyle.IsNull)
@@ -123,7 +127,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Voice.IsNull)
@@ -142,7 +147,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.DefaultOutfit.IsNull)
@@ -161,7 +167,8 @@ public static class NpcDataExtractor
         return (formKey, editorId);
     }
 
-    public static (FormKey? FormKey, string? EditorId) ExtractTemplate(INpcGetter npc,
+    public static (FormKey? FormKey, string? EditorId) ExtractTemplate(
+        INpcGetter npc,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (npc.Template.IsNull)

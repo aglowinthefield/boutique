@@ -21,7 +21,10 @@ public partial class MainWindow : Window
     private readonly TutorialService _tutorialService;
     private bool _initialized;
 
-    public MainWindow(MainViewModel viewModel, ThemeService themeService, TutorialService tutorialService,
+    public MainWindow(
+        MainViewModel viewModel,
+        ThemeService themeService,
+        TutorialService tutorialService,
         GuiSettingsService guiSettings)
     {
         InitializeComponent();
@@ -54,8 +57,13 @@ public partial class MainWindow : Window
         {
             var message = interaction.Input;
             var result = await Dispatcher.InvokeAsync(() =>
-                MessageBox.Show(this, message, "Overwrite Existing Patch?", MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning, MessageBoxResult.No));
+                MessageBox.Show(
+                    this,
+                    message,
+                    "Overwrite Existing Patch?",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No));
             interaction.SetOutput(result == MessageBoxResult.Yes);
         });
         _bindings.Add(confirmDisposable);

@@ -60,7 +60,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         var gender = DetermineEffectiveGender(pieces, preferredGender, linkCache);
         _logger.Debug(
             "Building preview for {PieceCount} armor pieces with preferred gender {PreferredGender}",
-            pieces.Count, preferredGender);
+            pieces.Count,
+            preferredGender);
         var meshes = new List<PreviewMeshShape>();
         var missingAssets = new List<string>();
 
@@ -93,7 +94,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
                 if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon) || addon is null)
                 {
-                    _logger.Warning("Failed to resolve ArmorAddon {FormKey} for armor {Armor}", addonLink.FormKey,
+                    _logger.Warning(
+                        "Failed to resolve ArmorAddon {FormKey} for armor {Armor}",
+                        addonLink.FormKey,
                         armorName);
                     continue;
                 }
@@ -101,7 +104,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 var (model, variantForAddon) = SelectModel(addon.WorldModel, gender);
                 if (model == null)
                 {
-                    _logger.Information("ArmorAddon {Addon} has no usable models for gender {Gender}", addon.EditorID,
+                    _logger.Information(
+                        "ArmorAddon {Addon} has no usable models for gender {Gender}",
+                        addon.EditorID,
                         gender);
                     continue;
                 }
@@ -181,7 +186,10 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             var loadResult = nif.Load(meshPath);
             if (loadResult != 0 || !nif.Valid)
             {
-                _logger.Warning("Failed to load NIF {FullPath}. Result={Result} Valid={Valid}", meshPath, loadResult,
+                _logger.Warning(
+                    "Failed to load NIF {FullPath}. Result={Result} Valid={Valid}",
+                    meshPath,
+                    loadResult,
                     nif.Valid);
                 return meshes;
             }
@@ -197,7 +205,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                 {
                     _logger.Debug(
                         "Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
-                        shape.Name?.ToString() ?? "<unnamed>", meshPath);
+                        shape.Name?.ToString() ?? "<unnamed>",
+                        meshPath);
                     continue;
                 }
 
@@ -274,7 +283,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             {
                 _logger.Debug(
                     "Shape {ShapeName} normals count {ProvidedCount} mismatched vertex count {VertexCount}; computed fallback.",
-                    shapeName, extractedNormals.Count, vertices.Count);
+                    shapeName,
+                    extractedNormals.Count,
+                    vertices.Count);
             }
         }
 
@@ -283,14 +294,17 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         {
             _logger.Debug(
                 "Shape {ShapeName} texture coordinate count {TexCount} does not match vertex count {VertexCount}. Ignoring UVs.",
-                shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count, vertices.Count);
+                shape.Name?.ToString() ?? "<unnamed>",
+                textureCoordinates.Count,
+                vertices.Count);
             textureCoordinates = null;
         }
         else if (textureCoordinates != null)
         {
             _logger.Debug(
                 "Shape {ShapeName} extracted {TexCount} UV coordinates.",
-                shape.Name?.ToString() ?? "<unnamed>", textureCoordinates.Count);
+                shape.Name?.ToString() ?? "<unnamed>",
+                textureCoordinates.Count);
         }
 
         var transform = MeshUtilities.ComputeWorldTransform(nif, shape);
@@ -373,7 +387,9 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         {
             if (!MeshUtilities.IsLikelyDiffuseTexture(candidate))
             {
-                _logger.Debug("Skipping non-diffuse texture candidate {Texture} for shape {Shape}", candidate,
+                _logger.Debug(
+                    "Skipping non-diffuse texture candidate {Texture} for shape {Shape}",
+                    candidate,
                     shapeName);
                 continue;
             }
@@ -388,8 +404,11 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
             var resolved = assetLocator.ResolveAssetPath(normalized, ownerModKey);
             if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
             {
-                _logger.Debug("Resolved texture candidate {Texture} to {ResolvedPath} for shape {Shape}", candidate,
-                    resolved, shapeName);
+                _logger.Debug(
+                    "Resolved texture candidate {Texture} to {ResolvedPath} for shape {Shape}",
+                    candidate,
+                    resolved,
+                    shapeName);
                 return resolved;
             }
 
@@ -400,7 +419,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         {
             _logger.Debug(
                 "Found {CandidateCount} texture candidates for shape {Shape} but none looked diffuse.",
-                candidates.Count, shapeName);
+                candidates.Count,
+                shapeName);
         }
         else
         {

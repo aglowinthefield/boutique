@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using DynamicData;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -15,29 +17,25 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class DistributionNpcsTabViewModel : ReactiveObject
+public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 {
     private readonly ArmorPreviewService _armorPreviewService;
     private readonly GameDataCacheService _cache;
+    private readonly CompositeDisposable _disposables = new();
 
     private readonly IObservable<bool> _hasFilters;
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
     private readonly IObservable<bool> _notLoading;
 
-    [ReactiveCollection] private ObservableCollection<NpcOutfitAssignmentViewModel> _filteredNpcOutfitAssignments = [];
+    private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcAssignmentsSource = new(x => x.NpcFormKey);
 
     [Reactive] private bool _hideVanillaDistributions;
 
     [Reactive] private bool _isLoading;
 
-    [ReactiveCollection] private ObservableCollection<NpcOutfitAssignmentViewModel> _npcOutfitAssignments = [];
-
     [Reactive] private string _npcOutfitSearchText = string.Empty;
 
-    /// <summary>
-    ///     Gets the NpcFilterData for the currently selected NPC, used to display detailed stats.
-    /// </summary>
     [Reactive] private NpcFilterData? _selectedNpcFilterData;
 
     [Reactive] private string _selectedNpcOutfitContents = string.Empty;
@@ -59,19 +57,18 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
         _hasFilters = this.WhenAnyValue(vm => vm.HasActiveFilters);
 
-        // NPCs tab search filtering - combine text search with SPID filters
-        this.WhenAnyValue(vm => vm.NpcOutfitSearchText)
-            .Subscribe(_ => UpdateFilteredNpcOutfitAssignments());
+        var filterPredicate = CreateFilterPredicate();
 
-        // Vanilla distribution filtering
-        this.WhenAnyValue(vm => vm.HideVanillaDistributions)
-            .Subscribe(_ => UpdateFilteredNpcOutfitAssignments());
+        _disposables.Add(_npcAssignmentsSource.Connect()
+            .Filter(filterPredicate)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredAssignments)
+            .Subscribe(_ => FilteredCount = filteredAssignments.Count));
+        FilteredNpcOutfitAssignments = filteredAssignments;
 
-        // Update outfit contents when selection changes
         this.WhenAnyValue(vm => vm.SelectedNpcAssignment)
             .Subscribe(_ => UpdateSelectedNpcOutfitContents());
 
-        // Subscribe to filter changes
         this.WhenAnyValue(
                 vm => vm.SelectedGenderFilter,
                 vm => vm.SelectedUniqueFilter,
@@ -86,27 +83,88 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
                 vm => vm.SelectedClass)
             .Subscribe(_ => OnFiltersChanged());
 
-        // Subscribe to cache loaded event to populate data
         _cache.CacheLoaded += OnCacheLoaded;
 
-        // If cache is already loaded, populate data immediately
         if (_cache.IsLoaded)
         {
             PopulateFromCache();
         }
     }
 
+    private IObservable<Func<NpcOutfitAssignmentViewModel, bool>> CreateFilterPredicate()
+    {
+        var textFilter = this.WhenAnyValue(vm => vm.NpcOutfitSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(text => text?.Trim() ?? string.Empty);
+
+        var vanillaFilter = this.WhenAnyValue(vm => vm.HideVanillaDistributions);
+
+        var spidFilters = this.WhenAnyValue(
+            vm => vm.SelectedGenderFilter,
+            vm => vm.SelectedUniqueFilter,
+            vm => vm.SelectedTemplatedFilter,
+            vm => vm.SelectedChildFilter,
+            vm => vm.SelectedFaction,
+            vm => vm.SelectedRace,
+            vm => vm.SelectedKeyword,
+            vm => vm.SelectedClass,
+            (_, _, _, _, _, _, _, _) => Unit.Default);
+
+        return textFilter
+            .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
+            .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
+    }
+
+    private Func<NpcOutfitAssignmentViewModel, bool> CreateFilterFunc(string searchText, bool hideVanilla)
+    {
+        return assignment =>
+        {
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                var matchesText =
+                    (assignment.DisplayName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (assignment.EditorId?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (assignment.FinalOutfitEditorId?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    assignment.FormKeyString.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    assignment.ModDisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+
+                if (!matchesText)
+                {
+                    return false;
+                }
+            }
+
+            if (hideVanilla && IsVanillaDistribution(assignment.NpcFormKey, assignment.FinalOutfitFormKey))
+            {
+                return false;
+            }
+
+            if (!Filter.IsEmpty)
+            {
+                if (string.IsNullOrEmpty(assignment.EditorId) || assignment.EditorId == "(No EditorID)")
+                {
+                    return false;
+                }
+
+                if (!MatchesSpidFilter(assignment.NpcFormKey))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+    }
+
+    public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> FilteredNpcOutfitAssignments { get; }
+
     public NpcOutfitAssignmentViewModel? SelectedNpcAssignment
     {
         get => field;
         set
         {
-            // Clear previous selection
             field?.IsSelected = false;
-
             this.RaiseAndSetIfChanged(ref field, value);
-
-            // Set new selection
             value?.IsSelected = true;
         }
     }
@@ -119,19 +177,17 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
     private void PopulateFromCache()
     {
-        NpcOutfitAssignments.Clear();
-        foreach (var assignment in _cache.AllNpcOutfitAssignments)
+        _npcAssignmentsSource.Edit(cache =>
         {
-            NpcOutfitAssignments.Add(assignment);
-        }
+            cache.Clear();
+            cache.AddOrUpdate(_cache.AllNpcOutfitAssignments);
+        });
 
-        TotalCount = NpcOutfitAssignments.Count;
-        UpdateFilteredNpcOutfitAssignments();
+        TotalCount = _npcAssignmentsSource.Count;
 
         var conflictCount = _cache.AllNpcOutfitAssignments.Count(a => a.HasConflict);
-        StatusMessage =
-            $"Found {NpcOutfitAssignments.Count} NPCs with outfit distributions ({conflictCount} conflicts).";
-        _logger.Debug("Populated {Count} NPC outfit assignments from cache.", NpcOutfitAssignments.Count);
+        StatusMessage = $"Found {TotalCount} NPCs with outfit distributions ({conflictCount} conflicts).";
+        _logger.Debug("Populated {Count} NPC outfit assignments from cache.", TotalCount);
     }
 
     /// <summary>
@@ -339,17 +395,12 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
     private void OnFiltersChanged()
     {
-        // Update the Filter model from UI selections
         UpdateFilterFromSelections();
-
-        // Update filtered results and syntax preview
-        UpdateFilteredNpcOutfitAssignments();
         UpdateSyntaxPreview();
     }
 
     private void UpdateFilterFromSelections()
     {
-        // Gender
         Filter.IsFemale = SelectedGenderFilter switch
         {
             "Female" => true,
@@ -357,7 +408,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
             _ => null
         };
 
-        // Unique
         Filter.IsUnique = SelectedUniqueFilter switch
         {
             "Unique Only" => true,
@@ -365,7 +415,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
             _ => null
         };
 
-        // Templated
         Filter.IsTemplated = SelectedTemplatedFilter switch
         {
             "Templated" => true,
@@ -373,7 +422,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
             _ => null
         };
 
-        // Child
         Filter.IsChild = SelectedChildFilter switch
         {
             "Children" => true,
@@ -381,79 +429,32 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
             _ => null
         };
 
-        // Faction
         Filter.Factions.Clear();
         if (SelectedFaction != null)
         {
             Filter.Factions.Add(SelectedFaction.FormKey);
         }
 
-        // Race
         Filter.Races.Clear();
         if (SelectedRace != null)
         {
             Filter.Races.Add(SelectedRace.FormKey);
         }
 
-        // Keyword
         Filter.Keywords.Clear();
         if (SelectedKeyword != null)
         {
             Filter.Keywords.Add(SelectedKeyword.FormKey);
         }
 
-        // Class
         Filter.Classes.Clear();
         if (SelectedClass != null)
         {
             Filter.Classes.Add(SelectedClass.FormKey);
         }
 
-        // Update UI state
         HasActiveFilters = !Filter.IsEmpty;
         FilterDescription = NpcSpidSyntaxGenerator.GetFilterDescription(Filter);
-    }
-
-    private void UpdateFilteredNpcOutfitAssignments()
-    {
-        IEnumerable<NpcOutfitAssignmentViewModel> filtered = NpcOutfitAssignments;
-
-        // Apply text search filter
-        if (!string.IsNullOrWhiteSpace(NpcOutfitSearchText))
-        {
-            var term = NpcOutfitSearchText.Trim();
-            filtered = filtered.Where(a =>
-                (a.DisplayName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (a.EditorId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (a.FinalOutfitEditorId?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                a.FormKeyString.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                a.ModDisplayName.Contains(term, StringComparison.OrdinalIgnoreCase));
-        }
-
-        // Filter out NPCs whose final outfit is their default outfit (vanilla distribution)
-        if (HideVanillaDistributions)
-        {
-            filtered = filtered.Where(a => !IsVanillaDistribution(a.NpcFormKey, a.FinalOutfitFormKey));
-        }
-
-        // Apply SPID-style filters
-        if (!Filter.IsEmpty)
-        {
-            // When filters are active, also exclude NPCs without EditorIDs
-            // These are typically template-generated NPCs that can't be targeted in distribution files
-            filtered = filtered.Where(a =>
-                !string.IsNullOrEmpty(a.EditorId) &&
-                a.EditorId != "(No EditorID)" &&
-                MatchesSpidFilter(a.NpcFormKey));
-        }
-
-        FilteredNpcOutfitAssignments.Clear();
-        foreach (var assignment in filtered)
-        {
-            FilteredNpcOutfitAssignments.Add(assignment);
-        }
-
-        FilteredCount = FilteredNpcOutfitAssignments.Count;
     }
 
     /// <summary>
@@ -461,29 +462,31 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     /// </summary>
     private bool IsVanillaDistribution(FormKey npcFormKey, FormKey? finalOutfitFormKey)
     {
-        if (!_cache.NpcsByFormKey.TryGetValue(npcFormKey, out var npcData))
+        var lookup = _cache.LookupNpc(npcFormKey);
+        if (!lookup.HasValue)
         {
             return false;
         }
 
-        // If no final outfit or no default outfit, not a vanilla distribution
+        var npcData = lookup.Value;
+
         if (!finalOutfitFormKey.HasValue || !npcData.DefaultOutfitFormKey.HasValue)
         {
             return false;
         }
 
-        // If final outfit matches default outfit, it's a vanilla distribution
         return finalOutfitFormKey.Value == npcData.DefaultOutfitFormKey.Value;
     }
 
     private bool MatchesSpidFilter(FormKey npcFormKey)
     {
-        if (!_cache.NpcsByFormKey.TryGetValue(npcFormKey, out var npcData))
+        var lookup = _cache.LookupNpc(npcFormKey);
+        if (!lookup.HasValue)
         {
-            return false; // If we don't have filter data, filter out (can't evaluate filters)
+            return false;
         }
 
-        return Filter.Matches(npcData);
+        return Filter.Matches(lookup.Value);
     }
 
     private void UpdateSyntaxPreview()
@@ -510,8 +513,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
         Filter.Clear();
         HasActiveFilters = false;
         FilterDescription = "No filters active";
-
-        UpdateFilteredNpcOutfitAssignments();
         UpdateSyntaxPreview();
     }
 
@@ -532,11 +533,10 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
 
     private void UpdateSelectedNpcOutfitContents()
     {
-        // Update NpcFilterData for the selected NPC
-        if (SelectedNpcAssignment != null &&
-            _cache.NpcsByFormKey.TryGetValue(SelectedNpcAssignment.NpcFormKey, out var npcData))
+        if (SelectedNpcAssignment != null)
         {
-            SelectedNpcFilterData = npcData;
+            var lookup = _cache.LookupNpc(SelectedNpcAssignment.NpcFormKey);
+            SelectedNpcFilterData = lookup.HasValue ? lookup.Value : null;
         }
         else
         {
@@ -584,7 +584,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
         SelectedNpcOutfitContents = sb.ToString();
     }
 
-    private static GenderedModelVariant GetNpcGender(FormKey npcFormKey,
+    private static GenderedModelVariant GetNpcGender(
+        FormKey npcFormKey,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
@@ -625,22 +626,22 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     [Reactive] private string _selectedChildFilter = "Any";
 
     /// <summary>Available factions for filtering (from centralized cache).</summary>
-    public ObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactions => _cache.AllFactions;
 
     [Reactive] private FactionRecordViewModel? _selectedFaction;
 
     /// <summary>Available races for filtering (from centralized cache).</summary>
-    public ObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRaces => _cache.AllRaces;
 
     [Reactive] private RaceRecordViewModel? _selectedRace;
 
     /// <summary>Available keywords for filtering (from centralized cache).</summary>
-    public ObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywords => _cache.AllKeywords;
 
     [Reactive] private KeywordRecordViewModel? _selectedKeyword;
 
     /// <summary>Available classes for filtering (from centralized cache).</summary>
-    public ObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
+    public ReadOnlyObservableCollection<ClassRecordViewModel> AvailableClasses => _cache.AllClasses;
 
     [Reactive] private ClassRecordViewModel? _selectedClass;
 
@@ -675,4 +676,12 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject
     [Reactive] private int _totalCount;
 
     #endregion
+
+    public void Dispose()
+    {
+        _cache.CacheLoaded -= OnCacheLoaded;
+        _disposables.Dispose();
+        _npcAssignmentsSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

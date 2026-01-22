@@ -108,21 +108,25 @@ public class DistributionConflictDetectionService
 
                 if (hasAllNpcsConflict)
                 {
-                    sb.Append(CultureInfo.InvariantCulture,
+                    sb.Append(
+                            CultureInfo.InvariantCulture,
                             $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.")
                         .AppendLine();
-                    sb.Append(CultureInfo.InvariantCulture,
+                    sb.Append(
+                        CultureInfo.InvariantCulture,
                         $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
                 }
                 else
                 {
-                    sb.Append(CultureInfo.InvariantCulture,
+                    sb.Append(
+                            CultureInfo.InvariantCulture,
                             $"⚠ {conflicts.Count} NPC(s) already have outfit distributions in existing files:")
                         .AppendLine();
 
-                    foreach (var conflict in conflicts.Take(5)) // Show first 5
+                    foreach (var conflict in conflicts.Take(5))
                     {
-                        sb.Append(CultureInfo.InvariantCulture,
+                        sb.Append(
+                                CultureInfo.InvariantCulture,
                                 $"  • {conflict.DisplayName ?? conflict.NpcFormKey.ToString()} ({conflict.ExistingFileName})")
                             .AppendLine();
                     }
@@ -167,7 +171,6 @@ public class DistributionConflictDetectionService
         }
 
         foreach (var conflictingFile in conflictingFileNames)
-            // Compare alphabetically (case-insensitive, like file systems)
         {
             if (string.Compare(fileName, conflictingFile, StringComparison.OrdinalIgnoreCase) <= 0)
             {
@@ -229,7 +232,6 @@ public class DistributionConflictDetectionService
                     DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache, npcByEditorId, npcByName);
 
                 foreach (var npcFormKey in npcFormKeys)
-                    // Only track first occurrence (earlier files in load order)
                 {
                     if (!map.ContainsKey(npcFormKey))
                     {
