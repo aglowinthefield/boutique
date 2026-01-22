@@ -62,25 +62,46 @@
         </Border>
       </Expander>
 
-      <!-- File Content Preview -->
-      <Border Grid.Row="1" Padding="6" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
+      <!-- File Content Preview with Line Numbers -->
+      <Border Grid.Row="1" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
               BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1"
               CornerRadius="4">
-        <Grid>
-          <TextBox x:Name="PreviewTextBox"
-                   Text="{Binding DistributionFileContent, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
-                   AcceptsReturn="True"
-                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas"
-                   FontSize="11" />
-          <Border x:Name="HighlightOverlay"
-                  Background="{DynamicResource Brush.Accent}"
-                  Opacity="0"
-                  IsHitTestVisible="False"
-                  VerticalAlignment="Top"
-                  HorizontalAlignment="Stretch"
-                  Height="16"
-                  Margin="0" />
-        </Grid>
+        <ScrollViewer x:Name="PreviewScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Auto">
+          <ItemsControl x:Name="LinesItemsControl" ItemsSource="{Binding PreviewLines}"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid x:Name="LineGrid">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Border x:Name="HighlightBorder" Grid.ColumnSpan="2"
+                          Background="{DynamicResource Brush.Accent}"
+                          Opacity="0" />
+                  <TextBlock Grid.Column="0"
+                             Text="{Binding LineNumber}"
+                             FontFamily="Consolas" FontSize="11"
+                             Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
+                             TextAlignment="Right" Padding="0,0,8,0"
+                             Background="Transparent" />
+                  <TextBlock Grid.Column="1"
+                             Text="{Binding Content}"
+                             FontFamily="Consolas" FontSize="11"
+                             TextWrapping="NoWrap" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </Border>
     </Grid>
   </GroupBox>

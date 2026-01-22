@@ -25,6 +25,12 @@ namespace Boutique.ViewModels;
 
 public record PreviewLineHighlightRequest(int LineNumber, string LineContent, Guid RequestId);
 
+public class PreviewLine
+{
+    public int LineNumber { get; init; }
+    public string Content { get; init; } = string.Empty;
+}
+
 public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
     private readonly ArmorPreviewService _armorPreviewService;
@@ -119,6 +125,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     [Reactive] private IReadOnlyList<DistributionParseError> _parseErrors = [];
 
+    [Reactive] private IReadOnlyList<PreviewLine> _previewLines = [];
+
     [Reactive] private string _raceSearchText = string.Empty;
 
     [Reactive] private string _statusMessage = string.Empty;
@@ -188,6 +196,23 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
         this.WhenAnyValue(vm => vm.DistributionFilePath)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
+
+        this.WhenAnyValue(vm => vm.DistributionFileContent)
+            .Subscribe(_ => UpdatePreviewLines());
+    }
+
+    private void UpdatePreviewLines()
+    {
+        var lines = string.IsNullOrEmpty(DistributionFileContent)
+            ? []
+            : DistributionFileContent.Split('\n')
+                .Select((line, index) => new PreviewLine
+                {
+                    LineNumber = index + 1,
+                    Content = line.TrimEnd('\r')
+                })
+                .ToList();
+        PreviewLines = lines;
     }
 
     private void SetupIntraFileConflictDetection()
@@ -1441,6 +1466,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         var lines = DistributionFileContent.Split('\n');
         var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
+        _logger.Information("RaiseHighlightRequest: line {LineNumber}", lineNumber);
         HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
     }
 

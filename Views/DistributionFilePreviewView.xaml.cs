@@ -1,6 +1,8 @@
+using System.Reactive.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Threading;
 using Boutique.ViewModels;
 using ReactiveUI;
 
@@ -8,11 +10,7 @@ namespace Boutique.Views;
 
 public partial class DistributionFilePreviewView
 {
-    private static readonly DoubleAnimation HighlightAnimation = new()
-    {
-        From = 0.35, To = 0, Duration = TimeSpan.FromMilliseconds(600), BeginTime = TimeSpan.FromMilliseconds(200)
-    };
-
+    private const double EstimatedLineHeight = 16.0;
     private IDisposable? _highlightSubscription;
 
     public DistributionFilePreviewView()
@@ -29,44 +27,78 @@ public partial class DistributionFilePreviewView
         {
             _highlightSubscription = vm
                 .WhenAnyValue(x => x.HighlightRequest)
-                .WhereNotNull()
-                .Subscribe(r => ScrollToLineAndHighlight(r.LineNumber));
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(r =>
+                {
+                    if (r != null)
+                    {
+                        ScrollToLineAndHighlight(r.LineNumber);
+                    }
+                });
         }
     }
 
     private void ScrollToLineAndHighlight(int lineNumber)
     {
-        if (PreviewTextBox?.Text is not { Length: > 0 } text)
+        if (DataContext is not DistributionEditTabViewModel vm)
         {
             return;
         }
 
-        var lines = text.Split('\n');
-        if ((uint)lineNumber >= (uint)lines.Length)
+        var lines = vm.PreviewLines;
+        if (lineNumber < 0 || lineNumber >= lines.Count)
         {
             return;
         }
 
-        var charIndex = lines.Take(lineNumber).Sum(l => l.Length + 1);
-        var lineRect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
+        var targetOffset = lineNumber * EstimatedLineHeight - (PreviewScrollViewer.ViewportHeight / 2) +
+                           (EstimatedLineHeight / 2);
+        targetOffset = Math.Max(0, Math.Min(targetOffset, PreviewScrollViewer.ScrollableHeight));
+        PreviewScrollViewer.ScrollToVerticalOffset(targetOffset);
 
-        if (lineRect.Top < 0 || lineRect.Top > PreviewTextBox.ActualHeight - 20)
+        Dispatcher.BeginInvoke(() =>
         {
-            PreviewTextBox.CaretIndex = charIndex;
-            PreviewTextBox.ScrollToLine(lineNumber);
-        }
+            LinesItemsControl.UpdateLayout();
 
-        Dispatcher.BeginInvoke(
-            () =>
+            if (LinesItemsControl.ItemContainerGenerator.ContainerFromIndex(lineNumber) is FrameworkElement container)
             {
-                var rect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
-                if (double.IsFinite(rect.Top))
+                var highlightBorder = FindChild<Border>(container, "HighlightBorder");
+                if (highlightBorder != null)
                 {
-                    HighlightOverlay.Margin = new Thickness(0, rect.Top, 0, 0);
-                    HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
-                    HighlightOverlay.BeginAnimation(OpacityProperty, HighlightAnimation);
+                    highlightBorder.BeginAnimation(OpacityProperty, null);
+
+                    var animation = new DoubleAnimation
+                    {
+                        From = 0.4,
+                        To = 0,
+                        Duration = TimeSpan.FromMilliseconds(800),
+                        BeginTime = TimeSpan.FromMilliseconds(100)
+                    };
+                    highlightBorder.BeginAnimation(OpacityProperty, animation);
                 }
-            },
-            DispatcherPriority.Loaded);
+            }
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private static T? FindChild<T>(DependencyObject parent, string childName)
+        where T : DependencyObject
+    {
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T typedChild && child is FrameworkElement fe && fe.Name == childName)
+            {
+                return typedChild;
+            }
+
+            var result = FindChild<T>(child, childName);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 }
