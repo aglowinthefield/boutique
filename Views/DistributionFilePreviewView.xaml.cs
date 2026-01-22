@@ -56,16 +56,17 @@ public partial class DistributionFilePreviewView
             PreviewTextBox.ScrollToLine(lineNumber);
         }
 
-        Dispatcher.BeginInvoke(() =>
-        {
-            var rect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
-            if (double.IsFinite(rect.Top))
+        Dispatcher.BeginInvoke(
+            () =>
             {
-                HighlightOverlay.Margin = new Thickness(0, rect.Top, 0, 0);
-                HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
-                HighlightOverlay.BeginAnimation(OpacityProperty, HighlightAnimation);
-            }
-        },
-        DispatcherPriority.Loaded);
+                var rect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
+                if (double.IsFinite(rect.Top))
+                {
+                    HighlightOverlay.Margin = new Thickness(0, rect.Top, 0, 0);
+                    HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
+                    HighlightOverlay.BeginAnimation(OpacityProperty, HighlightAnimation);
+                }
+            },
+            DispatcherPriority.Loaded);
     }
 }

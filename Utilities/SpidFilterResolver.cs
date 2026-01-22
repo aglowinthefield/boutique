@@ -524,7 +524,8 @@ public static class SpidFilterResolver
         }
     }
 
-    private static string? ExtractUnresolvableStringFilters(SpidFilterSection stringFilters,
+    private static string? ExtractUnresolvableStringFilters(
+        SpidFilterSection stringFilters,
         List<KeywordFilter> resolvedKeywordFilters)
     {
         var resolvedSet = new HashSet<string>(

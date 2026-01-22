@@ -50,7 +50,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         }
     }
 
-    private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(string outputPath,
+    private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(
+        string outputPath,
         string operationName)
     {
         var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
@@ -90,7 +91,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         WritePatchWithRetry(patchMod, outputPath, requiredMasters);
     }
 
-    private async Task RefreshAfterWrite(string outputPath,
+    private async Task RefreshAfterWrite(
+        string outputPath,
         IProgress<(int current, int total, string message)>? progress)
     {
         progress?.Report((1, 1, "Refreshing load order..."));
@@ -212,10 +214,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
                     if (isOverride && existingFormKey.HasValue)
                     {
-                        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(existingFormKey.Value,
+                        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(
+                                existingFormKey.Value,
                                 out var sourceOutfit))
                         {
-                            _logger.Warning("Override outfit {FormKey} not found in LinkCache, skipping.",
+                            _logger.Warning(
+                                "Override outfit {FormKey} not found in LinkCache, skipping.",
                                 existingFormKey.Value);
                             continue;
                         }

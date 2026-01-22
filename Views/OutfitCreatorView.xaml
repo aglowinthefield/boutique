@@ -82,13 +82,13 @@
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
             <TextBox Grid.Column="1" Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
             <TextBlock Grid.Column="2"
-                       Text="{Binding OutfitArmors.Count, StringFormat='{}{0} armors'}"
+                       Text="{Binding OutfitArmorsTotalCount, StringFormat='{}{0} armors'}"
                        Margin="8,0,0,0" VerticalAlignment="Center" />
           </Grid>
 
           <DataGrid x:Name="OutfitArmorsGrid"
                     Grid.Row="1"
-                    ItemsSource="{Binding OutfitArmorsView}"
+                    ItemsSource="{Binding FilteredOutfitArmors}"
                     SelectionChanged="OutfitArmorsGrid_SelectionChanged"
                     MouseDoubleClick="OutfitArmorsGrid_MouseDoubleClick"
                     PreviewMouseLeftButtonDown="OutfitArmorsGrid_PreviewMouseLeftButtonDown"

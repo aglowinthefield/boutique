@@ -584,7 +584,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         SelectedNpcOutfitContents = sb.ToString();
     }
 
-    private static GenderedModelVariant GetNpcGender(FormKey npcFormKey,
+    private static GenderedModelVariant GetNpcGender(
+        FormKey npcFormKey,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
@@ -681,5 +682,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         _cache.CacheLoaded -= OnCacheLoaded;
         _disposables.Dispose();
         _npcAssignmentsSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

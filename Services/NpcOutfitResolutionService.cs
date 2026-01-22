@@ -80,7 +80,8 @@ public class NpcOutfitResolutionService
 
                     _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
                     ProcessEspProvidedOutfits(linkCache, allNpcs, npcDistributions);
-                    _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions",
+                    _logger.Debug(
+                        "After processing ESP outfits: {NpcCount} unique NPCs with distributions",
                         npcDistributions.Count);
 
                     for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
@@ -178,7 +179,8 @@ public class NpcOutfitResolutionService
 
                     _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
                     ProcessEspProvidedOutfitsFromFilterData(linkCache, npcFilterData, npcDistributions);
-                    _logger.Debug("After processing ESP outfits: {NpcCount} unique NPCs with distributions",
+                    _logger.Debug(
+                        "After processing ESP outfits: {NpcCount} unique NPCs with distributions",
                         npcDistributions.Count);
 
                     for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
@@ -211,7 +213,8 @@ public class NpcOutfitResolutionService
 
                     var assignments = BuildNpcOutfitAssignmentsFromFilterData(npcDistributions, npcFilterData);
 
-                    _logger.Information("Resolved outfit assignments for {Count} NPCs using full filter matching",
+                    _logger.Information(
+                        "Resolved outfit assignments for {Count} NPCs using full filter matching",
                         assignments.Count);
                     return assignments;
                 }
@@ -390,7 +393,7 @@ public class NpcOutfitResolutionService
         string lineText,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyDictionary<string, FormKey> outfitByEditorId,
-        List<(FormKey, FormKey, string?)> results)
+        List<(FormKey npcFormKey, FormKey outfitFormKey, string? outfitEditorId)> results)
     {
         var npcFormKeys = ParseNpcFormKeysWithEditorIdFallback(lineText, linkCache);
         var (outfitFormKey, outfitEditorId) = ResolveOutfitFromLine(lineText, linkCache, outfitByEditorId);
@@ -537,7 +540,7 @@ public class NpcOutfitResolutionService
             .ToList();
     }
 
-    private List<DistributionFile> SortDistributionFiles(IReadOnlyList<DistributionFile> files)
+    private static List<DistributionFile> SortDistributionFiles(IReadOnlyList<DistributionFile> files)
     {
         var spidFiles = files
             .Where(f => f.Type == DistributionFileType.Spid)
@@ -650,7 +653,7 @@ public class NpcOutfitResolutionService
         string lineText,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyDictionary<string, FormKey> outfitByEditorId,
-        List<(FormKey, FormKey, string?)> results)
+        List<(FormKey npcFormKey, FormKey outfitFormKey, string? outfitEditorId)> results)
     {
         _logger.Debug("ParseSkyPatcherLine: {Line}", lineText.Length > 150 ? lineText[..150] + "..." : lineText);
 
@@ -689,7 +692,7 @@ public class NpcOutfitResolutionService
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         Dictionary<string, INpcGetter> npcByEditorId,
         Dictionary<string, INpcGetter> npcByName,
-        List<(FormKey, FormKey, string?)> results)
+        List<(FormKey npcFormKey, FormKey outfitFormKey, string? outfitEditorId)> results)
     {
         var trimmed = lineText.Trim();
 

@@ -69,12 +69,12 @@
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,4,0" />
             <TextBox Width="200" Text="{Binding SourceSearchText, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="{Binding SourceArmors.Count, StringFormat='{}{0} armors'}"
+            <TextBlock Text="{Binding SourceArmorsTotalCount, StringFormat='{}{0} armors'}"
                        Margin="8,0,0,0" VerticalAlignment="Center" />
           </StackPanel>
 
           <DataGrid x:Name="SourceArmorsGrid" Grid.Row="1"
-                    ItemsSource="{Binding SourceArmorsView}"
+                    ItemsSource="{Binding FilteredSourceArmors}"
                     SelectionChanged="SourceArmorsGrid_SelectionChanged"
                     AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                     SelectionMode="Extended" CanUserSortColumns="True"
@@ -128,7 +128,7 @@
               <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
                          Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,4,0" />
               <TextBox Width="200" Text="{Binding TargetSearchText, UpdateSourceTrigger=PropertyChanged}" />
-              <TextBlock Text="{Binding TargetArmors.Count, StringFormat='{}{0} candidates'}"
+              <TextBlock Text="{Binding TargetArmorsTotalCount, StringFormat='{}{0} candidates'}"
                          Margin="8,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
 
@@ -143,7 +143,7 @@
           </Grid>
 
           <DataGrid x:Name="TargetArmorsGrid" Grid.Row="1"
-                    ItemsSource="{Binding TargetArmorsView}"
+                    ItemsSource="{Binding FilteredTargetArmors}"
                     SelectedItem="{Binding SelectedTargetArmor, Mode=TwoWay}"
                     AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                     SelectionMode="Single" CanUserSortColumns="True"

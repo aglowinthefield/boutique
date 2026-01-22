@@ -4,14 +4,16 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using System.Text;
-using System.Windows.Data;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using DynamicData;
+using DynamicData.Binding;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -21,7 +23,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class MainViewModel : ReactiveObject
+public partial class MainViewModel : ReactiveObject, IDisposable
 {
     private static readonly BipedObjectFlag[] _bipedObjectFlags = Enum.GetValues<BipedObjectFlag>()
         .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0) // Only single-bit flags (powers of 2)
@@ -32,6 +34,7 @@ public partial class MainViewModel : ReactiveObject
     private readonly IObservable<bool> _canCreateOutfit;
     private readonly IObservable<bool> _canLoadOutfitPlugin;
     private readonly IObservable<bool> _canSaveOutfits;
+    private readonly CompositeDisposable _disposables = new();
     private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = [];
     private readonly GameDataCacheService _gameDataCache;
     private readonly IObservable<bool> _isMapGlamOnly;
@@ -40,15 +43,22 @@ public partial class MainViewModel : ReactiveObject
 
     private readonly IObservable<bool> _matchesCountGreaterThanZero;
     private readonly MutagenService _mutagenService;
+    private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource = new();
     private readonly ObservableCollection<OutfitDraftViewModel> _outfitDrafts = [];
     private readonly PatchingService _patchingService;
     private readonly List<string> _pendingOutfitDeletions = [];
     private readonly ArmorPreviewService _previewService;
+    private readonly SourceList<ArmorRecordViewModel> _sourceArmorsSource = new();
+    private readonly SourceList<ArmorRecordViewModel> _targetArmorsSource = new();
     private int _activeLoadingOperations;
 
-    [ReactiveCollection] private ObservableCollection<string> _availablePlugins = [];
+    private readonly SourceList<string> _availablePluginsSource = new();
 
-    private ICollectionView? _filteredOutfitPluginsView;
+    [Reactive] private int _outfitArmorsTotalCount;
+
+    [Reactive] private int _sourceArmorsTotalCount;
+
+    [Reactive] private int _targetArmorsTotalCount;
 
     [Reactive] private bool _hasExistingPluginOutfits;
 
@@ -69,9 +79,6 @@ public partial class MainViewModel : ReactiveObject
 
     [ReactiveCollection] private ObservableCollection<ArmorMatchViewModel> _matches = [];
 
-    private ObservableCollection<ArmorRecordViewModel> _outfitArmors = [];
-    private ICollectionView? _outfitArmorsView;
-
     [Reactive] private string _outfitPluginSearchText = string.Empty;
 
     [Reactive] private string _outfitSearchText = string.Empty;
@@ -87,18 +94,17 @@ public partial class MainViewModel : ReactiveObject
 
     [Reactive] private ArmorRecordViewModel? _selectedTargetArmor;
 
-    private ObservableCollection<ArmorRecordViewModel> _sourceArmors = [];
-    private ICollectionView? _sourceArmorsView;
-
     [Reactive] private string _sourceSearchText = string.Empty;
 
     [Reactive] private string _statusMessage = "Ready";
 
     private bool _suppressAutoSave;
-    private ObservableCollection<ArmorRecordViewModel> _targetArmors = [];
-    private ICollectionView? _targetArmorsView;
 
     [Reactive] private string _targetSearchText = string.Empty;
+
+    [Reactive] private string _targetSortProperty = nameof(ArmorRecordViewModel.DisplayName);
+
+    [Reactive] private bool _targetSortAscending = true;
 
     public MainViewModel(
         MutagenService mutagenService,
@@ -127,20 +133,18 @@ public partial class MainViewModel : ReactiveObject
 
         _mutagenService.PluginsChanged += OnPluginsChanged;
 
-        ConfigureSourceArmorsView();
-        ConfigureTargetArmorsView();
-        ConfigureOutfitArmorsView();
+        ConfigureArmorFiltering();
+
         OutfitDrafts = new ReadOnlyObservableCollection<OutfitDraftViewModel>(_outfitDrafts);
         HasOutfitDrafts = _outfitDrafts.Count > 0;
         _outfitDrafts.CollectionChanged += OnOutfitDraftsCollectionChanged;
 
-        // Auto-save drafts with 1.5 second debounce
-        _autoSaveTrigger
+        _disposables.Add(_autoSaveTrigger
             .Throttle(TimeSpan.FromMilliseconds(1500))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
             .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
-            .Subscribe();
+            .Subscribe());
 
         ExistingOutfits = new ReadOnlyObservableCollection<ExistingOutfitViewModel>(_existingOutfits);
         HasExistingPluginOutfits = _existingOutfits.Count > 0;
@@ -149,17 +153,7 @@ public partial class MainViewModel : ReactiveObject
         this.WhenAnyValue(x => x.IsPatching, x => x.IsCreatingOutfits)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(IsProgressActive)));
 
-        this.WhenAnyValue(x => x.SourceSearchText)
-            .Subscribe(_ => SourceArmorsView?.Refresh());
-        this.WhenAnyValue(x => x.TargetSearchText)
-            .Subscribe(_ => TargetArmorsView?.Refresh());
-        this.WhenAnyValue(x => x.OutfitSearchText)
-            .Subscribe(_ => OutfitArmorsView?.Refresh());
-        this.WhenAnyValue(x => x.OutfitPluginSearchText)
-            .Subscribe(_ => FilteredOutfitPlugins?.Refresh());
-
-        this.WhenAnyValue(x => x.AvailablePlugins)
-            .Subscribe(_ => ConfigureFilteredOutfitPluginsView());
+        ConfigureOutfitPluginsFiltering();
 
         _matchesCountGreaterThanZero = this.WhenAnyValue(x => x.Matches.Count, count => count > 0);
 
@@ -186,7 +180,7 @@ public partial class MainViewModel : ReactiveObject
 
         Settings.WhenAnyValue(x => x.PatchFileName)
             .Skip(1)
-            .Where(_ => AvailablePlugins.Count > 0)
+            .Where(_ => _availablePluginsSource.Count > 0)
             .Throttle(TimeSpan.FromMilliseconds(500))
             .ObserveOn(RxApp.MainThreadScheduler)
             .SelectMany(_ => LoadOutfitsFromOutputPluginAsync().ToObservable())
@@ -202,51 +196,13 @@ public partial class MainViewModel : ReactiveObject
     public SettingsViewModel Settings { get; }
     public DistributionViewModel Distribution { get; }
 
-    public ICollectionView? FilteredOutfitPlugins
-    {
-        get => _filteredOutfitPluginsView;
-        private set => this.RaiseAndSetIfChanged(ref _filteredOutfitPluginsView, value);
-    }
+    public ReadOnlyObservableCollection<string> FilteredOutfitPlugins { get; private set; } = null!;
 
-    public ObservableCollection<ArmorRecordViewModel> SourceArmors
-    {
-        get => _sourceArmors;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _sourceArmors, value);
-            ConfigureSourceArmorsView();
-        }
-    }
+    public int AvailablePluginsTotalCount => _availablePluginsSource.Count;
 
-    public ObservableCollection<ArmorRecordViewModel> TargetArmors
-    {
-        get => _targetArmors;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _targetArmors, value);
-            ConfigureTargetArmorsView();
-        }
-    }
-
-    public ObservableCollection<ArmorRecordViewModel> OutfitArmors
-    {
-        get => _outfitArmors;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _outfitArmors, value);
-            ConfigureOutfitArmorsView();
-        }
-    }
-
-    public ICollectionView? OutfitArmorsView
-    {
-        get => _outfitArmorsView;
-        private set
-        {
-            _outfitArmorsView = value;
-            this.RaisePropertyChanged();
-        }
-    }
+    public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredSourceArmors { get; private set; } = null!;
+    public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredTargetArmors { get; private set; } = null!;
+    public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredOutfitArmors { get; private set; } = null!;
 
     public IList SelectedOutfitArmors
     {
@@ -283,7 +239,8 @@ public partial class MainViewModel : ReactiveObject
 
             if (string.IsNullOrWhiteSpace(value))
             {
-                OutfitArmors = [];
+                _outfitArmorsSource.Clear();
+                OutfitArmorsTotalCount = 0;
                 SelectedOutfitArmors = Array.Empty<ArmorRecordViewModel>();
                 OutfitSearchText = string.Empty;
                 return;
@@ -313,7 +270,7 @@ public partial class MainViewModel : ReactiveObject
             var primary = SelectedSourceArmor;
             UpdateTargetSlotCompatibility();
 
-            if (_targetArmors.Count == 0 || primary is null)
+            if (_targetArmorsSource.Count == 0 || primary is null)
             {
                 SelectedTargetArmor = null;
                 return;
@@ -323,37 +280,17 @@ public partial class MainViewModel : ReactiveObject
             if (existing?.Target is not null)
             {
                 SelectedTargetArmor =
-                    _targetArmors.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
+                    _targetArmorsSource.Items.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
             }
             else
             {
-                SelectedTargetArmor = _targetArmors.FirstOrDefault(t => primary.SharesSlotWith(t));
+                SelectedTargetArmor = _targetArmorsSource.Items.FirstOrDefault(t => primary.SharesSlotWith(t));
             }
         }
     }
 
     private ArmorRecordViewModel? SelectedSourceArmor =>
         _selectedSourceArmors.OfType<ArmorRecordViewModel>().FirstOrDefault();
-
-    public ICollectionView? SourceArmorsView
-    {
-        get => _sourceArmorsView;
-        private set
-        {
-            _sourceArmorsView = value;
-            this.RaisePropertyChanged();
-        }
-    }
-
-    public ICollectionView? TargetArmorsView
-    {
-        get => _targetArmorsView;
-        private set
-        {
-            _targetArmorsView = value;
-            this.RaisePropertyChanged();
-        }
-    }
 
     public string? SelectedSourcePlugin
     {
@@ -369,7 +306,8 @@ public partial class MainViewModel : ReactiveObject
             _logger.Information("Selected source plugin set to {Plugin}", value ?? "<none>");
 
             ClearMappingsInternal();
-            SourceArmors = [];
+            _sourceArmorsSource.Clear();
+            SourceArmorsTotalCount = 0;
             SelectedSourceArmors = Array.Empty<ArmorRecordViewModel>();
             SourceSearchText = string.Empty;
 
@@ -401,7 +339,8 @@ public partial class MainViewModel : ReactiveObject
             if (string.IsNullOrWhiteSpace(value))
             {
                 ClearMappingsInternal();
-                TargetArmors = [];
+                _targetArmorsSource.Clear();
+                TargetArmorsTotalCount = 0;
                 SelectedTargetArmor = null;
                 return;
             }
@@ -616,7 +555,8 @@ public partial class MainViewModel : ReactiveObject
 
         if (draftsFromOtherPlugins.Count > 0)
         {
-            _logger.Information("Clearing {Count} draft(s) from previous output plugin(s).",
+            _logger.Information(
+                "Clearing {Count} draft(s) from previous output plugin(s).",
                 draftsFromOtherPlugins.Count);
             foreach (var draft in draftsFromOtherPlugins)
             {
@@ -751,80 +691,93 @@ public partial class MainViewModel : ReactiveObject
         }
     }
 
-    private void ConfigureSourceArmorsView()
+    private void ConfigureArmorFiltering()
     {
-        SourceArmorsView = CollectionViewSource.GetDefaultView(_sourceArmors);
-        SourceArmorsView?.Filter = SourceArmorsFilter;
+        var sourceArmorFilter = this.WhenAnyValue(vm => vm.SourceSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor => armor.MatchesSearch(searchText)));
+
+        _disposables.Add(_sourceArmorsSource.Connect()
+            .Filter(sourceArmorFilter)
+            .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredSourceArmors)
+            .Subscribe());
+        FilteredSourceArmors = filteredSourceArmors;
+
+        var targetArmorFilter = this.WhenAnyValue(vm => vm.TargetSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor =>
+                armor.MatchesSearch(searchText) && armor.IsSlotCompatible));
+
+        var targetSortComparer = this.WhenAnyValue(
+                vm => vm.TargetSortProperty,
+                vm => vm.TargetSortAscending)
+            .Select(tuple => BuildTargetSortComparer(tuple.Item1, tuple.Item2));
+
+        _disposables.Add(_targetArmorsSource.Connect()
+            .AutoRefresh(a => a.IsSlotCompatible)
+            .Filter(targetArmorFilter)
+            .Sort(targetSortComparer)
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredTargetArmors)
+            .Subscribe());
+        FilteredTargetArmors = filteredTargetArmors;
+
+        var outfitArmorFilter = this.WhenAnyValue(vm => vm.OutfitSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor => armor.MatchesSearch(searchText)));
+
+        _disposables.Add(_outfitArmorsSource.Connect()
+            .Filter(outfitArmorFilter)
+            .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredOutfitArmors)
+            .Subscribe());
+        FilteredOutfitArmors = filteredOutfitArmors;
     }
 
-    private void ConfigureTargetArmorsView()
+    private static IComparer<ArmorRecordViewModel> BuildTargetSortComparer(string? propertyName, bool ascending)
     {
-        TargetArmorsView = CollectionViewSource.GetDefaultView(_targetArmors);
-        if (TargetArmorsView is not null)
+        var comparer = SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.SlotCompatibilityPriority);
+
+        return propertyName switch
         {
-            TargetArmorsView.Filter = TargetArmorsFilter;
-            ApplyTargetSort();
-        }
-
-        UpdateTargetSlotCompatibility();
+            nameof(ArmorRecordViewModel.DisplayName) => ascending
+                ? comparer.ThenByAscending(a => a.DisplayName)
+                : comparer.ThenByDescending(a => a.DisplayName),
+            nameof(ArmorRecordViewModel.SlotSummary) => ascending
+                ? comparer.ThenByAscending(a => a.SlotSummary)
+                : comparer.ThenByDescending(a => a.SlotSummary),
+            nameof(ArmorRecordViewModel.FormIdSortable) => ascending
+                ? comparer.ThenByAscending(a => a.FormIdSortable)
+                : comparer.ThenByDescending(a => a.FormIdSortable),
+            nameof(ArmorRecordViewModel.ModDisplayName) => ascending
+                ? comparer.ThenByAscending(a => a.ModDisplayName)
+                : comparer.ThenByDescending(a => a.ModDisplayName),
+            _ => comparer.ThenByAscending(a => a.DisplayName)
+        };
     }
 
-    private void ConfigureOutfitArmorsView()
+    private void ConfigureOutfitPluginsFiltering()
     {
-        OutfitArmorsView = CollectionViewSource.GetDefaultView(_outfitArmors);
-        OutfitArmorsView?.Filter = OutfitArmorsFilter;
-    }
+        var pluginFilter = this.WhenAnyValue(vm => vm.OutfitPluginSearchText)
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Select(searchText => new Func<string, bool>(plugin =>
+                string.IsNullOrWhiteSpace(searchText) ||
+                plugin.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
 
-    private void ConfigureFilteredOutfitPluginsView()
-    {
-        var view = CollectionViewSource.GetDefaultView(AvailablePlugins);
-        view?.Filter = OutfitPluginFilter;
-        FilteredOutfitPlugins = view;
-    }
+        _disposables.Add(_availablePluginsSource.Connect()
+            .Filter(pluginFilter)
+            .Sort(SortExpressionComparer<string>.Ascending(p => p))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var filteredPlugins)
+            .Subscribe());
 
-    private bool OutfitPluginFilter(object? item)
-    {
-        if (item is not string plugin)
-        {
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(OutfitPluginSearchText))
-        {
-            return true;
-        }
-
-        return plugin.Contains(OutfitPluginSearchText, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool SourceArmorsFilter(object? item)
-    {
-        if (item is not ArmorRecordViewModel record)
-        {
-            return false;
-        }
-
-        return record.MatchesSearch(SourceSearchText);
-    }
-
-    private bool TargetArmorsFilter(object? item)
-    {
-        if (item is not ArmorRecordViewModel record)
-        {
-            return false;
-        }
-
-        return record.MatchesSearch(TargetSearchText);
-    }
-
-    private bool OutfitArmorsFilter(object? item)
-    {
-        if (item is not ArmorRecordViewModel record)
-        {
-            return false;
-        }
-
-        return record.MatchesSearch(OutfitSearchText);
+        FilteredOutfitPlugins = filteredPlugins;
     }
 
     private void UpdateTargetSlotCompatibility()
@@ -833,7 +786,7 @@ public partial class MainViewModel : ReactiveObject
 
         if (sources.Count == 0)
         {
-            foreach (var target in _targetArmors)
+            foreach (var target in _targetArmorsSource.Items)
             {
                 target.IsSlotCompatible = true;
             }
@@ -841,12 +794,10 @@ public partial class MainViewModel : ReactiveObject
             return;
         }
 
-        foreach (var target in _targetArmors)
+        foreach (var target in _targetArmorsSource.Items)
         {
             target.IsSlotCompatible = sources.All(source => source.SharesSlotWith(target));
         }
-
-        TargetArmorsView?.Refresh();
     }
 
     [ReactiveCommand(CanExecute = nameof(_isMapSelected))]
@@ -1016,7 +967,8 @@ public partial class MainViewModel : ReactiveObject
         if (needsReload)
         {
             ClearMappingsInternal();
-            TargetArmors = [];
+            _targetArmorsSource.Clear();
+            TargetArmorsTotalCount = 0;
             SelectedTargetArmor = null;
             await LoadTargetArmorsAsync(plugin);
         }
@@ -1067,12 +1019,17 @@ public partial class MainViewModel : ReactiveObject
             await _mutagenService.InitializeAsync(Settings.SkyrimDataPath);
 
             var plugins = await _mutagenService.GetAvailablePluginsAsync();
-            AvailablePlugins = new ObservableCollection<string>(plugins);
+            _availablePluginsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(plugins);
+            });
+            this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
-            StatusMessage = $"Loaded {AvailablePlugins.Count} plugins";
+            StatusMessage = $"Loaded {_availablePluginsSource.Count} plugins";
             _logger.Information(
                 "Loaded {PluginCount} plugins from {DataPath}",
-                AvailablePlugins.Count,
+                _availablePluginsSource.Count,
                 Settings.SkyrimDataPath);
 
             await LoadOutfitsFromOutputPluginAsync();
@@ -1095,13 +1052,18 @@ public partial class MainViewModel : ReactiveObject
         try
         {
             var plugins = await _mutagenService.GetAvailablePluginsAsync();
-            var previousCount = AvailablePlugins.Count;
-            AvailablePlugins = new ObservableCollection<string>(plugins);
+            var previousCount = _availablePluginsSource.Count;
+            _availablePluginsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(plugins);
+            });
+            this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
             _logger.Information(
                 "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
                 previousCount,
-                AvailablePlugins.Count);
+                _availablePluginsSource.Count);
 
             await LoadOutfitsFromOutputPluginAsync();
         }
@@ -1132,18 +1094,21 @@ public partial class MainViewModel : ReactiveObject
                 return;
             }
 
-            SourceArmors = new ObservableCollection<ArmorRecordViewModel>(
-                armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            _sourceArmorsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            });
+            SourceArmorsTotalCount = _sourceArmorsSource.Count;
             SourceSearchText = string.Empty;
-            SourceArmorsView?.Refresh();
 
-            var firstSource = SourceArmors.FirstOrDefault();
+            var firstSource = FilteredSourceArmors.FirstOrDefault();
             SelectedSourceArmors = firstSource is not null
                 ? new List<ArmorRecordViewModel> { firstSource }
                 : Array.Empty<ArmorRecordViewModel>();
 
-            StatusMessage = $"Loaded {SourceArmors.Count} armors from {plugin}";
-            _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", SourceArmors.Count, plugin);
+            StatusMessage = $"Loaded {SourceArmorsTotalCount} armors from {plugin}";
+            _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", SourceArmorsTotalCount, plugin);
         }
         catch (Exception ex)
         {
@@ -1180,18 +1145,23 @@ public partial class MainViewModel : ReactiveObject
                 return;
             }
 
-            TargetArmors = new ObservableCollection<ArmorRecordViewModel>(
-                armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            _targetArmorsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            });
+            TargetArmorsTotalCount = _targetArmorsSource.Count;
             _lastLoadedTargetPlugin = plugin;
             TargetSearchText = string.Empty;
-            TargetArmorsView?.Refresh();
+            UpdateTargetSlotCompatibility();
+
             var primary = SelectedSourceArmor;
             SelectedTargetArmor = primary is not null
-                ? TargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
-                : TargetArmors.FirstOrDefault();
+                ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
+                : FilteredTargetArmors.FirstOrDefault();
 
-            StatusMessage = $"Loaded {TargetArmors.Count} armors from {plugin}";
-            _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", TargetArmors.Count, plugin);
+            StatusMessage = $"Loaded {TargetArmorsTotalCount} armors from {plugin}";
+            _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", TargetArmorsTotalCount, plugin);
         }
         catch (Exception ex)
         {
@@ -1213,7 +1183,8 @@ public partial class MainViewModel : ReactiveObject
 
         if (string.IsNullOrWhiteSpace(plugin))
         {
-            OutfitArmors = [];
+            _outfitArmorsSource.Clear();
+            OutfitArmorsTotalCount = 0;
             SelectedOutfitArmors = Array.Empty<ArmorRecordViewModel>();
             OutfitSearchText = string.Empty;
             EndLoading();
@@ -1232,24 +1203,27 @@ public partial class MainViewModel : ReactiveObject
                 return;
             }
 
-            OutfitArmors = new ObservableCollection<ArmorRecordViewModel>(
-                armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            _outfitArmorsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            });
+            OutfitArmorsTotalCount = _outfitArmorsSource.Count;
             _lastLoadedOutfitPlugin = plugin;
             OutfitSearchText = string.Empty;
-            OutfitArmorsView?.Refresh();
 
-            SelectedOutfitArmors = OutfitArmors.Any()
-                ? new List<ArmorRecordViewModel> { OutfitArmors[0] }
+            SelectedOutfitArmors = FilteredOutfitArmors.Any()
+                ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
                 : Array.Empty<ArmorRecordViewModel>();
 
             var existingOutfitCount = await LoadExistingOutfitsAsync(plugin);
 
             StatusMessage = existingOutfitCount > 0
-                ? $"Loaded {OutfitArmors.Count} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
-                : $"Loaded {OutfitArmors.Count} armors from {plugin} for outfit creation.";
+                ? $"Loaded {OutfitArmorsTotalCount} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
+                : $"Loaded {OutfitArmorsTotalCount} armors from {plugin} for outfit creation.";
             _logger.Information(
                 "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
-                OutfitArmors.Count,
+                OutfitArmorsTotalCount,
                 plugin,
                 existingOutfitCount);
         }
@@ -1457,7 +1431,8 @@ public partial class MainViewModel : ReactiveObject
         await CreateOutfitFromPiecesAsync(selectedPieces);
     }
 
-    public async Task CreateOutfitFromPiecesAsync(IReadOnlyList<ArmorRecordViewModel> pieces,
+    public async Task CreateOutfitFromPiecesAsync(
+        IReadOnlyList<ArmorRecordViewModel> pieces,
         string? defaultName = null)
     {
         var (distinctPieces, isValid, validationMessage) = await Task.Run(() =>
@@ -1884,22 +1859,8 @@ public partial class MainViewModel : ReactiveObject
         string? propertyName = nameof(ArmorRecordViewModel.DisplayName),
         ListSortDirection direction = ListSortDirection.Ascending)
     {
-        if (TargetArmorsView is not ListCollectionView view)
-        {
-            return;
-        }
-
-        view.SortDescriptions.Clear();
-        view.SortDescriptions.Add(new SortDescription(
-            nameof(ArmorRecordViewModel.SlotCompatibilityPriority),
-            ListSortDirection.Ascending));
-
-        if (!string.IsNullOrEmpty(propertyName))
-        {
-            view.SortDescriptions.Add(new SortDescription(propertyName, direction));
-        }
-
-        view.Refresh();
+        TargetSortProperty = propertyName ?? nameof(ArmorRecordViewModel.DisplayName);
+        TargetSortAscending = direction == ListSortDirection.Ascending;
     }
 
     [ReactiveCommand(CanExecute = nameof(_matchesCountGreaterThanZero))]
@@ -1976,6 +1937,16 @@ public partial class MainViewModel : ReactiveObject
         {
             IsPatching = false;
         }
+    }
+
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        _sourceArmorsSource.Dispose();
+        _targetArmorsSource.Dispose();
+        _outfitArmorsSource.Dispose();
+        _availablePluginsSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

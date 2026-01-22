@@ -18,7 +18,8 @@ public class SpidFilterMatchingService
         MatchesLevelFilters(npc, filter.LevelFilters) &&
         MatchesTraitFilters(npc, filter.TraitFilters);
 
-    public static IReadOnlyList<NpcFilterData> GetMatchingNpcs(IReadOnlyList<NpcFilterData> allNpcs,
+    public static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
+        IReadOnlyList<NpcFilterData> allNpcs,
         SpidDistributionFilter filter)
     {
         if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&

@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Boutique.Models;
 using Boutique.Services;
+using DynamicData;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -178,13 +179,13 @@ public partial class DistributionViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(AvailableDistributionFiles));
         EditTab.DistributionEntries.CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(DistributionEntries));
-        EditTab.FilteredNpcs.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)EditTab.FilteredNpcs).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredNpcs));
-        EditTab.FilteredFactions.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)EditTab.FilteredFactions).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredFactions));
-        EditTab.FilteredKeywords.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)EditTab.FilteredKeywords).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredKeywords));
-        EditTab.FilteredRaces.CollectionChanged += (sender, e) =>
+        ((INotifyCollectionChanged)EditTab.FilteredRaces).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredRaces));
         ((INotifyCollectionChanged)NpcsTab.FilteredNpcOutfitAssignments).CollectionChanged += (sender, e) =>
             this.RaisePropertyChanged(nameof(FilteredNpcOutfitAssignments));
@@ -341,13 +342,13 @@ public partial class DistributionViewModel : ReactiveObject
     public string ConflictSummary => EditTab.ConflictSummary;
     public string SuggestedFileName => EditTab.SuggestedFileName;
     public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => EditTab.AvailableNpcs;
-    public ObservableCollection<NpcRecordViewModel> FilteredNpcs => EditTab.FilteredNpcs;
+    public ReadOnlyObservableCollection<NpcRecordViewModel> FilteredNpcs => EditTab.FilteredNpcs;
     public ReadOnlyObservableCollection<FactionRecordViewModel> AvailableFactions => EditTab.AvailableFactions;
-    public ObservableCollection<FactionRecordViewModel> FilteredFactions => EditTab.FilteredFactions;
+    public ReadOnlyObservableCollection<FactionRecordViewModel> FilteredFactions => EditTab.FilteredFactions;
     public ReadOnlyObservableCollection<KeywordRecordViewModel> AvailableKeywords => EditTab.AvailableKeywords;
-    public ObservableCollection<KeywordRecordViewModel> FilteredKeywords => EditTab.FilteredKeywords;
+    public ReadOnlyObservableCollection<KeywordRecordViewModel> FilteredKeywords => EditTab.FilteredKeywords;
     public ReadOnlyObservableCollection<RaceRecordViewModel> AvailableRaces => EditTab.AvailableRaces;
-    public ObservableCollection<RaceRecordViewModel> FilteredRaces => EditTab.FilteredRaces;
+    public ReadOnlyObservableCollection<RaceRecordViewModel> FilteredRaces => EditTab.FilteredRaces;
 
     public string NpcSearchText
     {
@@ -491,7 +492,7 @@ public partial class DistributionViewModel : ReactiveObject
 
     #region Outfits Tab Properties
 
-    public ObservableCollection<OutfitRecordViewModel> Outfits => OutfitsTab.Outfits;
+    public IObservableList<OutfitRecordViewModel> Outfits => OutfitsTab.Outfits;
 
     public OutfitRecordViewModel? SelectedOutfit
     {
@@ -499,7 +500,7 @@ public partial class DistributionViewModel : ReactiveObject
         set => OutfitsTab.SelectedOutfit = value;
     }
 
-    public ObservableCollection<OutfitRecordViewModel> FilteredOutfits => OutfitsTab.FilteredOutfits;
+    public ReadOnlyObservableCollection<OutfitRecordViewModel> FilteredOutfits => OutfitsTab.FilteredOutfits;
 
     public string OutfitSearchText
     {

@@ -314,8 +314,9 @@ public class GameDataCacheService : IDisposable
             var dataPath = _settings.SkyrimDataPath;
             if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
             {
-                _logger.Warning("Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}",
-                    dataPath);
+                _logger.Warning(
+                "Cannot ensure cache loaded - Skyrim data path not set or doesn't exist: {DataPath}",
+                dataPath);
                 return;
             }
 
@@ -341,7 +342,8 @@ public class GameDataCacheService : IDisposable
             var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
 
             var virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
-            _logger.Information("Extracted {Count} virtual keywords from SPID distribution files.",
+            _logger.Information(
+                "Extracted {Count} virtual keywords from SPID distribution files.",
                 virtualKeywords.Count);
 
             var outfitFiles = discoveredFiles
@@ -470,7 +472,7 @@ public class GameDataCacheService : IDisposable
         }
     }
 
-    private (List<NpcFilterData>, List<NpcRecordViewModel>) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    private (List<NpcFilterData> filterData, List<NpcRecordViewModel> viewModels) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var validNpcs = linkCache.WinningOverrides<INpcGetter>()
             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
@@ -498,7 +500,9 @@ public class GameDataCacheService : IDisposable
                     originalModKey);
                 recordsBag.Add(new NpcRecordViewModel(record));
             }
-            catch { }
+            catch
+            {
+            }
         });
 
         return ([.. filterDataBag], [.. recordsBag]);
@@ -632,5 +636,6 @@ public class GameDataCacheService : IDisposable
         _npcRecordsSource.Dispose();
         _distributionFilesSource.Dispose();
         _npcOutfitAssignmentsSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
