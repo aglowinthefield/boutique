@@ -1,14 +1,38 @@
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Boutique.ViewModels;
+using ReactiveUI;
 
 namespace Boutique.Views;
 
 public partial class DistributionEntryListView
 {
+    private IDisposable? _selectedEntrySubscription;
+
     public DistributionEntryListView()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        _selectedEntrySubscription?.Dispose();
+
+        if (e.NewValue is DistributionEditTabViewModel vm)
+        {
+            _selectedEntrySubscription = vm
+                .WhenAnyValue(x => x.SelectedEntry)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(entry =>
+                {
+                    if (entry != null)
+                    {
+                        EntryListBox.ScrollIntoView(entry);
+                    }
+                });
+        }
     }
 
     private void RemoveEntry_Click(object sender, RoutedEventArgs e)

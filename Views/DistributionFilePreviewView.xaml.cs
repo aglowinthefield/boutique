@@ -1,7 +1,6 @@
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 using Boutique.ViewModels;
 using ReactiveUI;
@@ -11,16 +10,11 @@ namespace Boutique.Views;
 public partial class DistributionFilePreviewView
 {
     private IDisposable? _highlightSubscription;
-    private ScrollViewer? _textBoxScrollViewer;
 
     public DistributionFilePreviewView()
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
-        PreviewTextBox.Loaded += (_, _) =>
-        {
-            _textBoxScrollViewer = FindChild<ScrollViewer>(PreviewTextBox);
-        };
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -42,84 +36,52 @@ public partial class DistributionFilePreviewView
         }
     }
 
-    private void PreviewTextBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    private void LineNumber_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        LineNumbersScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+        if (sender is FrameworkElement { DataContext: PreviewLine line } &&
+            DataContext is DistributionEditTabViewModel vm)
+        {
+            vm.SelectEntryByLineNumber(line.LineNumber - 1);
+        }
     }
 
     private void ScrollToLineAndHighlight(int lineNumber)
     {
-        if (PreviewTextBox.Text is not { Length: > 0 } text)
+        if (LinesControl.Items.Count == 0 || lineNumber < 0 || lineNumber >= LinesControl.Items.Count)
         {
             return;
-        }
-
-        var lines = text.Split('\n');
-        if (lineNumber < 0 || lineNumber >= lines.Length)
-        {
-            return;
-        }
-
-        var charIndex = 0;
-        for (var i = 0; i < lineNumber; i++)
-        {
-            charIndex += lines[i].Length + 1;
-        }
-
-        PreviewTextBox.CaretIndex = charIndex;
-
-        var lineHeight = PreviewTextBox.FontSize * 1.2;
-        var targetLineTop = lineNumber * lineHeight;
-
-        if (_textBoxScrollViewer != null)
-        {
-            var viewportCenter = _textBoxScrollViewer.ViewportHeight / 2;
-            var targetOffset = targetLineTop - viewportCenter + (lineHeight / 2);
-            targetOffset = Math.Max(0, Math.Min(targetOffset, _textBoxScrollViewer.ScrollableHeight));
-            _textBoxScrollViewer.ScrollToVerticalOffset(targetOffset);
         }
 
         Dispatcher.BeginInvoke(() =>
         {
-            var rect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
-            if (double.IsFinite(rect.Top) && rect.Top >= 0)
+            if (LinesControl.ItemContainerGenerator.ContainerFromIndex(lineNumber) is not FrameworkElement container)
             {
-                HighlightOverlay.Margin = new Thickness(0, rect.Top, 0, 0);
-                HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
-
-                HighlightOverlay.BeginAnimation(OpacityProperty, null);
-
-                var animation = new DoubleAnimation
-                {
-                    From = 0.4,
-                    To = 0,
-                    Duration = TimeSpan.FromMilliseconds(800),
-                    BeginTime = TimeSpan.FromMilliseconds(100)
-                };
-                HighlightOverlay.BeginAnimation(OpacityProperty, animation);
+                return;
             }
+
+            var transform = container.TransformToAncestor(LinesControl);
+            var position = transform.Transform(new Point(0, 0));
+            var lineTop = position.Y;
+            var lineHeight = container.ActualHeight > 0 ? container.ActualHeight : 16;
+
+            var viewportCenter = PreviewScrollViewer.ViewportHeight / 2;
+            var targetOffset = lineTop - viewportCenter + (lineHeight / 2);
+            targetOffset = Math.Max(0, Math.Min(targetOffset, PreviewScrollViewer.ScrollableHeight));
+            PreviewScrollViewer.ScrollToVerticalOffset(targetOffset);
+
+            HighlightOverlay.Margin = new Thickness(0, lineTop, 0, 0);
+            HighlightOverlay.Height = lineHeight;
+
+            HighlightOverlay.BeginAnimation(OpacityProperty, null);
+
+            var animation = new DoubleAnimation
+            {
+                From = 0.4,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(800),
+                BeginTime = TimeSpan.FromMilliseconds(100)
+            };
+            HighlightOverlay.BeginAnimation(OpacityProperty, animation);
         }, System.Windows.Threading.DispatcherPriority.Loaded);
-    }
-
-    private static T? FindChild<T>(DependencyObject parent)
-        where T : DependencyObject
-    {
-        var childCount = VisualTreeHelper.GetChildrenCount(parent);
-        for (var i = 0; i < childCount; i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T typedChild)
-            {
-                return typedChild;
-            }
-
-            var result = FindChild<T>(child);
-            if (result != null)
-            {
-                return result;
-            }
-        }
-
-        return null;
     }
 }

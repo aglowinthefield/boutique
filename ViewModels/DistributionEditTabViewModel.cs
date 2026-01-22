@@ -199,6 +199,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
         this.WhenAnyValue(vm => vm.DistributionFileContent)
             .Subscribe(_ => UpdatePreviewLines());
+
+        this.WhenAnyValue(vm => vm.SelectedEntry)
+            .Where(entry => entry != null && !_isBulkLoading)
+            .Throttle(TimeSpan.FromMilliseconds(50))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(entry => RaiseHighlightForEntry(entry!));
     }
 
     private void UpdatePreviewLines()
@@ -1492,6 +1498,52 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
 
         return -1;
+    }
+
+    public void SelectEntryByLineNumber(int lineNumber)
+    {
+        if (lineNumber < 3)
+        {
+            return;
+        }
+
+        var currentLine = 3;
+        foreach (var entry in DistributionEntries)
+        {
+            var producesLine = entry.Type == DistributionType.Keyword
+                ? !string.IsNullOrWhiteSpace(entry.KeywordToDistribute)
+                : entry.SelectedOutfit != null;
+
+            if (!producesLine)
+            {
+                continue;
+            }
+
+            if (currentLine == lineNumber)
+            {
+                SelectedEntry = entry;
+                return;
+            }
+
+            currentLine++;
+        }
+    }
+
+    private void RaiseHighlightForEntry(DistributionEntryViewModel entry)
+    {
+        var effectiveFormat = DistributionEntries.Any(e => e.UseChance)
+            ? DistributionFileType.Spid
+            : DistributionFormat;
+
+        var lineNumber = CalculateLineNumberForEntry(entry, effectiveFormat);
+        if (lineNumber < 0)
+        {
+            return;
+        }
+
+        var lines = DistributionFileContent.Split('\n');
+        var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
+        HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
     }
 
     private async Task LoadAvailableOutfitsAsync()
