@@ -10,13 +10,17 @@ namespace Boutique.Views;
 
 public partial class DistributionFilePreviewView
 {
-    private const double EstimatedLineHeight = 16.0;
     private IDisposable? _highlightSubscription;
+    private ScrollViewer? _textBoxScrollViewer;
 
     public DistributionFilePreviewView()
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+        PreviewTextBox.Loaded += (_, _) =>
+        {
+            _textBoxScrollViewer = FindChild<ScrollViewer>(PreviewTextBox);
+        };
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -38,61 +42,78 @@ public partial class DistributionFilePreviewView
         }
     }
 
+    private void PreviewTextBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        LineNumbersScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+    }
+
     private void ScrollToLineAndHighlight(int lineNumber)
     {
-        if (DataContext is not DistributionEditTabViewModel vm)
+        if (PreviewTextBox.Text is not { Length: > 0 } text)
         {
             return;
         }
 
-        var lines = vm.PreviewLines;
-        if (lineNumber < 0 || lineNumber >= lines.Count)
+        var lines = text.Split('\n');
+        if (lineNumber < 0 || lineNumber >= lines.Length)
         {
             return;
         }
 
-        var targetOffset = lineNumber * EstimatedLineHeight - (PreviewScrollViewer.ViewportHeight / 2) +
-                           (EstimatedLineHeight / 2);
-        targetOffset = Math.Max(0, Math.Min(targetOffset, PreviewScrollViewer.ScrollableHeight));
-        PreviewScrollViewer.ScrollToVerticalOffset(targetOffset);
+        var charIndex = 0;
+        for (var i = 0; i < lineNumber; i++)
+        {
+            charIndex += lines[i].Length + 1;
+        }
+
+        PreviewTextBox.CaretIndex = charIndex;
+
+        var lineHeight = PreviewTextBox.FontSize * 1.2;
+        var targetLineTop = lineNumber * lineHeight;
+
+        if (_textBoxScrollViewer != null)
+        {
+            var viewportCenter = _textBoxScrollViewer.ViewportHeight / 2;
+            var targetOffset = targetLineTop - viewportCenter + (lineHeight / 2);
+            targetOffset = Math.Max(0, Math.Min(targetOffset, _textBoxScrollViewer.ScrollableHeight));
+            _textBoxScrollViewer.ScrollToVerticalOffset(targetOffset);
+        }
 
         Dispatcher.BeginInvoke(() =>
         {
-            LinesItemsControl.UpdateLayout();
-
-            if (LinesItemsControl.ItemContainerGenerator.ContainerFromIndex(lineNumber) is FrameworkElement container)
+            var rect = PreviewTextBox.GetRectFromCharacterIndex(charIndex);
+            if (double.IsFinite(rect.Top) && rect.Top >= 0)
             {
-                var highlightBorder = FindChild<Border>(container, "HighlightBorder");
-                if (highlightBorder != null)
-                {
-                    highlightBorder.BeginAnimation(OpacityProperty, null);
+                HighlightOverlay.Margin = new Thickness(0, rect.Top, 0, 0);
+                HighlightOverlay.Height = rect.Height > 0 ? rect.Height : 16;
 
-                    var animation = new DoubleAnimation
-                    {
-                        From = 0.4,
-                        To = 0,
-                        Duration = TimeSpan.FromMilliseconds(800),
-                        BeginTime = TimeSpan.FromMilliseconds(100)
-                    };
-                    highlightBorder.BeginAnimation(OpacityProperty, animation);
-                }
+                HighlightOverlay.BeginAnimation(OpacityProperty, null);
+
+                var animation = new DoubleAnimation
+                {
+                    From = 0.4,
+                    To = 0,
+                    Duration = TimeSpan.FromMilliseconds(800),
+                    BeginTime = TimeSpan.FromMilliseconds(100)
+                };
+                HighlightOverlay.BeginAnimation(OpacityProperty, animation);
             }
         }, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
-    private static T? FindChild<T>(DependencyObject parent, string childName)
+    private static T? FindChild<T>(DependencyObject parent)
         where T : DependencyObject
     {
         var childCount = VisualTreeHelper.GetChildrenCount(parent);
         for (var i = 0; i < childCount; i++)
         {
             var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T typedChild && child is FrameworkElement fe && fe.Name == childName)
+            if (child is T typedChild)
             {
                 return typedChild;
             }
 
-            var result = FindChild<T>(child, childName);
+            var result = FindChild<T>(child);
             if (result != null)
             {
                 return result;

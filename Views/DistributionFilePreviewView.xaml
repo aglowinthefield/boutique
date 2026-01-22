@@ -66,42 +66,57 @@
       <Border Grid.Row="1" Background="{DynamicResource {x:Static util:ResourceKeys.BrushCardBackground}}"
               BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}" BorderThickness="1"
               CornerRadius="4">
-        <ScrollViewer x:Name="PreviewScrollViewer"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Auto">
-          <ItemsControl x:Name="LinesItemsControl" ItemsSource="{Binding PreviewLines}"
-                        VirtualizingPanel.IsVirtualizing="True"
-                        VirtualizingPanel.VirtualizationMode="Recycling">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <VirtualizingStackPanel />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Grid x:Name="LineGrid">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="40" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <Border x:Name="HighlightBorder" Grid.ColumnSpan="2"
-                          Background="{DynamicResource Brush.Accent}"
-                          Opacity="0" />
-                  <TextBlock Grid.Column="0"
-                             Text="{Binding LineNumber}"
-                             FontFamily="Consolas" FontSize="11"
-                             Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
-                             TextAlignment="Right" Padding="0,0,8,0"
-                             Background="Transparent" />
-                  <TextBlock Grid.Column="1"
-                             Text="{Binding Content}"
-                             FontFamily="Consolas" FontSize="11"
-                             TextWrapping="NoWrap" />
-                </Grid>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <!-- Line Numbers Gutter -->
+          <Border Grid.Column="0" Background="{DynamicResource {x:Static util:ResourceKeys.BrushPanelBackground}}"
+                  BorderBrush="{DynamicResource {x:Static util:ResourceKeys.BrushBorder}}"
+                  BorderThickness="0,0,1,0">
+            <ScrollViewer x:Name="LineNumbersScrollViewer"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Hidden"
+                          IsHitTestVisible="False">
+              <ItemsControl x:Name="LineNumbersControl" ItemsSource="{Binding PreviewLines}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding LineNumber}"
+                               FontFamily="Consolas" FontSize="11"
+                               Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
+                               TextAlignment="Right" Padding="8,0,8,0"
+                               MinWidth="32" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+
+          <!-- File Content with Highlight Overlay -->
+          <Grid Grid.Column="1">
+            <TextBox x:Name="PreviewTextBox"
+                     Text="{Binding DistributionFileContent, Mode=OneWay}"
+                     IsReadOnly="True"
+                     TextWrapping="NoWrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas" FontSize="11"
+                     BorderThickness="0"
+                     Padding="4,0,0,0"
+                     ScrollViewer.ScrollChanged="PreviewTextBox_ScrollChanged" />
+            <Border x:Name="HighlightOverlay"
+                    Background="{DynamicResource Brush.Accent}"
+                    Opacity="0"
+                    IsHitTestVisible="False"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch"
+                    Height="16"
+                    Margin="0" />
+          </Grid>
+        </Grid>
       </Border>
     </Grid>
   </GroupBox>
