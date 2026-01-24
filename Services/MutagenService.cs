@@ -13,6 +13,7 @@ using Serilog;
 namespace Boutique.Services;
 
 public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
+    : IDisposable
 {
     private readonly SemaphoreSlim _initLock = new(1, 1);
     private readonly GuiSettingsService _guiSettings = guiSettings;
@@ -282,4 +283,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         _environment?.LoadOrder
             .Select(entry => entry.Key)
             .ToHashSet() ?? [];
+
+    public void Dispose()
+    {
+        _environment?.Dispose();
+        _initLock.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
