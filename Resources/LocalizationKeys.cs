@@ -11,6 +11,7 @@ public static class LocalizationKeys
         public const string ArmorPatch = "Tab_ArmorPatch";
         public const string Settings = "Tab_Settings";
         public const string Create = "Tab_Create";
+        public const string Containers = "Tab_Containers";
         public const string NPCs = "Tab_NPCs";
         public const string Outfits = "Tab_Outfits";
         public const string Factions = "Tab_Factions";

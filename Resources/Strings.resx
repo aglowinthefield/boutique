@@ -88,6 +88,9 @@
     <data name="Tab_Create" xml:space="preserve">
     <value>Create</value>
   </data>
+    <data name="Tab_Containers" xml:space="preserve">
+    <value>Containers</value>
+  </data>
     <data name="Tab_NPCs" xml:space="preserve">
     <value>NPCs</value>
   </data>
