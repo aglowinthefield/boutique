@@ -603,47 +603,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                 DistributionEntries.Count);
 
             this.RaiseAndSetIfChanged(ref _distributionFormat, value);
-            this.RaisePropertyChanged(nameof(SelectedFormatDropdownItem));
             UpdateFileContent();
         }
     }
 
-    public GroupedDropdownItem? SelectedFormatDropdownItem
-    {
-        get => FormatDropdownItems
-            .OfType<GroupedDropdownItem<DistributionFormatOption>>()
-            .FirstOrDefault(item => item.Value.FileType == DistributionFormat);
-        set
-        {
-            if (value is GroupedDropdownItem<DistributionFormatOption> formatItem)
-            {
-                DistributionFormat = formatItem.Value.FileType;
-            }
-        }
-    }
-
-    public IReadOnlyList<GroupedDropdownItem> FormatDropdownItems { get; } = BuildFormatDropdownItems();
-
-    private static IReadOnlyList<GroupedDropdownItem> BuildFormatDropdownItems()
-    {
-        var items = new List<GroupedDropdownItem>();
-        foreach (var group in DistributionFormatOption.All.GroupBy(f => f.Category))
-        {
-            var categoryName = group.Key switch
-            {
-                DistributionTargetCategory.Npcs => "NPCs",
-                DistributionTargetCategory.Containers => "Containers",
-                _ => group.Key.ToString(),
-            };
-            items.Add(new GroupedDropdownHeader(categoryName));
-            foreach (var format in group)
-            {
-                items.Add(new GroupedDropdownItem<DistributionFormatOption>(format.DisplayName, format, categoryName));
-            }
-        }
-
-        return items;
-    }
+    public IReadOnlyList<DistributionFileType> AvailableFormats { get; } =
+        [DistributionFileType.SkyPatcher, DistributionFileType.Spid];
 
     public bool HasCopiedFilter => CopiedFilter != null;
 

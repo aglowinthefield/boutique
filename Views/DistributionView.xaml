@@ -18,7 +18,7 @@
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
-    <!-- TabControl with Create, NPCs, and Outfits tabs -->
+    <!-- TabControl with Create, Containers, NPCs, and Outfits tabs -->
     <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
 
       <!-- CREATE TAB -->
@@ -26,6 +26,10 @@
         <views:DistributionCreateTabView DataContext="{Binding EditTab}" />
       </TabItem>
 
+      <!-- CONTAINERS TAB -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Containers}}">
+        <views:DistributionContainersTabView DataContext="{Binding ContainersTab}" />
+      </TabItem>
 
       <!-- NPCs TAB -->
       <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}">

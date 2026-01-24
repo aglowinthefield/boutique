@@ -70,42 +70,21 @@
           </ComboBox>
           <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Format}}"
                      Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="6,0,6,0" />
-          <ComboBox ItemsSource="{Binding FormatDropdownItems}"
-                    SelectedItem="{Binding SelectedFormatDropdownItem, Mode=TwoWay}"
-                    MinWidth="120"
-                    IsSynchronizedWithCurrentItem="False">
+          <ComboBox ItemsSource="{Binding AvailableFormats}"
+                    SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
+                    MinWidth="100">
             <ComboBox.ItemTemplate>
-              <DataTemplate DataType="{x:Type models:GroupedDropdownItem}">
-                <TextBlock Text="{Binding DisplayText}">
-                  <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                      <Setter Property="Padding" Value="12,0,0,0" />
-                      <Style.Triggers>
-                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Header}">
-                          <Setter Property="FontWeight" Value="SemiBold" />
-                          <Setter Property="FontSize" Value="11" />
-                          <Setter Property="Foreground" Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
-                          <Setter Property="Padding" Value="0,4,0,2" />
-                        </DataTrigger>
-                      </Style.Triggers>
-                    </Style>
-                  </TextBlock.Style>
-                </TextBlock>
+              <DataTemplate>
+                <TextBlock Text="{Binding Converter={StaticResource DistributionFileTypeConverter}}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
             <ComboBox.ItemContainerStyle>
               <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                 <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
                 <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsSelectable}" Value="False">
-                    <Setter Property="IsEnabled" Value="False" />
-                    <Setter Property="IsHitTestVisible" Value="False" />
-                    <Setter Property="Focusable" Value="False" />
-                    <Setter Property="Background" Value="Transparent" />
-                  </DataTrigger>
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                      <Condition Binding="{Binding Value.FileType}" Value="SkyPatcher" />
+                      <Condition Binding="{Binding}" Value="SkyPatcher" />
                       <Condition
                         Binding="{Binding DataContext.HasChanceBasedEntries, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                         Value="True" />
@@ -116,7 +95,7 @@
                   </MultiDataTrigger>
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                      <Condition Binding="{Binding Value.FileType}" Value="SkyPatcher" />
+                      <Condition Binding="{Binding}" Value="SkyPatcher" />
                       <Condition
                         Binding="{Binding DataContext.HasKeywordDistributions, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                         Value="True" />
