@@ -1,0 +1,19 @@
+<UserControl x:Class="Boutique.Views.DistributionContainersTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:themes="clr-namespace:Boutique.Themes"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:DistributionContainersTabViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="600"
+             d:DesignWidth="1000">
+  <Grid Margin="12">
+    <TextBlock Text="{Binding StatusMessage}"
+               Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               FontSize="16" />
+  </Grid>
+</UserControl>

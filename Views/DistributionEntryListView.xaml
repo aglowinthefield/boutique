@@ -31,21 +31,30 @@
                     MinWidth="200" Margin="0,0,6,0"
                     MaxDropDownHeight="400"
                     IsSynchronizedWithCurrentItem="False">
-            <ComboBox.Resources>
-              <DataTemplate DataType="{x:Type models:DistributionGroupHeader}">
-                <TextBlock Text="{Binding GroupName}"
-                           FontWeight="SemiBold"
-                           FontSize="11"
-                           Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
-                           Padding="0,4,0,2" />
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="{x:Type models:GroupedDropdownItem}">
+                <TextBlock Text="{Binding DisplayText}">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Padding" Value="12,0,0,0" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Header}">
+                          <Setter Property="Text" Value="{Binding DisplayText}" />
+                          <Setter Property="FontWeight" Value="SemiBold" />
+                          <Setter Property="FontSize" Value="11" />
+                          <Setter Property="Foreground" Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
+                          <Setter Property="Padding" Value="0,4,0,2" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Action}">
+                          <Setter Property="FontStyle" Value="Italic" />
+                          <Setter Property="Padding" Value="0" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
               </DataTemplate>
-              <DataTemplate DataType="{x:Type models:DistributionFileItem}">
-                <TextBlock Text="{Binding DisplayText}" Padding="12,0,0,0" />
-              </DataTemplate>
-              <DataTemplate DataType="{x:Type models:DistributionNewFileItem}">
-                <TextBlock Text="{Binding DisplayText}" FontStyle="Italic" />
-              </DataTemplate>
-            </ComboBox.Resources>
+            </ComboBox.ItemTemplate>
             <ComboBox.ItemContainerStyle>
               <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                 <Style.Triggers>

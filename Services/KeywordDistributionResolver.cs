@@ -17,28 +17,14 @@ public class KeywordDistributionResolver(ILogger logger)
     /// </summary>
     public IReadOnlyList<KeywordDistributionEntry> ParseKeywordDistributions(IReadOnlyList<DistributionFile> files)
     {
-        var entries = new List<KeywordDistributionEntry>();
-
-        foreach (var file in files)
-        {
-            if (file.Type != DistributionFileType.Spid)
-            {
-                continue;
-            }
-
-            foreach (var line in file.Lines)
-            {
-                if (!line.IsKeywordDistribution)
-                {
-                    continue;
-                }
-
-                if (SpidLineParser.TryParseKeyword(line.RawText, out var filter) && filter != null)
-                {
-                    entries.Add(KeywordDistributionEntry.FromFilter(filter, file.FullPath, line.LineNumber));
-                }
-            }
-        }
+        var entries = files
+            .Where(f => f.Type == DistributionFileType.Spid)
+            .SelectMany(f => f.Lines
+                .Where(line => line.IsKeywordDistribution)
+                .Select(line => (File: f, Line: line, Parsed: SpidLineParser.TryParseKeyword(line.RawText, out var filter) ? filter : null))
+                .Where(x => x.Parsed != null)
+                .Select(x => KeywordDistributionEntry.FromFilter(x.Parsed!, x.File.FullPath, x.Line.LineNumber)))
+            .ToList();
 
         _logger.Debug("Parsed {Count} keyword distribution entries from {FileCount} files", entries.Count, files.Count);
         return entries;
@@ -81,14 +67,7 @@ public class KeywordDistributionResolver(ILogger logger)
             }
         }
 
-        var queue = new Queue<string>();
-        foreach (var (keyword, degree) in inDegree)
-        {
-            if (degree == 0)
-            {
-                queue.Enqueue(keyword);
-            }
-        }
+        var queue = new Queue<string>(inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key));
 
         var sorted = new List<KeywordDistributionEntry>();
         var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -142,12 +121,9 @@ public class KeywordDistributionResolver(ILogger logger)
         IReadOnlyList<KeywordDistributionEntry> sortedKeywords,
         IReadOnlyList<NpcFilterData> allNpcs)
     {
-        var npcKeywords = new Dictionary<FormKey, HashSet<string>>();
-
-        foreach (var npc in allNpcs)
-        {
-            npcKeywords[npc.FormKey] = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
-        }
+        var npcKeywords = allNpcs.ToDictionary(
+            npc => npc.FormKey,
+            npc => new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase));
 
         _logger.Debug(
             "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",

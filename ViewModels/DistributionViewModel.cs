@@ -15,8 +15,9 @@ namespace Boutique.ViewModels;
 public enum DistributionTab
 {
     Create = 0,
-    Npcs = 1,
-    Outfits = 2
+    Containers = 1,
+    Npcs = 2,
+    Outfits = 3,
 }
 
 public partial class DistributionViewModel : ReactiveObject
@@ -72,6 +73,8 @@ public partial class DistributionViewModel : ReactiveObject
             gameDataCache,
             settings,
             logger);
+
+        ContainersTab = new DistributionContainersTabViewModel();
 
         EditTab.ShowPreview.RegisterHandler(async interaction =>
         {
@@ -277,6 +280,7 @@ public partial class DistributionViewModel : ReactiveObject
     public bool IsEditMode => SelectedTabIndex == (int)DistributionTab.Create;
 
     public DistributionEditTabViewModel EditTab { get; }
+    public DistributionContainersTabViewModel ContainersTab { get; }
     public DistributionNpcsTabViewModel NpcsTab { get; }
     public DistributionOutfitsTabViewModel OutfitsTab { get; }
     public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();

@@ -34,6 +34,7 @@ public class GameDataCacheService : IDisposable
     private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
     private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
     private readonly SourceCache<NpcRecordViewModel, FormKey> _npcRecordsSource = new(x => x.FormKey);
+    private readonly SourceCache<ContainerRecordViewModel, FormKey> _containersSource = new(x => x.FormKey);
     private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
     private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcOutfitAssignmentsSource = new(x => x.NpcFormKey);
 
@@ -98,6 +99,12 @@ public class GameDataCacheService : IDisposable
             .Subscribe());
         AllNpcRecords = allNpcRecords;
 
+        _disposables.Add(_containersSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allContainers)
+            .Subscribe());
+        AllContainers = allContainers;
+
         _disposables.Add(_distributionFilesSource.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out var allDistributionFiles)
@@ -127,6 +134,7 @@ public class GameDataCacheService : IDisposable
     public ReadOnlyObservableCollection<ClassRecordViewModel> AllClasses { get; }
     public ReadOnlyObservableCollection<IOutfitGetter> AllOutfits { get; }
     public ReadOnlyObservableCollection<NpcRecordViewModel> AllNpcRecords { get; }
+    public ReadOnlyObservableCollection<ContainerRecordViewModel> AllContainers { get; }
     public ReadOnlyObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; }
     public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; }
 
@@ -178,14 +186,16 @@ public class GameDataCacheService : IDisposable
             var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
             var classesTask = Task.Run(() => LoadClasses(linkCache));
             var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
+            var containersTask = Task.Run(() => LoadContainers(linkCache));
 
-            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
+            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
 
             var factionsList = await factionsTask;
             var racesList = await racesTask;
             var keywordsList = await keywordsTask;
             var classesList = await classesTask;
             var outfitsList = await outfitsTask;
+            var containersList = await containersTask;
 
             _npcsSource.Edit(cache =>
             {
@@ -229,17 +239,24 @@ public class GameDataCacheService : IDisposable
                 cache.AddOrUpdate(outfitsList);
             });
 
+            _containersSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(containersList);
+            });
+
             await LoadDistributionDataAsync(npcFilterDataList);
 
             IsLoaded = true;
             _logger.Information(
-                "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
+                "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
                 npcFilterDataList.Count,
                 factionsList.Count,
                 racesList.Count,
                 classesList.Count,
                 keywordsList.Count,
                 outfitsList.Count,
+                containersList.Count,
                 AllDistributionFiles.Count,
                 AllNpcOutfitAssignments.Count);
 
@@ -623,6 +640,13 @@ public class GameDataCacheService : IDisposable
             .Where(o => !IsBlacklisted(o.FormKey.ModKey))
             .ToList();
 
+    private List<ContainerRecordViewModel> LoadContainers(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        linkCache.WinningOverrides<IContainerGetter>()
+            .Where(c => !IsBlacklisted(c.FormKey.ModKey))
+            .Select(c => new ContainerRecordViewModel(c, linkCache))
+            .OrderBy(c => c.DisplayName)
+            .ToList();
+
     public void Dispose()
     {
         _mutagenService.Initialized -= OnMutagenInitialized;
@@ -634,6 +658,7 @@ public class GameDataCacheService : IDisposable
         _classesSource.Dispose();
         _outfitsSource.Dispose();
         _npcRecordsSource.Dispose();
+        _containersSource.Dispose();
         _distributionFilesSource.Dispose();
         _npcOutfitAssignmentsSource.Dispose();
         GC.SuppressFinalize(this);

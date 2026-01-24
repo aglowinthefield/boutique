@@ -73,7 +73,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     /// <summary>
     ///     Organized dropdown items with headers and files for tree-ish display.
     /// </summary>
-    [Reactive] private IReadOnlyList<DistributionDropdownItem> _dropdownItems = [];
+    [Reactive] private IReadOnlyList<GroupedDropdownItem> _dropdownItems = [];
 
     [Reactive] private string _factionSearchText = string.Empty;
 
@@ -425,7 +425,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     /// <summary>
     ///     The currently selected dropdown item. Headers are not selectable.
     /// </summary>
-    public DistributionDropdownItem? SelectedDropdownItem
+    public GroupedDropdownItem? SelectedDropdownItem
     {
         get
         {
@@ -436,27 +436,28 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
             if (SelectedDistributionFile.IsNewFile)
             {
-                return DistributionNewFileItem.Instance;
+                return DropdownItems.OfType<GroupedDropdownAction>()
+                    .FirstOrDefault(a => a.ActionId == DistributionDropdownOrganizer.NewFileActionId);
             }
 
-            return DropdownItems.OfType<DistributionFileItem>()
-                .FirstOrDefault(f => f.FullPath == SelectedDistributionFile.File?.FullPath);
+            return DropdownItems.OfType<GroupedDropdownItem<DistributionFileInfo>>()
+                .FirstOrDefault(f => f.Value.FullPath == SelectedDistributionFile.File?.FullPath);
         }
         set
         {
-            if (value is DistributionGroupHeader)
+            if (value is GroupedDropdownHeader)
             {
-                return; // Headers are not selectable
+                return;
             }
 
-            if (value is DistributionNewFileItem)
+            if (value is GroupedDropdownAction action && action.ActionId == DistributionDropdownOrganizer.NewFileActionId)
             {
                 SelectedDistributionFile = AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
             }
-            else if (value is DistributionFileItem fileItem)
+            else if (value is GroupedDropdownItem<DistributionFileInfo> fileItem)
             {
                 var match = AvailableDistributionFiles.FirstOrDefault(f =>
-                    !f.IsNewFile && f.File?.FullPath == fileItem.FullPath);
+                    !f.IsNewFile && f.File?.FullPath == fileItem.Value.FullPath);
                 if (match != null)
                 {
                     SelectedDistributionFile = match;
@@ -585,7 +586,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     public IReadOnlyList<DistributionFileType> AvailableFormats { get; } =
-        new[] { DistributionFileType.Spid, DistributionFileType.SkyPatcher };
+        [DistributionFileType.SkyPatcher, DistributionFileType.Spid];
 
     public bool HasCopiedFilter => CopiedFilter != null;
 

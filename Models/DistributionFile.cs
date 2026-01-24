@@ -6,8 +6,10 @@ public enum DistributionFileType
 {
     [Description("SPID")] Spid,
     [Description("SkyPatcher")] SkyPatcher,
-    [Description("ESP")] Esp
+    [Description("ESP")] Esp,
+    [Description("CDF")] Cdf,
 }
+
 
 public enum DistributionLineKind
 {
