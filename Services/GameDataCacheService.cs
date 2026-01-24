@@ -36,6 +36,7 @@ public class GameDataCacheService : IDisposable
     private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
     private readonly SourceCache<OutfitRecordViewModel, FormKey> _outfitRecordsSource = new(x => x.FormKey);
     private readonly SourceCache<NpcRecordViewModel, FormKey> _npcRecordsSource = new(x => x.FormKey);
+    private readonly SourceCache<ContainerRecordViewModel, FormKey> _containersSource = new(x => x.FormKey);
     private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
     private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcOutfitAssignmentsSource = new(x => x.NpcFormKey);
     private readonly HashSet<string> _blacklistedPluginsSet = new(StringComparer.OrdinalIgnoreCase);
@@ -108,6 +109,12 @@ public class GameDataCacheService : IDisposable
             .Subscribe());
         AllNpcRecords = allNpcRecords;
 
+        _disposables.Add(_containersSource.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out var allContainers)
+            .Subscribe());
+        AllContainers = allContainers;
+
         _disposables.Add(_distributionFilesSource.Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out var allDistributionFiles)
@@ -138,6 +145,7 @@ public class GameDataCacheService : IDisposable
     public ReadOnlyObservableCollection<IOutfitGetter> AllOutfits { get; }
     public ReadOnlyObservableCollection<OutfitRecordViewModel> AllOutfitRecords { get; }
     public ReadOnlyObservableCollection<NpcRecordViewModel> AllNpcRecords { get; }
+    public ReadOnlyObservableCollection<ContainerRecordViewModel> AllContainers { get; }
     public ReadOnlyObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; }
     public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; }
 
@@ -196,137 +204,139 @@ public class GameDataCacheService : IDisposable
             List<KeywordRecordViewModel> keywordsList;
             List<ClassRecordViewModel> classesList;
             List<IOutfitGetter> outfitsList;
+            List<ContainerRecordViewModel> containersList;
 
             var factionsTask = Task.Run(() => LoadFactions(linkCache));
             var racesTask = Task.Run(() => LoadRaces(linkCache));
             var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
             var classesTask = Task.Run(() => LoadClasses(linkCache));
             var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
+            var containersTask = Task.Run(() => LoadContainers(linkCache));
 
-            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
+            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
 
             factionsList = await factionsTask;
             racesList = await racesTask;
             keywordsList = await keywordsTask;
             classesList = await classesTask;
             outfitsList = await outfitsTask;
+            containersList = await containersTask;
 
             var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID ?? string.Empty);
-                var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
-                var raceLookup = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
-                var classLookup = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
-                var outfitLookup = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
+            var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
+            var raceLookup = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
+            var classLookup = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
+            var outfitLookup = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
 
-                // Pre-build race keyword lookup
-                var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
-                foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
+            var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
+            foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
+            {
+                if (race.Keywords == null)
                 {
-                    if (race.Keywords == null)
-                    {
-                        continue;
-                    }
-
-                    var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var kw in race.Keywords)
-                    {
-                        if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
-                        {
-                            keywords.Add(editorId);
-                        }
-                    }
-                    raceKeywordLookup.TryAdd(race.FormKey, keywords);
+                    continue;
                 }
 
-                // Add template lookups (NPCs and Leveled NPCs)
-                var templateLookup = new Dictionary<FormKey, string>();
-                foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
+                var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var kw in race.Keywords)
                 {
-                    if (!string.IsNullOrWhiteSpace(npc.EditorID))
+                    if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
                     {
-                        templateLookup.TryAdd(npc.FormKey, npc.EditorID);
-                    }
-                }
-                foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
-                {
-                    if (!string.IsNullOrWhiteSpace(lvln.EditorID))
-                    {
-                        templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
+                        keywords.Add(editorId);
                     }
                 }
 
-                // Add CombatStyle and VoiceType lookups
-                var combatStyleLookup = new Dictionary<FormKey, string>();
-                foreach (var cs in linkCache.WinningOverrides<ICombatStyleGetter>())
-                {
-                    if (!string.IsNullOrWhiteSpace(cs.EditorID))
-                    {
-                        combatStyleLookup.TryAdd(cs.FormKey, cs.EditorID);
-                    }
-                }
+                raceKeywordLookup.TryAdd(race.FormKey, keywords);
+            }
 
-                var voiceTypeLookup = new Dictionary<FormKey, string>();
-                foreach (var vt in linkCache.WinningOverrides<IVoiceTypeGetter>())
+            var templateLookup = new Dictionary<FormKey, string>();
+            foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
+            {
+                if (!string.IsNullOrWhiteSpace(npc.EditorID))
                 {
-                    if (!string.IsNullOrWhiteSpace(vt.EditorID))
-                    {
-                        voiceTypeLookup.TryAdd(vt.FormKey, vt.EditorID);
-                    }
+                    templateLookup.TryAdd(npc.FormKey, npc.EditorID);
                 }
+            }
 
-                var npcsResult = await Task.Run(() => LoadNpcs(
-                    linkCache,
-                    keywordLookup,
-                    factionLookup,
-                    raceLookup,
-                    classLookup,
-                    outfitLookup,
-                    templateLookup,
-                    combatStyleLookup,
-                    voiceTypeLookup,
-                    raceKeywordLookup));
+            foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
+            {
+                if (!string.IsNullOrWhiteSpace(lvln.EditorID))
+                {
+                    templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
+                }
+            }
+
+            var combatStyleLookup = new Dictionary<FormKey, string>();
+            foreach (var cs in linkCache.WinningOverrides<ICombatStyleGetter>())
+            {
+                if (!string.IsNullOrWhiteSpace(cs.EditorID))
+                {
+                    combatStyleLookup.TryAdd(cs.FormKey, cs.EditorID);
+                }
+            }
+
+            var voiceTypeLookup = new Dictionary<FormKey, string>();
+            foreach (var vt in linkCache.WinningOverrides<IVoiceTypeGetter>())
+            {
+                if (!string.IsNullOrWhiteSpace(vt.EditorID))
+                {
+                    voiceTypeLookup.TryAdd(vt.FormKey, vt.EditorID);
+                }
+            }
+
+            var npcsResult = await Task.Run(() => LoadNpcs(
+                linkCache,
+                keywordLookup,
+                factionLookup,
+                raceLookup,
+                classLookup,
+                outfitLookup,
+                templateLookup,
+                combatStyleLookup,
+                voiceTypeLookup,
+                raceKeywordLookup));
             (npcFilterDataList, npcRecordsList) = npcsResult;
 
             _npcsSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(npcFilterDataList);
-                });
+            {
+                cache.Clear();
+                cache.AddOrUpdate(npcFilterDataList);
+            });
 
-                _npcRecordsSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(npcRecordsList);
-                });
+            _npcRecordsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(npcRecordsList);
+            });
 
-                _factionsSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(factionsList);
-                });
+            _factionsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(factionsList);
+            });
 
-                _racesSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(racesList);
-                });
+            _racesSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(racesList);
+            });
 
-                _keywordsSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(keywordsList);
-                });
+            _keywordsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(keywordsList);
+            });
 
-                _classesSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(classesList);
-                });
+            _classesSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(classesList);
+            });
 
-                _outfitsSource.Edit(cache =>
-                {
-                    cache.Clear();
-                    cache.AddOrUpdate(outfitsList);
-                });
+            _outfitsSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(outfitsList);
+            });
 
             _outfitRecordsSource.Edit(cache =>
             {
@@ -334,17 +344,24 @@ public class GameDataCacheService : IDisposable
                 cache.AddOrUpdate(outfitsList.Select(o => new OutfitRecordViewModel(o)));
             });
 
+            _containersSource.Edit(cache =>
+            {
+                cache.Clear();
+                cache.AddOrUpdate(containersList);
+            });
+
             await LoadDistributionDataAsync(npcFilterDataList);
 
             IsLoaded = true;
             _logger.Information(
-                "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
+                "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
                 npcFilterDataList.Count,
                 factionsList.Count,
                 racesList.Count,
                 classesList.Count,
                 keywordsList.Count,
                 outfitsList.Count,
+                containersList.Count,
                 AllDistributionFiles.Count,
                 AllNpcOutfitAssignments.Count);
 
@@ -846,6 +863,13 @@ public class GameDataCacheService : IDisposable
     private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
         RecordLoader.LoadRawRecords<IOutfitGetter>(linkCache, IsBlacklisted);
 
+    private List<ContainerRecordViewModel> LoadContainers(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        linkCache.WinningOverrides<IContainerGetter>()
+            .Where(c => !IsBlacklisted(c.FormKey.ModKey))
+            .Select(c => new ContainerRecordViewModel(c, linkCache))
+            .OrderBy(c => c.DisplayName)
+            .ToList();
+
     public void Dispose()
     {
         _mutagenService.Initialized -= OnMutagenInitialized;
@@ -858,6 +882,7 @@ public class GameDataCacheService : IDisposable
         _outfitsSource.Dispose();
         _outfitRecordsSource.Dispose();
         _npcRecordsSource.Dispose();
+        _containersSource.Dispose();
         _distributionFilesSource.Dispose();
         _npcOutfitAssignmentsSource.Dispose();
         GC.SuppressFinalize(this);
