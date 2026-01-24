@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using Mutagen.Bethesda.Skyrim;
@@ -16,6 +17,7 @@ public class GuiSettings
     public string? Language { get; set; }
     public List<string>? BlacklistedPlugins { get; set; }
     public bool AutoUpdateEnabled { get; set; }
+    public bool IsFilePreviewExpanded { get; set; }
 
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
@@ -70,104 +72,75 @@ public class GuiSettingsService
 
     public static GuiSettingsService? Current { get; private set; }
 
+    public bool IsFilePreviewExpanded
+    {
+        get => Get<bool>();
+        set => Set(value);
+    }
+
     public string? SkyrimDataPath
     {
-        get => _settings.SkyrimDataPath;
-        set
-        {
-            if (_settings.SkyrimDataPath == value)
-            {
-                return;
-            }
-
-            _settings.SkyrimDataPath = value;
-            SaveSettings();
-        }
+        get => Get<string?>();
+        set => Set(value);
     }
 
     public string? PatchFileName
     {
-        get => _settings.PatchFileName;
-        set
-        {
-            if (_settings.PatchFileName == value)
-            {
-                return;
-            }
-
-            _settings.PatchFileName = value;
-            SaveSettings();
-        }
+        get => Get<string?>();
+        set => Set(value);
     }
 
     public string? OutputPatchPath
     {
-        get => _settings.OutputPatchPath;
-        set
-        {
-            if (_settings.OutputPatchPath == value)
-            {
-                return;
-            }
-
-            _settings.OutputPatchPath = value;
-            SaveSettings();
-        }
+        get => Get<string?>();
+        set => Set(value);
     }
 
     public SkyrimRelease SelectedSkyrimRelease
     {
-        get => _settings.SelectedSkyrimRelease;
-        set
-        {
-            if (_settings.SelectedSkyrimRelease == value)
-            {
-                return;
-            }
-
-            _settings.SelectedSkyrimRelease = value;
-            SaveSettings();
-        }
+        get => Get<SkyrimRelease>();
+        set => Set(value);
     }
 
     public string? LastDistributionFilePath
     {
-        get => _settings.LastDistributionFilePath;
-        set
-        {
-            if (_settings.LastDistributionFilePath == value)
-            {
-                return;
-            }
-
-            _settings.LastDistributionFilePath = value;
-            SaveSettings();
-        }
+        get => Get<string?>();
+        set => Set(value);
     }
 
     public string? Language
     {
-        get => _settings.Language;
-        set
-        {
-            if (_settings.Language == value)
-            {
-                return;
-            }
-
-            _settings.Language = value;
-            SaveSettings();
-        }
+        get => Get<string?>();
+        set => Set(value);
     }
 
     public List<string>? BlacklistedPlugins
     {
-        get => _settings.BlacklistedPlugins;
-        set
+        get => Get<List<string>?>();
+        set => Set(value, skipEquality: true);
+    }
+
+    private T? Get<T>([CallerMemberName] string? name = null)
+    {
+        var prop = typeof(GuiSettings).GetProperty(name!);
+        return (T?)prop?.GetValue(_settings);
+    }
+
+    private void Set<T>(T value, bool skipEquality = false, [CallerMemberName] string? name = null)
+    {
+        var prop = typeof(GuiSettings).GetProperty(name!);
+        if (prop == null)
         {
-            _settings.BlacklistedPlugins = value;
-            SaveSettings();
+            return;
         }
+
+        if (!skipEquality && Equals(prop.GetValue(_settings), value))
+        {
+            return;
+        }
+
+        prop.SetValue(_settings, value);
+        SaveSettings();
     }
 
     public bool AutoUpdateEnabled
