@@ -94,14 +94,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     {
         try
         {
-            var gameRelease = GetGameRelease();
-            _logger.Information("Detected game release: {GameRelease}", gameRelease);
-
-            _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(gameRelease)
-                .WithTargetDataFolder(new DirectoryPath(dataFolderPath))
-                .Build();
-
-            LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
+            _logger.Information("Detected game release: {GameRelease}", GetGameRelease());
+            BuildEnvironment(dataFolderPath);
         }
         catch (Exception explicitPathEx)
         {
@@ -114,12 +108,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     {
         try
         {
-            var skyrimRelease = GetSkyrimRelease();
-            _logger.Information("Detected Skyrim release: {SkyrimRelease}", skyrimRelease);
-
-            _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
-
-            LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
+            _logger.Information("Detected Skyrim release: {SkyrimRelease}", GetSkyrimRelease());
+            BuildEnvironment(null);
         }
         catch (Exception autoDetectEx)
         {
@@ -130,6 +120,17 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                 "Try running SkyrimSELauncher.exe once to register the game path, then restart this application.",
                 autoDetectEx);
         }
+    }
+
+    private void BuildEnvironment(string? explicitDataPath)
+    {
+        _environment = string.IsNullOrEmpty(explicitDataPath)
+            ? GameEnvironment.Typical.Skyrim(GetSkyrimRelease())
+            : GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
+                .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
+                .Build();
+
+        LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
     }
 
     public async Task<IEnumerable<string>> GetAvailablePluginsAsync(bool excludeBlacklisted = true) =>
@@ -149,7 +150,15 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                 .ToList();
         });
 
-    public async Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName)
+    public Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName) =>
+        LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Armors);
+
+    public Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName) =>
+        LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Outfits);
+
+    private async Task<IEnumerable<T>> LoadRecordsFromPluginAsync<T>(
+        string pluginFileName,
+        Func<ISkyrimModGetter, IEnumerable<T>> recordSelector)
     {
         if (string.IsNullOrEmpty(DataFolderPath) || IsBlacklisted(pluginFileName))
         {
@@ -159,7 +168,6 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         return await Task.Run(() =>
         {
             var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
-
             if (!File.Exists(pluginPath))
             {
                 return [];
@@ -168,41 +176,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             try
             {
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease());
-                return mod.Armors
-                    .Where(a => !string.IsNullOrWhiteSpace(a.Name?.String) || !string.IsNullOrWhiteSpace(a.EditorID))
-                    .ToList();
+                return recordSelector(mod).ToList();
             }
-            catch (Exception)
-            {
-                return Enumerable.Empty<IArmorGetter>();
-            }
-        });
-    }
-
-    public async Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName)
-    {
-        if (string.IsNullOrEmpty(DataFolderPath) || IsBlacklisted(pluginFileName))
-        {
-            return [];
-        }
-
-        return await Task.Run(() =>
-        {
-            var pluginPath = Path.Combine(DataFolderPath, pluginFileName);
-
-            if (!File.Exists(pluginPath))
+            catch
             {
                 return [];
-            }
-
-            try
-            {
-                using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease());
-                return mod.Outfits.ToList();
-            }
-            catch (Exception)
-            {
-                return Enumerable.Empty<IOutfitGetter>();
             }
         });
     }
@@ -259,29 +237,14 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             _environment?.Dispose();
 
             var useExplicitPath = PathUtilities.HasPluginFiles(DataFolderPath);
-
-            if (useExplicitPath)
+            try
             {
-                try
-                {
-                    var gameRelease = GetGameRelease();
-                    _environment = GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(gameRelease)
-                        .WithTargetDataFolder(new DirectoryPath(DataFolderPath!))
-                        .Build();
-                }
-                catch
-                {
-                    var skyrimRelease = GetSkyrimRelease();
-                    _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
-                }
+                BuildEnvironment(useExplicitPath ? DataFolderPath : null);
             }
-            else
+            catch
             {
-                var skyrimRelease = GetSkyrimRelease();
-                _environment = GameEnvironment.Typical.Skyrim(skyrimRelease);
+                BuildEnvironment(null);
             }
-
-            LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
         });
 
         var newCount = _environment?.LoadOrder.Count ?? 0;
