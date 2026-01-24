@@ -13,6 +13,7 @@ using Serilog;
 namespace Boutique.Services;
 
 public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
+    : IDisposable
 {
     private readonly SemaphoreSlim _initLock = new(1, 1);
     private readonly GuiSettingsService _guiSettings = guiSettings;
@@ -307,4 +308,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     public bool IsPluginInLoadOrder(string pluginFileName) =>
         _environment?.LoadOrder
             .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+    public void Dispose()
+    {
+        _environment?.Dispose();
+        _initLock.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
