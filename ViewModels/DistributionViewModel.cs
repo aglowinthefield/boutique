@@ -322,7 +322,13 @@ public partial class DistributionViewModel : ReactiveObject
         set => EditTab.SelectedDistributionFile = value;
     }
 
-    public IReadOnlyList<DistributionFileType> AvailableFormats => EditTab.AvailableFormats;
+    public IReadOnlyList<GroupedDropdownItem> FormatDropdownItems => EditTab.FormatDropdownItems;
+
+    public GroupedDropdownItem? SelectedFormatDropdownItem
+    {
+        get => EditTab.SelectedFormatDropdownItem;
+        set => EditTab.SelectedFormatDropdownItem = value;
+    }
 
     public DistributionFileType DistributionFormat
     {

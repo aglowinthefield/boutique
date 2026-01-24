@@ -8,18 +8,21 @@ namespace Boutique.Utilities;
 /// </summary>
 public static class DistributionDropdownOrganizer
 {
+    public const string NewFileActionId = "new-file";
+
     /// <summary>
     ///     Organizes files into a dropdown structure with headers and items.
     ///     Files with duplicate names get their unique path shown.
     /// </summary>
     /// <returns>Tree-like structure for rendering.</returns>
-    public static DistributionDropdownStructure Organize(IEnumerable<DistributionFileViewModel> files)
+    public static GroupedDropdownStructure<DistributionFileInfo> Organize(IEnumerable<DistributionFileViewModel> files)
     {
+        var newFileAction = new GroupedDropdownAction("<New File>", NewFileActionId);
         var fileList = files.ToList();
         if (fileList.Count == 0)
         {
-            return new DistributionDropdownStructure(
-                [DistributionNewFileItem.Instance],
+            return new GroupedDropdownStructure<DistributionFileInfo>(
+                [newFileAction],
                 []);
         }
 
@@ -37,7 +40,7 @@ public static class DistributionDropdownOrganizer
             .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var items = new List<DistributionDropdownItem> { DistributionNewFileItem.Instance };
+        var items = new List<GroupedDropdownItem> { newFileAction };
         var groupNames = new List<string>();
 
         foreach (var group in grouped)
@@ -46,7 +49,7 @@ public static class DistributionDropdownOrganizer
 
             if (!string.IsNullOrEmpty(groupName))
             {
-                items.Add(new DistributionGroupHeader(groupName));
+                items.Add(new GroupedDropdownHeader(groupName));
                 groupNames.Add(groupName);
             }
 
@@ -56,18 +59,18 @@ public static class DistributionDropdownOrganizer
 
             foreach (var fileInfo in sortedFiles)
             {
-                // Strip the group name prefix from the display path since the header already shows it
                 var displayPath = StripGroupPrefix(fileInfo.UniquePath, groupName);
-
-                items.Add(new DistributionFileItem(
+                var payload = new DistributionFileInfo(
                     fileInfo.File.FileName,
                     displayPath,
-                    fileInfo.File.FullPath,
-                    groupName));
+                    fileInfo.File.FullPath);
+
+                var effectiveGroupName = string.IsNullOrEmpty(groupName) ? null : groupName;
+                items.Add(new GroupedDropdownItem<DistributionFileInfo>(displayPath, payload, effectiveGroupName));
             }
         }
 
-        return new DistributionDropdownStructure(items, groupNames);
+        return new GroupedDropdownStructure<DistributionFileInfo>(items, groupNames);
     }
 
     private static HashSet<string> GetDuplicateFileNames(IEnumerable<DistributionFileViewModel> files) =>

@@ -9,13 +9,14 @@ namespace Boutique.Tests;
 public class DistributionDropdownOrganizerTests
 {
     [Fact]
-    public void Organize_EmptyList_ReturnsOnlyNewFileItem()
+    public void Organize_EmptyList_ReturnsOnlyNewFileAction()
     {
         var result = DistributionDropdownOrganizer.Organize([]);
 
-        result.Items.Should().ContainSingle()
-            .Which.Should().BeOfType<DistributionNewFileItem>();
-        result.GroupNames.Should().BeEmpty();
+        Assert.Single(result.Items);
+        var action = Assert.IsType<GroupedDropdownAction>(result.Items[0]);
+        Assert.Equal(DistributionDropdownOrganizer.NewFileActionId, action.ActionId);
+        Assert.Empty(result.GroupNames);
     }
 
     [Fact]
@@ -24,11 +25,13 @@ public class DistributionDropdownOrganizerTests
         var file = CreateFile("Test.ini", @"skse\plugins\SkyPatcher\npc\Test.ini");
         var result = DistributionDropdownOrganizer.Organize([file]);
 
-        result.Items.Should().HaveCount(2);
-        result.Items[0].Should().BeOfType<DistributionNewFileItem>();
-        result.Items[1].Should().BeOfType<DistributionFileItem>()
-            .Which.FileName.Should().Be("Test.ini");
-        result.GroupNames.Should().BeEmpty();
+        Assert.Equal(2, result.Items.Count);
+        Assert.IsType<GroupedDropdownAction>(result.Items[0]);
+        Assert.IsType<GroupedDropdownItem<DistributionFileInfo>>(result.Items[1]);
+
+        var fileItem = (GroupedDropdownItem<DistributionFileInfo>)result.Items[1];
+        Assert.Equal("Test.ini", fileItem.Value.FileName);
+        Assert.Empty(result.GroupNames);
     }
 
     [Fact]
@@ -37,12 +40,15 @@ public class DistributionDropdownOrganizerTests
         var file = CreateFile("Test.ini", @"skse\plugins\SkyPatcher\npc\MyMod\Test.ini");
         var result = DistributionDropdownOrganizer.Organize([file]);
 
-        result.Items.Should().HaveCount(3);
-        result.Items[0].Should().BeOfType<DistributionNewFileItem>();
-        result.Items[1].Should().BeOfType<DistributionGroupHeader>()
-            .Which.GroupName.Should().Be("MyMod");
-        result.Items[2].Should().BeOfType<DistributionFileItem>();
-        result.GroupNames.Should().ContainSingle().Which.Should().Be("MyMod");
+        Assert.Equal(3, result.Items.Count);
+        Assert.IsType<GroupedDropdownAction>(result.Items[0]);
+        Assert.IsType<GroupedDropdownHeader>(result.Items[1]);
+        Assert.IsType<GroupedDropdownItem<DistributionFileInfo>>(result.Items[2]);
+
+        var header = (GroupedDropdownHeader)result.Items[1];
+        Assert.Equal("MyMod", header.GroupName);
+        Assert.Single(result.GroupNames);
+        Assert.Equal("MyMod", result.GroupNames[0]);
     }
 
     [Fact]
@@ -53,10 +59,11 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([file1, file2]);
 
-        var fileItems = result.Items.OfType<DistributionFileItem>().ToList();
-        fileItems.Should().HaveCount(2);
-        fileItems.First(f => f.GroupName == "ModA").UniquePath.Should().Be("Sentinel.esp.ini");
-        fileItems.First(f => f.GroupName == "ModB").UniquePath.Should().Be("Sentinel.esp.ini");
+        var fileItems = result.Items.OfType<GroupedDropdownItem<DistributionFileInfo>>().ToList();
+        Assert.Equal(2, fileItems.Count);
+
+        Assert.Equal("Sentinel.esp.ini", fileItems.First(f => f.GroupName == "ModA").Value.UniquePath);
+        Assert.Equal("Sentinel.esp.ini", fileItems.First(f => f.GroupName == "ModB").Value.UniquePath);
     }
 
     [Fact]
@@ -67,9 +74,10 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([file1, file2]);
 
-        var fileItems = result.Items.OfType<DistributionFileItem>().ToList();
-        fileItems.First(f => f.GroupName == "ModA").UniquePath.Should().Be("FileA.ini");
-        fileItems.First(f => f.GroupName == "ModB").UniquePath.Should().Be("FileB.ini");
+        var fileItems = result.Items.OfType<GroupedDropdownItem<DistributionFileInfo>>().ToList();
+
+        Assert.Equal("FileA.ini", fileItems.First(f => f.GroupName == "ModA").Value.UniquePath);
+        Assert.Equal("FileB.ini", fileItems.First(f => f.GroupName == "ModB").Value.UniquePath);
     }
 
     [Fact]
@@ -80,13 +88,15 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([grouped, ungrouped]);
 
-        result.Items.Should().HaveCount(4);
-        result.Items[0].Should().BeOfType<DistributionNewFileItem>();
-        result.Items[1].Should().BeOfType<DistributionFileItem>()
-            .Which.Should().Match<DistributionFileItem>(f =>
-                f.FileName == "Direct.ini" && f.GroupName == "");
-        result.Items[2].Should().BeOfType<DistributionGroupHeader>();
-        result.Items[3].Should().BeOfType<DistributionFileItem>();
+        Assert.Equal(4, result.Items.Count);
+        Assert.IsType<GroupedDropdownAction>(result.Items[0]);
+        Assert.IsType<GroupedDropdownItem<DistributionFileInfo>>(result.Items[1]);
+        Assert.IsType<GroupedDropdownHeader>(result.Items[2]);
+        Assert.IsType<GroupedDropdownItem<DistributionFileInfo>>(result.Items[3]);
+
+        var firstFile = (GroupedDropdownItem<DistributionFileInfo>)result.Items[1];
+        Assert.Equal("Direct.ini", firstFile.Value.FileName);
+        Assert.Null(firstFile.GroupName);
     }
 
     [Fact]
@@ -98,9 +108,11 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([fileZ, fileA, fileM]);
 
-        var fileItems = result.Items.OfType<DistributionFileItem>().ToList();
-        fileItems.Should().HaveCount(3);
-        fileItems.Select(f => f.FileName).Should().ContainInOrder("Alpha.ini", "Middle.ini", "Zebra.ini");
+        var fileItems = result.Items.OfType<GroupedDropdownItem<DistributionFileInfo>>().ToList();
+        Assert.Equal(3, fileItems.Count);
+        Assert.Equal("Alpha.ini", fileItems[0].Value.FileName);
+        Assert.Equal("Middle.ini", fileItems[1].Value.FileName);
+        Assert.Equal("Zebra.ini", fileItems[2].Value.FileName);
     }
 
     [Fact]
@@ -111,9 +123,10 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([fileZ, fileA]);
 
-        var headers = result.Items.OfType<DistributionGroupHeader>().ToList();
-        headers.Should().HaveCount(2);
-        headers.Select(h => h.GroupName).Should().ContainInOrder("Alpha", "Zebra");
+        var headers = result.Items.OfType<GroupedDropdownHeader>().ToList();
+        Assert.Equal(2, headers.Count);
+        Assert.Equal("Alpha", headers[0].GroupName);
+        Assert.Equal("Zebra", headers[1].GroupName);
     }
 
     [Fact]
@@ -122,9 +135,9 @@ public class DistributionDropdownOrganizerTests
         var file = CreateFile("Test.ini", @"SomeArmorMod\skse\plugins\SkyPatcher\npc\Test.ini");
         var result = DistributionDropdownOrganizer.Organize([file]);
 
-        var headers = result.Items.OfType<DistributionGroupHeader>().ToList();
-        headers.Should().ContainSingle()
-            .Which.GroupName.Should().Be("SomeArmorMod");
+        var headers = result.Items.OfType<GroupedDropdownHeader>().ToList();
+        Assert.Single(headers);
+        Assert.Equal("SomeArmorMod", headers[0].GroupName);
     }
 
     [Fact]
@@ -135,9 +148,11 @@ public class DistributionDropdownOrganizerTests
 
         var result = DistributionDropdownOrganizer.Organize([file1, file2]);
 
-        var fileItems = result.Items.OfType<DistributionFileItem>().ToList();
-        fileItems.Should().HaveCount(2);
-        fileItems.Select(f => f.UniquePath).Should().Contain(["Guards/Config.ini", "Patrols/Config.ini"]);
+        var fileItems = result.Items.OfType<GroupedDropdownItem<DistributionFileInfo>>().ToList();
+        Assert.Equal(2, fileItems.Count);
+
+        Assert.Equal("Guards/Config.ini", fileItems[0].Value.UniquePath);
+        Assert.Equal("Patrols/Config.ini", fileItems[1].Value.UniquePath);
     }
 
     private static DistributionFileViewModel CreateFile(string fileName, string relativePath)

@@ -31,21 +31,30 @@
                     MinWidth="200" Margin="0,0,6,0"
                     MaxDropDownHeight="400"
                     IsSynchronizedWithCurrentItem="False">
-            <ComboBox.Resources>
-              <DataTemplate DataType="{x:Type models:DistributionGroupHeader}">
-                <TextBlock Text="{Binding GroupName}"
-                           FontWeight="SemiBold"
-                           FontSize="11"
-                           Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
-                           Padding="0,4,0,2" />
+            <ComboBox.ItemTemplate>
+              <DataTemplate DataType="{x:Type models:GroupedDropdownItem}">
+                <TextBlock Text="{Binding DisplayText}">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Padding" Value="12,0,0,0" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Header}">
+                          <Setter Property="Text" Value="{Binding DisplayText}" />
+                          <Setter Property="FontWeight" Value="SemiBold" />
+                          <Setter Property="FontSize" Value="11" />
+                          <Setter Property="Foreground" Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
+                          <Setter Property="Padding" Value="0,4,0,2" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Action}">
+                          <Setter Property="FontStyle" Value="Italic" />
+                          <Setter Property="Padding" Value="0" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
               </DataTemplate>
-              <DataTemplate DataType="{x:Type models:DistributionFileItem}">
-                <TextBlock Text="{Binding DisplayText}" Padding="12,0,0,0" />
-              </DataTemplate>
-              <DataTemplate DataType="{x:Type models:DistributionNewFileItem}">
-                <TextBlock Text="{Binding DisplayText}" FontStyle="Italic" />
-              </DataTemplate>
-            </ComboBox.Resources>
+            </ComboBox.ItemTemplate>
             <ComboBox.ItemContainerStyle>
               <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                 <Style.Triggers>
@@ -61,21 +70,42 @@
           </ComboBox>
           <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Format}}"
                      Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="6,0,6,0" />
-          <ComboBox ItemsSource="{Binding AvailableFormats}"
-                    SelectedItem="{Binding DistributionFormat, Mode=TwoWay}"
-                    MinWidth="100">
+          <ComboBox ItemsSource="{Binding FormatDropdownItems}"
+                    SelectedItem="{Binding SelectedFormatDropdownItem, Mode=TwoWay}"
+                    MinWidth="120"
+                    IsSynchronizedWithCurrentItem="False">
             <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Converter={StaticResource DistributionFileTypeConverter}}" />
+              <DataTemplate DataType="{x:Type models:GroupedDropdownItem}">
+                <TextBlock Text="{Binding DisplayText}">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Padding" Value="12,0,0,0" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Header}">
+                          <Setter Property="FontWeight" Value="SemiBold" />
+                          <Setter Property="FontSize" Value="11" />
+                          <Setter Property="Foreground" Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
+                          <Setter Property="Padding" Value="0,4,0,2" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
               </DataTemplate>
             </ComboBox.ItemTemplate>
             <ComboBox.ItemContainerStyle>
               <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                 <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
                 <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                    <Setter Property="IsEnabled" Value="False" />
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Focusable" Value="False" />
+                    <Setter Property="Background" Value="Transparent" />
+                  </DataTrigger>
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                      <Condition Binding="{Binding}" Value="SkyPatcher" />
+                      <Condition Binding="{Binding Value.FileType}" Value="SkyPatcher" />
                       <Condition
                         Binding="{Binding DataContext.HasChanceBasedEntries, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                         Value="True" />
@@ -86,7 +116,7 @@
                   </MultiDataTrigger>
                   <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                      <Condition Binding="{Binding}" Value="SkyPatcher" />
+                      <Condition Binding="{Binding Value.FileType}" Value="SkyPatcher" />
                       <Condition
                         Binding="{Binding DataContext.HasKeywordDistributions, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                         Value="True" />
