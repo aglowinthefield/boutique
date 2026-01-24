@@ -83,12 +83,16 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         IProgress<(int current, int total, string message)>? progress)
     {
         EnsureMasters(patchMod, requiredMasters);
+
+        var actuallyRequiredMasters = CollectRequiredMasters(patchMod, []);
+        CleanupMasterReferences(patchMod, actuallyRequiredMasters);
+
         TryApplyEslFlag(patchMod);
 
         progress?.Report((1, 1, "Writing patch file..."));
         mutagenService.ReleaseLinkCache();
 
-        WritePatchWithRetry(patchMod, outputPath, requiredMasters);
+        WritePatchWithRetry(patchMod, outputPath, actuallyRequiredMasters);
     }
 
     private async Task RefreshAfterWrite(

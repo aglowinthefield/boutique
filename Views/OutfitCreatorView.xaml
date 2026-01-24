@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:utilities="clr-namespace:Boutique.Utilities"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
@@ -60,7 +61,8 @@
         </Grid>
       </GroupBox>
 
-      <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="LightGray" />
+      <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="LightGray"
+                    utilities:GridSplitterBehavior.PersistKey="OutfitCreator.PluginsColumn" />
 
       <!-- Middle Panel: Armors from Selected Plugin -->
       <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.AvailableArmors}}"
@@ -129,7 +131,8 @@
         </Grid>
       </GroupBox>
 
-      <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" Background="LightGray" />
+      <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" Background="LightGray"
+                    utilities:GridSplitterBehavior.PersistKey="OutfitCreator.ArmorsColumn" />
 
       <!-- Right Panel: Outfit Drafts -->
       <GroupBox Grid.Column="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.OutfitQueue}}"

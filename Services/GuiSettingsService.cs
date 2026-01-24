@@ -22,6 +22,8 @@ public class GuiSettings
     public double? WindowWidth { get; set; }
     public double? WindowHeight { get; set; }
     public WindowState? WindowState { get; set; }
+
+    public Dictionary<string, double>? GridSplitterPositions { get; set; }
 }
 
 public class GuiSettingsService
@@ -203,6 +205,23 @@ public class GuiSettingsService
         }
 
         _settings.WindowState = window.WindowState;
+        SaveSettings();
+    }
+
+    public double? GetSplitterPosition(string key) =>
+        _settings.GridSplitterPositions?.TryGetValue(key, out var position) == true ? position : null;
+
+    public void SetSplitterPosition(string key, double position)
+    {
+        _settings.GridSplitterPositions ??= new Dictionary<string, double>();
+
+        if (_settings.GridSplitterPositions.TryGetValue(key, out var existing) &&
+            Math.Abs(existing - position) < 0.1)
+        {
+            return;
+        }
+
+        _settings.GridSplitterPositions[key] = position;
         SaveSettings();
     }
 

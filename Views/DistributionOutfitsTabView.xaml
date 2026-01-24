@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:utilities="clr-namespace:Boutique.Utilities"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
@@ -119,7 +120,8 @@
         </DataGrid.Columns>
       </DataGrid>
 
-      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="LightGray" Margin="0,2" />
+      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="LightGray" Margin="0,2"
+                    utilities:GridSplitterBehavior.PersistKey="DistributionOutfits.DetailRow" />
 
       <!-- Detail Panel -->
       <Grid Grid.Row="2">

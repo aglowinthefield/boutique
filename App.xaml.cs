@@ -21,6 +21,8 @@ public partial class App
     private IContainer? _container;
     private LoggingService? _loggingService;
 
+    public IContainer? Container => _container;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);

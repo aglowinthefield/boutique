@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:views="clr-namespace:Boutique.Views"
+             xmlns:utilities="clr-namespace:Boutique.Utilities"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="700"
@@ -28,14 +29,16 @@
       <views:DistributionEntryListView Grid.Row="0" DataContext="{Binding}" />
 
       <!-- Left column horizontal splitter -->
-      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent" />
+      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    utilities:GridSplitterBehavior.PersistKey="DistributionCreate.LeftRow" />
 
       <!-- BOTTOM-LEFT: File Preview -->
       <views:DistributionFilePreviewView Grid.Row="2" DataContext="{Binding}" />
     </Grid>
 
     <!-- Vertical GridSplitter between columns -->
-    <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" />
+    <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"
+                  utilities:GridSplitterBehavior.PersistKey="DistributionCreate.MainColumn" />
 
     <!-- RIGHT COLUMN: Entry Editor + Filters (independent vertical split) -->
     <Grid Grid.Column="2">
@@ -49,7 +52,8 @@
       <views:DistributionEntryEditorView Grid.Row="0" DataContext="{Binding}" />
 
       <!-- Right column horizontal splitter -->
-      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent" />
+      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    utilities:GridSplitterBehavior.PersistKey="DistributionCreate.RightRow" />
 
       <!-- BOTTOM-RIGHT: Distribution Filters -->
       <views:DistributionFilterTabsView Grid.Row="2" DataContext="{Binding}" />
