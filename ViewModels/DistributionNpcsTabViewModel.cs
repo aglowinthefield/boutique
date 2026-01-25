@@ -110,9 +110,10 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
             vm => vm.SelectedClass,
             (_, _, _, _, _, _, _, _) => Unit.Default);
 
-        return textFilter
-            .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
-            .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
+    return textFilter
+        .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
+        .Do(_ => UpdateFilterFromSelections())
+        .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
     }
 
     private Func<NpcOutfitAssignmentViewModel, bool> CreateFilterFunc(string searchText, bool hideVanilla)
@@ -393,11 +394,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         }
     }
 
-    private void OnFiltersChanged()
-    {
-        UpdateFilterFromSelections();
-        UpdateSyntaxPreview();
-    }
+    private void OnFiltersChanged() => UpdateSyntaxPreview();
 
     private void UpdateFilterFromSelections()
     {
