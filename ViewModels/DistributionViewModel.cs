@@ -78,7 +78,7 @@ public partial class DistributionViewModel : ReactiveObject
             settings,
             logger);
 
-        ContainersTab = new DistributionContainersTabViewModel();
+        ContainersTab = new DistributionContainersTabViewModel(gameDataCache);
 
         EditTab.ShowPreview.RegisterHandler(async interaction =>
         {

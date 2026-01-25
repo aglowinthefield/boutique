@@ -5,15 +5,141 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:utilities="clr-namespace:Boutique.Utilities"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionContainersTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600"
-             d:DesignWidth="1000">
-  <Grid Margin="12">
-    <TextBlock Text="{Binding StatusMessage}"
-               Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               FontSize="16" />
+             d:DesignWidth="1100">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Search and Filters -->
+    <Grid Grid.Row="0" Margin="0,6,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <CheckBox Content="Hide empty containers"
+                  IsChecked="{Binding HideEmptyContainers}"
+                  VerticalAlignment="Center" Margin="0,0,16,0" />
+        <TextBlock Text="Search:"
+                   Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                 MinWidth="250" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Filter Controls -->
+    <GroupBox Grid.Row="1" Header="Filters" Margin="0,0,0,6" Padding="6">
+      <WrapPanel Orientation="Horizontal">
+        <!-- Cell Filter -->
+        <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
+          <TextBlock Text="Cell:"
+                     Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+          <ComboBox ItemsSource="{Binding AvailableCells}"
+                    SelectedItem="{Binding SelectedCell}"
+                    MinWidth="200" MaxWidth="300"
+                    IsEditable="True" IsTextSearchEnabled="True" />
+        </StackPanel>
+
+        <!-- Respawns Filter -->
+        <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
+          <TextBlock Text="Respawns:"
+                     Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+          <ComboBox ItemsSource="{Binding RespawnsFilterOptions}"
+                    SelectedItem="{Binding SelectedRespawnsFilter}"
+                    MinWidth="80" />
+        </StackPanel>
+      </WrapPanel>
+    </GroupBox>
+
+    <!-- Main Content: Two Columns -->
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" MinWidth="300" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="350" MinWidth="200" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Left: Container List -->
+      <DataGrid Grid.Column="0"
+                ItemsSource="{Binding FilteredContainers}"
+                SelectedItem="{Binding SelectedContainer, Mode=TwoWay}"
+                AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
+                GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                RowHeight="28">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+          <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="180" CanUserSort="True"
+                              ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+          <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="50" CanUserSort="True" />
+          <DataGridTextColumn Header="Merchant" Binding="{Binding MerchantFaction}" Width="120" CanUserSort="True" />
+          <DataGridTextColumn Header="Cells" Binding="{Binding CellPlacementsDisplay}" Width="150" CanUserSort="True" />
+          <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="120" CanUserSort="True" />
+          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="65" CanUserSort="True" IsReadOnly="True" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                    Background="Transparent" utilities:GridSplitterBehavior.PersistKey="Containers.InspectColumn" />
+
+      <!-- Right: Inspect Panel -->
+      <Border Grid.Column="2" BorderThickness="1" BorderBrush="LightGray">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <!-- Header -->
+          <Border Grid.Row="0" Background="#10000000" Padding="12,8">
+            <StackPanel>
+              <TextBlock Text="{Binding SelectedContainer.DisplayName, FallbackValue='Select a container'}"
+                         FontWeight="SemiBold" FontSize="14" />
+              <TextBlock Text="{Binding SelectedContainer.EditorId}"
+                         Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
+                         Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Items List -->
+          <DataGrid Grid.Row="1"
+                    ItemsSource="{Binding SelectedContainerItems}"
+                    AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                    IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single"
+                    GridLinesVisibility="None" HeadersVisibility="Column"
+                    EnableRowVirtualization="True" RowHeight="26"
+                    Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Item" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+              <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="50" CanUserSort="True" />
+              <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="120" CanUserSort="True" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <!-- Empty State -->
+          <TextBlock Grid.Row="1"
+                     Text="Select a container to view its contents"
+                     Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}, ConverterParameter=Inverse}" />
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- Status Bar -->
+    <Border Grid.Row="3" Padding="8,4" Background="#10000000">
+      <TextBlock Text="{Binding StatusMessage}"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" />
+    </Border>
   </Grid>
 </UserControl>

@@ -213,7 +213,7 @@ public class GameDataCacheService : IDisposable
             var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
             var containersTask = Task.Run(() => LoadContainers(linkCache));
 
-            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
+            await Task.WhenAll(npcsTask, factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
 
             factionsList = await factionsTask;
             racesList = await racesTask;
@@ -863,12 +863,107 @@ public class GameDataCacheService : IDisposable
     private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
         RecordLoader.LoadRawRecords<IOutfitGetter>(linkCache, IsBlacklisted);
 
-    private List<ContainerRecordViewModel> LoadContainers(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-        linkCache.WinningOverrides<IContainerGetter>()
+    private List<ContainerRecordViewModel> LoadContainers(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        var merchantContainers = BuildMerchantContainerLookup(linkCache);
+        var merchantTime = sw.ElapsedMilliseconds;
+
+        var cellPlacements = BuildCellPlacementLookup(linkCache);
+        var cellTime = sw.ElapsedMilliseconds - merchantTime;
+
+        var containers = linkCache.WinningOverrides<IContainerGetter>()
             .Where(c => !IsBlacklisted(c.FormKey.ModKey))
-            .Select(c => new ContainerRecordViewModel(c, linkCache))
+            .Select(c => new ContainerRecordViewModel(
+                c,
+                linkCache,
+                merchantContainers.GetValueOrDefault(c.FormKey),
+                cellPlacements.GetValueOrDefault(c.FormKey)))
             .OrderBy(c => c.DisplayName)
             .ToList();
+
+        sw.Stop();
+        _logger.Information(
+            "Container loading: {MerchantMs}ms merchant lookup, {CellMs}ms cell placement, {TotalMs}ms total for {Count} containers",
+            merchantTime,
+            cellTime,
+            sw.ElapsedMilliseconds,
+            containers.Count);
+
+        return containers;
+    }
+
+    private Dictionary<FormKey, string> BuildMerchantContainerLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var result = new Dictionary<FormKey, string>();
+
+        foreach (var faction in linkCache.WinningOverrides<IFactionGetter>())
+        {
+            if (faction.MerchantContainer.IsNull)
+            {
+                continue;
+            }
+
+            var containerFormKey = faction.MerchantContainer.FormKey;
+            var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
+            result.TryAdd(containerFormKey, factionName);
+        }
+
+        return result;
+    }
+
+    private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var result = new Dictionary<FormKey, List<string>>();
+
+        foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
+        {
+            var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
+
+            if (cell.Temporary is { } temporary)
+            {
+                foreach (var placed in temporary)
+                {
+                    if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
+                    {
+                        var baseFormKey = placedObj.Base.FormKey;
+                        if (!result.TryGetValue(baseFormKey, out var list))
+                        {
+                            list = [];
+                            result[baseFormKey] = list;
+                        }
+                        if (!list.Contains(cellName))
+                        {
+                            list.Add(cellName);
+                        }
+                    }
+                }
+            }
+
+            if (cell.Persistent is { } persistent)
+            {
+                foreach (var placed in persistent)
+                {
+                    if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
+                    {
+                        var baseFormKey = placedObj.Base.FormKey;
+                        if (!result.TryGetValue(baseFormKey, out var list))
+                        {
+                            list = [];
+                            result[baseFormKey] = list;
+                        }
+                        if (!list.Contains(cellName))
+                        {
+                            list.Add(cellName);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 
     public void Dispose()
     {

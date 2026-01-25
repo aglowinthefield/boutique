@@ -8,7 +8,11 @@ namespace Boutique.ViewModels;
 
 public sealed class ContainerRecordViewModel
 {
-    public ContainerRecordViewModel(IContainerGetter container, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    public ContainerRecordViewModel(
+        IContainerGetter container,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        string? merchantFaction = null,
+        IReadOnlyList<string>? cellPlacements = null)
     {
         FormKey = container.FormKey;
         EditorId = container.EditorID ?? string.Empty;
@@ -16,6 +20,8 @@ public sealed class ContainerRecordViewModel
         ModName = container.FormKey.ModKey.FileName;
         Respawns = container.Flags.HasFlag(Container.Flag.Respawns);
         Items = ResolveItems(container, linkCache);
+        MerchantFaction = merchantFaction;
+        CellPlacements = cellPlacements ?? [];
     }
 
     public FormKey FormKey { get; }
@@ -24,9 +30,13 @@ public sealed class ContainerRecordViewModel
     public string ModName { get; }
     public bool Respawns { get; }
     public IReadOnlyList<ContainerContentItem> Items { get; }
+    public string? MerchantFaction { get; }
+    public IReadOnlyList<string> CellPlacements { get; }
 
     public int ItemCount => Items.Count;
     public string DisplayName => string.IsNullOrEmpty(Name) ? EditorId : Name;
+    public bool IsMerchantContainer => !string.IsNullOrEmpty(MerchantFaction);
+    public string CellPlacementsDisplay => CellPlacements.Count > 0 ? string.Join(", ", CellPlacements.Take(3)) + (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : "") : "";
 
     private static List<ContainerContentItem> ResolveItems(
         IContainerGetter container,
