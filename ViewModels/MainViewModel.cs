@@ -100,6 +100,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] private string _statusMessage = "Ready";
 
     private bool _suppressAutoSave;
+    private bool _suppressPluginDeselection;
 
     [Reactive] private string _targetSearchText = string.Empty;
 
@@ -238,6 +239,11 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         set
         {
             if (string.Equals(value, field, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(value) && _suppressPluginDeselection)
             {
                 return;
             }
@@ -1103,25 +1109,33 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         {
             var previousOutfitPlugin = SelectedOutfitPlugin;
 
-            var plugins = await _mutagenService.GetAvailablePluginsAsync();
-            var previousCount = _availablePluginsSource.Count;
-            _availablePluginsSource.Edit(list =>
+            _suppressPluginDeselection = true;
+            try
             {
-                list.Clear();
-                list.AddRange(plugins);
-            });
-            this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
+                var plugins = await _mutagenService.GetAvailablePluginsAsync();
+                var previousCount = _availablePluginsSource.Count;
+                _availablePluginsSource.Edit(list =>
+                {
+                    list.Clear();
+                    list.AddRange(plugins);
+                });
+                this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
+
+                _logger.Information(
+                    "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
+                    previousCount,
+                    _availablePluginsSource.Count);
+            }
+            finally
+            {
+                _suppressPluginDeselection = false;
+            }
 
             if (!string.IsNullOrEmpty(previousOutfitPlugin) &&
                 _availablePluginsSource.Items.Contains(previousOutfitPlugin, StringComparer.OrdinalIgnoreCase))
             {
-                SelectedOutfitPlugin = previousOutfitPlugin;
+                this.RaisePropertyChanged(nameof(SelectedOutfitPlugin));
             }
-
-            _logger.Information(
-                "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
-                previousCount,
-                _availablePluginsSource.Count);
 
             await LoadOutfitsFromOutputPluginAsync();
         }
