@@ -322,7 +322,7 @@ public class NpcOutfitResolutionService
             matchingNpcs.Count,
             line.RawText.Length > 80 ? line.RawText[..80] + "..." : line.RawText);
 
-        var hasRaceTargeting = filter.FormFilters.Expressions.Any(e => e.Parts.Any(p => p.LooksLikeRace));
+        var hasRaceTargeting = SpidLineParser.GetRaceIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
 
         foreach (var npc in matchingNpcs)
         {
@@ -331,6 +331,9 @@ public class NpcOutfitResolutionService
                 distributions = [];
                 npcDistributions[npc.FormKey] = distributions;
             }
+
+            var usesKeywordTargeting = SpidLineParser.GetKeywordIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
+            var usesFactionTargeting = SpidLineParser.GetFactionIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
 
             distributions.Add(new OutfitDistribution(
                 file.FullPath,
@@ -344,8 +347,8 @@ public class NpcOutfitResolutionService
                 filter.GetTargetingDescription(),
                 filter.Chance,
                 filter.TargetsAllNpcs,
-                filter.UsesKeywordTargeting,
-                filter.UsesFactionTargeting,
+                usesKeywordTargeting,
+                usesFactionTargeting,
                 hasRaceTargeting,
                 !filter.TraitFilters.IsEmpty));
 

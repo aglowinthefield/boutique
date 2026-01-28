@@ -33,6 +33,19 @@ public partial class DistributionEntryEditorView
         }
     }
 
+    private void ToggleNpcNegation_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is StackPanel panel && panel.Tag is NpcRecordViewModel npcVm)
+        {
+            npcVm.IsExcluded = !npcVm.IsExcluded;
+            var itemsControl = FindVisualParent<ItemsControl>(panel);
+            if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
+            {
+                entryVm.UpdateEntryNpcs();
+            }
+        }
+    }
+
     private void RemoveFaction_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is FactionRecordViewModel factionVm)

@@ -34,7 +34,7 @@ public static class SpidFilterResolver
                 return null;
             }
 
-            var npcFormKeys = new List<FormKey>();
+            var npcFilters = new List<FormKeyFilter>();
             var keywordFilters = new List<KeywordFilter>();
             var factionFilters = new List<FormKeyFilter>();
             var raceFilters = new List<FormKeyFilter>();
@@ -46,21 +46,20 @@ public static class SpidFilterResolver
             var locationFormKeys = new List<FormKey>();
             var formListFormKeys = new List<FormKey>();
 
-            // Process StringFilters - can contain NPC names, keywords, etc.
             ProcessStringFilters(
                 filter.StringFilters,
                 linkCache,
                 cachedNpcs,
-                npcFormKeys,
+                npcFilters,
                 keywordFilters,
                 knownVirtualKeywords,
                 logger);
 
-            // Process FormFilters - can contain factions, races, classes, combat styles, outfits, perks, voice types, locations, formlists
-            var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var resolvedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             ProcessFormFilters(
                 filter.FormFilters,
                 linkCache,
+                npcFilters,
                 factionFilters,
                 raceFilters,
                 classFormKeys,
@@ -70,13 +69,13 @@ public static class SpidFilterResolver
                 voiceTypeFormKeys,
                 locationFormKeys,
                 formListFormKeys,
-                resolvedExcludedFormEditorIds,
+                resolvedFormEditorIds,
                 logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
-            var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedExcludedFormEditorIds);
+            var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
 
-            var hasAnyFilter = npcFormKeys.Count > 0 || factionFilters.Count > 0 ||
+            var hasAnyFilter = npcFilters.Count > 0 || factionFilters.Count > 0 ||
                                keywordFilters.Count > 0 || raceFilters.Count > 0 ||
                                classFormKeys.Count > 0 || combatStyleFormKeys.Count > 0 ||
                                outfitFilterFormKeys.Count > 0 || perkFormKeys.Count > 0 ||
@@ -93,7 +92,7 @@ public static class SpidFilterResolver
             var entry = new DistributionEntry
             {
                 Outfit = outfit,
-                NpcFormKeys = npcFormKeys,
+                NpcFilters = npcFilters,
                 KeywordFilters = keywordFilters,
                 FactionFilters = factionFilters,
                 RaceFilters = raceFilters,
@@ -140,7 +139,7 @@ public static class SpidFilterResolver
                 return null;
             }
 
-            var npcFormKeys = new List<FormKey>();
+            var npcFilters = new List<FormKeyFilter>();
             var keywordFilters = new List<KeywordFilter>();
             var factionFilters = new List<FormKeyFilter>();
             var raceFilters = new List<FormKeyFilter>();
@@ -156,15 +155,16 @@ public static class SpidFilterResolver
                 filter.StringFilters,
                 linkCache,
                 cachedNpcs,
-                npcFormKeys,
+                npcFilters,
                 keywordFilters,
                 knownVirtualKeywords,
                 logger);
 
-            var resolvedExcludedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var resolvedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             ProcessFormFilters(
                 filter.FormFilters,
                 linkCache,
+                npcFilters,
                 factionFilters,
                 raceFilters,
                 classFormKeys,
@@ -174,17 +174,17 @@ public static class SpidFilterResolver
                 voiceTypeFormKeys,
                 locationFormKeys,
                 formListFormKeys,
-                resolvedExcludedFormEditorIds,
+                resolvedFormEditorIds,
                 logger);
 
             var rawStringFilters = ExtractUnresolvableStringFilters(filter.StringFilters, keywordFilters);
-            var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedExcludedFormEditorIds);
+            var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
 
             var entry = new DistributionEntry
             {
                 Type = DistributionType.Keyword,
                 KeywordToDistribute = keywordToDistribute,
-                NpcFormKeys = npcFormKeys,
+                NpcFilters = npcFilters,
                 KeywordFilters = keywordFilters,
                 FactionFilters = factionFilters,
                 RaceFilters = raceFilters,
@@ -281,7 +281,7 @@ public static class SpidFilterResolver
         SpidFilterSection stringFilters,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyList<INpcGetter> cachedNpcs,
-        List<FormKey> npcFormKeys,
+        List<FormKeyFilter> npcFilters,
         List<KeywordFilter> keywordFilters,
         IReadOnlySet<string>? knownVirtualKeywords,
         ILogger? logger)
@@ -295,7 +295,6 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                // Try to resolve as game keyword first
                 var keyword = linkCache.WinningOverrides<IKeywordGetter>()
                     .FirstOrDefault(k => string.Equals(k.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (keyword != null)
@@ -304,47 +303,24 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                // Check if it's a known virtual keyword (SPID-distributed keyword)
                 if (knownVirtualKeywords != null && knownVirtualKeywords.Contains(part.Value))
                 {
                     keywordFilters.Add(new KeywordFilter(part.Value, part.IsNegated));
                     continue;
                 }
 
-                // If negated, skip NPC resolution - negated entries are typically keywords
-                if (part.IsNegated)
-                {
-                    if (LooksLikeKeywordEditorId(part.Value))
-                    {
-                        keywordFilters.Add(new KeywordFilter(part.Value, true));
-                        logger?.Verbose("Treating negated string filter as excluded keyword: {Value}", part.Value);
-                    }
-
-                    continue;
-                }
-
-                // If not a keyword, try to resolve as NPC by EditorID or Name
                 var npc = cachedNpcs.FirstOrDefault(n =>
                     string.Equals(n.EditorID, part.Value, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(n.Name?.String, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (npc != null)
                 {
-                    npcFormKeys.Add(npc.FormKey);
+                    npcFilters.Add(new FormKeyFilter(npc.FormKey, part.IsNegated));
                     logger?.Debug("Resolved NPC string filter '{Value}' to {FormKey}", part.Value, npc.FormKey);
                     continue;
                 }
 
-                // Treat any remaining unresolved string filter as a potential keyword
-                // (either virtual keyword from SPID or an unrecognized game keyword)
-                if (LooksLikeKeywordEditorId(part.Value))
-                {
-                    keywordFilters.Add(new KeywordFilter(part.Value));
-                    logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
-                }
-                else
-                {
-                    logger?.Verbose("Could not resolve string filter: {Value}", part.Value);
-                }
+                keywordFilters.Add(new KeywordFilter(part.Value, part.IsNegated));
+                logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
             }
         }
 
@@ -369,44 +345,15 @@ public static class SpidFilterResolver
                 continue;
             }
 
-            if (LooksLikeKeywordEditorId(exclusion.Value))
-            {
-                keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
-                logger?.Verbose("Treating global exclusion as excluded keyword: {Value}", exclusion.Value);
-            }
+            keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
+            logger?.Verbose("Treating global exclusion as excluded keyword: {Value}", exclusion.Value);
         }
-    }
-
-    private static bool LooksLikeKeywordEditorId(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        // Keywords typically contain underscores (prefix pattern like MODNAME_keywordId or ActorType_xxx)
-        if (value.Contains('_'))
-        {
-            return true;
-        }
-
-        // Also treat identifiers starting with common keyword prefixes
-        if (value.StartsWith("is", StringComparison.Ordinal) ||
-            value.StartsWith("has", StringComparison.Ordinal) ||
-            value.StartsWith("reach", StringComparison.Ordinal) ||
-            value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
-            value.StartsWith("Vampire", StringComparison.OrdinalIgnoreCase) ||
-            value.EndsWith("Keyword", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private static void ProcessFormFilters(
         SpidFilterSection formFilters,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        List<FormKeyFilter> npcFilters,
         List<FormKeyFilter> factionFilters,
         List<FormKeyFilter> raceFilters,
         List<FormKey> classFormKeys,
@@ -416,113 +363,199 @@ public static class SpidFilterResolver
         List<FormKey> voiceTypeFormKeys,
         List<FormKey> locationFormKeys,
         List<FormKey> formListFormKeys,
-        HashSet<string>? resolvedExcludedEditorIds,
+        HashSet<string>? resolvedEditorIds,
         ILogger? logger)
     {
         foreach (var expr in formFilters.Expressions)
         {
             foreach (var part in expr.Parts)
             {
-                // Try faction
+                if (TryResolveFormFilterByFormKey(part, linkCache, npcFilters, factionFilters, raceFilters,
+                        resolvedEditorIds, logger))
+                {
+                    continue;
+                }
+
                 var faction = linkCache.WinningOverrides<IFactionGetter>()
                     .FirstOrDefault(f => string.Equals(f.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (faction != null)
                 {
                     factionFilters.Add(new FormKeyFilter(faction.FormKey, part.IsNegated));
-                    if (part.IsNegated)
-                    {
-                        resolvedExcludedEditorIds?.Add(part.Value);
-                    }
-
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try race
                 var race = linkCache.WinningOverrides<IRaceGetter>()
                     .FirstOrDefault(r => string.Equals(r.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (race != null)
                 {
                     raceFilters.Add(new FormKeyFilter(race.FormKey, part.IsNegated));
-                    if (part.IsNegated)
-                    {
-                        resolvedExcludedEditorIds?.Add(part.Value);
-                    }
-
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Skip other form types if negated (we only support negation for factions and races currently)
                 if (part.IsNegated)
                 {
                     continue;
                 }
 
-                // Try class
                 var classRecord = linkCache.WinningOverrides<IClassGetter>()
                     .FirstOrDefault(c => string.Equals(c.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (classRecord != null)
                 {
                     classFormKeys.Add(classRecord.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try combat style
                 var combatStyle = linkCache.WinningOverrides<ICombatStyleGetter>()
                     .FirstOrDefault(cs => string.Equals(cs.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (combatStyle != null)
                 {
                     combatStyleFormKeys.Add(combatStyle.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try outfit (as filter, not the distributed outfit)
                 var outfitFilter = linkCache.WinningOverrides<IOutfitGetter>()
                     .FirstOrDefault(o => string.Equals(o.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (outfitFilter != null)
                 {
                     outfitFilterFormKeys.Add(outfitFilter.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try perk
                 var perk = linkCache.WinningOverrides<IPerkGetter>()
                     .FirstOrDefault(p => string.Equals(p.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (perk != null)
                 {
                     perkFormKeys.Add(perk.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try voice type
                 var voiceType = linkCache.WinningOverrides<IVoiceTypeGetter>()
                     .FirstOrDefault(v => string.Equals(v.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (voiceType != null)
                 {
                     voiceTypeFormKeys.Add(voiceType.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try location
                 var location = linkCache.WinningOverrides<ILocationGetter>()
                     .FirstOrDefault(l => string.Equals(l.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (location != null)
                 {
                     locationFormKeys.Add(location.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                // Try formlist
                 var formList = linkCache.WinningOverrides<IFormListGetter>()
                     .FirstOrDefault(fl => string.Equals(fl.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
                 if (formList != null)
                 {
                     formListFormKeys.Add(formList.FormKey);
+                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
                 logger?.Debug("Could not resolve form filter: {Value}", part.Value);
             }
         }
+
+        foreach (var exclusion in formFilters.GlobalExclusions)
+        {
+            var exclusionPart = new SpidFilterPart { Value = exclusion.Value, IsNegated = true };
+            if (TryResolveFormFilterByFormKey(exclusionPart, linkCache, npcFilters, factionFilters, raceFilters,
+                    resolvedEditorIds, logger))
+            {
+                continue;
+            }
+
+            var faction = linkCache.WinningOverrides<IFactionGetter>()
+                .FirstOrDefault(f => string.Equals(f.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
+            if (faction != null)
+            {
+                factionFilters.Add(new FormKeyFilter(faction.FormKey, true));
+                resolvedEditorIds?.Add(exclusion.Value);
+                continue;
+            }
+
+            var race = linkCache.WinningOverrides<IRaceGetter>()
+                .FirstOrDefault(r => string.Equals(r.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
+            if (race != null)
+            {
+                raceFilters.Add(new FormKeyFilter(race.FormKey, true));
+                resolvedEditorIds?.Add(exclusion.Value);
+            }
+        }
+    }
+
+    private static bool TryResolveFormFilterByFormKey(
+        SpidFilterPart part,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        List<FormKeyFilter> npcFilters,
+        List<FormKeyFilter> factionFilters,
+        List<FormKeyFilter> raceFilters,
+        HashSet<string>? resolvedEditorIds,
+        ILogger? logger)
+    {
+        if (!TryParseAsFormKey(part.Value, out var formKey))
+        {
+            return false;
+        }
+
+        if (linkCache.TryResolve<INpcGetter>(formKey, out var npc))
+        {
+            npcFilters.Add(new FormKeyFilter(formKey, part.IsNegated));
+            resolvedEditorIds?.Add(part.Value);
+            logger?.Debug("Resolved FormID {Value} as NPC: {EditorId}", part.Value, npc.EditorID);
+            return true;
+        }
+
+        if (linkCache.TryResolve<IFactionGetter>(formKey, out var faction))
+        {
+            factionFilters.Add(new FormKeyFilter(formKey, part.IsNegated));
+            resolvedEditorIds?.Add(part.Value);
+            logger?.Debug("Resolved FormID {Value} as Faction: {EditorId}", part.Value, faction.EditorID);
+            return true;
+        }
+
+        if (linkCache.TryResolve<IRaceGetter>(formKey, out var race))
+        {
+            raceFilters.Add(new FormKeyFilter(formKey, part.IsNegated));
+            resolvedEditorIds?.Add(part.Value);
+            logger?.Debug("Resolved FormID {Value} as Race: {EditorId}", part.Value, race.EditorID);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryParseAsFormKey(string value, out FormKey formKey)
+    {
+        formKey = FormKey.Null;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (FormKey.TryFactory(value, out formKey) || FormKeyHelper.TryParse(value, out formKey))
+        {
+            return true;
+        }
+
+        if (FormKeyHelper.TryParseFormId(value, out var id))
+        {
+            formKey = new FormKey(FormKeyHelper.SkyrimModKey, id);
+            return true;
+        }
+
+        return false;
     }
 
     private static string? ExtractUnresolvableStringFilters(
@@ -568,7 +601,7 @@ public static class SpidFilterResolver
 
     private static string? ExtractUnresolvableFormFilters(
         SpidFilterSection formFilters,
-        HashSet<string> resolvedExcludedEditorIds)
+        HashSet<string> resolvedEditorIds)
     {
         var unresolvableParts = new List<string>();
 
@@ -577,15 +610,13 @@ public static class SpidFilterResolver
             var exprParts = new List<string>();
             foreach (var part in expr.Parts)
             {
-                if (!part.IsNegated)
+                if (resolvedEditorIds.Contains(part.Value))
                 {
                     continue;
                 }
 
-                if (!resolvedExcludedEditorIds.Contains(part.Value))
-                {
-                    exprParts.Add($"-{part.Value}");
-                }
+                var prefix = part.IsNegated ? "-" : string.Empty;
+                exprParts.Add($"{prefix}{part.Value}");
             }
 
             if (exprParts.Count > 0)
@@ -596,7 +627,7 @@ public static class SpidFilterResolver
 
         foreach (var exclusion in formFilters.GlobalExclusions)
         {
-            if (!resolvedExcludedEditorIds.Contains(exclusion.Value))
+            if (!resolvedEditorIds.Contains(exclusion.Value))
             {
                 unresolvableParts.Add($"-{exclusion.Value}");
             }

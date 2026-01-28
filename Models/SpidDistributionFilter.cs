@@ -78,16 +78,6 @@ public sealed class SpidDistributionFilter
     public bool TargetsAllNpcs => StringFilters.IsEmpty && FormFilters.IsEmpty;
 
     /// <summary>
-    ///     True if this distribution uses keyword-based targeting (not specific NPC names).
-    /// </summary>
-    public bool UsesKeywordTargeting => StringFilters.HasKeywords;
-
-    /// <summary>
-    ///     True if this distribution uses faction-based targeting.
-    /// </summary>
-    public bool UsesFactionTargeting => FormFilters.HasFactions;
-
-    /// <summary>
     ///     Gets a human-readable description of the targeting criteria.
     /// </summary>
     public string GetTargetingDescription()
@@ -142,16 +132,6 @@ public sealed class SpidFilterSection
 
     public bool IsEmpty => Expressions.Count == 0 && GlobalExclusions.Count == 0;
 
-    /// <summary>
-    ///     True if any expression contains keywords (non-NPC identifiers like ActorTypeNPC).
-    /// </summary>
-    public bool HasKeywords => Expressions.Any(e => e.Parts.Any(p => p.LooksLikeKeyword));
-
-    /// <summary>
-    ///     True if any expression looks like a faction (contains "Faction" or similar).
-    /// </summary>
-    public bool HasFactions => Expressions.Any(e => e.Parts.Any(p => p.LooksLikeFaction));
-
     public override string ToString()
     {
         var exprStr = string.Join(", ", Expressions.Select(e => e.ToString()));
@@ -198,34 +178,6 @@ public sealed class SpidFilterPart
     ///     True if this filter contains wildcards (* in SPID for partial matching).
     /// </summary>
     public bool HasWildcard => Value.Contains('*');
-
-    /// <summary>
-    ///     True if this looks like a keyword (starts with ActorType, has common keyword patterns).
-    /// </summary>
-    public bool LooksLikeKeyword =>
-        Value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
-        Value.StartsWith("Vampire", StringComparison.OrdinalIgnoreCase) ||
-        Value.EndsWith("Keyword", StringComparison.OrdinalIgnoreCase) ||
-        Value.Contains("Type");
-
-    /// <summary>
-    ///     True if this looks like a faction reference.
-    /// </summary>
-    public bool LooksLikeFaction =>
-        Value.Contains("Faction", StringComparison.OrdinalIgnoreCase) ||
-        Value.StartsWith("Crime", StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>
-    ///     True if this looks like a race reference.
-    /// </summary>
-    public bool LooksLikeRace =>
-        Value.EndsWith("Race", StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>
-    ///     True if this looks like a class reference.
-    /// </summary>
-    public bool LooksLikeClass =>
-        Value.EndsWith("Class", StringComparison.OrdinalIgnoreCase);
 
     public override string ToString()
     {

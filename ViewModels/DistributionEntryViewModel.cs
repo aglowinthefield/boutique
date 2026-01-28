@@ -3,7 +3,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
 using Boutique.Models;
-using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -85,57 +84,6 @@ public partial class DistributionEntryViewModel : ReactiveObject
             null => UniqueFilter.Any
         };
         IsChild = entry.TraitFilters.IsChild;
-
-        if (entry.NpcFormKeys.Count > 0)
-        {
-            var npcVms = entry.NpcFormKeys
-                .Select(fk => new NpcRecordViewModel(new NpcRecord(fk, null, null, fk.ModKey)))
-                .ToList();
-
-            foreach (var npcVm in npcVms)
-            {
-                _selectedNpcs.Add(npcVm);
-            }
-        }
-
-        foreach (var filter in entry.FactionFilters)
-        {
-            var vm = new FactionRecordViewModel(new FactionRecord(filter.FormKey, null, null, filter.FormKey.ModKey))
-            {
-                IsExcluded = filter.IsExcluded
-            };
-            _selectedFactions.Add(vm);
-        }
-
-        foreach (var filter in entry.KeywordFilters)
-        {
-            var vm = new KeywordRecordViewModel(new KeywordRecord(FormKey.Null, filter.EditorId, ModKey.Null))
-            {
-                IsExcluded = filter.IsExcluded
-            };
-            _selectedKeywords.Add(vm);
-        }
-
-        foreach (var filter in entry.RaceFilters)
-        {
-            var vm = new RaceRecordViewModel(new RaceRecord(filter.FormKey, null, null, filter.FormKey.ModKey))
-            {
-                IsExcluded = filter.IsExcluded
-            };
-            _selectedRaces.Add(vm);
-        }
-
-        if (entry.ClassFormKeys.Count > 0)
-        {
-            var classVms = entry.ClassFormKeys
-                .Select(fk => new ClassRecordViewModel(new ClassRecord(fk, null, null, fk.ModKey)))
-                .ToList();
-
-            foreach (var classVm in classVms)
-            {
-                _selectedClasses.Add(classVm);
-            }
-        }
 
         this.WhenAnyValue(x => x.Type)
             .Skip(1)
@@ -414,8 +362,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     public void UpdateEntryNpcs()
     {
-        Entry.NpcFormKeys.Clear();
-        Entry.NpcFormKeys.AddRange(SelectedNpcs.Select(npc => npc.FormKey));
+        Entry.NpcFilters.Clear();
+        Entry.NpcFilters.AddRange(SelectedNpcs.Select(npc => new FormKeyFilter(npc.FormKey, npc.IsExcluded)));
         RaiseFilterSummaryChanged();
         RaiseEntryChanged();
     }

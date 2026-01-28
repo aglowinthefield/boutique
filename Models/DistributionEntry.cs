@@ -3,22 +3,31 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;
 
+public interface IExcludable
+{
+    bool IsExcluded { get; }
+}
+
 public enum DistributionType
 {
     Outfit,
     Keyword
 }
 
-public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false);
+public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false) : IExcludable;
 
-public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false);
+public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false) : IExcludable;
 
 public sealed class DistributionEntry
 {
     public DistributionType Type { get; set; } = DistributionType.Outfit;
     public IOutfitGetter? Outfit { get; set; }
     public string? KeywordToDistribute { get; set; }
-    public List<FormKey> NpcFormKeys { get; set; } = [];
+
+    /// <summary>
+    ///     NPC filters with negation support. Allows targeting or excluding specific NPCs.
+    /// </summary>
+    public List<FormKeyFilter> NpcFilters { get; set; } = [];
 
     /// <summary>
     ///     Keyword filters with negation support. EditorIDs of game keywords or virtual keywords (SPID-distributed via Keyword

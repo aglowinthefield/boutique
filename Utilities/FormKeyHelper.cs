@@ -9,6 +9,8 @@ public static class FormKeyHelper
 {
     private static readonly string[] _modKeyExtensions = [".esp", ".esm", ".esl"];
 
+    public static readonly ModKey SkyrimModKey = new("Skyrim", ModType.Master);
+
     public static string Format(FormKey formKey) => $"{formKey.ModKey.FileName}|{formKey.ID:X8}";
 
     public static bool IsModKeyFileName(string text)

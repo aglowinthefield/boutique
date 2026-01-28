@@ -135,9 +135,28 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}" Margin="0,0,4,4">
+                  <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                          Background="{StaticResource Brush.CardBackground}" BorderThickness="1">
+                    <Border.Style>
+                      <Style TargetType="Border">
+                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsExcluded}" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Border.Style>
                     <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                      <StackPanel Orientation="Horizontal" Cursor="Hand"
+                                  MouseLeftButtonDown="ToggleNpcNegation_Click" Tag="{Binding}"
+                                  ToolTip="Click to toggle negation">
+                        <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                                   Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
+                          -
+                        </TextBlock>
+                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                      </StackPanel>
                       <TextBlock Text="{Binding FormKeyString}"
                                  Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
                                  Margin="4,0,0,0" FontSize="9" />

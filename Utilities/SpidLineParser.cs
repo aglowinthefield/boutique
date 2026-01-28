@@ -1,4 +1,6 @@
 using Boutique.Models;
+using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
 
@@ -340,14 +342,25 @@ public static class SpidLineParser
         return 100;
     }
 
-    public static IReadOnlyList<string> GetSpecificNpcIdentifiers(SpidDistributionFilter filter)
+    public static IReadOnlyList<string> GetSpecificNpcIdentifiers(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
     {
         var results = new List<string>();
+        var keywordEditorIds = linkCache?.WinningOverrides<IKeywordGetter>()
+                .Select(k => k.EditorID)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var expr in filter.StringFilters.Expressions)
         {
-            foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.LooksLikeKeyword && !p.IsNegated))
+            foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
             {
+                if (keywordEditorIds != null && keywordEditorIds.Contains(part.Value))
+                {
+                    continue;
+                }
+
                 results.Add(part.Value);
             }
         }
@@ -355,35 +368,77 @@ public static class SpidLineParser
         return results;
     }
 
-    public static IReadOnlyList<string> GetKeywordIdentifiers(SpidDistributionFilter filter)
+    public static IReadOnlyList<string> GetKeywordIdentifiers(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
     {
         var results = new List<string>();
+        var keywordEditorIds = linkCache?.WinningOverrides<IKeywordGetter>()
+                .Select(k => k.EditorID)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var expr in filter.StringFilters.Expressions)
         {
-            foreach (var part in expr.Parts.Where(p => p.LooksLikeKeyword && !p.IsNegated))
+            foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
             {
-                results.Add(part.Value);
+                if (keywordEditorIds == null || keywordEditorIds.Contains(part.Value))
+                {
+                    results.Add(part.Value);
+                }
             }
         }
 
         return results;
     }
 
-    public static IReadOnlyList<string> GetFactionIdentifiers(SpidDistributionFilter filter) =>
-        filter.FormFilters.Expressions
-            .SelectMany(e => e.Parts.Where(p => p.LooksLikeFaction && !p.IsNegated).Select(p => p.Value))
-            .ToList();
+    public static IReadOnlyList<string> GetFactionIdentifiers(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
+    {
+        var factionEditorIds = linkCache?.WinningOverrides<IFactionGetter>()
+                .Select(f => f.EditorID)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-    public static IReadOnlyList<string> GetRaceIdentifiers(SpidDistributionFilter filter) =>
-        filter.FormFilters.Expressions
-            .SelectMany(e => e.Parts.Where(p => p.LooksLikeRace && !p.IsNegated).Select(p => p.Value))
+        return filter.FormFilters.Expressions
+            .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+            .Where(p => factionEditorIds == null || factionEditorIds.Contains(p.Value))
+            .Select(p => p.Value)
             .ToList();
+    }
 
-    public static IReadOnlyList<string> GetClassIdentifiers(SpidDistributionFilter filter) =>
-        filter.FormFilters.Expressions
-            .SelectMany(e => e.Parts.Where(p => p.LooksLikeClass && !p.IsNegated).Select(p => p.Value))
+    public static IReadOnlyList<string> GetRaceIdentifiers(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
+    {
+        var raceEditorIds = linkCache?.WinningOverrides<IRaceGetter>()
+                .Select(r => r.EditorID)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return filter.FormFilters.Expressions
+            .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+            .Where(p => raceEditorIds == null || raceEditorIds.Contains(p.Value))
+            .Select(p => p.Value)
             .ToList();
+    }
+
+    public static IReadOnlyList<string> GetClassIdentifiers(
+        SpidDistributionFilter filter,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
+    {
+        var classEditorIds = linkCache?.WinningOverrides<IClassGetter>()
+                .Select(c => c.EditorID)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return filter.FormFilters.Expressions
+            .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+            .Where(p => classEditorIds == null || classEditorIds.Contains(p.Value))
+            .Select(p => p.Value)
+            .ToList();
+    }
 
     public static bool IsSpidLine(string line) =>
         TryParse(line, out _, null);
@@ -426,4 +481,5 @@ public static class SpidLineParser
 
         return results.ToList();
     }
+
 }

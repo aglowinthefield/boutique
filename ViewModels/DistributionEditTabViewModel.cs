@@ -249,8 +249,76 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             return;
         }
 
+        var allNpcs = _cache.AllNpcs.ToList();
+        if (allNpcs.Count == 0)
+        {
+            UpdateIntraFileConflictsSimple();
+            return;
+        }
+
+        var entries = DistributionEntries.ToList();
+        var npcToEntries = new Dictionary<FormKey, List<(DistributionEntryViewModel Entry, string OutfitName)>>();
+
+        foreach (var entry in entries)
+        {
+            var outfitName = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
+            var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
+
+            foreach (var npc in matchingNpcs)
+            {
+                if (!npcToEntries.TryGetValue(npc.FormKey, out var entryList))
+                {
+                    entryList = [];
+                    npcToEntries[npc.FormKey] = entryList;
+                }
+
+                entryList.Add((entry, outfitName));
+            }
+        }
+
+        var conflicts = npcToEntries
+            .Where(kv => kv.Value.Count > 1)
+            .Select(kv =>
+            {
+                var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+                return (
+                    NpcName: npc?.DisplayName ?? kv.Key.ToString(),
+                    EntryCount: kv.Value.Count,
+                    Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList()
+                );
+            })
+            .ToList();
+
+        if (conflicts.Count == 0)
+        {
+            HasIntraFileConflicts = false;
+            IntraFileConflictSummary = string.Empty;
+            return;
+        }
+
+        HasIntraFileConflicts = true;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"{conflicts.Count} NPC(s) appear in multiple entries:");
+        foreach (var conflict in conflicts.Take(5))
+        {
+            sb.AppendLine($"  • {conflict.NpcName} ({conflict.EntryCount}x): {string.Join(", ", conflict.Outfits)}");
+        }
+
+        if (conflicts.Count > 5)
+        {
+            sb.AppendLine($"  ... and {conflicts.Count - 5} more");
+        }
+
+        IntraFileConflictSummary = sb.ToString().TrimEnd();
+    }
+
+    private void UpdateIntraFileConflictsSimple()
+    {
         var npcOccurrences = DistributionEntries
-            .SelectMany(entry => entry.SelectedNpcs.Select(npc => (Entry: entry, Npc: npc)))
+            .SelectMany(entry => entry.SelectedNpcs
+                .Where(npc => !npc.IsExcluded)
+                .Select(npc => (Entry: entry, Npc: npc)))
             .GroupBy(x => x.Npc.FormKey)
             .Where(g => g.Count() > 1)
             .Select(g => (
@@ -1949,7 +2017,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     {
         var entryVm = new DistributionEntryViewModel(entry, RemoveDistributionEntry, IsFormatChangingToSpid);
         ResolveEntryOutfit(entryVm);
-        var npcVms = ResolveNpcFormKeys(entry.NpcFormKeys);
+        var npcVms = ResolveNpcFilters(entry.NpcFilters);
         if (npcVms.Count > 0)
         {
             entryVm.SelectedNpcs = new ObservableCollection<NpcRecordViewModel>(npcVms);
@@ -2007,19 +2075,16 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
     }
 
-    /// <summary>
-    ///     Resolves a list of NPC FormKeys to NpcRecordViewModels,
-    ///     preferring existing instances from AvailableNpcs.
-    /// </summary>
-    private List<NpcRecordViewModel> ResolveNpcFormKeys(IEnumerable<FormKey> formKeys)
+    private List<NpcRecordViewModel> ResolveNpcFilters(IEnumerable<FormKeyFilter> filters)
     {
         var npcVms = new List<NpcRecordViewModel>();
 
-        foreach (var npcFormKey in formKeys)
+        foreach (var filter in filters)
         {
-            var npcVm = ResolveNpcFormKey(npcFormKey);
+            var npcVm = ResolveNpcFormKey(filter.FormKey);
             if (npcVm != null)
             {
+                npcVm.IsExcluded = filter.IsExcluded;
                 npcVms.Add(npcVm);
             }
         }
@@ -2027,16 +2092,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         return npcVms;
     }
 
-    /// <summary>
-    ///     Resolves a single NPC FormKey to an NpcRecordViewModel,
-    ///     preferring an existing instance from AvailableNpcs.
-    /// </summary>
     private NpcRecordViewModel? ResolveNpcFormKey(FormKey formKey)
     {
         var existingNpc = AvailableNpcs.FirstOrDefault(npc => npc.FormKey == formKey);
         if (existingNpc != null)
         {
-            return existingNpc;
+            return new NpcRecordViewModel(existingNpc.NpcRecord);
         }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
@@ -2187,7 +2248,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         var existingRace = AvailableRaces.FirstOrDefault(r => r.FormKey == formKey);
         if (existingRace != null)
         {
-            return existingRace;
+            return new RaceRecordViewModel(existingRace.RaceRecord);
         }
 
         if (_mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
