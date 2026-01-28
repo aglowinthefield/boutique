@@ -100,6 +100,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] private string _statusMessage = "Ready";
 
     private bool _suppressAutoSave;
+    private bool _suppressPluginDeselection;
 
     [Reactive] private string _targetSearchText = string.Empty;
 
@@ -238,6 +239,11 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         set
         {
             if (string.Equals(value, field, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(value) && _suppressPluginDeselection)
             {
                 return;
             }
@@ -1103,6 +1109,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         {
             var previousOutfitPlugin = SelectedOutfitPlugin;
 
+            _suppressPluginDeselection = true;
+
             var plugins = await _mutagenService.GetAvailablePluginsAsync();
             var previousCount = _availablePluginsSource.Count;
             _availablePluginsSource.Edit(list =>
@@ -1112,21 +1120,26 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             });
             this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
-            if (!string.IsNullOrEmpty(previousOutfitPlugin) &&
-                _availablePluginsSource.Items.Contains(previousOutfitPlugin, StringComparer.OrdinalIgnoreCase))
-            {
-                SelectedOutfitPlugin = previousOutfitPlugin;
-            }
-
             _logger.Information(
                 "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
                 previousCount,
                 _availablePluginsSource.Count);
 
+            if (!string.IsNullOrEmpty(previousOutfitPlugin) &&
+                _availablePluginsSource.Items.Contains(previousOutfitPlugin, StringComparer.OrdinalIgnoreCase))
+            {
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(
+                    () => this.RaisePropertyChanged(nameof(SelectedOutfitPlugin)),
+                    System.Windows.Threading.DispatcherPriority.Background);
+            }
+
+            _suppressPluginDeselection = false;
+
             await LoadOutfitsFromOutputPluginAsync();
         }
         catch (Exception ex)
         {
+            _suppressPluginDeselection = false;
             _logger.Error(ex, "Failed to refresh available plugins list.");
         }
     }
