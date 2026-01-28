@@ -37,24 +37,6 @@ if ($boutiqueProcesses)
     Write-Host "Boutique processes stopped." -ForegroundColor Green
 }
 
-# If version is provided, update the csproj
-if ($Version -ne "")
-{
-    Write-Host "Updating version to $Version..." -ForegroundColor Cyan
-
-    # Read the csproj content
-    $csprojContent = Get-Content $projectPath -Raw
-
-    # Update version properties using regex
-    $csprojContent = $csprojContent -replace '<Version>[^<]+</Version>', "<Version>$Version</Version>"
-    $csprojContent = $csprojContent -replace '<AssemblyVersion>[^<]+</AssemblyVersion>', "<AssemblyVersion>$Version.0</AssemblyVersion>"
-    $csprojContent = $csprojContent -replace '<FileVersion>[^<]+</FileVersion>', "<FileVersion>$Version.0</FileVersion>"
-
-    # Write back
-    Set-Content -Path $projectPath -Value $csprojContent -NoNewline
-    Write-Host "Version updated to $Version" -ForegroundColor Green
-}
-
 $selfContainedValue = $SelfContained.ToString().ToLower()
 
 $arguments = @(
@@ -66,6 +48,14 @@ $arguments = @(
     "-p:IncludeNativeLibrariesForSelfExtract=true",
     "--output", $publishPath
 )
+
+# Version is auto-detected from git tags via MinVer
+# Use -Version parameter to override if needed (e.g., for testing)
+if ($Version -ne "")
+{
+    Write-Host "Overriding MinVer version to $Version..." -ForegroundColor Cyan
+    $arguments += "-p:MinVerVersionOverride=$Version"
+}
 
 Write-Host "Publishing Boutique ($Configuration | $Runtime | SelfContained=$selfContainedValue)..." -ForegroundColor Cyan
 Write-Host "Output: $publishPath" -ForegroundColor Cyan
@@ -143,9 +133,11 @@ Write-Host "Distribution zip created: $zipPath" -ForegroundColor Green
 
 # Show next steps
 Write-Host ""
-Write-Host "=== Release Checklist ===" -ForegroundColor Magenta
-Write-Host "1. Create a GitHub release with tag 'v$Version' (or '$Version-alpha', etc.)" -ForegroundColor White
-Write-Host "2. Upload 'artifacts/publish/Boutique.zip' to the release" -ForegroundColor White
-Write-Host ""
-Write-Host "The app will automatically detect the new release from GitHub!" -ForegroundColor Green
+Write-Host "=== Release Workflow ===" -ForegroundColor Magenta
+Write-Host "Version is auto-detected from git tags via MinVer." -ForegroundColor White
+Write-Host "To release:" -ForegroundColor White
+Write-Host "  1. Tag the commit: git tag v1.2.3" -ForegroundColor White
+Write-Host "  2. Build: pwsh scripts/publish-win.ps1" -ForegroundColor White
+Write-Host "  3. Push tag: git push origin v1.2.3" -ForegroundColor White
+Write-Host "  4. Create GitHub release and upload artifacts/publish/Boutique.zip" -ForegroundColor White
 Write-Host ""
