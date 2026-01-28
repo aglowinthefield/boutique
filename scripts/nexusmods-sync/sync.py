@@ -61,13 +61,20 @@ def main():
 
     print("\n[Step 1] Scraping bugs from NexusMods...")
     scraper = NexusModsScraper(game, mod_id)
-    bugs = scraper.scrape_bugs(fetch_details=True)
+    all_bugs = scraper.scrape_bugs(fetch_details=True)
 
-    if not bugs:
+    if not all_bugs:
         print("No bugs found on NexusMods. Nothing to sync.")
         return
 
-    print(f"Found {len(bugs)} bug(s) on NexusMods")
+    bugs = [b for b in all_bugs if b.status.lower() not in ("fixed", "closed")]
+    skipped = len(all_bugs) - len(bugs)
+
+    print(f"Found {len(all_bugs)} bug(s) on NexusMods, {skipped} fixed/closed (skipped), {len(bugs)} to sync")
+
+    if not bugs:
+        print("No open bugs to sync.")
+        return
 
     print("\n[Step 2] Syncing to GitHub Issues...")
     github_sync = GitHubSync(github_token, github_repo, dry_run=args.dry_run)
