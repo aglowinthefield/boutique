@@ -249,6 +249,72 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             return;
         }
 
+        var allNpcs = _cache.AllNpcs.ToList();
+        if (allNpcs.Count == 0)
+        {
+            UpdateIntraFileConflictsSimple();
+            return;
+        }
+
+        var entries = DistributionEntries.ToList();
+        var npcToEntries = new Dictionary<FormKey, List<(DistributionEntryViewModel Entry, string OutfitName)>>();
+
+        foreach (var entry in entries)
+        {
+            var outfitName = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
+            var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
+
+            foreach (var npc in matchingNpcs)
+            {
+                if (!npcToEntries.TryGetValue(npc.FormKey, out var entryList))
+                {
+                    entryList = [];
+                    npcToEntries[npc.FormKey] = entryList;
+                }
+
+                entryList.Add((entry, outfitName));
+            }
+        }
+
+        var conflicts = npcToEntries
+            .Where(kv => kv.Value.Count > 1)
+            .Select(kv =>
+            {
+                var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+                return (
+                    NpcName: npc?.DisplayName ?? kv.Key.ToString(),
+                    EntryCount: kv.Value.Count,
+                    Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList()
+                );
+            })
+            .ToList();
+
+        if (conflicts.Count == 0)
+        {
+            HasIntraFileConflicts = false;
+            IntraFileConflictSummary = string.Empty;
+            return;
+        }
+
+        HasIntraFileConflicts = true;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"{conflicts.Count} NPC(s) appear in multiple entries:");
+        foreach (var conflict in conflicts.Take(5))
+        {
+            sb.AppendLine($"  • {conflict.NpcName} ({conflict.EntryCount}x): {string.Join(", ", conflict.Outfits)}");
+        }
+
+        if (conflicts.Count > 5)
+        {
+            sb.AppendLine($"  ... and {conflicts.Count - 5} more");
+        }
+
+        IntraFileConflictSummary = sb.ToString().TrimEnd();
+    }
+
+    private void UpdateIntraFileConflictsSimple()
+    {
         var npcOccurrences = DistributionEntries
             .SelectMany(entry => entry.SelectedNpcs
                 .Where(npc => !npc.IsExcluded)

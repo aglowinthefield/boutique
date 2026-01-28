@@ -3,15 +3,20 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;
 
+public interface IExcludable
+{
+    bool IsExcluded { get; }
+}
+
 public enum DistributionType
 {
     Outfit,
     Keyword
 }
 
-public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false);
+public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false) : IExcludable;
 
-public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false);
+public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false) : IExcludable;
 
 public sealed class DistributionEntry
 {

@@ -109,28 +109,24 @@ public class DistributionFileWriterService
                             var excludedKeywords = entry.KeywordFilters.Where(f => f.IsExcluded).ToList();
                             if (includedKeywords.Count > 0 && linkCache != null)
                             {
-                                var keywordFormKeys = includedKeywords
-                                    .Select(k => ResolveKeywordEditorIdToFormKey(k.EditorId, linkCache))
-                                    .Where(fk => !fk.IsNull)
-                                    .Select(FormatFormKey)
+                                var keywordIdentifiers = includedKeywords
+                                    .Select(k => ResolveKeywordForSkyPatcher(k.EditorId, linkCache))
                                     .ToList();
-                                if (keywordFormKeys.Count > 0)
+                                if (keywordIdentifiers.Count > 0)
                                 {
-                                    var keywordList = string.Join(",", keywordFormKeys);
+                                    var keywordList = string.Join(",", keywordIdentifiers);
                                     filterParts.Add($"filterByKeywords={keywordList}");
                                 }
                             }
 
                             if (excludedKeywords.Count > 0 && linkCache != null)
                             {
-                                var keywordFormKeys = excludedKeywords
-                                    .Select(k => ResolveKeywordEditorIdToFormKey(k.EditorId, linkCache))
-                                    .Where(fk => !fk.IsNull)
-                                    .Select(FormatFormKey)
+                                var keywordIdentifiers = excludedKeywords
+                                    .Select(k => ResolveKeywordForSkyPatcher(k.EditorId, linkCache))
                                     .ToList();
-                                if (keywordFormKeys.Count > 0)
+                                if (keywordIdentifiers.Count > 0)
                                 {
-                                    var keywordList = string.Join(",", keywordFormKeys);
+                                    var keywordList = string.Join(",", keywordIdentifiers);
                                     filterParts.Add($"filterByKeywordsExcluded={keywordList}");
                                 }
                             }
@@ -363,13 +359,14 @@ public class DistributionFileWriterService
             var excludedNpcStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
             var factionStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
             var keywordStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
+            var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
             var raceStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByRaces");
             var classStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
             var genderFilter = SkyPatcherSyntax.ParseGenderFilter(line);
 
             var npcFilters = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
             var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
-            var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, linkCache);
+            var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, excludedKeywordStrings, linkCache);
             var raceFilters = ResolveRaceIdentifiers(raceStrings, linkCache);
             var classFormKeys = ResolveClassIdentifiers(classStrings, linkCache);
 
@@ -513,45 +510,51 @@ public class DistributionFileWriterService
     }
 
     private static List<KeywordFilter> ResolveKeywordIdentifiersToFilters(
-        List<string> identifiers,
+        List<string> includedIdentifiers,
+        List<string> excludedIdentifiers,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
         var results = new List<KeywordFilter>();
-        foreach (var id in identifiers)
-        {
-            // If it's a FormKey, resolve to EditorID
-            if (TryParseFormKey(id) is { } formKey)
-            {
-                if (linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
-                    !string.IsNullOrWhiteSpace(keyword.EditorID))
-                {
-                    results.Add(new KeywordFilter(keyword.EditorID));
-                    continue;
-                }
-            }
 
-            // Otherwise, try to resolve as EditorID to validate it exists
-            var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
-                .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
-            if (resolvedKeyword != null)
-            {
-                results.Add(new KeywordFilter(resolvedKeyword.EditorID ?? id));
-            }
-            else
-            {
-                // Keep as-is (could be a virtual keyword)
-                results.Add(new KeywordFilter(id));
-            }
+        foreach (var id in includedIdentifiers)
+        {
+            results.Add(ResolveKeywordIdentifier(id, false, linkCache));
+        }
+
+        foreach (var id in excludedIdentifiers)
+        {
+            results.Add(ResolveKeywordIdentifier(id, true, linkCache));
         }
 
         return results;
     }
 
-    private static FormKey ResolveKeywordEditorIdToFormKey(string editorId, ILinkCache linkCache)
+    private static KeywordFilter ResolveKeywordIdentifier(
+        string id,
+        bool isExcluded,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        if (TryParseFormKey(id) is { } formKey)
+        {
+            if (linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
+                !string.IsNullOrWhiteSpace(keyword.EditorID))
+            {
+                return new KeywordFilter(keyword.EditorID, isExcluded);
+            }
+        }
+
+        var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
+            .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
+        return resolvedKeyword != null
+            ? new KeywordFilter(resolvedKeyword.EditorID ?? id, isExcluded)
+            : new KeywordFilter(id, isExcluded);
+    }
+
+    private static string ResolveKeywordForSkyPatcher(string editorId, ILinkCache linkCache)
     {
         var keyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
             .FirstOrDefault(k => string.Equals(k.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
-        return keyword?.FormKey ?? FormKey.Null;
+        return keyword != null ? FormatFormKey(keyword.FormKey) : editorId;
     }
 
     private List<FormKeyFilter> ResolveRaceIdentifiers(

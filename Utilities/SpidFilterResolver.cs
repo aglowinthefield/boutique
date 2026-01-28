@@ -309,17 +309,6 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                if (part.IsNegated)
-                {
-                    if (LooksLikeKeywordEditorId(part.Value))
-                    {
-                        keywordFilters.Add(new KeywordFilter(part.Value, true));
-                        logger?.Verbose("Treating negated string filter as excluded keyword: {Value}", part.Value);
-                    }
-
-                    continue;
-                }
-
                 var npc = cachedNpcs.FirstOrDefault(n =>
                     string.Equals(n.EditorID, part.Value, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(n.Name?.String, part.Value, StringComparison.OrdinalIgnoreCase));
@@ -330,15 +319,8 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                if (LooksLikeKeywordEditorId(part.Value))
-                {
-                    keywordFilters.Add(new KeywordFilter(part.Value));
-                    logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
-                }
-                else
-                {
-                    logger?.Verbose("Could not resolve string filter: {Value}", part.Value);
-                }
+                keywordFilters.Add(new KeywordFilter(part.Value, part.IsNegated));
+                logger?.Verbose("Treating unresolved string filter as keyword: {Value}", part.Value);
             }
         }
 
@@ -363,39 +345,9 @@ public static class SpidFilterResolver
                 continue;
             }
 
-            if (LooksLikeKeywordEditorId(exclusion.Value))
-            {
-                keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
-                logger?.Verbose("Treating global exclusion as excluded keyword: {Value}", exclusion.Value);
-            }
+            keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
+            logger?.Verbose("Treating global exclusion as excluded keyword: {Value}", exclusion.Value);
         }
-    }
-
-    private static bool LooksLikeKeywordEditorId(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        // Keywords typically contain underscores (prefix pattern like MODNAME_keywordId or ActorType_xxx)
-        if (value.Contains('_'))
-        {
-            return true;
-        }
-
-        // Also treat identifiers starting with common keyword prefixes
-        if (value.StartsWith("is", StringComparison.Ordinal) ||
-            value.StartsWith("has", StringComparison.Ordinal) ||
-            value.StartsWith("reach", StringComparison.Ordinal) ||
-            value.StartsWith("ActorType", StringComparison.OrdinalIgnoreCase) ||
-            value.StartsWith("Vampire", StringComparison.OrdinalIgnoreCase) ||
-            value.EndsWith("Keyword", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return false;
     }
 
     private static void ProcessFormFilters(

@@ -411,30 +411,16 @@ public class GameDataCacheService : IDisposable
             {
                 if (line.IsKeywordDistribution && !string.IsNullOrWhiteSpace(line.KeywordIdentifier))
                 {
-                    AddKeywordIfNew(line.KeywordIdentifier, sourceName);
-                }
-
-                if ((line.IsKeywordDistribution || line.IsOutfitDistribution) &&
-                    SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
-                {
-                    foreach (var keyword in GetAllKeywordIdentifiers(filter))
+                    if (existingEditorIds.Add(line.KeywordIdentifier))
                     {
-                        AddKeywordIfNew(keyword, sourceName);
+                        var record = new KeywordRecord(FormKey.Null, line.KeywordIdentifier, ModKey.Null, sourceName);
+                        virtualKeywords.Add(new KeywordRecordViewModel(record));
                     }
                 }
             }
         }
 
         return virtualKeywords.OrderBy(k => k.DisplayName).ToList();
-
-        void AddKeywordIfNew(string editorId, string? source)
-        {
-            if (existingEditorIds.Add(editorId))
-            {
-                var record = new KeywordRecord(FormKey.Null, editorId, ModKey.Null, source);
-                virtualKeywords.Add(new KeywordRecordViewModel(record));
-            }
-        }
     }
 
     private static string? ExtractModFolderName(string fullPath)
@@ -456,20 +442,6 @@ public class GameDataCacheService : IDisposable
         }
 
         return new DirectoryInfo(directory).Name;
-    }
-
-    private static IEnumerable<string> GetAllKeywordIdentifiers(SpidDistributionFilter filter)
-    {
-        foreach (var expr in filter.StringFilters.Expressions)
-        {
-            foreach (var part in expr.Parts)
-            {
-                if (part.LooksLikeKeyword)
-                {
-                    yield return part.Value;
-                }
-            }
-        }
     }
 
     private (List<NpcFilterData> filterData, List<NpcRecordViewModel> viewModels) LoadNpcs(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)

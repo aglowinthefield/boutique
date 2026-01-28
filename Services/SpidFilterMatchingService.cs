@@ -49,6 +49,72 @@ public class SpidFilterMatchingService
         }).ToList();
     }
 
+    public static IReadOnlyList<NpcFilterData> GetMatchingNpcsForEntry(
+        IReadOnlyList<NpcFilterData> allNpcs,
+        DistributionEntry entry)
+    {
+        return allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry)).ToList();
+    }
+
+    private static bool NpcMatchesEntry(NpcFilterData npc, DistributionEntry entry)
+    {
+        if (!MatchesFilters(entry.NpcFilters, f => f.FormKey, [npc.FormKey]))
+        {
+            return false;
+        }
+
+        var npcFactions = npc.Factions.Select(f => f.FactionFormKey).ToHashSet();
+        if (!MatchesFilters(entry.FactionFilters, f => f.FormKey, npcFactions))
+        {
+            return false;
+        }
+
+        if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, npc.Keywords))
+        {
+            return false;
+        }
+
+        if (!MatchesFilters(entry.RaceFilters, f => f.FormKey, npc.RaceFormKey.HasValue ? [npc.RaceFormKey.Value] : []))
+        {
+            return false;
+        }
+
+        if (entry.ClassFormKeys.Count > 0 &&
+            (!npc.ClassFormKey.HasValue || !entry.ClassFormKeys.Contains(npc.ClassFormKey.Value)))
+        {
+            return false;
+        }
+
+        return MatchesTraitFilters(npc, entry.TraitFilters);
+    }
+
+    private static bool MatchesFilters<TFilter, TValue>(
+        IReadOnlyList<TFilter> filters,
+        Func<TFilter, TValue> valueSelector,
+        IReadOnlyCollection<TValue> npcValues)
+        where TFilter : IExcludable
+    {
+        if (filters.Count == 0)
+        {
+            return true;
+        }
+
+        var included = filters.Where(f => !f.IsExcluded).Select(valueSelector).ToList();
+        var excluded = new HashSet<TValue>(filters.Where(f => f.IsExcluded).Select(valueSelector));
+
+        if (excluded.Any(npcValues.Contains))
+        {
+            return false;
+        }
+
+        if (included.Count > 0 && !included.All(npcValues.Contains))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private static bool MatchesStringFilters(
         NpcFilterData npc,
         SpidFilterSection filters,

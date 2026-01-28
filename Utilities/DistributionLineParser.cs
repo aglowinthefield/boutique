@@ -40,8 +40,7 @@ public static class DistributionLineParser
             return results;
         }
 
-        // Get specific NPC identifiers from the parsed filter
-        var npcIdentifiers = SpidLineParser.GetSpecificNpcIdentifiers(filter);
+        var npcIdentifiers = SpidLineParser.GetSpecificNpcIdentifiers(filter, linkCache);
         if (npcIdentifiers.Count == 0)
         {
             return results;
