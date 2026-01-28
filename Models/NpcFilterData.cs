@@ -31,6 +31,12 @@ public sealed class NpcFilterData
     public required string? TemplateEditorId { get; init; }
 
     /// <summary>
+    ///     Pre-calculated set of keys for fast string matching (ExactMatchesNpcStrings).
+    ///     Includes Name, EditorID, Keywords, Template, Faction IDs, etc.
+    /// </summary>
+    public HashSet<string>? MatchKeys { get; set; }
+
+    /// <summary>
     ///     Skill values indexed by SPID skill index (6-23).
     ///     Indices: 6=OneHanded, 7=TwoHanded, 8=Marksman, 9=Block, 10=Smithing,
     ///     11=HeavyArmor, 12=LightArmor, 13=Pickpocket, 14=Lockpicking, 15=Sneak,

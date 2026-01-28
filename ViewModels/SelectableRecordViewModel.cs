@@ -8,7 +8,7 @@ namespace Boutique.ViewModels;
 public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelectableRecordViewModel
     where TRecord : IGameRecord
 {
-    private readonly string _searchCache;
+    private string? _searchCache;
 
     [Reactive] private bool _isExcluded;
 
@@ -17,7 +17,6 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
     public SelectableRecordViewModel(TRecord record)
     {
         Record = record;
-        _searchCache = $"{DisplayName} {EditorID} {ModDisplayName} {FormKeyString}".ToLowerInvariant();
     }
 
     public TRecord Record { get; }
@@ -28,7 +27,14 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
     public string FormKeyString => Record.FormKeyString;
     public FormKey FormKey => Record.FormKey;
 
-    public bool MatchesSearch(string searchTerm) =>
-        string.IsNullOrWhiteSpace(searchTerm) ||
-        _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
+    public bool MatchesSearch(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return true;
+        }
+
+        _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormKeyString}".ToLowerInvariant();
+        return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
 }

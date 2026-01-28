@@ -205,7 +205,19 @@ public static class SpidLineParser
                 var exclusionValue = trimmedExpr[1..].Trim();
                 if (!string.IsNullOrWhiteSpace(exclusionValue))
                 {
-                    globalExclusions.Add(new SpidFilterPart { Value = exclusionValue, IsNegated = true });
+                    var exclusionPart = new SpidFilterPart { Value = exclusionValue, IsNegated = true };
+
+                    // Pre-resolve FormKey or ModKey status
+                    if (FormKeyHelper.TryParse(exclusionValue, out var formKey))
+                    {
+                        exclusionPart.FormKey = formKey;
+                    }
+                    else if (FormKeyHelper.IsModKeyFileName(exclusionValue))
+                    {
+                        exclusionPart.IsModKey = true;
+                    }
+
+                    globalExclusions.Add(exclusionPart);
                 }
 
                 continue;
@@ -251,7 +263,19 @@ public static class SpidLineParser
 
             if (!string.IsNullOrWhiteSpace(value))
             {
-                expression.Parts.Add(new SpidFilterPart { Value = value, IsNegated = isNegated });
+                var filterPart = new SpidFilterPart { Value = value, IsNegated = isNegated };
+
+                // Pre-resolve FormKey or ModKey status
+                if (FormKeyHelper.TryParse(value, out var formKey))
+                {
+                    filterPart.FormKey = formKey;
+                }
+                else if (FormKeyHelper.IsModKeyFileName(value))
+                {
+                    filterPart.IsModKey = true;
+                }
+
+                expression.Parts.Add(filterPart);
             }
         }
 

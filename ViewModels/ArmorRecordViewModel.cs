@@ -9,7 +9,7 @@ namespace Boutique.ViewModels;
 public partial class ArmorRecordViewModel : ReactiveObject
 {
     private readonly ILinkCache? _linkCache;
-    private readonly string _searchCache;
+    private string? _searchCache;
 
     [Reactive] private bool _isMapped;
 
@@ -21,8 +21,6 @@ public partial class ArmorRecordViewModel : ReactiveObject
         _linkCache = linkCache;
         FormIdSortable = armor.FormKey.ID;
         FormIdDisplay = $"0x{FormIdSortable:X8}";
-
-        _searchCache = $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary}".ToLowerInvariant();
 
         this.WhenAnyValue(x => x.IsSlotCompatible)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
@@ -134,6 +132,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
             return true;
         }
 
+        _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary}".ToLowerInvariant();
         return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 

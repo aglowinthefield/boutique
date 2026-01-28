@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using Boutique.Models;
 using Boutique.Utilities;
@@ -160,6 +161,23 @@ public class NpcOutfitResolutionService
                     var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
                     _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
 
+                    // Pre-build lookups for SPID identifier classification
+                    var keywordEditorIds = linkCache.WinningOverrides<IKeywordGetter>()
+                        .Select(k => k.EditorID)
+                        .Where(id => !string.IsNullOrWhiteSpace(id))
+                        .Cast<string>()
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var factionEditorIds = linkCache.WinningOverrides<IFactionGetter>()
+                        .Select(f => f.EditorID)
+                        .Where(id => !string.IsNullOrWhiteSpace(id))
+                        .Cast<string>()
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    var raceEditorIds = linkCache.WinningOverrides<IRaceGetter>()
+                        .Select(r => r.EditorID)
+                        .Where(id => !string.IsNullOrWhiteSpace(id))
+                        .Cast<string>()
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
                     var keywordEntries = _keywordResolver.ParseKeywordDistributions(sortedFiles);
                     var (sortedKeywords, cyclicKeywords) = _keywordResolver.TopologicalSort(keywordEntries);
 
@@ -201,7 +219,10 @@ public class NpcOutfitResolutionService
                             npcFilterData,
                             outfitByEditorId,
                             npcDistributions,
-                            simulatedKeywords);
+                            simulatedKeywords,
+                            keywordEditorIds,
+                            factionEditorIds,
+                            raceEditorIds);
 
                         _logger.Debug(
                             "After processing {FileName}: {NpcCount} unique NPCs with distributions",
@@ -239,10 +260,13 @@ public class NpcOutfitResolutionService
         IReadOnlyList<NpcFilterData> allNpcs,
         IReadOnlyDictionary<string, FormKey> outfitByEditorId,
         Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
-        Dictionary<FormKey, HashSet<string>> simulatedKeywords)
+        Dictionary<FormKey, HashSet<string>> simulatedKeywords,
+        HashSet<string> keywordEditorIds,
+        HashSet<string> factionEditorIds,
+        HashSet<string> raceEditorIds)
     {
-        var outfitLineCount = 0;
-        var matchedNpcCount = 0;
+        var spidLines = new List<(DistributionLine Line, SpidDistributionFilter Filter, FormKey OutfitFormKey, string? OutfitEditorId, bool HasRaceTargeting, bool UsesKeywordTargeting, bool UsesFactionTargeting, string TargetingDescription, bool HasTraitFilters)>();
+        var skyPatcherLines = new List<DistributionLine>();
 
         foreach (var line in file.Lines)
         {
@@ -251,145 +275,126 @@ public class NpcOutfitResolutionService
                 continue;
             }
 
-            outfitLineCount++;
-
             if (file.Type == DistributionFileType.Spid)
             {
-                ProcessSpidLineWithFilters(
-                    file,
-                    line,
-                    processingOrder,
-                    linkCache,
-                    allNpcs,
-                    npcDistributions,
-                    simulatedKeywords,
-                    ref matchedNpcCount);
+                if (SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
+                {
+                    var outfitFormKey = FormKeyHelper.ResolveOutfit(filter.OutfitIdentifier, linkCache);
+                    if (outfitFormKey != null && !outfitFormKey.Value.IsNull)
+                    {
+                        string? outfitEditorId = null;
+                        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
+                        {
+                            outfitEditorId = outfit.EditorID;
+                        }
+
+                        // Use pre-built lookups for classification
+                        var hasRaceTargeting = filter.FormFilters.Expressions
+                            .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                            .Any(p => raceEditorIds.Contains(p.Value));
+
+                        var usesKeywordTargeting = filter.StringFilters.Expressions
+                            .SelectMany(e => e.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
+                            .Any(p => keywordEditorIds.Contains(p.Value));
+
+                        var usesFactionTargeting = filter.FormFilters.Expressions
+                            .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                            .Any(p => factionEditorIds.Contains(p.Value));
+
+                        var targetingDescription = filter.GetTargetingDescription();
+                        var hasTraitFilters = !filter.TraitFilters.IsEmpty;
+
+                        spidLines.Add((line, filter, outfitFormKey.Value, outfitEditorId, hasRaceTargeting, usesKeywordTargeting, usesFactionTargeting, targetingDescription, hasTraitFilters));
+                    }
+                }
             }
             else if (file.Type == DistributionFileType.SkyPatcher)
             {
-                ProcessSkyPatcherLineWithFilters(
-                    file,
-                    line,
-                    processingOrder,
-                    linkCache,
-                    outfitByEditorId,
-                    npcDistributions,
-                    ref matchedNpcCount);
+                skyPatcherLines.Add(line);
             }
+        }
+
+        if (spidLines.Count == 0 && skyPatcherLines.Count == 0)
+        {
+            return;
+        }
+
+        var localDistributions = new ConcurrentDictionary<FormKey, ConcurrentBag<OutfitDistribution>>();
+
+        if (spidLines.Count > 0)
+        {
+            Parallel.ForEach(allNpcs, npc =>
+            {
+                simulatedKeywords.TryGetValue(npc.FormKey, out var virtualKeywords);
+
+                foreach (var (line, filter, outfitFormKey, outfitEditorId, hasRaceTargeting, usesKeywordTargeting, usesFactionTargeting, targetingDescription, hasTraitFilters) in spidLines)
+                {
+                    if (SpidFilterMatchingService.NpcMatchesFilterForBatch(npc, filter, virtualKeywords))
+                    {
+                        var bag = localDistributions.GetOrAdd(npc.FormKey, _ => new ConcurrentBag<OutfitDistribution>());
+
+                        bag.Add(new OutfitDistribution(
+                            file.FullPath,
+                            file.FileName,
+                            file.Type,
+                            outfitFormKey,
+                            outfitEditorId,
+                            processingOrder,
+                            false,
+                            line.RawText,
+                            targetingDescription,
+                            filter.Chance,
+                            filter.TargetsAllNpcs,
+                            usesKeywordTargeting,
+                            usesFactionTargeting,
+                            hasRaceTargeting,
+                            hasTraitFilters));
+                    }
+                }
+            });
+        }
+
+        if (skyPatcherLines.Count > 0)
+        {
+            foreach (var line in skyPatcherLines)
+            {
+                var results = new List<(FormKey NpcFormKey, FormKey OutfitFormKey, string? OutfitEditorId)>();
+                ParseSkyPatcherLineForFilteredResolution(line.RawText, linkCache, outfitByEditorId, results);
+
+                foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in results)
+                {
+                    var bag = localDistributions.GetOrAdd(npcFormKey, _ => new ConcurrentBag<OutfitDistribution>());
+                    bag.Add(new OutfitDistribution(
+                        file.FullPath,
+                        file.FileName,
+                        file.Type,
+                        outfitFormKey,
+                        outfitEditorId,
+                        processingOrder,
+                        false,
+                        line.RawText,
+                        "Specific NPC targeting"));
+                }
+            }
+        }
+
+        // Merge local distributions back into the main dictionary
+        foreach (var kvp in localDistributions)
+        {
+            if (!npcDistributions.TryGetValue(kvp.Key, out var list))
+            {
+                list = [];
+                npcDistributions[kvp.Key] = list;
+            }
+            list.AddRange(kvp.Value);
         }
 
         _logger.Debug(
-            "File {FileName} summary: {OutfitLines} outfit lines, {MatchedNpcs} total NPC matches",
+            "File {FileName} summary: {SpidLines} SPID lines, {SkyPatcherLines} SkyPatcher lines, {MatchedNpcs} unique NPCs matched",
             file.FileName,
-            outfitLineCount,
-            matchedNpcCount);
-    }
-
-    private void ProcessSpidLineWithFilters(
-        DistributionFile file,
-        DistributionLine line,
-        int processingOrder,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-        IReadOnlyList<NpcFilterData> allNpcs,
-        Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
-        Dictionary<FormKey, HashSet<string>> simulatedKeywords,
-        ref int matchedNpcCount)
-    {
-        if (!SpidLineParser.TryParse(line.RawText, out var filter) || filter is null)
-        {
-            _logger.Debug("Failed to parse SPID line: {Line}", line.RawText);
-            return;
-        }
-
-        var outfitFormKey = FormKeyHelper.ResolveOutfit(filter.OutfitIdentifier, linkCache);
-        if (outfitFormKey == null || outfitFormKey.Value.IsNull)
-        {
-            _logger.Debug("Could not resolve outfit identifier: {Identifier}", filter.OutfitIdentifier);
-            return;
-        }
-
-        string? outfitEditorId = null;
-        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
-        {
-            outfitEditorId = outfit.EditorID;
-        }
-
-        var matchingNpcs =
-            SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, simulatedKeywords);
-
-        _logger.Information(
-            "SPID line matched {Count} NPCs: {Line}",
-            matchingNpcs.Count,
-            line.RawText.Length > 80 ? line.RawText[..80] + "..." : line.RawText);
-
-        var hasRaceTargeting = SpidLineParser.GetRaceIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
-
-        foreach (var npc in matchingNpcs)
-        {
-            if (!npcDistributions.TryGetValue(npc.FormKey, out var distributions))
-            {
-                distributions = [];
-                npcDistributions[npc.FormKey] = distributions;
-            }
-
-            var usesKeywordTargeting = SpidLineParser.GetKeywordIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
-            var usesFactionTargeting = SpidLineParser.GetFactionIdentifiers(filter, _mutagenService.LinkCache).Count > 0;
-
-            distributions.Add(new OutfitDistribution(
-                file.FullPath,
-                file.FileName,
-                file.Type,
-                outfitFormKey.Value,
-                outfitEditorId,
-                processingOrder,
-                false,
-                line.RawText,
-                filter.GetTargetingDescription(),
-                filter.Chance,
-                filter.TargetsAllNpcs,
-                usesKeywordTargeting,
-                usesFactionTargeting,
-                hasRaceTargeting,
-                !filter.TraitFilters.IsEmpty));
-
-            matchedNpcCount++;
-        }
-    }
-
-    private static void ProcessSkyPatcherLineWithFilters(
-        DistributionFile file,
-        DistributionLine line,
-        int processingOrder,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-        IReadOnlyDictionary<string, FormKey> outfitByEditorId,
-        Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
-        ref int matchedNpcCount)
-    {
-        var results = new List<(FormKey NpcFormKey, FormKey OutfitFormKey, string? OutfitEditorId)>();
-
-        ParseSkyPatcherLineForFilteredResolution(line.RawText, linkCache, outfitByEditorId, results);
-
-        foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in results)
-        {
-            if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
-            {
-                distributions = [];
-                npcDistributions[npcFormKey] = distributions;
-            }
-
-            distributions.Add(new OutfitDistribution(
-                file.FullPath,
-                file.FileName,
-                file.Type,
-                outfitFormKey,
-                outfitEditorId,
-                processingOrder,
-                false,
-                line.RawText,
-                "Specific NPC targeting"));
-
-            matchedNpcCount++;
-        }
+            spidLines.Count,
+            skyPatcherLines.Count,
+            localDistributions.Count);
     }
 
     private static void ParseSkyPatcherLineForFilteredResolution(

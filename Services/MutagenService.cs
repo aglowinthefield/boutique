@@ -151,25 +151,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                 return Enumerable.Empty<string>();
             }
 
-            var skyrimRelease = GetSkyrimRelease();
-
             return PathUtilities.EnumeratePluginFiles(DataFolderPath)
-                .Select(path => (Path: path, Name: Path.GetFileName(path)))
-                .Where(p => !string.IsNullOrEmpty(p.Name))
-                .Where(p => !excludeBlacklisted || !IsBlacklisted(p.Name))
-                .Where(p =>
-                {
-                    try
-                    {
-                        using var mod = SkyrimMod.CreateFromBinaryOverlay(p.Path, skyrimRelease);
-                        return mod.Armors.Count > 0 || mod.Outfits.Count > 0;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                })
-                .Select(p => p.Name)
+                .Select(Path.GetFileName)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Cast<string>()
+                .Where(name => !excludeBlacklisted || !IsBlacklisted(name))
                 .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         });

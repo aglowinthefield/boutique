@@ -1,11 +1,16 @@
 using Boutique.Models;
-using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
 
 public class SpidFilterMatchingService
 {
+    public static bool NpcMatchesFilterForBatch(
+        NpcFilterData npc,
+        SpidDistributionFilter filter,
+        IReadOnlySet<string>? virtualKeywords) =>
+        NpcMatchesFilter(npc, filter, virtualKeywords);
+
     private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter) =>
         NpcMatchesFilter(npc, filter, null);
 
@@ -160,13 +165,15 @@ public class SpidFilterMatchingService
     }
 
     private static bool
-        ExactMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
-        (!string.IsNullOrWhiteSpace(npc.Name) && npc.Name.Equals(value, StringComparison.OrdinalIgnoreCase)) ||
-        (!string.IsNullOrWhiteSpace(npc.EditorId) && npc.EditorId.Equals(value, StringComparison.OrdinalIgnoreCase)) ||
-        npc.Keywords.Contains(value) ||
-        (virtualKeywords?.Contains(value) ?? false) ||
-        (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) &&
-         npc.TemplateEditorId.Equals(value, StringComparison.OrdinalIgnoreCase));
+        ExactMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords)
+    {
+        if (npc.MatchKeys != null && npc.MatchKeys.Contains(value))
+        {
+            return true;
+        }
+
+        return (virtualKeywords?.Contains(value) ?? false);
+    }
 
     private static bool
         PartialMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
@@ -185,7 +192,7 @@ public class SpidFilterMatchingService
             return true;
         }
 
-        if (filters.GlobalExclusions.Any(e => MatchesFormValue(npc, e.Value)))
+        if (filters.GlobalExclusions.Any(e => MatchesFormValue(npc, e)))
         {
             return false;
         }
@@ -203,19 +210,20 @@ public class SpidFilterMatchingService
 
     private static bool MatchesFormPart(NpcFilterData npc, SpidFilterPart part)
     {
-        var matches = MatchesFormValue(npc, part.Value);
+        var matches = MatchesFormValue(npc, part);
         return part.IsNegated ? !matches : matches;
     }
 
-    private static bool MatchesFormValue(NpcFilterData npc, string value)
+    private static bool MatchesFormValue(NpcFilterData npc, SpidFilterPart part)
     {
-        if (FormKeyHelper.IsModKeyFileName(value))
+        if (part.IsModKey == true)
         {
-            return string.Equals(npc.SourceMod.FileName, value, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(npc.SourceMod.FileName, part.Value, StringComparison.OrdinalIgnoreCase);
         }
 
-        if (TryParseAsFormKey(value, out var formKey))
+        if (part.FormKey.HasValue)
         {
+            var formKey = part.FormKey.Value;
             return npc.FormKey == formKey ||
                    npc.RaceFormKey == formKey ||
                    npc.ClassFormKey == formKey ||
@@ -226,6 +234,7 @@ public class SpidFilterMatchingService
                    npc.Factions.Any(f => f.FactionFormKey == formKey);
         }
 
+        var value = part.Value;
         return MatchesEditorId(npc.EditorId, value) ||
                MatchesEditorId(npc.RaceEditorId, value) ||
                MatchesEditorId(npc.ClassEditorId, value) ||
@@ -238,29 +247,6 @@ public class SpidFilterMatchingService
 
     private static bool MatchesEditorId(string? editorId, string value) =>
         !string.IsNullOrWhiteSpace(editorId) && editorId.Equals(value, StringComparison.OrdinalIgnoreCase);
-
-    private static bool TryParseAsFormKey(string value, out FormKey formKey)
-    {
-        formKey = FormKey.Null;
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        if (FormKey.TryFactory(value, out formKey) || FormKeyHelper.TryParse(value, out formKey))
-        {
-            return true;
-        }
-
-        if (FormKeyHelper.TryParseFormId(value, out var id))
-        {
-            formKey = new FormKey(FormKeyHelper.SkyrimModKey, id);
-            return true;
-        }
-
-        return false;
-    }
 
     private static bool MatchesLevelFilters(NpcFilterData npc, string? levelFilters)
     {

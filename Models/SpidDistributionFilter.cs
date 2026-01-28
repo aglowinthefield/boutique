@@ -1,3 +1,5 @@
+using Mutagen.Bethesda.Plugins;
+
 namespace Boutique.Models;
 
 public enum SpidFormType
@@ -178,6 +180,16 @@ public sealed class SpidFilterPart
     ///     True if this filter contains wildcards (* in SPID for partial matching).
     /// </summary>
     public bool HasWildcard => Value.Contains('*');
+
+    /// <summary>
+    ///     Pre-resolved FormKey if the value represents one.
+    /// </summary>
+    public FormKey? FormKey { get; set; }
+
+    /// <summary>
+    ///     True if the value represents a mod file name (e.g. Skyrim.esm).
+    /// </summary>
+    public bool? IsModKey { get; set; }
 
     public override string ToString()
     {

@@ -31,22 +31,16 @@ public static class PathUtilities
 
     public static IEnumerable<string> EnumeratePluginFiles(string dataPath)
     {
-        foreach (var ext in _pluginExtensions)
+        try
         {
-            IEnumerable<string> files;
-            try
-            {
-                files = Directory.EnumerateFiles(dataPath, ext, SearchOption.TopDirectoryOnly);
-            }
-            catch
-            {
-                continue;
-            }
-
-            foreach (var file in files)
-            {
-                yield return file;
-            }
+            return Directory.EnumerateFiles(dataPath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(f => f.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
+                            f.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
+                            f.EndsWith(".esl", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return [];
         }
     }
 
