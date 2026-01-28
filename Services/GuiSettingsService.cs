@@ -41,7 +41,10 @@ public class GuiSettingsService
     public GuiSettingsService(ILogger logger)
     {
         _logger = logger.ForContext<GuiSettingsService>();
-        LoadSettings();
+        using (StartupProfiler.Instance.BeginOperation("GuiSettingsService.LoadSettings"))
+        {
+            LoadSettings();
+        }
     }
 
     public bool IsFilePreviewExpanded

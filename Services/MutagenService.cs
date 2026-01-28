@@ -63,24 +63,33 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                 return;
             }
 
-            await Task.Run(() =>
+            using (StartupProfiler.Instance.BeginOperation("MutagenService.Initialize"))
             {
-                DataFolderPath = dataFolderPath;
-
-                var useExplicitPath = !string.IsNullOrWhiteSpace(dataFolderPath) &&
-                                      PathUtilities.HasPluginFiles(dataFolderPath);
-
-                if (useExplicitPath)
+                await Task.Run(() =>
                 {
-                    _logger.Information("Using explicit data path: {DataPath}", dataFolderPath);
-                    InitializeWithExplicitPath(dataFolderPath);
-                }
-                else
-                {
-                    _logger.Information("Using auto-detection (no explicit path or path has no plugins)");
-                    InitializeWithAutoDetection(dataFolderPath);
-                }
-            });
+                    DataFolderPath = dataFolderPath;
+
+                    var useExplicitPath = !string.IsNullOrWhiteSpace(dataFolderPath) &&
+                                          PathUtilities.HasPluginFiles(dataFolderPath);
+
+                    if (useExplicitPath)
+                    {
+                        _logger.Information("Using explicit data path: {DataPath}", dataFolderPath);
+                        using (StartupProfiler.Instance.BeginOperation("BuildGameEnvironment", "MutagenService.Initialize"))
+                        {
+                            InitializeWithExplicitPath(dataFolderPath);
+                        }
+                    }
+                    else
+                    {
+                        _logger.Information("Using auto-detection (no explicit path or path has no plugins)");
+                        using (StartupProfiler.Instance.BeginOperation("BuildGameEnvironment", "MutagenService.Initialize"))
+                        {
+                            InitializeWithAutoDetection(dataFolderPath);
+                        }
+                    }
+                });
+            }
 
             Initialized?.Invoke(this, EventArgs.Empty);
         }
@@ -134,6 +143,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
     public async Task<IEnumerable<string>> GetAvailablePluginsAsync(bool excludeBlacklisted = true)
     {
+        using var profilerScope = StartupProfiler.Instance.BeginOperation("ScanAvailablePlugins");
         return await Task.Run(() =>
         {
             if (string.IsNullOrEmpty(DataFolderPath))

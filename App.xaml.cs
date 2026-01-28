@@ -27,57 +27,72 @@ public partial class App
     {
         base.OnStartup(e);
 
-        // Register legacy code pages (e.g., Windows-1251 for Russian/Cyrillic) that .NET Core doesn't include by default.
-        // This is required for proper display of non-UTF8 strings in Skyrim plugins, especially for Russian locale mods.
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        using (StartupProfiler.Instance.BeginOperation("CodePageRegistration"))
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
 
         _loggingService = new LoggingService();
         ConfigureExceptionLogging();
         Log.Information("Application startup invoked.");
         LogMO2Environment();
 
-        var builder = new ContainerBuilder();
+        using (StartupProfiler.Instance.BeginOperation("ContainerBuild"))
+        {
+            var builder = new ContainerBuilder();
 
-        builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
-        builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
+            builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
+            builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
 
-        builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
-        builder.RegisterType<MutagenService>().SingleInstance();
-        builder.RegisterType<GameAssetLocator>().SingleInstance();
-        builder.RegisterType<PatchingService>().SingleInstance();
-        builder.RegisterType<ArmorPreviewService>().SingleInstance();
-        builder.RegisterType<DistributionDiscoveryService>().SingleInstance();
-        builder.RegisterType<NpcScanningService>().SingleInstance();
-        builder.RegisterType<DistributionFileWriterService>().SingleInstance();
-        builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
-        builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
-        builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
-        builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
-        builder.RegisterType<GameDataCacheService>().SingleInstance();
-        builder.RegisterType<ThemeService>().SingleInstance();
-        builder.RegisterType<TutorialService>().SingleInstance();
-        builder.RegisterType<GuiSettingsService>().SingleInstance();
-        builder.RegisterType<LocalizationService>().SingleInstance();
+            builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
+            builder.RegisterType<MutagenService>().SingleInstance();
+            builder.RegisterType<GameAssetLocator>().SingleInstance();
+            builder.RegisterType<PatchingService>().SingleInstance();
+            builder.RegisterType<ArmorPreviewService>().SingleInstance();
+            builder.RegisterType<DistributionDiscoveryService>().SingleInstance();
+            builder.RegisterType<NpcScanningService>().SingleInstance();
+            builder.RegisterType<DistributionFileWriterService>().SingleInstance();
+            builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
+            builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
+            builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
+            builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
+            builder.RegisterType<GameDataCacheService>().SingleInstance();
+            builder.RegisterType<ThemeService>().SingleInstance();
+            builder.RegisterType<TutorialService>().SingleInstance();
+            builder.RegisterType<GuiSettingsService>().SingleInstance();
+            builder.RegisterType<LocalizationService>().SingleInstance();
 
-        builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
-        builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
-        builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();
+            builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
+            builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
+            builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();
 
-        builder.RegisterType<MainWindow>().AsSelf();
+            builder.RegisterType<MainWindow>().AsSelf();
 
-        _container = builder.Build();
+            _container = builder.Build();
+        }
 
-        var themeService = _container.Resolve<ThemeService>();
-        themeService.Initialize();
+        using (StartupProfiler.Instance.BeginOperation("ThemeInitialization"))
+        {
+            var themeService = _container.Resolve<ThemeService>();
+            themeService.Initialize();
+        }
 
         try
         {
-            var localizationService = _container.Resolve<LocalizationService>();
-            localizationService.Initialize();
+            using (StartupProfiler.Instance.BeginOperation("LocalizationInitialization"))
+            {
+                var localizationService = _container.Resolve<LocalizationService>();
+                localizationService.Initialize();
+            }
 
-            var mainWindow = _container.Resolve<MainWindow>();
-            mainWindow.Show();
+            using (StartupProfiler.Instance.BeginOperation("MainWindowCreation"))
+            {
+                var mainWindow = _container.Resolve<MainWindow>();
+                mainWindow.Show();
+            }
+
             Log.Information("Main window displayed.");
+            StartupProfiler.Instance.EndOperation("AppStartup");
         }
         catch (Exception ex)
         {

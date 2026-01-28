@@ -1025,23 +1025,29 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         try
         {
-            await _mutagenService.InitializeAsync(Settings.SkyrimDataPath);
-
-            var plugins = await _mutagenService.GetAvailablePluginsAsync();
-            _availablePluginsSource.Edit(list =>
+            using (Services.StartupProfiler.Instance.BeginOperation("MainViewModel.Initialize"))
             {
-                list.Clear();
-                list.AddRange(plugins);
-            });
-            this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
+                await _mutagenService.InitializeAsync(Settings.SkyrimDataPath);
 
-            StatusMessage = $"Loaded {_availablePluginsSource.Count} plugins";
-            _logger.Information(
-                "Loaded {PluginCount} plugins from {DataPath}",
-                _availablePluginsSource.Count,
-                Settings.SkyrimDataPath);
+                var plugins = await _mutagenService.GetAvailablePluginsAsync();
+                _availablePluginsSource.Edit(list =>
+                {
+                    list.Clear();
+                    list.AddRange(plugins);
+                });
+                this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
-            await LoadOutfitsFromOutputPluginAsync();
+                StatusMessage = $"Loaded {_availablePluginsSource.Count} plugins";
+                _logger.Information(
+                    "Loaded {PluginCount} plugins from {DataPath}",
+                    _availablePluginsSource.Count,
+                    Settings.SkyrimDataPath);
+
+                using (Services.StartupProfiler.Instance.BeginOperation("LoadOutfitsFromOutputPlugin", "MainViewModel.Initialize"))
+                {
+                    await LoadOutfitsFromOutputPluginAsync();
+                }
+            }
         }
         catch (Exception ex)
         {

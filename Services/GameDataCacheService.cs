@@ -169,67 +169,88 @@ public class GameDataCacheService : IDisposable
             IsLoading = true;
             _logger.Information("Loading game data cache...");
 
-            // Load data on background threads (same as before)
-            var npcsResult = await Task.Run(() => LoadNpcs(linkCache));
-            var (npcFilterDataList, npcRecordsList) = npcsResult;
+            using var cacheProfiler = StartupProfiler.Instance.BeginOperation("GameDataCache.Load");
 
-            var factionsTask = Task.Run(() => LoadFactions(linkCache));
-            var racesTask = Task.Run(() => LoadRaces(linkCache));
-            var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
-            var classesTask = Task.Run(() => LoadClasses(linkCache));
-            var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
-
-            await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
-
-            var factionsList = await factionsTask;
-            var racesList = await racesTask;
-            var keywordsList = await keywordsTask;
-            var classesList = await classesTask;
-            var outfitsList = await outfitsTask;
-
-            _npcsSource.Edit(cache =>
+            List<NpcFilterData> npcFilterDataList;
+            List<NpcRecordViewModel> npcRecordsList;
+            using (StartupProfiler.Instance.BeginOperation("LoadNpcs", "GameDataCache.Load"))
             {
-                cache.Clear();
-                cache.AddOrUpdate(npcFilterDataList);
-            });
+                var npcsResult = await Task.Run(() => LoadNpcs(linkCache));
+                (npcFilterDataList, npcRecordsList) = npcsResult;
+            }
 
-            _npcRecordsSource.Edit(cache =>
+            List<FactionRecordViewModel> factionsList;
+            List<RaceRecordViewModel> racesList;
+            List<KeywordRecordViewModel> keywordsList;
+            List<ClassRecordViewModel> classesList;
+            List<IOutfitGetter> outfitsList;
+
+            using (StartupProfiler.Instance.BeginOperation("LoadRecordsParallel", "GameDataCache.Load"))
             {
-                cache.Clear();
-                cache.AddOrUpdate(npcRecordsList);
-            });
+                var factionsTask = Task.Run(() => LoadFactions(linkCache));
+                var racesTask = Task.Run(() => LoadRaces(linkCache));
+                var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
+                var classesTask = Task.Run(() => LoadClasses(linkCache));
+                var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
 
-            _factionsSource.Edit(cache =>
+                await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
+
+                factionsList = await factionsTask;
+                racesList = await racesTask;
+                keywordsList = await keywordsTask;
+                classesList = await classesTask;
+                outfitsList = await outfitsTask;
+            }
+
+            using (StartupProfiler.Instance.BeginOperation("PopulateCaches", "GameDataCache.Load"))
             {
-                cache.Clear();
-                cache.AddOrUpdate(factionsList);
-            });
+                _npcsSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(npcFilterDataList);
+                });
 
-            _racesSource.Edit(cache =>
+                _npcRecordsSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(npcRecordsList);
+                });
+
+                _factionsSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(factionsList);
+                });
+
+                _racesSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(racesList);
+                });
+
+                _keywordsSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(keywordsList);
+                });
+
+                _classesSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(classesList);
+                });
+
+                _outfitsSource.Edit(cache =>
+                {
+                    cache.Clear();
+                    cache.AddOrUpdate(outfitsList);
+                });
+            }
+
+            using (StartupProfiler.Instance.BeginOperation("LoadDistributionData", "GameDataCache.Load"))
             {
-                cache.Clear();
-                cache.AddOrUpdate(racesList);
-            });
-
-            _keywordsSource.Edit(cache =>
-            {
-                cache.Clear();
-                cache.AddOrUpdate(keywordsList);
-            });
-
-            _classesSource.Edit(cache =>
-            {
-                cache.Clear();
-                cache.AddOrUpdate(classesList);
-            });
-
-            _outfitsSource.Edit(cache =>
-            {
-                cache.Clear();
-                cache.AddOrUpdate(outfitsList);
-            });
-
-            await LoadDistributionDataAsync(npcFilterDataList);
+                await LoadDistributionDataAsync(npcFilterDataList);
+            }
 
             IsLoaded = true;
             _logger.Information(
@@ -242,6 +263,8 @@ public class GameDataCacheService : IDisposable
                 outfitsList.Count,
                 AllDistributionFiles.Count,
                 AllNpcOutfitAssignments.Count);
+
+            StartupProfiler.Instance.Dispose();
 
             await Application.Current.Dispatcher.InvokeAsync(() =>
                 CacheLoaded?.Invoke(this, EventArgs.Empty));
@@ -338,13 +361,21 @@ public class GameDataCacheService : IDisposable
 
         try
         {
-            _logger.Debug("Discovering distribution files in {DataPath}...", dataPath);
-            var discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
+            IReadOnlyList<DistributionFile> discoveredFiles;
+            using (StartupProfiler.Instance.BeginOperation("DiscoverDistributionFiles", "LoadDistributionData"))
+            {
+                _logger.Debug("Discovering distribution files in {DataPath}...", dataPath);
+                discoveredFiles = await _discoveryService.DiscoverAsync(dataPath);
+            }
 
-            var virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
-            _logger.Information(
-                "Extracted {Count} virtual keywords from SPID distribution files.",
-                virtualKeywords.Count);
+            List<KeywordRecordViewModel> virtualKeywords;
+            using (StartupProfiler.Instance.BeginOperation("ExtractVirtualKeywords", "LoadDistributionData"))
+            {
+                virtualKeywords = ExtractVirtualKeywords(discoveredFiles);
+                _logger.Information(
+                    "Extracted {Count} virtual keywords from SPID distribution files.",
+                    virtualKeywords.Count);
+            }
 
             var outfitFiles = discoveredFiles
                 .Where(f => f.OutfitDistributionCount > 0)
@@ -356,12 +387,15 @@ public class GameDataCacheService : IDisposable
                 .Select(f => new DistributionFileViewModel(f))
                 .ToList();
 
-            _logger.Debug("Resolving NPC outfit assignments...");
-            var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
-                outfitFiles,
-                npcFilterDataList);
-
-            _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
+            IReadOnlyList<NpcOutfitAssignment> assignments;
+            using (StartupProfiler.Instance.BeginOperation("ResolveNpcOutfitAssignments", "LoadDistributionData"))
+            {
+                _logger.Debug("Resolving NPC outfit assignments...");
+                assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
+                    outfitFiles,
+                    npcFilterDataList);
+                _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
+            }
 
             _distributionFilesSource.Edit(cache =>
             {
