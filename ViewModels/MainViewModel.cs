@@ -1110,37 +1110,36 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             var previousOutfitPlugin = SelectedOutfitPlugin;
 
             _suppressPluginDeselection = true;
-            try
-            {
-                var plugins = await _mutagenService.GetAvailablePluginsAsync();
-                var previousCount = _availablePluginsSource.Count;
-                _availablePluginsSource.Edit(list =>
-                {
-                    list.Clear();
-                    list.AddRange(plugins);
-                });
-                this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
-                _logger.Information(
-                    "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
-                    previousCount,
-                    _availablePluginsSource.Count);
-            }
-            finally
+            var plugins = await _mutagenService.GetAvailablePluginsAsync();
+            var previousCount = _availablePluginsSource.Count;
+            _availablePluginsSource.Edit(list =>
             {
-                _suppressPluginDeselection = false;
-            }
+                list.Clear();
+                list.AddRange(plugins);
+            });
+            this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
+
+            _logger.Information(
+                "Available plugins refreshed: {PreviousCount} → {NewCount} plugins.",
+                previousCount,
+                _availablePluginsSource.Count);
 
             if (!string.IsNullOrEmpty(previousOutfitPlugin) &&
                 _availablePluginsSource.Items.Contains(previousOutfitPlugin, StringComparer.OrdinalIgnoreCase))
             {
-                this.RaisePropertyChanged(nameof(SelectedOutfitPlugin));
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(
+                    () => this.RaisePropertyChanged(nameof(SelectedOutfitPlugin)),
+                    System.Windows.Threading.DispatcherPriority.Background);
             }
+
+            _suppressPluginDeselection = false;
 
             await LoadOutfitsFromOutputPluginAsync();
         }
         catch (Exception ex)
         {
+            _suppressPluginDeselection = false;
             _logger.Error(ex, "Failed to refresh available plugins list.");
         }
     }
