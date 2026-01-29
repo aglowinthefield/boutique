@@ -822,75 +822,36 @@ public class GameDataCacheService : IDisposable
         return factions;
     }
 
-    private List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        return linkCache.WinningOverrides<IFactionGetter>()
-            .AsParallel()
-            .WithDegreeOfParallelism(Environment.ProcessorCount)
-            .Where(f => !string.IsNullOrWhiteSpace(f.EditorID))
-            .Where(f => !IsBlacklisted(f.FormKey.ModKey))
-            .Select(f => new FactionRecordViewModel(new FactionRecord(
-                f.FormKey,
-                f.EditorID,
-                f.Name?.String,
-                f.FormKey.ModKey)))
-            .OrderBy(f => f.DisplayName)
-            .ToList();
-    }
+    private List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        RecordLoader.LoadRecords<IFactionGetter, FactionRecordViewModel>(
+            linkCache,
+            f => new FactionRecordViewModel(new FactionRecord(f.FormKey, f.EditorID, f.Name?.String, f.FormKey.ModKey)),
+            f => f.DisplayName,
+            IsBlacklisted);
 
-    private List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        return linkCache.WinningOverrides<IRaceGetter>()
-            .AsParallel()
-            .WithDegreeOfParallelism(Environment.ProcessorCount)
-            .Where(r => !string.IsNullOrWhiteSpace(r.EditorID))
-            .Where(r => !IsBlacklisted(r.FormKey.ModKey))
-            .Select(r => new RaceRecordViewModel(new RaceRecord(
-                r.FormKey,
-                r.EditorID,
-                r.Name?.String,
-                r.FormKey.ModKey)))
-            .OrderBy(r => r.DisplayName)
-            .ToList();
-    }
+    private List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        RecordLoader.LoadRecords<IRaceGetter, RaceRecordViewModel>(
+            linkCache,
+            r => new RaceRecordViewModel(new RaceRecord(r.FormKey, r.EditorID, r.Name?.String, r.FormKey.ModKey)),
+            r => r.DisplayName,
+            IsBlacklisted);
 
-    private List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        return linkCache.WinningOverrides<IKeywordGetter>()
-            .AsParallel()
-            .WithDegreeOfParallelism(Environment.ProcessorCount)
-            .Where(k => !string.IsNullOrWhiteSpace(k.EditorID))
-            .Where(k => !IsBlacklisted(k.FormKey.ModKey))
-            .Select(k => new KeywordRecordViewModel(new KeywordRecord(
-                k.FormKey,
-                k.EditorID,
-                k.FormKey.ModKey)))
-            .OrderBy(k => k.DisplayName)
-            .ToList();
-    }
+    private List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        RecordLoader.LoadRecords<IKeywordGetter, KeywordRecordViewModel>(
+            linkCache,
+            k => new KeywordRecordViewModel(new KeywordRecord(k.FormKey, k.EditorID, k.FormKey.ModKey)),
+            k => k.DisplayName,
+            IsBlacklisted);
 
-    private List<ClassRecordViewModel> LoadClasses(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        return linkCache.WinningOverrides<IClassGetter>()
-            .AsParallel()
-            .WithDegreeOfParallelism(Environment.ProcessorCount)
-            .Where(c => !string.IsNullOrWhiteSpace(c.EditorID))
-            .Where(c => !IsBlacklisted(c.FormKey.ModKey))
-            .Select(c => new ClassRecordViewModel(new ClassRecord(
-                c.FormKey,
-                c.EditorID,
-                c.Name?.String,
-                c.FormKey.ModKey)))
-            .OrderBy(c => c.DisplayName)
-            .ToList();
-    }
+    private List<ClassRecordViewModel> LoadClasses(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        RecordLoader.LoadRecords<IClassGetter, ClassRecordViewModel>(
+            linkCache,
+            c => new ClassRecordViewModel(new ClassRecord(c.FormKey, c.EditorID, c.Name?.String, c.FormKey.ModKey)),
+            c => c.DisplayName,
+            IsBlacklisted);
 
     private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-        linkCache.WinningOverrides<IOutfitGetter>()
-            .AsParallel()
-            .WithDegreeOfParallelism(Environment.ProcessorCount)
-            .Where(o => !IsBlacklisted(o.FormKey.ModKey))
-            .ToList();
+        RecordLoader.LoadRawRecords<IOutfitGetter>(linkCache, IsBlacklisted);
 
     public void Dispose()
     {
