@@ -760,4 +760,21 @@
     <value>Refresh All Data (including output patch)</value>
   </data>
 
+    <!-- Patch Name Collision Dialog -->
+    <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>Plugin Name Conflict</value>
+  </data>
+    <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ This name conflicts with an existing plugin</value>
+  </data>
+    <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>"{0}" already exists in your load order. Using this name may overwrite existing data when you create a patch. Consider choosing a unique name.</value>
+  </data>
+    <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>Choose Different Name</value>
+  </data>
+    <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>Keep This Name</value>
+  </data>
+
 </root>
