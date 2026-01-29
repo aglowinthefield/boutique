@@ -15,6 +15,8 @@ public class NpcOutfitResolutionService
     private readonly ILogger _logger;
     private readonly MutagenService _mutagenService;
 
+    private record NpcBasicInfo(FormKey FormKey, string? EditorId, string? Name, ModKey SourceMod);
+
     public NpcOutfitResolutionService(
         MutagenService mutagenService,
         KeywordDistributionResolver keywordResolver,
@@ -480,18 +482,24 @@ public class NpcOutfitResolutionService
         Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
         IReadOnlyList<NpcFilterData> allNpcs)
     {
+        var npcLookup = allNpcs.ToDictionary(
+            n => n.FormKey,
+            n => new NpcBasicInfo(n.FormKey, n.EditorId, n.Name, n.SourceMod));
+        return BuildNpcOutfitAssignmentsCore(npcDistributions, npcLookup);
+    }
+
+    private static List<NpcOutfitAssignment> BuildNpcOutfitAssignmentsCore(
+        Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
+        IReadOnlyDictionary<FormKey, NpcBasicInfo> npcLookup)
+    {
         var assignments = new List<NpcOutfitAssignment>();
-        var npcLookup = allNpcs.ToDictionary(n => n.FormKey);
 
         foreach (var (npcFormKey, distributions) in npcDistributions)
         {
-            // Sort distributions by processing order
             var sortedDistributions = distributions
                 .OrderBy(d => d.ProcessingOrder)
                 .ToList();
 
-            // Filter out ESP distributions if there are INI distributions (INI wins)
-            // Only consider conflicts between INI files, not ESP vs INI
             var iniDistributions = sortedDistributions
                 .Where(d => d.FileType != DistributionFileType.Esp)
                 .ToList();
@@ -499,12 +507,10 @@ public class NpcOutfitResolutionService
             var hasIniDistributions = iniDistributions.Count > 0;
             var distributionsToUse = hasIniDistributions ? iniDistributions : sortedDistributions;
 
-            // Mark the winner (last one in the filtered list)
             var winnerIndex = distributionsToUse.Count - 1;
             var updatedDistributions = sortedDistributions
                 .Select((d, i) =>
                 {
-                    // Mark as winner if it's the last INI distribution, or if there are no INI distributions and it's the last overall
                     var isWinner = hasIniDistributions
                         ? d.FileType != DistributionFileType.Esp &&
                           i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex])
@@ -542,7 +548,6 @@ public class NpcOutfitResolutionService
                 hasConflict));
         }
 
-        // Sort by display name for UI
         return assignments
             .OrderBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -911,80 +916,27 @@ public class NpcOutfitResolutionService
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         List<INpcGetter> allNpcs)
     {
-        var assignments = new List<NpcOutfitAssignment>();
-        var npcLookup = allNpcs.ToDictionary(n => n.FormKey);
-
-        foreach (var (npcFormKey, distributions) in npcDistributions)
-        {
-            // Sort distributions by processing order
-            var sortedDistributions = distributions
-                .OrderBy(d => d.ProcessingOrder)
-                .ToList();
-
-            // Filter out ESP distributions if there are INI distributions (INI wins)
-            // Only consider conflicts between INI files, not ESP vs INI
-            var iniDistributions = sortedDistributions
-                .Where(d => d.FileType != DistributionFileType.Esp)
-                .ToList();
-
-            var hasIniDistributions = iniDistributions.Count > 0;
-            var distributionsToUse = hasIniDistributions ? iniDistributions : sortedDistributions;
-
-            // Mark the winner (last one in the filtered list)
-            var winnerIndex = distributionsToUse.Count - 1;
-            var updatedDistributions = sortedDistributions
-                .Select((d, i) =>
-                {
-                    // Mark as winner if it's the last INI distribution, or if there are no INI distributions and it's the last overall
-                    var isWinner = hasIniDistributions
-                        ? d.FileType != DistributionFileType.Esp &&
-                          i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex])
-                        : i == sortedDistributions.Count - 1;
-                    return d with { IsWinner = isWinner };
-                })
-                .ToList();
-
-            var winner = distributionsToUse[winnerIndex];
-
-            string? editorId = null;
-            string? name = null;
-            var sourceMod = npcFormKey.ModKey;
-
-            if (npcLookup.TryGetValue(npcFormKey, out var npc))
+        var npcLookup = allNpcs.ToDictionary(
+            n => n.FormKey,
+            n =>
             {
-                editorId = npc.EditorID;
-                name = npc.Name?.String;
-
+                var sourceMod = n.FormKey.ModKey;
                 try
                 {
-                    var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(npcFormKey);
+                    var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(n.FormKey);
                     var firstContext = contexts.FirstOrDefault();
                     if (firstContext != null)
                     {
                         sourceMod = firstContext.ModKey;
                     }
                 }
-                catch { }
-            }
+                catch
+                {
+                }
 
-            var iniOnlyDistributions = updatedDistributions
-                .Where(d => d.FileType != DistributionFileType.Esp)
-                .ToList();
-            var hasConflict = iniOnlyDistributions.Count > 1;
+                return new NpcBasicInfo(n.FormKey, n.EditorID, n.Name?.String, sourceMod);
+            });
 
-            assignments.Add(new NpcOutfitAssignment(
-                npcFormKey,
-                editorId,
-                name,
-                sourceMod,
-                winner.OutfitFormKey,
-                winner.OutfitEditorId,
-                updatedDistributions,
-                hasConflict));
-        }
-
-        return assignments
-            .OrderBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        return BuildNpcOutfitAssignmentsCore(npcDistributions, npcLookup);
     }
 }
