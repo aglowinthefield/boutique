@@ -105,6 +105,15 @@ public partial class MainWindow : Window
         });
         _bindings.Add(missingMastersDisposable);
 
+        var errorDisposable = viewModel.ShowError.RegisterHandler(async interaction =>
+        {
+            var (title, message) = interaction.Input;
+            await Dispatcher.InvokeAsync(() =>
+                MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Error));
+            interaction.SetOutput(Unit.Default);
+        });
+        _bindings.Add(errorDisposable);
+
         Closing += (_, _) => _guiSettings.SaveWindowGeometry(this);
         Closed += (_, _) =>
         {

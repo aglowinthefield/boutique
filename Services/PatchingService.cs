@@ -178,6 +178,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
             await RefreshAfterWrite(outputPath, progress);
         }
+        else
+        {
+            await mutagenService.RefreshLinkCacheAsync();
+        }
 
         return result;
     }
@@ -345,6 +349,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
             await RefreshAfterWrite(outputPath, progress);
         }
+        else
+        {
+            await mutagenService.RefreshLinkCacheAsync();
+        }
 
         return result;
     }
@@ -428,54 +436,87 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             Path.GetDirectoryName(outputPath)!,
             "_temp_" + Path.GetFileName(outputPath));
 
-        _logger.Debug(
-            "Masters before write: {Masters}",
-            string.Join(", ", patchMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
-        _logger.Debug(
-            "Extra masters to include: {ExtraMasters}",
-            string.Join(", ", extraMasters.Select(m => m.FileName)));
-
-        patchMod.BeginWrite
-            .ToPath(tempPath)
-            .WithNoLoadOrder()
-            .WithExtraIncludedMasters(extraMasters)
-            .NoModKeySync()
-            .Write();
-
-        using (var writtenMod = SkyrimMod.CreateFromBinaryOverlay(tempPath, mutagenService.SkyrimRelease))
+        try
         {
-            _logger.Information(
-                "Masters after write: {Masters}",
-                string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
+            _logger.Debug(
+                "Masters before write: {Masters}",
+                string.Join(", ", patchMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
+            _logger.Debug(
+                "Extra masters to include: {ExtraMasters}",
+                string.Join(", ", extraMasters.Select(m => m.FileName)));
+
+            patchMod.BeginWrite
+                .ToPath(tempPath)
+                .WithNoLoadOrder()
+                .WithExtraIncludedMasters(extraMasters)
+                .NoModKeySync()
+                .Write();
+
+            using (var writtenMod = SkyrimMod.CreateFromBinaryOverlay(tempPath, mutagenService.SkyrimRelease))
+            {
+                _logger.Information(
+                    "Masters after write: {Masters}",
+                    string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            const int maxRetries = 10;
+            const int initialDelayMs = 100;
+            Exception? lastException = null;
+
+            for (var attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    File.Move(tempPath, outputPath, true);
+                    return;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    lastException = ex;
+                    if (attempt < maxRetries)
+                    {
+                        var delay = initialDelayMs * attempt;
+                        _logger.Debug(
+                            "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
+                            attempt,
+                            maxRetries,
+                            ex.GetType().Name,
+                            delay);
+                        Thread.Sleep(delay);
+                    }
+                }
+            }
+
+            var fileName = Path.GetFileName(outputPath);
+            throw lastException switch
+            {
+                UnauthorizedAccessException => new InvalidOperationException(
+                    $"Cannot write to '{fileName}'. " +
+                    "The file may be locked by another program (Skyrim, xEdit, etc). " +
+                    "Please close any programs that might have it open and try again."),
+                IOException ioEx => new InvalidOperationException(
+                    $"Cannot write to '{fileName}': {ioEx.Message}. " +
+                    "The file may be locked by another program."),
+                _ => new InvalidOperationException($"Cannot write to '{fileName}': Unknown error.")
+            };
         }
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-
-        const int maxRetries = 10;
-        const int initialDelayMs = 100;
-
-        for (var attempt = 1; attempt <= maxRetries; attempt++)
+        finally
         {
             try
             {
-                File.Move(tempPath, outputPath, true);
-                return;
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < maxRetries)
+            catch (Exception ex)
             {
-                var delay = initialDelayMs * attempt;
-                _logger.Debug(
-                    "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
-                    attempt,
-                    maxRetries,
-                    ex.GetType().Name,
-                    delay);
-                Thread.Sleep(delay);
+                _logger.Warning(ex, "Failed to clean up temp file {TempPath}", tempPath);
             }
         }
-
-        File.Move(tempPath, outputPath, true);
     }
 
     private void TryApplyEslFlag(SkyrimMod patchMod)

@@ -197,6 +197,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public Interaction<(string Prompt, string DefaultValue), string?> RequestOutfitName { get; } = new();
     public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
     public Interaction<MissingMastersResult, bool> HandleMissingMasters { get; } = new();
+    public Interaction<(string Title, string Message), Unit> ShowError { get; } = new();
 
     public SettingsViewModel Settings { get; }
     public DistributionViewModel Distribution { get; }
@@ -416,6 +417,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
                 {
                     StatusMessage = $"Failed to clean patch: {message}";
                     _logger.Error("Failed to clean patch: {Message}", message);
+                    await _mutagenService.RefreshLinkCacheAsync();
+                    await ShowError.Handle(("Failed to Clean Patch", message));
                     return;
                 }
             }
@@ -1207,11 +1210,17 @@ public partial class MainViewModel : ReactiveObject, IDisposable
                     _draftManager.SuppressAutoSave = false;
                 }
             }
+            else
+            {
+                await ShowError.Handle(("Failed to Save Outfits", message));
+            }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error creating outfits: {ex.Message}";
+            var errorMessage = $"Error creating outfits: {ex.Message}";
+            StatusMessage = errorMessage;
             _logger.Error(ex, "Unexpected error while creating outfits.");
+            await ShowError.Handle(("Unexpected Error", errorMessage));
         }
         finally
         {
@@ -1292,12 +1301,15 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             else
             {
                 _logger.Warning("Patch creation failed: {Message}", message);
+                await ShowError.Handle(("Failed to Create Patch", message));
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error creating patch: {ex.Message}";
+            var errorMessage = $"Error creating patch: {ex.Message}";
+            StatusMessage = errorMessage;
             _logger.Error(ex, "Unexpected error while creating patch.");
+            await ShowError.Handle(("Unexpected Error", errorMessage));
         }
         finally
         {
