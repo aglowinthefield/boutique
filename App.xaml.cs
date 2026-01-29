@@ -57,6 +57,7 @@ public partial class App
             builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
             builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
             builder.RegisterType<GameDataCacheService>().SingleInstance();
+            builder.RegisterType<OutfitDraftManager>().SingleInstance();
             builder.RegisterType<ThemeService>().SingleInstance();
             builder.RegisterType<TutorialService>().SingleInstance();
             builder.RegisterType<GuiSettingsService>().SingleInstance();
