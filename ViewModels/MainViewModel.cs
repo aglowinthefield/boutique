@@ -970,6 +970,47 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         IsLoading = _activeLoadingOperations > 0;
     }
 
+    private async Task<int> LoadArmorsIntoSourceListAsync(
+        string plugin,
+        Func<string?> getSelectedPlugin,
+        SourceList<ArmorRecordViewModel> sourceList)
+    {
+        BeginLoading();
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(plugin))
+            {
+                sourceList.Clear();
+                return 0;
+            }
+
+            var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
+
+            if (!string.Equals(getSelectedPlugin(), plugin, StringComparison.OrdinalIgnoreCase))
+            {
+                return 0;
+            }
+
+            sourceList.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+            });
+
+            return sourceList.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Error loading armors from {Plugin}", plugin);
+            return 0;
+        }
+        finally
+        {
+            EndLoading();
+        }
+    }
+
     private bool ClearMappingsInternal()
     {
         if (Matches.Count == 0)
@@ -1146,170 +1187,90 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     private async Task LoadSourceArmorsAsync(string plugin)
     {
-        BeginLoading();
-        if (string.IsNullOrWhiteSpace(plugin))
-        {
-            EndLoading();
-            return;
-        }
-
+        SourceSearchText = string.Empty;
         StatusMessage = $"Loading armors from {plugin}...";
         _logger.Information("Loading source armors from {Plugin}", plugin);
 
-        try
+        var count = await LoadArmorsIntoSourceListAsync(plugin, () => SelectedSourcePlugin, _sourceArmorsSource);
+
+        if (!string.Equals(SelectedSourcePlugin, plugin, StringComparison.OrdinalIgnoreCase))
         {
-            var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
-
-            if (!string.Equals(SelectedSourcePlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            _sourceArmorsSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
-            });
-            SourceArmorsTotalCount = _sourceArmorsSource.Count;
-            SourceSearchText = string.Empty;
-
-            var firstSource = FilteredSourceArmors.FirstOrDefault();
-            SelectedSourceArmors = firstSource is not null
-                ? new List<ArmorRecordViewModel> { firstSource }
-                : Array.Empty<ArmorRecordViewModel>();
-
-            StatusMessage = $"Loaded {SourceArmorsTotalCount} armors from {plugin}";
-            _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", SourceArmorsTotalCount, plugin);
+            return;
         }
-        catch (Exception ex)
-        {
-            if (string.Equals(SelectedSourcePlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                StatusMessage = $"Error loading source armors: {ex.Message}";
-                _logger.Error(ex, "Error loading source armors from {Plugin}", plugin);
-            }
-        }
-        finally
-        {
-            EndLoading();
-        }
+
+        SourceArmorsTotalCount = count;
+
+        var firstSource = FilteredSourceArmors.FirstOrDefault();
+        SelectedSourceArmors = firstSource is not null
+            ? new List<ArmorRecordViewModel> { firstSource }
+            : Array.Empty<ArmorRecordViewModel>();
+
+        StatusMessage = $"Loaded {count} armors from {plugin}";
+        _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", count, plugin);
     }
 
     private async Task LoadTargetArmorsAsync(string plugin)
     {
-        BeginLoading();
-        if (string.IsNullOrWhiteSpace(plugin))
-        {
-            EndLoading();
-            return;
-        }
-
+        TargetSearchText = string.Empty;
         StatusMessage = $"Loading armors from {plugin}...";
         _logger.Information("Loading target armors from {Plugin}", plugin);
 
-        try
+        var count = await LoadArmorsIntoSourceListAsync(plugin, () => SelectedTargetPlugin, _targetArmorsSource);
+
+        if (!string.Equals(SelectedTargetPlugin, plugin, StringComparison.OrdinalIgnoreCase))
         {
-            var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
-
-            if (!string.Equals(SelectedTargetPlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            _targetArmorsSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
-            });
-            TargetArmorsTotalCount = _targetArmorsSource.Count;
-            _lastLoadedTargetPlugin = plugin;
-            TargetSearchText = string.Empty;
-            UpdateTargetSlotCompatibility();
-
-            var primary = SelectedSourceArmor;
-            SelectedTargetArmor = primary is not null
-                ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
-                : FilteredTargetArmors.FirstOrDefault();
-
-            StatusMessage = $"Loaded {TargetArmorsTotalCount} armors from {plugin}";
-            _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", TargetArmorsTotalCount, plugin);
+            return;
         }
-        catch (Exception ex)
-        {
-            if (string.Equals(SelectedTargetPlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                StatusMessage = $"Error loading target armors: {ex.Message}";
-                _logger.Error(ex, "Error loading target armors from {Plugin}", plugin);
-            }
-        }
-        finally
-        {
-            EndLoading();
-        }
+
+        TargetArmorsTotalCount = count;
+        _lastLoadedTargetPlugin = plugin;
+        UpdateTargetSlotCompatibility();
+
+        var primary = SelectedSourceArmor;
+        SelectedTargetArmor = primary is not null
+            ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
+            : FilteredTargetArmors.FirstOrDefault();
+
+        StatusMessage = $"Loaded {count} armors from {plugin}";
+        _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", count, plugin);
     }
 
     private async Task LoadOutfitArmorsAsync(string plugin)
     {
-        BeginLoading();
-
         if (string.IsNullOrWhiteSpace(plugin))
         {
-            _outfitArmorsSource.Clear();
-            OutfitArmorsTotalCount = 0;
             SelectedOutfitArmors = Array.Empty<ArmorRecordViewModel>();
-            OutfitSearchText = string.Empty;
-            EndLoading();
             return;
         }
 
+        OutfitSearchText = string.Empty;
         StatusMessage = $"Loading armors from {plugin}...";
         _logger.Information("Loading outfit armors from {Plugin}", plugin);
 
-        try
+        var count = await LoadArmorsIntoSourceListAsync(plugin, () => SelectedOutfitPlugin, _outfitArmorsSource);
+
+        if (!string.Equals(SelectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
         {
-            var armors = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
-
-            if (!string.Equals(SelectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            _outfitArmorsSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
-            });
-            OutfitArmorsTotalCount = _outfitArmorsSource.Count;
-            _lastLoadedOutfitPlugin = plugin;
-            OutfitSearchText = string.Empty;
-
-            SelectedOutfitArmors = FilteredOutfitArmors.Any()
-                ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
-                : Array.Empty<ArmorRecordViewModel>();
-
-            var existingOutfitCount = await LoadExistingOutfitsAsync(plugin);
-
-            StatusMessage = existingOutfitCount > 0
-                ? $"Loaded {OutfitArmorsTotalCount} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
-                : $"Loaded {OutfitArmorsTotalCount} armors from {plugin} for outfit creation.";
-            _logger.Information(
-                "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
-                OutfitArmorsTotalCount,
-                plugin,
-                existingOutfitCount);
+            return;
         }
-        catch (Exception ex)
-        {
-            if (string.Equals(SelectedOutfitPlugin, plugin, StringComparison.OrdinalIgnoreCase))
-            {
-                StatusMessage = $"Error loading outfit armors: {ex.Message}";
-                _logger.Error(ex, "Error loading outfit armors from {Plugin}", plugin);
-            }
-        }
-        finally
-        {
-            EndLoading();
-        }
+
+        OutfitArmorsTotalCount = count;
+        _lastLoadedOutfitPlugin = plugin;
+
+        SelectedOutfitArmors = FilteredOutfitArmors.Any()
+            ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
+            : Array.Empty<ArmorRecordViewModel>();
+
+        var existingOutfitCount = await LoadExistingOutfitsAsync(plugin);
+
+        StatusMessage = existingOutfitCount > 0
+            ? $"Loaded {count} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
+            : $"Loaded {count} armors from {plugin} for outfit creation.";
+        _logger.Information(
+            "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
+            count,
+            plugin,
+            existingOutfitCount);
     }
 
     private static bool ValidateOutfitPieces(IReadOnlyList<ArmorRecordViewModel> pieces, out string validationMessage)

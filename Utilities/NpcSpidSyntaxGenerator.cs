@@ -30,7 +30,7 @@ public static class NpcSpidSyntaxGenerator
         }
 
         var spidSyntax = GenerateSpidSyntax(filter, linkCache, outfitPlaceholder);
-        var skyPatcherSyntax = GenerateSkyPatcherSyntax(filter, linkCache, outfitPlaceholder);
+        var skyPatcherSyntax = GenerateSkyPatcherSyntax(filter, outfitPlaceholder);
 
         return (spidSyntax, skyPatcherSyntax);
     }
@@ -157,7 +157,6 @@ public static class NpcSpidSyntaxGenerator
     /// </summary>
     public static string GenerateSkyPatcherSyntax(
         NpcSpidFilter filter,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null,
         string outfitPlaceholder = "YourOutfit")
     {
         var sb = new StringBuilder();

@@ -4,8 +4,6 @@ namespace Boutique.Utilities;
 
 public static class PathUtilities
 {
-    private static readonly string[] _pluginExtensions = ["*.esp", "*.esm", "*.esl"];
-
     public static string NormalizeAssetPath(string path)
     {
         var normalized = path.Replace('\\', '/').Trim();

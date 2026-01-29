@@ -1512,7 +1512,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             _logger.Debug("UpdateFileContent: Generated {LineCount} lines", DistributionFileContent.Split('\n').Length);
             DetectConflicts();
 
-            RaiseHighlightRequestForChangedEntry(effectiveFormat);
+            RaiseHighlightRequestForChangedEntry();
         }
         catch (Exception ex)
         {
@@ -1521,7 +1521,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
     }
 
-    private void RaiseHighlightRequestForChangedEntry(DistributionFileType effectiveFormat)
+    private void RaiseHighlightRequestForChangedEntry()
     {
         var entryToHighlight = _lastChangedEntry ?? SelectedEntry;
         _lastChangedEntry = null;
@@ -1531,7 +1531,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             return;
         }
 
-        var lineNumber = CalculateLineNumberForEntry(entryToHighlight, effectiveFormat);
+        var lineNumber = CalculateLineNumberForEntry(entryToHighlight);
         if (lineNumber < 0)
         {
             return;
@@ -1544,7 +1544,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
     }
 
-    private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry, DistributionFileType format)
+    private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry)
     {
         var lineNumber = DistributionFileFormatter.GenerateHeaderLines().Count;
 
@@ -1604,7 +1604,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             ? DistributionFileType.Spid
             : DistributionFormat;
 
-        var lineNumber = CalculateLineNumberForEntry(entry, effectiveFormat);
+        var lineNumber = CalculateLineNumberForEntry(entry);
         if (lineNumber < 0)
         {
             return;

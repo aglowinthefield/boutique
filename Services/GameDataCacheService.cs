@@ -588,7 +588,6 @@ public class GameDataCacheService : IDisposable
                 var originalModKey = npc.FormKey.ModKey;
                 var filterData = BuildNpcFilterData(
                     npc,
-                    linkCache,
                     originalModKey,
                     keywordLookup,
                     factionLookup,
@@ -621,7 +620,6 @@ public class GameDataCacheService : IDisposable
 
     private static NpcFilterData? BuildNpcFilterData(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         ModKey originalModKey,
         Dictionary<FormKey, string> keywordLookup,
         Dictionary<FormKey, string> factionLookup,
