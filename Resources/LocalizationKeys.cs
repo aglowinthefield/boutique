@@ -290,4 +290,13 @@ public static class LocalizationKeys
     {
         public const string Tooltip = "Refresh_Tooltip";
     }
+
+    public static class PatchNameCollision
+    {
+        public const string Title = "PatchNameCollision_Title";
+        public const string Header = "PatchNameCollision_Header";
+        public const string Message = "PatchNameCollision_Message";
+        public const string Revert = "PatchNameCollision_Revert";
+        public const string KeepName = "PatchNameCollision_KeepName";
+    }
 }

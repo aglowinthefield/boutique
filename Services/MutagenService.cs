@@ -313,4 +313,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         _environment?.LoadOrder
             .Select(entry => entry.Key)
             .ToHashSet() ?? [];
+
+    public bool IsPluginInLoadOrder(string pluginFileName) =>
+        _environment?.LoadOrder
+            .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ?? false;
 }

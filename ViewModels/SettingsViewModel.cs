@@ -107,13 +107,25 @@ public partial class SettingsViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(FullOutputPath));
             });
 
+        string? previousPatchFileName = null;
         this.WhenAnyValue(x => x.PatchFileName)
             .Skip(1)
             .Subscribe(v =>
             {
+                var oldValue = previousPatchFileName;
+                previousPatchFileName = v;
+
                 _settings.PatchFileName = v;
                 _guiSettings.PatchFileName = v;
                 this.RaisePropertyChanged(nameof(FullOutputPath));
+
+                if (_mutagenService.IsInitialized &&
+                    !string.IsNullOrWhiteSpace(v) &&
+                    !string.Equals(v, oldValue, StringComparison.OrdinalIgnoreCase) &&
+                    _mutagenService.IsPluginInLoadOrder(v))
+                {
+                    ShowPatchNameCollisionDialog(v, oldValue);
+                }
             });
 
         this.WhenAnyValue(x => x.OutputPatchPath)
@@ -326,6 +338,17 @@ public partial class SettingsViewModel : ReactiveObject
         if (dialog.QuitNow)
         {
             Application.Current.Shutdown();
+        }
+    }
+
+    private void ShowPatchNameCollisionDialog(string newFileName, string? previousFileName)
+    {
+        var dialog = new PatchNameCollisionDialog(newFileName) { Owner = Application.Current.MainWindow };
+        dialog.ShowDialog();
+
+        if (dialog.ShouldRevert && !string.IsNullOrWhiteSpace(previousFileName))
+        {
+            PatchFileName = previousFileName;
         }
     }
 
