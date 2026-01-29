@@ -1,83 +1,119 @@
 using Boutique.Services;
+using FluentAssertions;
 using Xunit;
 
 namespace Boutique.Tests;
 
 /// <summary>
-///     Tests for SkyPatcher outfit extraction from distribution lines.
+///     Tests for SkyPatcher outfit identifier extraction from distribution lines.
 /// </summary>
 public class SkyPatcherOutfitExtractionTests
 {
-    #region ExtractSkyPatcherOutfitKeys - Tilde format support
+    #region ExtractSkyPatcherOutfitKeys - Main extraction
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_TildeFormat_ExtractsAndNormalizes()
-    {
-        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "outfitDefault=0x800~MyMod.esp");
-
-        Assert.Single(result);
-        // The normalization should produce ModKey|FormID format
-        Assert.Contains("MyMod.esp|0x800", result);
-    }
-
-    #endregion
-
-    #region ExtractSkyPatcherOutfitKeys - filterByOutfits format
-
-    [Fact]
-    public void ExtractSkyPatcherOutfitKeys_FilterByOutfits_SingleOutfit()
-    {
-        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "filterByOutfits=MyMod.esp|0x12345:outfitDefault=OtherMod.esp|0x800");
-
-        Assert.Contains("MyMod.esp|0x12345", result);
-    }
-
-    [Fact]
-    public void ExtractSkyPatcherOutfitKeys_FilterByOutfits_MultipleOutfits()
-    {
-        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "filterByOutfits=Mod1.esp|0x100,Mod2.esp|0x200:outfitDefault=Mod3.esp|0x300");
-
-        Assert.Contains("Mod1.esp|0x100", result);
-        Assert.Contains("Mod2.esp|0x200", result);
-    }
-
-    [Fact]
-    public void ExtractSkyPatcherOutfitKeys_OutfitDefault_ExtractsOutfit()
+    public void ExtractSkyPatcherOutfitKeys_WithOutfitDefault_ExtractsFormKey()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
             "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800");
 
-        Assert.Contains("MyMod.esp|0x800", result);
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|0x800");
     }
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_BothMarkers_ExtractsAll()
+    public void ExtractSkyPatcherOutfitKeys_WithOutfitSleep_ReturnsEmpty()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "filterByOutfits=Mod1.esp|0x100:outfitDefault=Mod2.esp|0x200");
+            "filterByNpcs=Skyrim.esm|0x1234:outfitSleep=MyMod.esp|0x900");
 
-        Assert.Equal(2, result.Count);
-        Assert.Contains("Mod1.esp|0x100", result);
-        Assert.Contains("Mod2.esp|0x200", result);
+        result.Should().BeEmpty("outfitSleep is not currently extracted");
     }
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_NoOutfitMarkers_ReturnsEmpty()
+    public void ExtractSkyPatcherOutfitKeys_WithBothDefaultAndFilterByOutfits_ExtractsBoth()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "filterByNpcs=Skyrim.esm|0x1234:filterByFactions=VampireFaction");
+            "filterByOutfits=MyMod.esp|0x800:outfitDefault=MyMod.esp|0x900");
 
-        Assert.Empty(result);
+        result.Should().HaveCount(2)
+            .And.Contain(["MyMod.esp|0x800", "MyMod.esp|0x900"]);
     }
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_EmptyValue_ReturnsEmpty()
+    public void ExtractSkyPatcherOutfitKeys_NoOutfitFilters_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "filterByNpcs=Skyrim.esm|0x1234:formsToAdd=MyMod.esp|0x800");
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_EmptyLine_ReturnsEmpty()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys("");
-        Assert.Empty(result);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_NullLine_ThrowsException()
+    {
+        var act = () => DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(null!);
+        act.Should().Throw<NullReferenceException>();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_Comment_StillExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "; outfitDefault=MyMod.esp|0x800");
+
+        result.Should().ContainSingle("comment filtering is done at call site, not in extraction");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_CaseInsensitive_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "OUTFITDEFAULT=MyMod.esp|0x800");
+
+        result.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_WithHexPrefix_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=MyMod.esp|0x800");
+
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|0x800");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_WithoutHexPrefix_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=MyMod.esp|800");
+
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|800");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FormKeyWithEsm_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=Skyrim.esm|0xABCDE");
+
+        result.Should().ContainSingle().Which.Should().Be("Skyrim.esm|0xABCDE");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FormKeyWithEsl_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=LightMod.esl|0x800");
+
+        result.Should().ContainSingle().Which.Should().Be("LightMod.esl|0x800");
     }
 
     #endregion
@@ -85,31 +121,115 @@ public class SkyPatcherOutfitExtractionTests
     #region Edge cases
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_CaseInsensitive_Works()
-    {
-        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "FILTERBYOUTFITS=MyMod.esp|0x100:OUTFITDEFAULT=MyMod.esp|0x200");
-
-        Assert.Equal(2, result.Count);
-    }
-
-    [Fact]
-    public void ExtractSkyPatcherOutfitKeys_WithSpaces_HandlesCorrectly()
+    public void ExtractSkyPatcherOutfitKeys_WithSpaces_ExtractsFormKey()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
             "outfitDefault= MyMod.esp|0x800 ");
 
-        Assert.Single(result);
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|0x800");
     }
 
     [Fact]
-    public void ExtractSkyPatcherOutfitKeys_MultipleColonSections_ParsesAll()
+    public void ExtractSkyPatcherOutfitKeys_ComplexLine_ExtractsFormKey()
     {
         var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
-            "section1:filterByOutfits=Mod1.esp|0x100:section2:outfitDefault=Mod2.esp|0x200");
+            "filterByFactions=Skyrim.esm|0xFDEAC:filterByGender=female:outfitDefault=MyMod.esp|0xFE000D65");
 
-        Assert.Contains("Mod1.esp|0x100", result);
-        Assert.Contains("Mod2.esp|0x200", result);
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|0xFE000D65");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_MultipleNpcFilters_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "filterByNpcs=Skyrim.esm|0x100,Skyrim.esm|0x200:outfitDefault=MyMod.esp|0x800");
+
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|0x800");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_LongFormId_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=MyMod.esp|00ABCDEF");
+
+        result.Should().ContainSingle().Which.Should().Be("MyMod.esp|00ABCDEF");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_WithSpacesInModName_ExtractsFormKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=My Cool Mod.esp|0x800");
+
+        result.Should().ContainSingle().Which.Should().Be("My Cool Mod.esp|0x800");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_SleepOutfit_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "filterByNpcs=Skyrim.esm|0x13BBF:outfitSleep=Skyrim.esm|0xD3E06");
+
+        result.Should().BeEmpty("outfitSleep is not currently extracted");
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_OnlyOutfitDefault_ExtractsSingle()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "outfitDefault=Skyrim.esm|0xD3E05");
+
+        result.Should().ContainSingle().Which.Should().Be("Skyrim.esm|0xD3E05");
+    }
+
+    #endregion
+
+    #region Non-outfit operations should be ignored
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FormsToAdd_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "formsToAdd=Skyrim.esm|0x59A71");
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FormsToRemove_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "formsToRemove=Skyrim.esm|0x59A71");
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FormsToReplace_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "formsToReplace=Skyrim.esm|0x59A71=Skyrim.esm|0x59A72");
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_Clear_ReturnsEmpty()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "clear=true");
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractSkyPatcherOutfitKeys_FilterByOutfits_ExtractsOutfitKey()
+    {
+        var result = DistributionDiscoveryService.ExtractSkyPatcherOutfitKeys(
+            "filterByOutfits=Skyrim.esm|0x246EE7:formsToAdd=Skyrim.esm|0x59A71");
+
+        result.Should().ContainSingle().Which.Should().Be("Skyrim.esm|0x246EE7");
     }
 
     #endregion

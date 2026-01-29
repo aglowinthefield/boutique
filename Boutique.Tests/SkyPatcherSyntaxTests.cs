@@ -1,4 +1,5 @@
 using Boutique.Utilities;
+using FluentAssertions;
 using Xunit;
 
 namespace Boutique.Tests;
@@ -13,7 +14,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "filterByNpcs");
 
-        Assert.Equal("Skyrim.esm|0x1234", result);
+        result.Should().Be("Skyrim.esm|0x1234");
     }
 
     [Fact]
@@ -22,7 +23,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
 
-        Assert.Equal("MyMod.esp|0x800", result);
+        result.Should().Be("MyMod.esp|0x800");
     }
 
     [Fact]
@@ -31,7 +32,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "filterByFactions");
 
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public class SkyPatcherSyntaxTests
         var line = "FILTERBYOUTFITS=MyMod.esp|0x100:OUTFITDEFAULT=MyMod.esp|0x200";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "filterByOutfits");
 
-        Assert.Equal("MyMod.esp|0x100", result);
+        result.Should().Be("MyMod.esp|0x100");
     }
 
     [Fact]
@@ -49,15 +50,14 @@ public class SkyPatcherSyntaxTests
         var line = "outfitDefault= MyMod.esp|0x800 :filterByNpcs=Test.esp|0x1";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
 
-        Assert.Equal("MyMod.esp|0x800", result);
+        result.Should().Be("MyMod.esp|0x800");
     }
 
     [Fact]
     public void ExtractFilterValue_EmptyLine_ReturnsNull()
     {
         var result = SkyPatcherSyntax.ExtractFilterValue("", "filterByNpcs");
-
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValue(line, "filterByNpcs");
 
-        Assert.Equal(string.Empty, result);
+        result.Should().BeEmpty();
     }
 
     #endregion
@@ -79,8 +79,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
 
-        Assert.Single(result);
-        Assert.Equal("Skyrim.esm|0x1234", result[0]);
+        result.Should().ContainSingle().Which.Should().Be("Skyrim.esm|0x1234");
     }
 
     [Fact]
@@ -89,10 +88,8 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x100,Skyrim.esm|0x200,Skyrim.esm|0x300:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
 
-        Assert.Equal(3, result.Count);
-        Assert.Equal("Skyrim.esm|0x100", result[0]);
-        Assert.Equal("Skyrim.esm|0x200", result[1]);
-        Assert.Equal("Skyrim.esm|0x300", result[2]);
+        result.Should().HaveCount(3)
+            .And.ContainInOrder("Skyrim.esm|0x100", "Skyrim.esm|0x200", "Skyrim.esm|0x300");
     }
 
     [Fact]
@@ -101,7 +98,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValues(line, "filterByFactions");
 
-        Assert.Empty(result);
+        result.Should().BeEmpty();
     }
 
     [Fact]
@@ -110,9 +107,8 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs= Skyrim.esm|0x100 , Skyrim.esm|0x200 :outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
 
-        Assert.Equal(2, result.Count);
-        Assert.Equal("Skyrim.esm|0x100", result[0]);
-        Assert.Equal("Skyrim.esm|0x200", result[1]);
+        result.Should().HaveCount(2)
+            .And.ContainInOrder("Skyrim.esm|0x100", "Skyrim.esm|0x200");
     }
 
     [Fact]
@@ -121,7 +117,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x100,,Skyrim.esm|0x200:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
 
-        Assert.Equal(2, result.Count);
+        result.Should().HaveCount(2);
     }
 
     #endregion
@@ -134,7 +130,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:filterByGender=female:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
@@ -143,7 +139,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:filterByGender=male:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -152,7 +148,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     [Fact]
@@ -161,7 +157,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByGender=FEMALE:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
@@ -170,7 +166,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByGender=MALE:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -179,7 +175,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByGender=unknown:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseGenderFilter(line);
 
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     #endregion
@@ -192,9 +188,8 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseFormKeys(line, "filterByNpcs");
 
-        Assert.Single(result);
-        Assert.Equal("Skyrim.esm", result[0].ModKey.FileName);
-        Assert.Equal(0x1234u, result[0].ID);
+        result.Should().ContainSingle().Which.Should().Match<Mutagen.Bethesda.Plugins.FormKey>(fk =>
+            fk.ModKey.FileName.String == "Skyrim.esm" && fk.ID == 0x1234u);
     }
 
     [Fact]
@@ -203,9 +198,9 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x100,Dawnguard.esm|0x200:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseFormKeys(line, "filterByNpcs");
 
-        Assert.Equal(2, result.Count);
-        Assert.Equal("Skyrim.esm", result[0].ModKey.FileName);
-        Assert.Equal("Dawnguard.esm", result[1].ModKey.FileName);
+        result.Should().HaveCount(2);
+        result[0].ModKey.FileName.String.Should().Be("Skyrim.esm");
+        result[1].ModKey.FileName.String.Should().Be("Dawnguard.esm");
     }
 
     [Fact]
@@ -214,7 +209,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x100,InvalidNpc,Dawnguard.esm|0x200:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseFormKeys(line, "filterByNpcs");
 
-        Assert.Equal(2, result.Count);
+        result.Should().HaveCount(2);
     }
 
     [Fact]
@@ -223,9 +218,8 @@ public class SkyPatcherSyntaxTests
         var line = "outfitDefault=0x800~MyMod.esp";
         var result = SkyPatcherSyntax.ParseFormKeys(line, "outfitDefault");
 
-        Assert.Single(result);
-        Assert.Equal("MyMod.esp", result[0].ModKey.FileName);
-        Assert.Equal(0x800u, result[0].ID);
+        result.Should().ContainSingle().Which.Should().Match<Mutagen.Bethesda.Plugins.FormKey>(fk =>
+            fk.ModKey.FileName.String == "MyMod.esp" && fk.ID == 0x800u);
     }
 
     [Fact]
@@ -234,7 +228,7 @@ public class SkyPatcherSyntaxTests
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
         var result = SkyPatcherSyntax.ParseFormKeys(line, "filterByFactions");
 
-        Assert.Empty(result);
+        result.Should().BeEmpty();
     }
 
     #endregion
@@ -246,8 +240,8 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
 
-        Assert.True(SkyPatcherSyntax.HasFilter(line, "filterByNpcs"));
-        Assert.True(SkyPatcherSyntax.HasFilter(line, "outfitDefault"));
+        SkyPatcherSyntax.HasFilter(line, "filterByNpcs").Should().BeTrue();
+        SkyPatcherSyntax.HasFilter(line, "outfitDefault").Should().BeTrue();
     }
 
     [Fact]
@@ -255,8 +249,8 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByNpcs=Skyrim.esm|0x1234:outfitDefault=MyMod.esp|0x800";
 
-        Assert.False(SkyPatcherSyntax.HasFilter(line, "filterByFactions"));
-        Assert.False(SkyPatcherSyntax.HasFilter(line, "filterByRaces"));
+        SkyPatcherSyntax.HasFilter(line, "filterByFactions").Should().BeFalse();
+        SkyPatcherSyntax.HasFilter(line, "filterByRaces").Should().BeFalse();
     }
 
     [Fact]
@@ -264,7 +258,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "FILTERBYOUTFITS=MyMod.esp|0x100";
 
-        Assert.True(SkyPatcherSyntax.HasFilter(line, "filterByOutfits"));
+        SkyPatcherSyntax.HasFilter(line, "filterByOutfits").Should().BeTrue();
     }
 
     #endregion
@@ -281,12 +275,11 @@ public class SkyPatcherSyntaxTests
         var gender = SkyPatcherSyntax.ParseGenderFilter(line);
         var outfit = SkyPatcherSyntax.ParseFormKeys(line, "outfitDefault");
 
-        Assert.Equal(2, npcs.Count);
-        Assert.Equal(0x13BBFu, npcs[0].ID);
-        Assert.Equal(0x1B07Au, npcs[1].ID);
-        Assert.True(gender);
-        Assert.Single(outfit);
-        Assert.Equal(0x800u, outfit[0].ID);
+        npcs.Should().HaveCount(2);
+        npcs[0].ID.Should().Be(0x13BBFu);
+        npcs[1].ID.Should().Be(0x1B07Au);
+        gender.Should().BeTrue();
+        outfit.Should().ContainSingle().Which.ID.Should().Be(0x800u);
     }
 
     [Fact]
@@ -297,9 +290,8 @@ public class SkyPatcherSyntaxTests
         var factions = SkyPatcherSyntax.ParseFormKeys(line, "filterByFactions");
         var outfit = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
 
-        Assert.Single(factions);
-        Assert.Equal(0xFDEACu, factions[0].ID);
-        Assert.Equal("MyMod.esp|0xFE000D65", outfit);
+        factions.Should().ContainSingle().Which.ID.Should().Be(0xFDEACu);
+        outfit.Should().Be("MyMod.esp|0xFE000D65");
     }
 
     [Fact]
@@ -310,10 +302,8 @@ public class SkyPatcherSyntaxTests
         var npcs = SkyPatcherSyntax.ParseFormKeys(line, "filterByNpcs");
         var outfit = SkyPatcherSyntax.ParseFormKeys(line, "outfitDefault");
 
-        Assert.Single(npcs);
-        Assert.Equal(0x13BBFu, npcs[0].ID);
-        Assert.Single(outfit);
-        Assert.Equal(0x800u, outfit[0].ID);
+        npcs.Should().ContainSingle().Which.ID.Should().Be(0x13BBFu);
+        outfit.Should().ContainSingle().Which.ID.Should().Be(0x800u);
     }
 
     [Fact]
@@ -323,8 +313,7 @@ public class SkyPatcherSyntaxTests
 
         var outfit = SkyPatcherSyntax.ParseFormKeys(line, "outfitDefault");
 
-        Assert.Single(outfit);
-        Assert.Equal(0xABCDEFu, outfit[0].ID);
+        outfit.Should().ContainSingle().Which.ID.Should().Be(0xABCDEFu);
     }
 
     [Fact]
@@ -334,9 +323,9 @@ public class SkyPatcherSyntaxTests
 
         var factions = SkyPatcherSyntax.ParseFormKeys(line, "filterByFactionsOr");
 
-        Assert.Equal(2, factions.Count);
-        Assert.Equal(0xFDEACu, factions[0].ID);
-        Assert.Equal(0x1BCC0u, factions[1].ID);
+        factions.Should().HaveCount(2);
+        factions[0].ID.Should().Be(0xFDEACu);
+        factions[1].ID.Should().Be(0x1BCC0u);
     }
 
     [Fact]
@@ -346,9 +335,8 @@ public class SkyPatcherSyntaxTests
 
         var values = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
 
-        Assert.Equal(2, values.Count);
-        Assert.Equal("DA16OrcAmbushFaction", values[0]);
-        Assert.Equal("DA16OrcDreamFaction", values[1]);
+        values.Should().HaveCount(2)
+            .And.ContainInOrder("DA16OrcAmbushFaction", "DA16OrcDreamFaction");
     }
 
     #endregion
@@ -363,10 +351,8 @@ public class SkyPatcherSyntaxTests
 
         var values = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
 
-        Assert.Equal(3, values.Count);
-        Assert.Equal("Skyrim.esm|0x100", values[0]);
-        Assert.Equal("Skyrim.esm|0x200", values[1]);
-        Assert.Equal("Skyrim.esm|0x300", values[2]);
+        values.Should().HaveCount(3)
+            .And.ContainInOrder("Skyrim.esm|0x100", "Skyrim.esm|0x200", "Skyrim.esm|0x300");
     }
 
     [Fact]
@@ -374,7 +360,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByFactions=Skyrim.esm|0x100:outfitDefault=MyMod.esp|0x800";
 
-        Assert.True(SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions"));
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions").Should().BeTrue();
     }
 
     [Fact]
@@ -382,7 +368,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByFactionsOr=Skyrim.esm|0x100:outfitDefault=MyMod.esp|0x800";
 
-        Assert.True(SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions"));
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions").Should().BeTrue();
     }
 
     [Fact]
@@ -390,7 +376,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByFactionsExcluded=Skyrim.esm|0x100:outfitDefault=MyMod.esp|0x800";
 
-        Assert.True(SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions"));
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions").Should().BeTrue();
     }
 
     [Fact]
@@ -398,7 +384,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByNpcs=Skyrim.esm|0x100:outfitDefault=MyMod.esp|0x800";
 
-        Assert.False(SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions"));
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions").Should().BeFalse();
     }
 
     #endregion
@@ -412,10 +398,8 @@ public class SkyPatcherSyntaxTests
 
         var filters = SkyPatcherSyntax.GetAllFilterNames(line);
 
-        Assert.Equal(3, filters.Count);
-        Assert.Contains("filterByNpcs", filters);
-        Assert.Contains("filterByFactions", filters);
-        Assert.Contains("outfitDefault", filters);
+        filters.Should().HaveCount(3)
+            .And.Contain(["filterByNpcs", "filterByFactions", "outfitDefault"]);
     }
 
     [Fact]
@@ -425,7 +409,7 @@ public class SkyPatcherSyntaxTests
 
         var unsupported = SkyPatcherSyntax.GetUnsupportedFilters(line);
 
-        Assert.Empty(unsupported);
+        unsupported.Should().BeEmpty();
     }
 
     [Fact]
@@ -435,8 +419,7 @@ public class SkyPatcherSyntaxTests
 
         var unsupported = SkyPatcherSyntax.GetUnsupportedFilters(line);
 
-        Assert.Single(unsupported);
-        Assert.Equal("filterByCustomThing", unsupported[0]);
+        unsupported.Should().ContainSingle().Which.Should().Be("filterByCustomThing");
     }
 
     [Fact]
@@ -444,7 +427,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByFactionsOr=Faction1:outfitDefault=MyMod.esp|0x800";
 
-        Assert.False(SkyPatcherSyntax.HasUnsupportedFilters(line));
+        SkyPatcherSyntax.HasUnsupportedFilters(line).Should().BeFalse();
     }
 
     [Fact]
@@ -452,7 +435,7 @@ public class SkyPatcherSyntaxTests
     {
         var line = "filterByUnknown=Value:outfitDefault=MyMod.esp|0x800";
 
-        Assert.True(SkyPatcherSyntax.HasUnsupportedFilters(line));
+        SkyPatcherSyntax.HasUnsupportedFilters(line).Should().BeTrue();
     }
 
     #endregion

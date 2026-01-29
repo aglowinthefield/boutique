@@ -1,4 +1,5 @@
 using Boutique.Utilities;
+using FluentAssertions;
 using Mutagen.Bethesda.Plugins;
 using Xunit;
 
@@ -21,11 +22,11 @@ public class FormKeyHelperTests
     public void TryParseModKey_VariousInputs_ReturnsCorrectly(string input, bool expected)
     {
         var result = FormKeyHelper.TryParseModKey(input, out var modKey);
-        Assert.Equal(expected, result);
+        result.Should().Be(expected);
 
         if (expected)
         {
-            Assert.NotEqual(ModKey.Null, modKey);
+            modKey.Should().NotBe(ModKey.Null);
         }
     }
 
@@ -38,9 +39,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|0x12345", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("MyMod.esp", formKey.ModKey.FileName);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("MyMod.esp");
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -48,9 +49,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("0x12345~MyMod.esp", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("MyMod.esp", formKey.ModKey.FileName);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("MyMod.esp");
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -58,9 +59,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|12345", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("MyMod.esp", formKey.ModKey.FileName);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("MyMod.esp");
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -68,8 +69,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("SomeEditorId", out var formKey);
 
-        Assert.False(success);
-        Assert.Equal(FormKey.Null, formKey);
+        success.Should().BeFalse();
+        formKey.Should().Be(FormKey.Null);
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("NotAMod|0x12345", out _);
 
-        Assert.False(success);
+        success.Should().BeFalse();
     }
 
     [Fact]
@@ -85,8 +86,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("", out var formKey);
 
-        Assert.False(success);
-        Assert.Equal(FormKey.Null, formKey);
+        success.Should().BeFalse();
+        formKey.Should().Be(FormKey.Null);
     }
 
     [Fact]
@@ -94,8 +95,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse(null!, out var formKey);
 
-        Assert.False(success);
-        Assert.Equal(FormKey.Null, formKey);
+        success.Should().BeFalse();
+        formKey.Should().Be(FormKey.Null);
     }
 
     [Theory]
@@ -106,8 +107,8 @@ public class FormKeyHelperTests
     public void TryParse_VariousValidFormats_Succeeds(string input)
     {
         var success = FormKeyHelper.TryParse(input, out var formKey);
-        Assert.True(success);
-        Assert.NotEqual(FormKey.Null, formKey);
+        success.Should().BeTrue();
+        formKey.Should().NotBe(FormKey.Null);
     }
 
     [Fact]
@@ -115,9 +116,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse(" MyMod.esp | 0x12345 ", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("MyMod.esp", formKey.ModKey.FileName);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("MyMod.esp");
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -125,9 +126,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse(" 0x12345 ~ MyMod.esp ", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("MyMod.esp", formKey.ModKey.FileName);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("MyMod.esp");
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -135,8 +136,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|0xABCDEF", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(0xABCDEFu, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ID.Should().Be(0xABCDEFu);
     }
 
     [Fact]
@@ -144,8 +145,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|0xabcdef", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(0xABCDEFu, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ID.Should().Be(0xABCDEFu);
     }
 
     [Fact]
@@ -153,8 +154,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|0xAbCdEf", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(0xABCDEFu, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ID.Should().Be(0xABCDEFu);
     }
 
     [Fact]
@@ -162,8 +163,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|00012345", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(0x12345u, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ID.Should().Be(0x12345u);
     }
 
     [Fact]
@@ -171,8 +172,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|00ABCDEF", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(0xABCDEFu, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ID.Should().Be(0xABCDEFu);
     }
 
     [Fact]
@@ -180,32 +181,29 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("   ", out var formKey);
 
-        Assert.False(success);
-        Assert.Equal(FormKey.Null, formKey);
+        success.Should().BeFalse();
+        formKey.Should().Be(FormKey.Null);
     }
 
     [Fact]
     public void TryParse_OnlyPipe_ReturnsFalse()
     {
         var success = FormKeyHelper.TryParse("|", out _);
-
-        Assert.False(success);
+        success.Should().BeFalse();
     }
 
     [Fact]
     public void TryParse_OnlyTilde_ReturnsFalse()
     {
         var success = FormKeyHelper.TryParse("~", out _);
-
-        Assert.False(success);
+        success.Should().BeFalse();
     }
 
     [Fact]
     public void TryParse_InvalidHexChars_ReturnsFalse()
     {
         var success = FormKeyHelper.TryParse("MyMod.esp|0xGHIJKL", out _);
-
-        Assert.False(success);
+        success.Should().BeFalse();
     }
 
     [Fact]
@@ -213,8 +211,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse("My Mod With Spaces.esp|0x800", out var formKey);
 
-        Assert.True(success);
-        Assert.Equal("My Mod With Spaces.esp", formKey.ModKey.FileName);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be("My Mod With Spaces.esp");
     }
 
     [Theory]
@@ -226,9 +224,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParse(input, out var formKey);
 
-        Assert.True(success);
-        Assert.Equal(expectedMod, formKey.ModKey.FileName);
-        Assert.Equal(expectedId, formKey.ID);
+        success.Should().BeTrue();
+        formKey.ModKey.FileName.String.Should().Be(expectedMod);
+        formKey.ID.Should().Be(expectedId);
     }
 
     #endregion
@@ -241,7 +239,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("MyMod.esp"), 0x12345);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("MyMod.esp|00012345", result);
+        result.Should().Be("MyMod.esp|00012345");
     }
 
     [Fact]
@@ -250,7 +248,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Test.esp"), 0x1);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("Test.esp|00000001", result);
+        result.Should().Be("Test.esp|00000001");
     }
 
     [Fact]
@@ -259,7 +257,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Light.esl"), 0x800);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("Light.esl|00000800", result);
+        result.Should().Be("Light.esl|00000800");
     }
 
     [Fact]
@@ -268,7 +266,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Skyrim.esm"), 0xABCDEF);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("Skyrim.esm|00ABCDEF", result);
+        result.Should().Be("Skyrim.esm|00ABCDEF");
     }
 
     [Fact]
@@ -277,7 +275,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Test.esp"), 0x00FFFFFF);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("Test.esp|00FFFFFF", result);
+        result.Should().Be("Test.esp|00FFFFFF");
     }
 
     [Fact]
@@ -286,7 +284,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Test.esp"), 0x0);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal("Test.esp|00000000", result);
+        result.Should().Be("Test.esp|00000000");
     }
 
     [Fact]
@@ -296,8 +294,8 @@ public class FormKeyHelperTests
         var formatted = FormKeyHelper.Format(original);
         var success = FormKeyHelper.TryParse(formatted, out var parsed);
 
-        Assert.True(success);
-        Assert.Equal(original, parsed);
+        success.Should().BeTrue();
+        parsed.Should().Be(original);
     }
 
     [Theory]
@@ -310,7 +308,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension(modName), formId);
         var result = FormKeyHelper.Format(formKey);
 
-        Assert.Equal(expected, result);
+        result.Should().Be(expected);
     }
 
     #endregion
@@ -323,7 +321,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("MyMod.esp"), 0x12345);
         var result = FormKeyHelper.FormatForSpid(formKey);
 
-        Assert.Equal("0x12345~MyMod.esp", result);
+        result.Should().Be("0x12345~MyMod.esp");
     }
 
     [Fact]
@@ -332,7 +330,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Test.esp"), 0x800);
         var result = FormKeyHelper.FormatForSpid(formKey);
 
-        Assert.Equal("0x800~Test.esp", result);
+        result.Should().Be("0x800~Test.esp");
     }
 
     [Fact]
@@ -341,7 +339,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension("Test.esp"), 0xABCDEF);
         var result = FormKeyHelper.FormatForSpid(formKey);
 
-        Assert.Equal("0xABCDEF~Test.esp", result);
+        result.Should().Be("0xABCDEF~Test.esp");
     }
 
     [Fact]
@@ -351,8 +349,8 @@ public class FormKeyHelperTests
         var formatted = FormKeyHelper.FormatForSpid(original);
         var success = FormKeyHelper.TryParse(formatted, out var parsed);
 
-        Assert.True(success);
-        Assert.Equal(original, parsed);
+        success.Should().BeTrue();
+        parsed.Should().Be(original);
     }
 
     [Theory]
@@ -364,7 +362,7 @@ public class FormKeyHelperTests
         var formKey = new FormKey(ModKey.FromNameAndExtension(modName), formId);
         var result = FormKeyHelper.FormatForSpid(formKey);
 
-        Assert.Equal(expected, result);
+        result.Should().Be(expected);
     }
 
     #endregion
@@ -381,8 +379,8 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseFormId(input, out var id);
 
-        Assert.True(success);
-        Assert.Equal(expected, id);
+        success.Should().BeTrue();
+        id.Should().Be(expected);
     }
 
     [Theory]
@@ -393,7 +391,7 @@ public class FormKeyHelperTests
     public void TryParseFormId_InvalidInputs_ReturnsFalse(string input)
     {
         var success = FormKeyHelper.TryParseFormId(input, out _);
-        Assert.False(success);
+        success.Should().BeFalse();
     }
 
     #endregion
@@ -405,9 +403,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseEditorIdReference("MyEditorId", out var modKey, out var editorId);
 
-        Assert.True(success);
-        Assert.Null(modKey);
-        Assert.Equal("MyEditorId", editorId);
+        success.Should().BeTrue();
+        modKey.Should().BeNull();
+        editorId.Should().Be("MyEditorId");
     }
 
     [Fact]
@@ -415,10 +413,10 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseEditorIdReference("MyEditorId|MyMod.esp", out var modKey, out var editorId);
 
-        Assert.True(success);
-        Assert.NotNull(modKey);
-        Assert.Equal("MyMod.esp", modKey.Value.FileName);
-        Assert.Equal("MyEditorId", editorId);
+        success.Should().BeTrue();
+        modKey.Should().NotBeNull();
+        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        editorId.Should().Be("MyEditorId");
     }
 
     [Fact]
@@ -426,10 +424,10 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseEditorIdReference("MyMod.esp|MyEditorId", out var modKey, out var editorId);
 
-        Assert.True(success);
-        Assert.NotNull(modKey);
-        Assert.Equal("MyMod.esp", modKey.Value.FileName);
-        Assert.Equal("MyEditorId", editorId);
+        success.Should().BeTrue();
+        modKey.Should().NotBeNull();
+        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        editorId.Should().Be("MyEditorId");
     }
 
     [Fact]
@@ -437,10 +435,10 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseEditorIdReference("MyEditorId~MyMod.esp", out var modKey, out var editorId);
 
-        Assert.True(success);
-        Assert.NotNull(modKey);
-        Assert.Equal("MyMod.esp", modKey.Value.FileName);
-        Assert.Equal("MyEditorId", editorId);
+        success.Should().BeTrue();
+        modKey.Should().NotBeNull();
+        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        editorId.Should().Be("MyEditorId");
     }
 
     [Fact]
@@ -448,9 +446,9 @@ public class FormKeyHelperTests
     {
         var success = FormKeyHelper.TryParseEditorIdReference("", out var modKey, out var editorId);
 
-        Assert.False(success);
-        Assert.Null(modKey);
-        Assert.Equal(string.Empty, editorId);
+        success.Should().BeFalse();
+        modKey.Should().BeNull();
+        editorId.Should().BeEmpty();
     }
 
     #endregion

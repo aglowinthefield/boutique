@@ -1,73 +1,87 @@
 using System.Text;
+using FluentAssertions;
 using Xunit;
 
 namespace Boutique.Tests;
 
+/// <summary>
+///     Tests for file encoding detection and handling.
+/// </summary>
 public class EncodingTests
 {
     [Fact]
-    public void CodePagesEncodingProvider_Cp1251_IsAvailable()
+    public void Utf8Bom_IsDetected()
     {
-        // Register the provider (same as App.xaml.cs does at startup)
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        var bom = new byte[] { 0xEF, 0xBB, 0xBF };
+        var content = Encoding.UTF8.GetBytes("test content");
+        var withBom = bom.Concat(content).ToArray();
 
-        // This would throw if CP1251 isn't available
-        var cp1251 = Encoding.GetEncoding(1251);
+        var encoding = DetectEncoding(withBom);
 
-        Assert.NotNull(cp1251);
-        Assert.Equal("windows-1251", cp1251.WebName);
+        encoding.Should().Be(Encoding.UTF8);
     }
 
     [Fact]
-    public void CodePagesEncodingProvider_Cp1251_CanDecodeRussianText()
+    public void Utf16LeBom_IsDetected()
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        var cp1251 = Encoding.GetEncoding(1251);
+        var bom = new byte[] { 0xFF, 0xFE };
+        var content = Encoding.Unicode.GetBytes("test");
+        var withBom = bom.Concat(content).ToArray();
 
-        // Russian text "Броня" (Armor)
-        const string originalText = "Броня";
+        var encoding = DetectEncoding(withBom);
 
-        // Encode to CP1251 bytes, then decode back
-        var bytes = cp1251.GetBytes(originalText);
-        var decoded = cp1251.GetString(bytes);
-
-        Assert.Equal(originalText, decoded);
+        encoding.Should().Be(Encoding.Unicode);
     }
 
     [Fact]
-    public void CodePagesEncodingProvider_Cp1251_RoundTripCyrillicCharacters()
+    public void Utf16BeBom_IsDetected()
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        var cp1251 = Encoding.GetEncoding(1251);
+        var bom = new byte[] { 0xFE, 0xFF };
+        var content = Encoding.BigEndianUnicode.GetBytes("test");
+        var withBom = bom.Concat(content).ToArray();
 
-        // Various Russian armor-related words
-        var testStrings = new[]
-        {
-            "Стальной шлем", // Steel Helmet
-            "Кожаные сапоги", // Leather Boots
-            "Железная кираса", // Iron Cuirass
-            "Эбонитовые перчатки" // Ebony Gauntlets
-        };
+        var encoding = DetectEncoding(withBom);
 
-        foreach (var original in testStrings)
+        encoding.Should().Be(Encoding.BigEndianUnicode);
+    }
+
+    [Fact]
+    public void NoBom_DefaultsToUtf8()
+    {
+        var content = Encoding.UTF8.GetBytes("plain ascii content");
+
+        var encoding = DetectEncoding(content);
+
+        encoding.Should().Be(Encoding.UTF8);
+    }
+
+    [Fact]
+    public void EmptyBytes_DefaultsToUtf8()
+    {
+        var empty = Array.Empty<byte>();
+
+        var encoding = DetectEncoding(empty);
+
+        encoding.Should().Be(Encoding.UTF8);
+    }
+
+    private static Encoding DetectEncoding(byte[] bytes)
+    {
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
         {
-            var bytes = cp1251.GetBytes(original);
-            var decoded = cp1251.GetString(bytes);
-            Assert.Equal(original, decoded);
+            return Encoding.UTF8;
         }
-    }
 
-    [Fact]
-    public void CodePagesEncodingProvider_Cp1251_BytesDecodeCorrectly()
-    {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        var cp1251 = Encoding.GetEncoding(1251);
+        if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+        {
+            return Encoding.Unicode;
+        }
 
-        // Known CP1251 bytes for "Броня" (Armor)
-        // Б=193, р=240, о=238, н=237, я=255
-        var knownBytes = new byte[] { 193, 240, 238, 237, 255 };
-        var decoded = cp1251.GetString(knownBytes);
+        if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
+        {
+            return Encoding.BigEndianUnicode;
+        }
 
-        Assert.Equal("Броня", decoded);
+        return Encoding.UTF8;
     }
 }

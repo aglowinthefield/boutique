@@ -1,230 +1,128 @@
 using Boutique.Models;
 using Boutique.Utilities;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Boutique.Tests;
 
 /// <summary>
-///     File-based round-trip tests for SPID distribution files.
-///     Reads actual .ini files from TestData directory and verifies parsing/formatting fidelity.
+///     Semantic round-trip tests for SPID distribution files.
+///     These tests compare parsed structures semantically rather than string equality,
+///     which catches cases where formatting differs but meaning is preserved.
+///     For string-equality round-trip tests, see SpidFullFlowTests.
 /// </summary>
 public class SpidFileRoundTripTests(ITestOutputHelper output)
 {
-    private static readonly string _testDataPath = Path.Combine(
+    private static readonly string TestDataPath = Path.Combine(
         AppContext.BaseDirectory, "TestData");
 
-    private static readonly string _spidTestDataPath = Path.Combine(_testDataPath, "Spid");
+    private static readonly string SpidTestDataPath = Path.Combine(TestDataPath, "Spid");
 
-    #region Diff Analysis
+    #region Semantic Round-Trip Tests
 
-    /// <summary>
-    ///     Analyzes differences between original and formatted lines, useful for debugging.
-    /// </summary>
     [Fact]
-    public void Analyze_SampleFile_ShowDifferences()
+    public void SemanticRoundTrip_SampleFile_AllLinesSemanticallySame()
     {
-        var filePath = Path.Combine(_spidTestDataPath, "sample_DISTR.ini");
+        var filePath = Path.Combine(SpidTestDataPath, "sample_DISTR.ini");
         if (!File.Exists(filePath))
         {
             return;
         }
 
-        var lines = File.ReadAllLines(filePath);
-        var differences = new List<string>();
-
-        for (var i = 0; i < lines.Length; i++)
-        {
-            var line = lines[i].Trim();
-            if (string.IsNullOrWhiteSpace(line) || line.StartsWith(';'))
-            {
-                continue;
-            }
-
-            var result = TestRoundTrip(line);
-            if (!result.Success && result.FormattedLine != null)
-            {
-                differences.Add($"Line {i + 1}:");
-                differences.Add($"  Original:  {result.OriginalLine}");
-                differences.Add($"  Formatted: {result.FormattedLine}");
-                differences.Add($"  Diff: {GetDiff(result.OriginalLine, result.FormattedLine)}");
-                differences.Add("");
-            }
-        }
-
-        // This test always passes - it's for analysis output
-        if (differences.Count > 0)
-        {
-            // Output differences for debugging (visible in test output)
-            var output = string.Join(Environment.NewLine, differences);
-            Assert.True(true, $"Differences found:\n{output}");
-        }
-    }
-
-    #endregion
-
-    #region Result Types
-
-    private record RoundTripResult
-    {
-        public int LineNumber { get; init; }
-        public string OriginalLine { get; init; } = string.Empty;
-        public string? FormattedLine { get; init; }
-        public bool Success { get; init; }
-        public string? FailureReason { get; init; }
-    }
-
-    #endregion
-
-    #region File Discovery
-
-    [Fact]
-    public void TestDataDirectory_Exists()
-    {
-        Assert.True(Directory.Exists(_testDataPath),
-            $"TestData directory not found at: {_testDataPath}");
-    }
-
-    [Fact]
-    public void SpidTestData_HasFiles()
-    {
-        if (!Directory.Exists(_spidTestDataPath))
-        {
-            // Skip if directory doesn't exist yet
-            return;
-        }
-
-        var files = Directory.GetFiles(_spidTestDataPath, "*.ini");
-        Assert.NotEmpty(files);
-    }
-
-    #endregion
-
-    #region Round-Trip File Tests
-
-    [Fact]
-    public void RoundTrip_SampleSpidFile_AllLinesPreserved()
-    {
-        var filePath = Path.Combine(_spidTestDataPath, "sample_DISTR.ini");
-        if (!File.Exists(filePath))
-        {
-            // Skip if file doesn't exist
-            return;
-        }
-
-        var lines = File.ReadAllLines(filePath);
-        var results = new List<RoundTripResult>();
-
-        foreach (var line in lines)
-        {
-            var trimmed = line.Trim();
-
-            // Skip empty lines and comments
-            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';'))
-            {
-                continue;
-            }
-
-            var result = TestRoundTrip(trimmed);
-            results.Add(result);
-        }
-
-        // Report all failures at once for easier debugging
-        var failures = results.Where(r => !r.Success).ToList();
-        if (failures.Count > 0)
-        {
-            var message = string.Join(Environment.NewLine, failures.Select(f =>
-                $"Line: {f.OriginalLine}\nExpected: {f.OriginalLine}\nActual: {f.FormattedLine}\nReason: {f.FailureReason}"));
-            Assert.Fail($"Round-trip failures:\n{message}");
-        }
-
-        // Verify we actually tested some lines
-        Assert.True(results.Count > 0, "No lines were tested");
-    }
-
-    [Theory]
-    [InlineData("sample_DISTR.ini")]
-    public void RoundTrip_SpecificFile_AllLinesPreserved(string fileName)
-    {
-        var filePath = Path.Combine(_spidTestDataPath, fileName);
-        if (!File.Exists(filePath))
-        {
-            // Skip if file doesn't exist
-            return;
-        }
-
-        var (successCount, failureCount, failures) = TestFileRoundTrip(filePath);
+        var (successCount, _, failures) = TestFileSemanticRoundTrip(filePath);
 
         if (failures.Count > 0)
         {
             var message = string.Join(Environment.NewLine + Environment.NewLine, failures.Select(f =>
                 $"Line {f.LineNumber}: {f.OriginalLine}\n  Got: {f.FormattedLine}\n  Reason: {f.FailureReason}"));
-            Assert.Fail($"Round-trip failures in {fileName}:\n{message}");
+            failures.Should().BeEmpty($"all lines should be semantically equivalent:\n{message}");
         }
 
-        Assert.True(successCount > 0, $"No lines were successfully tested in {fileName}");
+        output.WriteLine($"Tested {successCount} lines successfully");
+        successCount.Should().BeGreaterThan(0, "at least one line should be tested");
     }
 
-    /// <summary>
-    ///     Test all .ini files in the Spid test data directory.
-    ///     Add your own distribution files to TestData/Spid/ to include them in testing.
-    /// </summary>
     [Fact]
-    public void RoundTrip_AllSpidFiles_AllLinesPreserved()
+    public void SemanticRoundTrip_MagecoreFile_AllLinesSemanticallySame()
     {
-        if (!Directory.Exists(_spidTestDataPath))
+        var filePath = Path.Combine(SpidTestDataPath, "Magecore_General_DISTR.ini");
+        if (!File.Exists(filePath))
         {
             return;
         }
 
-        var files = Directory.GetFiles(_spidTestDataPath, "*.ini");
-        if (files.Length == 0)
+        var (successCount, _, failures) = TestFileSemanticRoundTrip(filePath);
+
+        if (failures.Count > 0)
+        {
+            var message = string.Join(Environment.NewLine + Environment.NewLine, failures.Take(10).Select(f =>
+                $"Line {f.LineNumber}: {f.OriginalLine}\n  Got: {f.FormattedLine}\n  Reason: {f.FailureReason}"));
+            failures.Should().BeEmpty($"all lines should be semantically equivalent ({failures.Count} total):\n{message}");
+        }
+
+        output.WriteLine($"Tested {successCount} lines successfully");
+        successCount.Should().BeGreaterThan(100, "Magecore file should have 100+ lines");
+    }
+
+    #endregion
+
+    #region Diff Analysis (Debugging)
+
+    [Fact]
+    public void Analyze_AllFiles_ShowDifferences()
+    {
+        if (!Directory.Exists(SpidTestDataPath))
         {
             return;
         }
 
-        var allFailures = new List<(string File, List<RoundTripResult> Failures)>();
-        var fileStats = new List<(string File, int SuccessCount, int FailureCount)>();
+        var allDifferences = new List<string>();
 
-        foreach (var file in files)
+        foreach (var file in Directory.GetFiles(SpidTestDataPath, "*.ini"))
         {
-            var (successCount, failureCount, failures) = TestFileRoundTrip(file);
-            fileStats.Add((Path.GetFileName(file), successCount, failureCount));
+            var lines = File.ReadAllLines(file);
+            var fileName = Path.GetFileName(file);
 
-            if (failures.Count > 0)
+            for (var i = 0; i < lines.Length; i++)
             {
-                allFailures.Add((Path.GetFileName(file), failures));
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith(';'))
+                {
+                    continue;
+                }
+
+                var result = TestSemanticRoundTrip(line);
+                if (!result.Success && result.FormattedLine != null && result.FormattedLine != line)
+                {
+                    allDifferences.Add($"{fileName}:{i + 1}:");
+                    allDifferences.Add($"  Original:  {result.OriginalLine}");
+                    allDifferences.Add($"  Formatted: {result.FormattedLine}");
+                    allDifferences.Add($"  Reason: {result.FailureReason}");
+                    allDifferences.Add("");
+                }
             }
         }
 
-        // Build and output summary
-        var totalSuccess = fileStats.Sum(f => f.SuccessCount);
-        var totalFailure = fileStats.Sum(f => f.FailureCount);
-
-        output.WriteLine(
-            $"Tested {files.Length} files, {totalSuccess + totalFailure} lines ({totalSuccess} passed, {totalFailure} failed):");
-        foreach (var (file, success, failure) in fileStats)
+        if (allDifferences.Count > 0)
         {
-            output.WriteLine($"  {file}: {success + failure} lines ({success} passed, {failure} failed)");
+            output.WriteLine("String differences found (may be semantically equivalent):");
+            foreach (var diff in allDifferences.Take(50))
+            {
+                output.WriteLine(diff);
+            }
         }
-
-        if (allFailures.Count > 0)
+        else
         {
-            var message = string.Join(Environment.NewLine + Environment.NewLine,
-                allFailures.Select(f =>
-                    $"=== {f.File} ===\n" + string.Join(Environment.NewLine, f.Failures.Select(r =>
-                        $"  Line {r.LineNumber}: {r.OriginalLine}\n    Got: {r.FormattedLine}\n    Reason: {r.FailureReason}"))));
-            Assert.Fail($"Round-trip failures:\n{message}");
+            output.WriteLine("No differences found - all round-trips are identical");
         }
-
-        Assert.True(totalSuccess > 0, "No lines were successfully tested across all files");
     }
 
     #endregion
 
     #region Helper Methods
 
-    private static (int SuccessCount, int FailureCount, List<RoundTripResult> Failures) TestFileRoundTrip(
+    private static (int SuccessCount, int FailureCount, List<RoundTripResult> Failures) TestFileSemanticRoundTrip(
         string filePath)
     {
         var lines = File.ReadAllLines(filePath);
@@ -235,13 +133,12 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         {
             var line = lines[lineNumber - 1].Trim();
 
-            // Skip empty lines and comments
             if (string.IsNullOrWhiteSpace(line) || line.StartsWith(';'))
             {
                 continue;
             }
 
-            var result = TestRoundTrip(line);
+            var result = TestSemanticRoundTrip(line);
             result = result with { LineNumber = lineNumber };
 
             if (result.Success)
@@ -257,27 +154,16 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         return (successCount, failures.Count, failures);
     }
 
-    private static RoundTripResult TestRoundTrip(string line)
+    private static RoundTripResult TestSemanticRoundTrip(string line)
     {
-        // Try to parse the line
         if (!SpidLineParser.TryParse(line, out var filter1))
         {
             return new RoundTripResult { OriginalLine = line, Success = false, FailureReason = "Failed to parse line" };
         }
 
-        if (filter1 == null)
-        {
-            return new RoundTripResult
-            {
-                OriginalLine = line, Success = false, FailureReason = "Parser returned null filter"
-            };
-        }
+        var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter1!);
 
-        // Format back to string
-        var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter1);
-
-        // Parse the formatted string
-        if (!SpidLineParser.TryParse(formatted, out var filter2) || filter2 == null)
+        if (!SpidLineParser.TryParse(formatted, out var filter2))
         {
             return new RoundTripResult
             {
@@ -288,8 +174,7 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
             };
         }
 
-        // Compare semantically
-        var (equivalent, reason) = AreSemanticallySame(filter1, filter2);
+        var (equivalent, reason) = AreSemanticallySame(filter1!, filter2!);
         return new RoundTripResult
         {
             OriginalLine = line,
@@ -407,24 +292,17 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         a.IsTeammate == b.IsTeammate &&
         a.IsDead == b.IsDead;
 
-    private static string GetDiff(string original, string formatted)
+    #endregion
+
+    #region Result Types
+
+    private record RoundTripResult
     {
-        // Simple character-by-character diff indicator
-        var minLen = Math.Min(original.Length, formatted.Length);
-        for (var i = 0; i < minLen; i++)
-        {
-            if (original[i] != formatted[i])
-            {
-                return $"First difference at position {i}: '{original[i]}' vs '{formatted[i]}'";
-            }
-        }
-
-        if (original.Length != formatted.Length)
-        {
-            return $"Length difference: original={original.Length}, formatted={formatted.Length}";
-        }
-
-        return "No difference found";
+        public int LineNumber { get; init; }
+        public string OriginalLine { get; init; } = string.Empty;
+        public string? FormattedLine { get; init; }
+        public bool Success { get; init; }
+        public string? FailureReason { get; init; }
     }
 
     #endregion

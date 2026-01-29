@@ -1,6 +1,7 @@
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
+using FluentAssertions;
 using Xunit;
 
 namespace Boutique.Tests;
@@ -17,7 +18,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
@@ -28,7 +29,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -39,7 +40,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -50,22 +51,18 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
     public void SpidLine_WithTraitFilterOnly_TargetsAllNpcs()
     {
-        // Trait filters (F/M/U etc) are evaluated but don't prevent "targets all"
-        // because they're modifiers, not exclusions of all NPCs
         var file = CreateSpidFileViewModel("test.ini");
         var line = CreateLine("Outfit = MyOutfit|NONE|NONE|NONE|F", true);
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        // This should return true because StringFilters and FormFilters are empty
-        // Trait filters are separate from NPC targeting
-        Assert.True(result);
+        result.Should().BeTrue("trait filters are modifiers, not exclusions");
     }
 
     #endregion
@@ -80,7 +77,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     [Fact]
@@ -91,7 +88,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -102,7 +99,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -113,7 +110,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -124,7 +121,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -135,7 +132,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -146,7 +143,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -157,7 +154,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -168,19 +165,18 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
     public void SkyPatcherLine_WithoutOutfitAssignment_DoesNotTargetAllNpcs()
     {
         var file = CreateSkyPatcherFileViewModel("test.ini");
-        // This line has no outfit assignment, so it's not an outfit distribution
         var line = CreateLine("formsToAdd=Skyrim.esm|000ABC12", false);
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.False(result);
+        result.Should().BeFalse();
     }
 
     [Fact]
@@ -191,7 +187,7 @@ public class DistributionLineParserTests
 
         var result = DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        Assert.True(result);
+        result.Should().BeTrue();
     }
 
     #endregion
