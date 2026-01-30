@@ -2,6 +2,7 @@ using Boutique.Models;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
@@ -69,102 +70,41 @@ public static class NpcDataExtractor
 
     public static (FormKey? FormKey, string? EditorId) ExtractRace(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        if (npc.Race.IsNull)
-        {
-            return (null, null);
-        }
-
-        var formKey = npc.Race.FormKey;
-        string? editorId = null;
-
-        if (npc.Race.TryResolve(linkCache, out var race))
-        {
-            editorId = race.EditorID;
-        }
-
-        return (formKey, editorId);
-    }
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        ExtractLinkedRecord(npc.Race, linkCache);
 
     public static (FormKey? FormKey, string? EditorId) ExtractClass(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        if (npc.Class.IsNull)
-        {
-            return (null, null);
-        }
-
-        var formKey = npc.Class.FormKey;
-        string? editorId = null;
-
-        if (npc.Class.TryResolve(linkCache, out var npcClass))
-        {
-            editorId = npcClass.EditorID;
-        }
-
-        return (formKey, editorId);
-    }
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        ExtractLinkedRecord(npc.Class, linkCache);
 
     public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        if (npc.CombatStyle.IsNull)
-        {
-            return (null, null);
-        }
-
-        var formKey = npc.CombatStyle.FormKey;
-        string? editorId = null;
-
-        if (npc.CombatStyle.TryResolve(linkCache, out var combatStyle))
-        {
-            editorId = combatStyle.EditorID;
-        }
-
-        return (formKey, editorId);
-    }
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        ExtractLinkedRecord(npc.CombatStyle, linkCache);
 
     public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-        if (npc.Voice.IsNull)
-        {
-            return (null, null);
-        }
-
-        var formKey = npc.Voice.FormKey;
-        string? editorId = null;
-
-        if (npc.Voice.TryResolve(linkCache, out var voice))
-        {
-            editorId = voice.EditorID;
-        }
-
-        return (formKey, editorId);
-    }
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        ExtractLinkedRecord(npc.Voice, linkCache);
 
     public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(
         INpcGetter npc,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
+        ExtractLinkedRecord(npc.DefaultOutfit, linkCache);
+
+    private static (FormKey? FormKey, string? EditorId) ExtractLinkedRecord<T>(
+        IFormLinkGetter<T> link,
+        ILinkCache linkCache)
+        where T : class, IMajorRecordGetter
     {
-        if (npc.DefaultOutfit.IsNull)
+        if (link.IsNull)
         {
             return (null, null);
         }
 
-        var formKey = npc.DefaultOutfit.FormKey;
-        string? editorId = null;
-
-        if (npc.DefaultOutfit.TryResolve(linkCache, out var outfit))
-        {
-            editorId = outfit.EditorID;
-        }
-
-        return (formKey, editorId);
+        var editorId = link.TryResolve(linkCache, out var record) ? record.EditorID : null;
+        return (link.FormKey, editorId);
     }
 
     public static (FormKey? FormKey, string? EditorId) ExtractTemplate(

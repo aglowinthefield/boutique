@@ -384,21 +384,13 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                var faction = linkCache.WinningOverrides<IFactionGetter>()
-                    .FirstOrDefault(f => string.Equals(f.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (faction != null)
+                if (TryResolveAndAddFilter<IFactionGetter>(part.Value, part.IsNegated, linkCache, factionFilters, resolvedEditorIds))
                 {
-                    factionFilters.Add(new FormKeyFilter(faction.FormKey, part.IsNegated));
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var race = linkCache.WinningOverrides<IRaceGetter>()
-                    .FirstOrDefault(r => string.Equals(r.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (race != null)
+                if (TryResolveAndAddFilter<IRaceGetter>(part.Value, part.IsNegated, linkCache, raceFilters, resolvedEditorIds))
                 {
-                    raceFilters.Add(new FormKeyFilter(race.FormKey, part.IsNegated));
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
@@ -407,66 +399,38 @@ public static class SpidFilterResolver
                     continue;
                 }
 
-                var classRecord = linkCache.WinningOverrides<IClassGetter>()
-                    .FirstOrDefault(c => string.Equals(c.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (classRecord != null)
+                if (TryResolveAndAdd<IClassGetter>(part.Value, linkCache, classFormKeys, resolvedEditorIds))
                 {
-                    classFormKeys.Add(classRecord.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var combatStyle = linkCache.WinningOverrides<ICombatStyleGetter>()
-                    .FirstOrDefault(cs => string.Equals(cs.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (combatStyle != null)
+                if (TryResolveAndAdd<ICombatStyleGetter>(part.Value, linkCache, combatStyleFormKeys, resolvedEditorIds))
                 {
-                    combatStyleFormKeys.Add(combatStyle.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var outfitFilter = linkCache.WinningOverrides<IOutfitGetter>()
-                    .FirstOrDefault(o => string.Equals(o.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (outfitFilter != null)
+                if (TryResolveAndAdd<IOutfitGetter>(part.Value, linkCache, outfitFilterFormKeys, resolvedEditorIds))
                 {
-                    outfitFilterFormKeys.Add(outfitFilter.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var perk = linkCache.WinningOverrides<IPerkGetter>()
-                    .FirstOrDefault(p => string.Equals(p.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (perk != null)
+                if (TryResolveAndAdd<IPerkGetter>(part.Value, linkCache, perkFormKeys, resolvedEditorIds))
                 {
-                    perkFormKeys.Add(perk.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var voiceType = linkCache.WinningOverrides<IVoiceTypeGetter>()
-                    .FirstOrDefault(v => string.Equals(v.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (voiceType != null)
+                if (TryResolveAndAdd<IVoiceTypeGetter>(part.Value, linkCache, voiceTypeFormKeys, resolvedEditorIds))
                 {
-                    voiceTypeFormKeys.Add(voiceType.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var location = linkCache.WinningOverrides<ILocationGetter>()
-                    .FirstOrDefault(l => string.Equals(l.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (location != null)
+                if (TryResolveAndAdd<ILocationGetter>(part.Value, linkCache, locationFormKeys, resolvedEditorIds))
                 {
-                    locationFormKeys.Add(location.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
-                var formList = linkCache.WinningOverrides<IFormListGetter>()
-                    .FirstOrDefault(fl => string.Equals(fl.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
-                if (formList != null)
+                if (TryResolveAndAdd<IFormListGetter>(part.Value, linkCache, formListFormKeys, resolvedEditorIds))
                 {
-                    formListFormKeys.Add(formList.FormKey);
-                    resolvedEditorIds?.Add(part.Value);
                     continue;
                 }
 
@@ -483,22 +447,12 @@ public static class SpidFilterResolver
                 continue;
             }
 
-            var faction = linkCache.WinningOverrides<IFactionGetter>()
-                .FirstOrDefault(f => string.Equals(f.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
-            if (faction != null)
+            if (TryResolveAndAddFilter<IFactionGetter>(exclusion.Value, true, linkCache, factionFilters, resolvedEditorIds))
             {
-                factionFilters.Add(new FormKeyFilter(faction.FormKey, true));
-                resolvedEditorIds?.Add(exclusion.Value);
                 continue;
             }
 
-            var race = linkCache.WinningOverrides<IRaceGetter>()
-                .FirstOrDefault(r => string.Equals(r.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
-            if (race != null)
-            {
-                raceFilters.Add(new FormKeyFilter(race.FormKey, true));
-                resolvedEditorIds?.Add(exclusion.Value);
-            }
+            TryResolveAndAddFilter<IRaceGetter>(exclusion.Value, true, linkCache, raceFilters, resolvedEditorIds);
         }
     }
 
@@ -564,6 +518,48 @@ public static class SpidFilterResolver
         }
 
         return false;
+    }
+
+    private static T? ResolveByEditorId<T>(string editorId, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        where T : class, ISkyrimMajorRecordGetter =>
+        linkCache.WinningOverrides<T>()
+            .FirstOrDefault(r => string.Equals(r.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+
+    private static bool TryResolveAndAdd<T>(
+        string editorId,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        List<FormKey> targetList,
+        HashSet<string>? resolvedEditorIds)
+        where T : class, ISkyrimMajorRecordGetter
+    {
+        var record = ResolveByEditorId<T>(editorId, linkCache);
+        if (record == null)
+        {
+            return false;
+        }
+
+        targetList.Add(record.FormKey);
+        resolvedEditorIds?.Add(editorId);
+        return true;
+    }
+
+    private static bool TryResolveAndAddFilter<T>(
+        string editorId,
+        bool isNegated,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+        List<FormKeyFilter> targetList,
+        HashSet<string>? resolvedEditorIds)
+        where T : class, ISkyrimMajorRecordGetter
+    {
+        var record = ResolveByEditorId<T>(editorId, linkCache);
+        if (record == null)
+        {
+            return false;
+        }
+
+        targetList.Add(new FormKeyFilter(record.FormKey, isNegated));
+        resolvedEditorIds?.Add(editorId);
+        return true;
     }
 
     private static string? ExtractUnresolvableStringFilters(

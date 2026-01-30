@@ -133,146 +133,7 @@ public static class DistributionFileFormatter
         }
 
         var outfitIdentifier = FormKeyHelper.FormatForSpid(entry.SelectedOutfit.FormKey);
-
-        var stringFilterParts = new List<string>();
-
-        var includedNpcNames = entry.SelectedNpcs
-            .Where(npc => !npc.IsExcluded && !string.IsNullOrWhiteSpace(npc.DisplayName))
-            .Select(npc => npc.DisplayName)
-            .ToList();
-        if (includedNpcNames.Count > 0)
-        {
-            stringFilterParts.Add(string.Join(",", includedNpcNames));
-        }
-
-        var includedKeywords = entry.SelectedKeywords
-            .Where(k => !k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
-            .Select(k => k.EditorID)
-            .ToList();
-        if (includedKeywords.Count > 0)
-        {
-            stringFilterParts.Add(string.Join("+", includedKeywords));
-        }
-
-        var excludedKeywords = entry.SelectedKeywords
-            .Where(k => k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
-            .Select(k => $"-{k.EditorID}")
-            .ToList();
-        stringFilterParts.AddRange(excludedKeywords);
-
-        if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
-        {
-            stringFilterParts.Add(entry.RawStringFilters.Trim());
-        }
-
-        var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
-
-        var formFilterParts = new List<string>();
-        var formExclusions = new List<string>();
-
-        foreach (var faction in entry.SelectedFactions)
-        {
-            var editorId = faction.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-            {
-                if (faction.IsExcluded)
-                {
-                    formExclusions.Add($"-{editorId}");
-                }
-                else
-                {
-                    formFilterParts.Add(editorId);
-                }
-            }
-        }
-
-        foreach (var race in entry.SelectedRaces)
-        {
-            var editorId = race.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-            {
-                if (race.IsExcluded)
-                {
-                    formExclusions.Add($"-{editorId}");
-                }
-                else
-                {
-                    formFilterParts.Add(editorId);
-                }
-            }
-        }
-
-        foreach (var classVm in entry.SelectedClasses)
-        {
-            var editorId = classVm.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-            {
-                formFilterParts.Add(editorId);
-            }
-        }
-
-        foreach (var npc in entry.SelectedNpcs.Where(n => n.IsExcluded))
-        {
-            formExclusions.Add($"-{FormKeyHelper.FormatForSpid(npc.FormKey)}");
-        }
-
-        var formFilterResult = new List<string>();
-        if (formFilterParts.Count > 0)
-        {
-            formFilterResult.Add(string.Join("+", formFilterParts));
-        }
-
-        formFilterResult.AddRange(formExclusions);
-
-        if (!string.IsNullOrWhiteSpace(entry.RawFormFilters))
-        {
-            formFilterResult.Add(entry.RawFormFilters.Trim());
-        }
-
-        var formFiltersPart = formFilterResult.Count > 0 ? string.Join(",", formFilterResult) : null;
-
-        var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
-
-        // Position 5: TraitFilters
-        var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
-
-        // Position 6: CountOrPackageIdx - Not supported yet
-        string? countPart = null;
-
-        // Position 7: Chance
-        var chancePart = entry.UseChance && entry.Chance != 100
-            ? entry.Chance.ToString(CultureInfo.InvariantCulture)
-            : null;
-
-        // Build the line, preserving intermediate NONEs but trimming trailing ones
-        var parts = new[]
-        {
-            stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart
-        };
-
-        // Find the last non-null position
-        var lastNonNullIndex = -1;
-        for (var i = parts.Length - 1; i >= 0; i--)
-        {
-            if (parts[i] != null)
-            {
-                lastNonNullIndex = i;
-                break;
-            }
-        }
-
-        // Build the SPID line
-        var sb = new StringBuilder();
-        sb.Append("Outfit = ");
-        sb.Append(outfitIdentifier);
-
-        for (var i = 0; i <= lastNonNullIndex; i++)
-        {
-            sb.Append('|');
-            sb.Append(parts[i] ?? "NONE");
-        }
-
-        return sb.ToString();
+        return BuildSpidLine("Outfit", outfitIdentifier, entry);
     }
 
     /// <summary>
@@ -286,8 +147,39 @@ public static class DistributionFileFormatter
             throw new ArgumentException("Entry must have a keyword to distribute", nameof(entry));
         }
 
-        var keywordIdentifier = entry.KeywordToDistribute;
+        return BuildSpidLine("Keyword", entry.KeywordToDistribute, entry);
+    }
 
+    private static string BuildSpidLine(string formType, string identifier, DistributionEntryViewModel entry)
+    {
+        var (stringFiltersPart, formFiltersPart) = BuildSpidFilterParts(entry);
+        var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
+        var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
+        string? countPart = null;
+        var chancePart = entry.UseChance && entry.Chance != 100
+            ? entry.Chance.ToString(CultureInfo.InvariantCulture)
+            : null;
+
+        var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
+
+        var lastNonNullIndex = Array.FindLastIndex(parts, p => p != null);
+
+        var sb = new StringBuilder();
+        sb.Append(formType);
+        sb.Append(" = ");
+        sb.Append(identifier);
+
+        for (var i = 0; i <= lastNonNullIndex; i++)
+        {
+            sb.Append('|');
+            sb.Append(parts[i] ?? "NONE");
+        }
+
+        return sb.ToString();
+    }
+
+    private static (string? StringFilters, string? FormFilters) BuildSpidFilterParts(DistributionEntryViewModel entry)
+    {
         var stringFilterParts = new List<string>();
 
         var includedNpcNames = entry.SelectedNpcs
@@ -324,37 +216,8 @@ public static class DistributionFileFormatter
         var formFilterParts = new List<string>();
         var formExclusions = new List<string>();
 
-        foreach (var faction in entry.SelectedFactions)
-        {
-            var editorId = faction.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-            {
-                if (faction.IsExcluded)
-                {
-                    formExclusions.Add($"-{editorId}");
-                }
-                else
-                {
-                    formFilterParts.Add(editorId);
-                }
-            }
-        }
-
-        foreach (var race in entry.SelectedRaces)
-        {
-            var editorId = race.EditorID;
-            if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
-            {
-                if (race.IsExcluded)
-                {
-                    formExclusions.Add($"-{editorId}");
-                }
-                else
-                {
-                    formFilterParts.Add(editorId);
-                }
-            }
-        }
+        AddFormFiltersWithExclusions(entry.SelectedFactions, formFilterParts, formExclusions);
+        AddFormFiltersWithExclusions(entry.SelectedRaces, formFilterParts, formExclusions);
 
         foreach (var classVm in entry.SelectedClasses)
         {
@@ -385,45 +248,31 @@ public static class DistributionFileFormatter
 
         var formFiltersPart = formFilterResult.Count > 0 ? string.Join(",", formFilterResult) : null;
 
-        var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
+        return (stringFiltersPart, formFiltersPart);
+    }
 
-        // Position 5: TraitFilters
-        var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
-
-        // Position 6: CountOrPackageIdx - Not supported yet
-        string? countPart = null;
-
-        // Position 7: Chance
-        var chancePart = entry.UseChance && entry.Chance != 100
-            ? entry.Chance.ToString(CultureInfo.InvariantCulture)
-            : null;
-
-        var parts = new[]
+    private static void AddFormFiltersWithExclusions(
+        IEnumerable<ISelectableRecordViewModel> items,
+        List<string> formFilterParts,
+        List<string> formExclusions)
+    {
+        foreach (var item in items)
         {
-            stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart
-        };
-
-        var lastNonNullIndex = -1;
-        for (var i = parts.Length - 1; i >= 0; i--)
-        {
-            if (parts[i] != null)
+            var editorId = item.EditorID;
+            if (string.IsNullOrWhiteSpace(editorId) || editorId == "(No EditorID)")
             {
-                lastNonNullIndex = i;
-                break;
+                continue;
+            }
+
+            if (item.IsExcluded)
+            {
+                formExclusions.Add($"-{editorId}");
+            }
+            else
+            {
+                formFilterParts.Add(editorId);
             }
         }
-
-        var sb = new StringBuilder();
-        sb.Append("Keyword = ");
-        sb.Append(keywordIdentifier);
-
-        for (var i = 0; i <= lastNonNullIndex; i++)
-        {
-            sb.Append('|');
-            sb.Append(parts[i] ?? "NONE");
-        }
-
-        return sb.ToString();
     }
 
     /// <summary>
@@ -601,70 +450,21 @@ public static class DistributionFileFormatter
             return null;
         }
 
-        var parts = new List<string>();
+        var traitMappings = new (bool? value, string trueFlag, string falseFlag)[]
+        {
+            (traits.IsFemale, "F", "M"),
+            (traits.IsUnique, "U", "-U"),
+            (traits.IsSummonable, "S", "-S"),
+            (traits.IsChild, "C", "-C"),
+            (traits.IsLeveled, "L", "-L"),
+            (traits.IsTeammate, "T", "-T"),
+            (traits.IsDead, "D", "-D")
+        };
 
-        if (traits.IsFemale == true)
-        {
-            parts.Add("F");
-        }
-        else if (traits.IsFemale == false)
-        {
-            parts.Add("M");
-        }
-
-        if (traits.IsUnique == true)
-        {
-            parts.Add("U");
-        }
-        else if (traits.IsUnique == false)
-        {
-            parts.Add("-U");
-        }
-
-        if (traits.IsSummonable == true)
-        {
-            parts.Add("S");
-        }
-        else if (traits.IsSummonable == false)
-        {
-            parts.Add("-S");
-        }
-
-        if (traits.IsChild == true)
-        {
-            parts.Add("C");
-        }
-        else if (traits.IsChild == false)
-        {
-            parts.Add("-C");
-        }
-
-        if (traits.IsLeveled == true)
-        {
-            parts.Add("L");
-        }
-        else if (traits.IsLeveled == false)
-        {
-            parts.Add("-L");
-        }
-
-        if (traits.IsTeammate == true)
-        {
-            parts.Add("T");
-        }
-        else if (traits.IsTeammate == false)
-        {
-            parts.Add("-T");
-        }
-
-        if (traits.IsDead == true)
-        {
-            parts.Add("D");
-        }
-        else if (traits.IsDead == false)
-        {
-            parts.Add("-D");
-        }
+        var parts = traitMappings
+            .Where(m => m.value.HasValue)
+            .Select(m => m.value!.Value ? m.trueFlag : m.falseFlag)
+            .ToList();
 
         return parts.Count > 0 ? string.Join("/", parts) : null;
     }
