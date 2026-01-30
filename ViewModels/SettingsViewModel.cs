@@ -180,7 +180,7 @@ public partial class SettingsViewModel : ReactiveObject
 
     public IReadOnlyList<LanguageOption> AvailableLanguages => _localizationService.AvailableLanguages;
 
-    public IReadOnlyList<double> FontScaleOptions { get; } = [0.85, 1.0, 1.15, 1.3];
+    public IReadOnlyList<double> FontScaleOptions { get; } = [0.75, 0.85, 1.0, 1.15, 1.3, 1.5, 1.75, 2.0];
 
     public string FullOutputPath
     {
