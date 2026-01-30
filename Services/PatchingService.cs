@@ -430,6 +430,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             string.Join(", ", masterList.Select(m => m.Master.FileName)));
     }
 
+    private static bool MasterExistsOnDisk(string dataFolder, ModKey master)
+    {
+        var masterPath = Path.Combine(dataFolder, master.FileName);
+        return File.Exists(masterPath);
+    }
+
     private void WritePatchWithRetry(SkyrimMod patchMod, string outputPath, HashSet<ModKey> extraMasters)
     {
         var tempPath = Path.Combine(
@@ -564,7 +570,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
             try
             {
-                using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath, SkyrimRelease.SkyrimSE);
+                using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath, mutagenService.SkyrimRelease);
                 var dataFolder = mutagenService.DataFolderPath ?? string.Empty;
                 var loadOrderModKeys = mutagenService.GetLoadOrderModKeys();
                 var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
@@ -578,11 +584,21 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                         continue;
                     }
 
-                    if (!loadOrderModKeys.Contains(master))
+                    if (loadOrderModKeys.Contains(master))
                     {
-                        missingMasters.Add(master);
-                        _logger.Warning("Missing master detected: {Master}", master.FileName);
+                        continue;
                     }
+
+                    if (!string.IsNullOrEmpty(dataFolder) && MasterExistsOnDisk(dataFolder, master))
+                    {
+                        _logger.Debug(
+                            "Master {Master} not in load order but exists on disk, treating as present.",
+                            master.FileName);
+                        continue;
+                    }
+
+                    missingMasters.Add(master);
+                    _logger.Warning("Missing master detected: {Master}", master.FileName);
                 }
 
                 if (missingMasters.Count == 0)
