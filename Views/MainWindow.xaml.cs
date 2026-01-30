@@ -9,7 +9,6 @@ using Boutique.Services;
 using Boutique.ViewModels;
 using GuideLine.Core;
 using GuideLine.WPF.View;
-using Microsoft.VisualBasic;
 
 namespace Boutique.Views;
 
@@ -72,10 +71,7 @@ public partial class MainWindow : Window
         {
             var (prompt, defaultValue) = interaction.Input;
             var result = await Dispatcher.InvokeAsync(() =>
-            {
-                var input = Interaction.InputBox(prompt, "Create Outfit", defaultValue);
-                return string.IsNullOrWhiteSpace(input) ? null : input;
-            });
+                InputDialog.Show(this, prompt, "Create Outfit", defaultValue));
             interaction.SetOutput(result);
         });
         _bindings.Add(outfitNameDisposable);

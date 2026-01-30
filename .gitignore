@@ -102,3 +102,7 @@ CLAUDE.md
 .cursor/
 tmp*
 nul
+.agents/
+.codex/
+.github/skills/
+.opencode/
