@@ -372,21 +372,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     public bool HasParseErrors => ActualParseErrors.Count > 0;
 
-    public bool IsFilePreviewExpanded
-    {
-        get => _guiSettings.IsFilePreviewExpanded;
-        set
-        {
-            if (_guiSettings.IsFilePreviewExpanded == value)
-            {
-                return;
-            }
-
-            _guiSettings.IsFilePreviewExpanded = value;
-            this.RaisePropertyChanged();
-        }
-    }
-
     public ObservableCollection<DistributionEntryViewModel> DistributionEntries
     {
         get => _distributionEntries;

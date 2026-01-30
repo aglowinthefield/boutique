@@ -8,7 +8,6 @@ namespace Boutique.Services;
 
 public class GuiSettings
 {
-    public bool IsFilePreviewExpanded { get; set; }
     public string? SkyrimDataPath { get; set; }
     public string? OutputPatchPath { get; set; }
     public string? PatchFileName { get; set; }
@@ -44,21 +43,6 @@ public class GuiSettingsService
         using (StartupProfiler.Instance.BeginOperation("GuiSettingsService.LoadSettings"))
         {
             LoadSettings();
-        }
-    }
-
-    public bool IsFilePreviewExpanded
-    {
-        get => _settings.IsFilePreviewExpanded;
-        set
-        {
-            if (_settings.IsFilePreviewExpanded == value)
-            {
-                return;
-            }
-
-            _settings.IsFilePreviewExpanded = value;
-            SaveSettings();
         }
     }
 
@@ -262,9 +246,6 @@ public class GuiSettingsService
             if (loaded != null)
             {
                 _settings = loaded;
-                _logger.Debug(
-                    "Loaded GUI settings: IsFilePreviewExpanded={IsExpanded}",
-                    _settings.IsFilePreviewExpanded);
             }
         }
         catch (Exception ex)

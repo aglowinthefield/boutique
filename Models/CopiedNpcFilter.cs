@@ -54,16 +54,6 @@ public class CopiedNpcFilter
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
-    ///     Gets a value indicating whether this filter has any criteria that can be applied to a distribution entry.
-    ///     Trait filters (gender, unique, child) are only applicable to SPID format.
-    /// </summary>
-    public bool HasDistributableFilters =>
-        Factions.Count > 0 ||
-        Races.Count > 0 ||
-        Keywords.Count > 0 ||
-        Classes.Count > 0;
-
-    /// <summary>
     ///     Gets a value indicating whether this filter has trait filters (gender, unique, child, etc.)
     ///     that can be applied to SPID format distributions.
     /// </summary>
