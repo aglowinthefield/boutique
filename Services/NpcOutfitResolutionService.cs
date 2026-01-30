@@ -361,7 +361,7 @@ public class NpcOutfitResolutionService
             foreach (var line in skyPatcherLines)
             {
                 var results = new List<(FormKey NpcFormKey, FormKey OutfitFormKey, string? OutfitEditorId)>();
-                ParseSkyPatcherLineForFilteredResolution(line.RawText, linkCache, outfitByEditorId, results);
+                ParseSkyPatcherLineCore(line.RawText, linkCache, outfitByEditorId, results);
 
                 foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in results)
                 {
@@ -399,7 +399,7 @@ public class NpcOutfitResolutionService
             localDistributions.Count);
     }
 
-    private static void ParseSkyPatcherLineForFilteredResolution(
+    private void ParseSkyPatcherLineCore(
         string lineText,
         ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
         IReadOnlyDictionary<string, FormKey> outfitByEditorId,
@@ -669,35 +669,9 @@ public class NpcOutfitResolutionService
         List<(FormKey npcFormKey, FormKey outfitFormKey, string? outfitEditorId)> results)
     {
         _logger.Debug("ParseSkyPatcherLine: {Line}", lineText.Length > 150 ? lineText[..150] + "..." : lineText);
-
-        var npcFormKeys = ParseNpcFormKeysWithEditorIdFallback(lineText, linkCache);
-        var (outfitFormKey, outfitEditorId) = ResolveOutfitFromLine(lineText, linkCache, outfitByEditorId);
-
-        _logger.Debug(
-            "SkyPatcher parse result: {NpcCount} NPCs, outfit={OutfitFormKey}",
-            npcFormKeys.Count,
-            outfitFormKey?.ToString() ?? "null");
-
-        if (!outfitFormKey.HasValue || npcFormKeys.Count == 0)
-        {
-            return;
-        }
-
-        var genderFilter = SkyPatcherSyntax.ParseGenderFilter(lineText);
-
-        foreach (var npcFormKey in npcFormKeys)
-        {
-            if (genderFilter.HasValue && linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
-            {
-                var isFemale = npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female);
-                if (isFemale != genderFilter.Value)
-                {
-                    continue;
-                }
-            }
-
-            results.Add((npcFormKey, outfitFormKey.Value, outfitEditorId));
-        }
+        var countBefore = results.Count;
+        ParseSkyPatcherLineCore(lineText, linkCache, outfitByEditorId, results);
+        _logger.Debug("SkyPatcher parse result: {NpcCount} NPCs matched", results.Count - countBefore);
     }
 
     private void ParseSpidLine(
