@@ -23,6 +23,15 @@ public class GuiSettings
     public WindowState? WindowState { get; set; }
 
     public Dictionary<string, double>? GridSplitterPositions { get; set; }
+    public Dictionary<string, SecondaryWindowGeometry>? SecondaryWindowGeometries { get; set; }
+}
+
+public class SecondaryWindowGeometry
+{
+    public double? Left { get; set; }
+    public double? Top { get; set; }
+    public double? Width { get; set; }
+    public double? Height { get; set; }
 }
 
 public class GuiSettingsService
@@ -44,7 +53,11 @@ public class GuiSettingsService
         {
             LoadSettings();
         }
+
+        Current = this;
     }
+
+    public static GuiSettingsService? Current { get; private set; }
 
     public string? SkyrimDataPath
     {
@@ -192,6 +205,48 @@ public class GuiSettingsService
         }
 
         _settings.WindowState = window.WindowState;
+        SaveSettings();
+    }
+
+    public void RestoreSecondaryWindowGeometry(Window window, string windowKey)
+    {
+        var geometry = _settings.SecondaryWindowGeometries?.GetValueOrDefault(windowKey);
+        if (geometry == null)
+        {
+            return;
+        }
+
+        if (geometry.Width.HasValue && geometry.Height.HasValue &&
+            geometry.Width.Value > 0 && geometry.Height.Value > 0)
+        {
+            window.Width = geometry.Width.Value;
+            window.Height = geometry.Height.Value;
+        }
+
+        if (geometry.Left.HasValue && geometry.Top.HasValue)
+        {
+            if (IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
+            {
+                window.Left = geometry.Left.Value;
+                window.Top = geometry.Top.Value;
+                window.WindowStartupLocation = WindowStartupLocation.Manual;
+            }
+        }
+    }
+
+    public void SaveSecondaryWindowGeometry(Window window, string windowKey)
+    {
+        _settings.SecondaryWindowGeometries ??= new Dictionary<string, SecondaryWindowGeometry>();
+
+        var geometry = new SecondaryWindowGeometry
+        {
+            Left = window.Left,
+            Top = window.Top,
+            Width = window.Width,
+            Height = window.Height
+        };
+
+        _settings.SecondaryWindowGeometries[windowKey] = geometry;
         SaveSettings();
     }
 

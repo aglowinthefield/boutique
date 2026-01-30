@@ -23,6 +23,7 @@ namespace Boutique.Views;
 
 public sealed partial class OutfitPreviewWindow : IDisposable
 {
+    private const string WindowGeometryKey = "OutfitPreview";
     private const float AmbientSrgb = 0.2f;
     private const float KeyFillSrgb = 0.6f;
     private const float RimSrgb = 0.85f;
@@ -60,6 +61,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         _currentSceneIndex = sceneCollection.InitialIndex;
         _currentGender = sceneCollection.InitialGender;
 
+        GuiSettingsService.Current?.RestoreSecondaryWindowGeometry(this, WindowGeometryKey);
+
         SourceInitialized += (_, _) =>
         {
             _themeService.ApplyTitleBarTheme(this);
@@ -72,7 +75,6 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         InitializeGenderDropdown();
         BuildScene();
 
-        // Add window-level keyboard shortcuts
         PreviewKeyDown += OnWindowPreviewKeyDown;
     }
 
@@ -698,6 +700,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     protected override void OnClosed(EventArgs e)
     {
+        GuiSettingsService.Current?.SaveSecondaryWindowGeometry(this, WindowGeometryKey);
         base.OnClosed(e);
         Dispose();
     }
