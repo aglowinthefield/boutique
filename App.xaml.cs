@@ -27,19 +27,14 @@ public partial class App
     {
         base.OnStartup(e);
 
-        using (StartupProfiler.Instance.BeginOperation("CodePageRegistration"))
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        }
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         _loggingService = new LoggingService();
         ConfigureExceptionLogging();
         Log.Information("Application startup invoked.");
         LogMO2Environment();
 
-        using (StartupProfiler.Instance.BeginOperation("ContainerBuild"))
-        {
-            var builder = new ContainerBuilder();
+        var builder = new ContainerBuilder();
 
             builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
             builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
@@ -71,31 +66,20 @@ public partial class App
 
             builder.RegisterType<MainWindow>().AsSelf();
 
-            _container = builder.Build();
-        }
+        _container = builder.Build();
 
-        using (StartupProfiler.Instance.BeginOperation("ThemeInitialization"))
-        {
-            var themeService = _container.Resolve<ThemeService>();
-            themeService.Initialize();
-        }
+        var themeService = _container.Resolve<ThemeService>();
+        themeService.Initialize();
 
         try
         {
-            using (StartupProfiler.Instance.BeginOperation("LocalizationInitialization"))
-            {
-                var localizationService = _container.Resolve<LocalizationService>();
-                localizationService.Initialize();
-            }
+            var localizationService = _container.Resolve<LocalizationService>();
+            localizationService.Initialize();
 
-            using (StartupProfiler.Instance.BeginOperation("MainWindowCreation"))
-            {
-                var mainWindow = _container.Resolve<MainWindow>();
-                mainWindow.Show();
-            }
+            var mainWindow = _container.Resolve<MainWindow>();
+            mainWindow.Show();
 
             Log.Information("Main window displayed.");
-            StartupProfiler.Instance.EndOperation("AppStartup");
         }
         catch (Exception ex)
         {

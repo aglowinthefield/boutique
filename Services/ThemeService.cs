@@ -61,20 +61,9 @@ public class ThemeService
     {
         Current = this;
 
-        using (StartupProfiler.Instance.BeginOperation("ThemeService.LoadSettings", "ThemeInitialization"))
-        {
-            (CurrentThemeSetting, CurrentFontScale) = LoadSettings();
-        }
-
-        using (StartupProfiler.Instance.BeginOperation("ThemeService.ApplyTheme", "ThemeInitialization"))
-        {
-            ApplyTheme(CurrentThemeSetting);
-        }
-
-        using (StartupProfiler.Instance.BeginOperation("ThemeService.ApplyFontScale", "ThemeInitialization"))
-        {
-            ApplyFontScale(CurrentFontScale);
-        }
+        (CurrentThemeSetting, CurrentFontScale) = LoadSettings();
+        ApplyTheme(CurrentThemeSetting);
+        ApplyFontScale(CurrentFontScale);
 
         SystemEvents.UserPreferenceChanged += OnSystemPreferenceChanged;
     }

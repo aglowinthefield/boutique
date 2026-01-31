@@ -49,11 +49,7 @@ public class GuiSettingsService
     public GuiSettingsService(ILogger logger)
     {
         _logger = logger.ForContext<GuiSettingsService>();
-        using (StartupProfiler.Instance.BeginOperation("GuiSettingsService.LoadSettings"))
-        {
-            LoadSettings();
-        }
-
+        LoadSettings();
         Current = this;
     }
 

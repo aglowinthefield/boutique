@@ -52,8 +52,6 @@ public class LocalizationService
 
     public void Initialize()
     {
-        using var profilerScope = StartupProfiler.Instance.BeginOperation("LocalizationService.Initialize", "LocalizationInitialization");
-
         try
         {
             ResxLocalizationProvider.Instance.FallbackAssembly = "Boutique";
