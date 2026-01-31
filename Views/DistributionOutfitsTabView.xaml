@@ -39,6 +39,10 @@
                   IsChecked="{Binding HideVanillaOutfits}"
                   VerticalAlignment="Center" Margin="0,0,16,0"
                   ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.HideVanillaTooltip}}" />
+        <CheckBox Content="Contains Leveled Lists"
+                  IsChecked="{Binding ShowOnlyLeveledOutfits}"
+                  VerticalAlignment="Center" Margin="0,0,16,0"
+                  ToolTip="Show only outfits that contain leveled lists or form lists" />
         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
                    Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
         <TextBox Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -129,6 +133,8 @@
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="10" />
           <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="10" />
+          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- NPC Assignments -->
@@ -154,8 +160,26 @@
           </DataGrid>
         </GroupBox>
 
+        <!-- Outfit Contents -->
+        <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.OutfitContents}}"
+                  Padding="6">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0" Text="{Binding SelectedOutfitContents, Mode=OneWay}"
+                     IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+            <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Preview}}"
+                    Command="{Binding PreviewOutfitCommand}"
+                    CommandParameter="{Binding SelectedOutfit}"
+                    Padding="12,4" Margin="0,6,0,0" HorizontalAlignment="Left" />
+          </Grid>
+        </GroupBox>
+
         <!-- Distribution Details -->
-        <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.DistributionFiles}}"
+        <GroupBox Grid.Column="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.DistributionFiles}}"
                   Padding="6">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding SelectedOutfitDistributions}">

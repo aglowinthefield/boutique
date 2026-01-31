@@ -59,15 +59,30 @@
                 ToolTip="Next outfit (Right Arrow)" />
       </Grid>
     </Border>
-    <helix:Viewport3DX x:Name="PreviewViewport" Grid.Row="1"
-                       ClipToBounds="True"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       Focusable="True"
-                       ShowCoordinateSystem="False"
-                       ShowFrameRate="False"
-                       EnableCursorPosition="False"
-                       UseDefaultGestures="True" />
+    <Grid Grid.Row="1">
+      <helix:Viewport3DX x:Name="PreviewViewport"
+                         ClipToBounds="True"
+                         HorizontalAlignment="Stretch"
+                         VerticalAlignment="Stretch"
+                         Focusable="True"
+                         ShowCoordinateSystem="False"
+                         ShowFrameRate="False"
+                         EnableCursorPosition="False"
+                         UseDefaultGestures="True" />
+
+      <!-- Loading Overlay -->
+      <Border x:Name="LoadingPanel"
+              Background="#80000000"
+              Visibility="Collapsed">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock Text="Loading preview..."
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Foreground="White"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+      </Border>
+    </Grid>
 
     <Border Grid.Row="2"
             Background="{DynamicResource Brush.CardBackground}"
@@ -75,16 +90,29 @@
             BorderThickness="0,1,0,0"
             Padding="12">
       <StackPanel>
-        <StackPanel x:Name="LoadingPanel"
+        <StackPanel x:Name="LeveledItemsPanel"
                     Margin="0,0,0,8"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-          <TextBlock Text="Loading preview..."
-                     FontSize="14"
-                     FontWeight="SemiBold"
-                     Foreground="{DynamicResource Brush.TextPrimary}"
-                     HorizontalAlignment="Center"
-                     Margin="0,4,0,4" />
+                    Visibility="Collapsed">
+          <Border Background="#E8EEF2"
+                  BorderBrush="#D0D8DE"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="12"
+                  Margin="0,0,0,10">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" TextWrapping="Wrap" Foreground="#4A5568" VerticalAlignment="Center">
+                <Run FontWeight="SemiBold" Text="This outfit contains leveled lists." />
+                <LineBreak />
+                <Run Text="The in-game appearance may vary. Click Randomize to preview different combinations." />
+              </TextBlock>
+              <Button x:Name="RandomizeButton" Grid.Column="1" Content="Randomize" Padding="12,6" Margin="12,0,0,0"
+                      Click="OnRandomize" VerticalAlignment="Center" />
+            </Grid>
+          </Border>
         </StackPanel>
 
         <StackPanel x:Name="MissingAssetsPanel"

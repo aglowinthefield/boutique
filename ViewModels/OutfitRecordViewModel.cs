@@ -19,13 +19,14 @@ public partial class OutfitRecordViewModel : ReactiveObject, ISelectableRecordVi
     /// </summary>
     [Reactive] private int _npcCount;
 
-    public OutfitRecordViewModel(IOutfitGetter outfit)
+    public OutfitRecordViewModel(IOutfitGetter outfit, bool containsLeveledItems = false)
     {
         Outfit = outfit;
         EditorID = outfit.EditorID ?? "(No EditorID)";
         FormKey = outfit.FormKey;
         FormKeyString = outfit.FormKey.ToString();
         ModDisplayName = outfit.FormKey.ModKey.FileName;
+        ContainsLeveledItems = containsLeveledItems;
         _searchCache = $"{EditorID} {ModDisplayName} {FormKeyString}".ToLowerInvariant();
     }
 
@@ -36,6 +37,7 @@ public partial class OutfitRecordViewModel : ReactiveObject, ISelectableRecordVi
     public FormKey FormKey { get; }
     public string FormKeyString { get; }
     public string ModDisplayName { get; }
+    public bool ContainsLeveledItems { get; }
 
     public bool MatchesSearch(string searchTerm)
     {

@@ -1012,8 +1012,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             return;
         }
 
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (armorPieces.Count == 0)
+        var result = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        if (result.ArmorPieces.Count == 0)
         {
             StatusMessage = $"Outfit {copiedOutfit.OutfitEditorId} has no armor pieces.";
             return;
@@ -1023,12 +1023,12 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         if (copiedOutfit.IsOverride)
         {
-            await CreateOverrideDraftAsync(outfit, armorPieces);
+            await CreateOverrideDraftAsync(outfit, result.ArmorPieces);
         }
         else
         {
             var defaultName = "btq_" + (copiedOutfit.OutfitEditorId ?? outfit.FormKey.ToString());
-            await CreateOutfitFromPiecesAsync(armorPieces, defaultName);
+            await CreateOutfitFromPiecesAsync(result.ArmorPieces, defaultName);
         }
     }
 

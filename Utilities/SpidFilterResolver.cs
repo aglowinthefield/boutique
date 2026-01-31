@@ -278,7 +278,6 @@ public static class SpidFilterResolver
         IReadOnlyList<IOutfitGetter> cachedOutfits,
         ILogger? logger = null)
     {
-        // Check for tilde format: 0x800~Plugin.esp
         var tildeIndex = outfitIdentifier.IndexOf('~');
         if (tildeIndex >= 0)
         {
@@ -300,7 +299,6 @@ public static class SpidFilterResolver
             return null;
         }
 
-        // Check for pipe format: Plugin.esp|0x800
         if (outfitIdentifier.Contains('|'))
         {
             var pipeIndex = outfitIdentifier.IndexOf('|');
@@ -322,7 +320,6 @@ public static class SpidFilterResolver
             return null;
         }
 
-        // Otherwise, treat as EditorID
         var resolvedOutfit = cachedOutfits.FirstOrDefault(o =>
             string.Equals(o.EditorID, outfitIdentifier, StringComparison.OrdinalIgnoreCase));
 

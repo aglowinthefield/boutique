@@ -527,15 +527,15 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
                     return null;
                 }
 
-                var pieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-                if (pieces.Count == 0)
+                var result = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+                if (result.ArmorPieces.Count == 0)
                 {
                     return null;
                 }
 
                 var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
 
-                if (!ValidateOutfitPieces(pieces, out var validationMessage))
+                if (!ValidateOutfitPieces(result.ArmorPieces, out var validationMessage))
                 {
                     _logger.Warning("Skipping outfit {EditorId} due to slot conflict: {Message}", editorId, validationMessage);
                     return null;
@@ -547,7 +547,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
                 return new
                 {
                     EditorId = editorId,
-                    Pieces = pieces,
+                    Pieces = result.ArmorPieces,
                     FormKey = outfit.FormKey,
                     IsOverride = isOverride,
                     OverrideSourceMod = overrideSourceMod

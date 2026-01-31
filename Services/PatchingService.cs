@@ -357,6 +357,159 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         return result;
     }
 
+    public async Task<(bool success, string message, IReadOnlyList<LeveledListCreationResult> results)>
+        CreateOrUpdateLeveledListsAsync(
+            IEnumerable<LeveledListCreationRequest> leveledLists,
+            string outputPath,
+            IProgress<(int current, int total, string message)>? progress = null)
+    {
+        var result = await Task.Run(() =>
+        {
+            try
+            {
+                RequireInitialized();
+
+                var listRequests = leveledLists.ToList();
+                if (listRequests.Count == 0)
+                {
+                    return (false, "No leveled lists to create.", (IReadOnlyList<LeveledListCreationResult>)[]);
+                }
+
+                _logger.Information(
+                    "Beginning leveled list creation. Destination: {OutputPath}. Count={Count}",
+                    outputPath,
+                    listRequests.Count);
+
+                var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "leveled list creation");
+
+                var results = listRequests
+                    .Select((request, index) =>
+                    {
+                        progress?.Report((index + 1, listRequests.Count, $"Writing leveled list {request.Name}..."));
+                        return ProcessLeveledListRequest(request, patchMod, requiredMasters);
+                    })
+                    .Where(r => r != null)
+                    .Select(r => r!)
+                    .ToList();
+
+                FinalizePatch(patchMod, requiredMasters, outputPath, progress);
+
+                _logger.Information("Leveled list creation completed successfully. File: {OutputPath}", outputPath);
+
+                return (true, $"Saved {results.Count} leveled list(s) to {outputPath}", (IReadOnlyList<LeveledListCreationResult>)results);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message, (IReadOnlyList<LeveledListCreationResult>)[]);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error creating leveled lists destined for {OutputPath}", outputPath);
+                return (false, $"Error creating leveled lists: {ex.Message}", (IReadOnlyList<LeveledListCreationResult>)[]);
+            }
+        });
+
+        if (result.Item1)
+        {
+            await RefreshAfterWrite(outputPath, progress);
+        }
+        else
+        {
+            await mutagenService.RefreshLinkCacheAsync();
+        }
+
+        return result;
+    }
+
+    private LeveledListCreationResult? ProcessLeveledListRequest(
+        LeveledListCreationRequest request,
+        SkyrimMod patchMod,
+        HashSet<ModKey> requiredMasters)
+    {
+        var existing = FindExistingLeveledItem(patchMod, request.ExistingFormKey, request.EditorId);
+
+        if (request.Entries.Count == 0)
+        {
+            return HandleEmptyLeveledList(patchMod, existing, request.EditorId);
+        }
+
+        var leveledItem = GetOrCreateLeveledItem(patchMod, existing, request);
+        ApplyLeveledItemFlags(leveledItem, request);
+        PopulateLeveledItemEntries(leveledItem, request.Entries, requiredMasters);
+
+        return new LeveledListCreationResult(request.EditorId, leveledItem.FormKey);
+    }
+
+    private static LeveledItem? FindExistingLeveledItem(SkyrimMod patchMod, FormKey? existingFormKey, string editorId) =>
+        existingFormKey.HasValue
+            ? patchMod.LeveledItems.FirstOrDefault(l => l.FormKey == existingFormKey.Value)
+              ?? patchMod.LeveledItems.FirstOrDefault(l => string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase))
+            : patchMod.LeveledItems.FirstOrDefault(l => string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+
+    private LeveledListCreationResult? HandleEmptyLeveledList(SkyrimMod patchMod, LeveledItem? existing, string editorId)
+    {
+        if (existing == null)
+        {
+            return null;
+        }
+
+        patchMod.LeveledItems.Remove(existing);
+        _logger.Information("Deleted leveled list {EditorId}.", editorId);
+        return new LeveledListCreationResult(editorId, existing.FormKey);
+    }
+
+    private LeveledItem GetOrCreateLeveledItem(SkyrimMod patchMod, LeveledItem? existing, LeveledListCreationRequest request)
+    {
+        if (existing != null)
+        {
+            if (!string.Equals(existing.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.Information("Renaming leveled list {OldEditorId} to {NewEditorId}.", existing.EditorID, request.EditorId);
+                existing.EditorID = request.EditorId;
+            }
+
+            _logger.Information("Updating existing leveled list {EditorId} with {EntryCount} entries.", request.EditorId, request.Entries.Count);
+            return existing;
+        }
+
+        var leveledItem = patchMod.LeveledItems.AddNew();
+        leveledItem.EditorID = request.EditorId;
+        _logger.Information("Creating new leveled list {EditorId} with {EntryCount} entries.", request.EditorId, request.Entries.Count);
+        return leveledItem;
+    }
+
+    private static void ApplyLeveledItemFlags(LeveledItem leveledItem, LeveledListCreationRequest request)
+    {
+        leveledItem.Flags = request.Flags;
+        if (request.UseAll)
+        {
+            leveledItem.Flags |= LeveledItem.Flag.UseAll;
+        }
+    }
+
+    private static void PopulateLeveledItemEntries(
+        LeveledItem leveledItem,
+        IReadOnlyList<LeveledListEntryRequest> entryRequests,
+        HashSet<ModKey> requiredMasters)
+    {
+        var entries = leveledItem.Entries ??= [];
+        entries.Clear();
+
+        foreach (var entryRequest in entryRequests)
+        {
+            entries.Add(new LeveledItemEntry
+            {
+                Data = new LeveledItemEntryData
+                {
+                    Reference = entryRequest.ItemFormKey.ToLink<IItemGetter>(),
+                    Level = entryRequest.Level,
+                    Count = entryRequest.Count
+                }
+            });
+            requiredMasters.Add(entryRequest.ItemFormKey.ModKey);
+        }
+    }
+
     private void EnsureMinimumFormId(SkyrimMod patchMod)
     {
         var current = patchMod.ModHeader.Stats.NextFormID;
