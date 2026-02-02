@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -12,9 +13,12 @@ namespace Boutique.Views;
 public partial class OutfitCreatorView
 {
     private const string ArmorDragDataFormat = "Boutique.ArmorRecords";
+    private const string DraftDragDataFormat = "Boutique.OutfitDraft";
     private MainViewModel? _currentViewModel;
 
     private Point? _outfitDragStartPoint;
+    private Point? _draftDragStartPoint;
+    private OutfitDraftViewModel? _draggedDraft;
     private bool _syncingOutfitSelection;
 
     public OutfitCreatorView()
@@ -322,8 +326,20 @@ public partial class OutfitCreatorView
             return;
         }
 
-        if (sender is not Border draftBorder || draftBorder.DataContext is not OutfitDraftViewModel draft)
+        if (sender is not Border draftBorder || draftBorder.DataContext is not OutfitDraftViewModel targetDraft)
         {
+            e.Handled = true;
+            return;
+        }
+
+        if (TryExtractDraft(e.Data, out var sourceDraft) && sourceDraft != targetDraft)
+        {
+            var targetIndex = viewModel.OutfitDrafts.IndexOf(targetDraft);
+            if (targetIndex >= 0)
+            {
+                viewModel.MoveDraft(sourceDraft, targetIndex);
+            }
+
             e.Handled = true;
             return;
         }
@@ -334,8 +350,56 @@ public partial class OutfitCreatorView
             return;
         }
 
-        viewModel.TryAddPiecesToDraft(draft, pieces);
+        viewModel.TryAddPiecesToDraft(targetDraft, pieces);
         e.Handled = true;
+    }
+
+    private void OutfitDraftBorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Border { DataContext: OutfitDraftViewModel draft })
+        {
+            return;
+        }
+
+        if (e.OriginalSource is DependencyObject source &&
+            (FindAncestor<Button>(source) != null ||
+             FindAncestor<TextBox>(source) != null ||
+             FindAncestor<ToggleButton>(source) != null))
+        {
+            return;
+        }
+
+        _draftDragStartPoint = e.GetPosition(null);
+        _draggedDraft = draft;
+    }
+
+    private void OutfitDraftBorder_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _draftDragStartPoint == null || _draggedDraft == null)
+        {
+            return;
+        }
+
+        var position = e.GetPosition(null);
+        if (Math.Abs(position.X - _draftDragStartPoint.Value.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(position.Y - _draftDragStartPoint.Value.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var draft = _draggedDraft;
+        _draftDragStartPoint = null;
+        _draggedDraft = null;
+
+        var data = new DataObject(DraftDragDataFormat, draft);
+        DragDrop.DoDragDrop((DependencyObject)sender, data, DragDropEffects.Move);
+        e.Handled = true;
+    }
+
+    private void OutfitDraftBorder_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _draftDragStartPoint = null;
+        _draggedDraft = null;
     }
 
     private static void HandleDropTargetDrag(Border? border, DragEventArgs e)
@@ -345,7 +409,12 @@ public partial class OutfitCreatorView
             return;
         }
 
-        if (HasArmorRecords(e.Data))
+        if (HasDraft(e.Data))
+        {
+            SetDropTargetState(border, true);
+            e.Effects = DragDropEffects.Move;
+        }
+        else if (HasArmorRecords(e.Data))
         {
             SetDropTargetState(border, true);
             e.Effects = DragDropEffects.Copy;
@@ -360,6 +429,25 @@ public partial class OutfitCreatorView
     }
 
     private static bool HasArmorRecords(IDataObject data) => data.GetDataPresent(ArmorDragDataFormat);
+
+    private static bool HasDraft(IDataObject data) => data.GetDataPresent(DraftDragDataFormat);
+
+    private static bool TryExtractDraft(IDataObject data, out OutfitDraftViewModel draft)
+    {
+        draft = null!;
+        if (!HasDraft(data))
+        {
+            return false;
+        }
+
+        if (data.GetData(DraftDragDataFormat) is OutfitDraftViewModel d)
+        {
+            draft = d;
+            return true;
+        }
+
+        return false;
+    }
 
     private static bool TryExtractArmorRecords(IDataObject data, out List<ArmorRecordViewModel> pieces)
     {

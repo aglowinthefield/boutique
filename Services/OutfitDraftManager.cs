@@ -27,6 +27,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     private readonly ILogger _logger;
     private readonly CompositeDisposable _disposables = new();
 
+    private string? _currentPatchName;
     private bool _suppressAutoSave;
 
     public OutfitDraftManager(ILoggingService loggingService)
@@ -80,6 +81,21 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     {
         get => _suppressAutoSave;
         set => _suppressAutoSave = value;
+    }
+
+    public string? CurrentPatchName
+    {
+        get => _currentPatchName;
+        set
+        {
+            if (_currentPatchName == value)
+            {
+                return;
+            }
+
+            _currentPatchName = value;
+            ApplyPersistedState();
+        }
     }
 
     public async Task<OutfitDraftViewModel?> CreateDraftAsync(
@@ -489,6 +505,37 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
     public void ClearExistingOutfits() => _existingOutfits.Clear();
 
+    public void MoveDraft(int fromIndex, int toIndex)
+    {
+        try
+        {
+            if (fromIndex < 0 || fromIndex >= _draftsSource.Count ||
+                toIndex < 0 || toIndex >= _draftsSource.Count ||
+                fromIndex == toIndex)
+            {
+                return;
+            }
+
+            _draftsSource.Move(fromIndex, toIndex);
+            PersistCurrentOrder();
+
+            _logger.Debug("Moved draft from index {From} to {To}.", fromIndex, toIndex);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to move draft from {From} to {To}.", fromIndex, toIndex);
+        }
+    }
+
+    public void MoveDraft(OutfitDraftViewModel draft, int toIndex)
+    {
+        var fromIndex = _draftsSource.Items.ToList().IndexOf(draft);
+        if (fromIndex >= 0)
+        {
+            MoveDraft(fromIndex, toIndex);
+        }
+    }
+
     public void ClearDraftsFromOtherPlugins(ModKey targetModKey)
     {
         var draftsFromOtherPlugins = _draftsSource.Items
@@ -573,6 +620,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
         if (draftViewModels.Count > 0)
         {
             _draftsSource.AddRange(draftViewModels);
+            ApplyPersistedState();
         }
     }
 
@@ -651,12 +699,17 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
             return;
         }
 
-        if (e.PropertyName == nameof(OutfitDraftViewModel.Name))
+        switch (e.PropertyName)
         {
-            HandleDraftRename(draft);
-        }
+            case nameof(OutfitDraftViewModel.Name):
+                HandleDraftRename(draft);
+                RaiseDraftModified();
+                break;
 
-        RaiseDraftModified();
+            case nameof(OutfitDraftViewModel.IsExpanded):
+                PersistCollapsedState(draft);
+                break;
+        }
     }
 
     private void HandleDraftRename(OutfitDraftViewModel draft)
@@ -703,12 +756,96 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
     private void RaiseStatus(string message) => StatusChanged?.Invoke(message);
 
+    private void ApplyPersistedState()
+    {
+        if (string.IsNullOrEmpty(_currentPatchName) || _draftsSource.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var state = GuiSettingsService.Current?.GetOutfitDraftsState(_currentPatchName);
+            if (state == null)
+            {
+                return;
+            }
+
+            if (state.Order is { Count: > 0 })
+            {
+                var orderMap = state.Order
+                    .Select((editorId, index) => (editorId, index))
+                    .ToDictionary(x => x.editorId, x => x.index, StringComparer.OrdinalIgnoreCase);
+
+                var sorted = _draftsSource.Items
+                    .OrderBy(d => orderMap.TryGetValue(d.EditorId, out var idx) ? idx : int.MaxValue)
+                    .ThenBy(d => d.EditorId)
+                    .ToList();
+
+                _draftsSource.Clear();
+                _draftsSource.AddRange(sorted);
+            }
+
+            if (state.Collapsed is { Count: > 0 })
+            {
+                foreach (var draft in _draftsSource.Items)
+                {
+                    draft.IsExpanded = !state.Collapsed.Contains(draft.EditorId);
+                }
+            }
+
+            _logger.Debug("Applied persisted state for patch {PatchName}.", _currentPatchName);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to apply persisted draft state for {PatchName}, using defaults.", _currentPatchName);
+        }
+    }
+
+    private void PersistCurrentOrder()
+    {
+        if (string.IsNullOrEmpty(_currentPatchName))
+        {
+            return;
+        }
+
+        try
+        {
+            var order = _draftsSource.Items.Select(d => d.EditorId).ToList();
+            GuiSettingsService.Current?.SetOutfitDraftOrder(_currentPatchName, order);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to persist draft order.");
+        }
+    }
+
+    private void PersistCollapsedState(OutfitDraftViewModel draft)
+    {
+        if (string.IsNullOrEmpty(_currentPatchName))
+        {
+            return;
+        }
+
+        try
+        {
+            GuiSettingsService.Current?.SetOutfitDraftCollapsed(_currentPatchName, draft.EditorId, !draft.IsExpanded);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to persist collapsed state for {EditorId}.", draft.EditorId);
+        }
+    }
+
     private void RaiseDraftModified()
     {
-        if (!_suppressAutoSave)
+        if (_suppressAutoSave)
         {
-            DraftModified?.Invoke();
+            return;
         }
+
+        PersistCurrentOrder();
+        DraftModified?.Invoke();
     }
 
     public static bool ValidateOutfitPieces(IReadOnlyList<ArmorRecordViewModel> pieces, out string validationMessage)

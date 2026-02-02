@@ -384,6 +384,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
 
         var targetModKey = ModKey.FromFileName(outputPlugin);
+        _draftManager.CurrentPatchName = outputPlugin;
         _draftManager.ClearDraftsFromOtherPlugins(targetModKey);
 
         var patchPath = Settings.FullOutputPath;
@@ -1151,6 +1152,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     public bool TryAddPiecesToDraft(OutfitDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces) =>
         _draftManager.TryAddPieces(draft, pieces);
+
+    public void MoveDraft(OutfitDraftViewModel draft, int toIndex) =>
+        _draftManager.MoveDraft(draft, toIndex);
 
     private void TriggerAutoSave() => _autoSaveTrigger.OnNext(Unit.Default);
 

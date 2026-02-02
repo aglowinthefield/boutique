@@ -17,6 +17,7 @@ public partial class OutfitDraftViewModel : ReactiveObject
     private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
     private string _editorId = string.Empty;
 
+    [Reactive] private bool _isExpanded = true;
     [Reactive] private FormKey? _formKey;
 
     private string _name = string.Empty;
@@ -73,6 +74,8 @@ public partial class OutfitDraftViewModel : ReactiveObject
 
     public bool HasPieces => _pieces.Count > 0;
 
+    public int PieceCount => _pieces.Count;
+
     public bool IsOverride { get; init; }
 
     public ModKey? OverrideSourceMod { get; init; }
@@ -127,8 +130,11 @@ public partial class OutfitDraftViewModel : ReactiveObject
         return (added, []);
     }
 
-    private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+    private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
         this.RaisePropertyChanged(nameof(HasPieces));
+        this.RaisePropertyChanged(nameof(PieceCount));
+    }
 
     public void RevertName() => SetNameInternal(_previousValidName, false);
 
