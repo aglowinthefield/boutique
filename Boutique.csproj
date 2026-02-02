@@ -84,6 +84,7 @@
 
     <ItemGroup>
         <Resource Include="Assets\eye.png" />
+        <Resource Include="Assets\sprites\*.png" />
     </ItemGroup>
 
     <ItemGroup>

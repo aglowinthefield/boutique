@@ -160,7 +160,8 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
         }
 
         this.RaiseAndSetIfChanged(ref _name, sanitized);
-        this.RaiseAndSetIfChanged(ref _editorId, sanitized);
+        _editorId = sanitized;
+        this.RaisePropertyChanged(nameof(EditorId));
         this.RaisePropertyChanged(nameof(Header));
 
         if (!updateHistory)

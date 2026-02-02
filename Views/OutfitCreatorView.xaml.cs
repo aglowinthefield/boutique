@@ -231,6 +231,82 @@ public partial class OutfitCreatorView
 
     private void AddSeparator_Click(object sender, RoutedEventArgs e) => ViewModel?.AddSeparator();
 
+    private void SeparatorIconButton_Click(object sender, RoutedEventArgs e) =>
+        OpenIconPicker((sender as FrameworkElement)?.DataContext as OutfitSeparatorViewModel);
+
+    private void SeparatorIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
+        OpenIconPicker((sender as FrameworkElement)?.DataContext as OutfitSeparatorViewModel);
+
+    private void OpenIconPicker(OutfitSeparatorViewModel? separator)
+    {
+        if (separator == null)
+        {
+            return;
+        }
+
+        var (icon, wasCleared) = IconPickerDialog.Show(Window.GetWindow(this), separator.Icon);
+
+        if (wasCleared)
+        {
+            separator.Icon = null;
+        }
+        else if (icon != null)
+        {
+            separator.Icon = icon;
+        }
+    }
+
+    private void SeparatorName_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Grid grid)
+        {
+            return;
+        }
+
+        var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+        var textBox = grid.Children.OfType<TextBox>().FirstOrDefault();
+        if (textBlock == null || textBox == null)
+        {
+            return;
+        }
+
+        textBlock.Visibility = Visibility.Collapsed;
+        textBox.Visibility = Visibility.Visible;
+        textBox.Focus();
+        textBox.SelectAll();
+        e.Handled = true;
+    }
+
+    private void SeparatorNameEditor_LostFocus(object sender, RoutedEventArgs e) =>
+        HideSeparatorNameEditor(sender as TextBox);
+
+    private void SeparatorNameEditor_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.Escape)
+        {
+            HideSeparatorNameEditor(sender as TextBox);
+            e.Handled = true;
+        }
+    }
+
+    private static void HideSeparatorNameEditor(TextBox? textBox)
+    {
+        if (textBox == null)
+        {
+            return;
+        }
+
+        var parent = textBox.Parent as Grid;
+        var textBlock = parent?.Children.OfType<TextBlock>().FirstOrDefault();
+        if (textBlock == null)
+        {
+            return;
+        }
+
+        textBox.Visibility = Visibility.Collapsed;
+        textBlock.Visibility = Visibility.Visible;
+    }
+
     private void OutfitNameTextBox_OnPreviewTextInput(object sender, TextCompositionEventArgs e) =>
         e.Handled = !InputPatterns.Identifier.IsValid(e.Text);
 
@@ -317,6 +393,7 @@ public partial class OutfitCreatorView
     private void QueueItem_OnDragLeave(object sender, DragEventArgs e)
     {
         HideAllIndicators(sender as Grid);
+        ClearConflictHighlights(sender as Grid);
         e.Handled = true;
     }
 
@@ -324,6 +401,7 @@ public partial class OutfitCreatorView
     {
         var insertBefore = IsInTopHalf(sender as Grid, e);
         HideAllIndicators(sender as Grid);
+        ClearConflictHighlights(sender as Grid);
 
         if (ViewModel is not MainViewModel viewModel)
         {
@@ -423,6 +501,7 @@ public partial class OutfitCreatorView
         else if (HasArmorRecords(e.Data))
         {
             HideAllIndicators(container);
+            UpdateConflictHighlights(container, e.Data);
             e.Effects = DragDropEffects.Copy;
         }
         else
@@ -432,6 +511,37 @@ public partial class OutfitCreatorView
         }
 
         e.Handled = true;
+    }
+
+    private static void UpdateConflictHighlights(Grid? container, IDataObject data)
+    {
+        if (container?.DataContext is not OutfitDraftViewModel draft)
+        {
+            return;
+        }
+
+        if (!TryExtractArmorRecords(data, out var draggedPieces))
+        {
+            return;
+        }
+
+        foreach (var existingPiece in draft.Pieces)
+        {
+            existingPiece.IsConflicting = draggedPieces.Any(dp => dp.ConflictsWithSlot(existingPiece));
+        }
+    }
+
+    private static void ClearConflictHighlights(Grid? container)
+    {
+        if (container?.DataContext is not OutfitDraftViewModel draft)
+        {
+            return;
+        }
+
+        foreach (var piece in draft.Pieces)
+        {
+            piece.IsConflicting = false;
+        }
     }
 
     private static bool IsInTopHalf(Grid? container, DragEventArgs e)

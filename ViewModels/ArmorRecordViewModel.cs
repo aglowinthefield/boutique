@@ -12,8 +12,8 @@ public partial class ArmorRecordViewModel : ReactiveObject
     private string? _searchCache;
 
     [Reactive] private bool _isMapped;
-
     [Reactive] private bool _isSlotCompatible = true;
+    [Reactive] private bool _isConflicting;
 
     public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
     {
@@ -21,6 +21,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
         _linkCache = linkCache;
         FormIdSortable = armor.FormKey.ID;
         FormIdDisplay = $"0x{FormIdSortable:X8}";
+        ArmorType = ResolveArmorType();
 
         this.WhenAnyValue(x => x.IsSlotCompatible)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
@@ -29,14 +30,15 @@ public partial class ArmorRecordViewModel : ReactiveObject
     public IArmorGetter Armor { get; }
 
     public string EditorID => Armor.EditorID ?? "(No EditorID)";
-    public string Name => Armor.Name?.String ?? "(Unnamed)";
-    public string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : EditorID;
+    public string Name => Armor.Name?.String ?? string.Empty;
+    public string DisplayName => !string.IsNullOrWhiteSpace(Armor.Name?.String) ? Armor.Name!.String : EditorID;
     public float ArmorRating => Armor.ArmorRating;
     public float Weight => Armor.Weight;
     public uint Value => Armor.Value;
     public BipedObjectFlag SlotMask => Armor.BodyTemplate?.FirstPersonFlags ?? 0;
     public string SlotSummary => SlotMask == 0 ? "Unassigned" : FormatSlotMask(SlotMask);
     public string ModDisplayName => Armor.FormKey.ModKey.FileName;
+    public string ArmorType { get; }
     public string FormIdDisplay { get; }
 
     public uint FormIdSortable { get; }
@@ -132,7 +134,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
             return true;
         }
 
-        _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary}".ToLowerInvariant();
+        _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary} {ArmorType}".ToLowerInvariant();
         return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -154,5 +156,50 @@ public partial class ArmorRecordViewModel : ReactiveObject
         }
 
         return (SlotMask & other.SlotMask) != 0;
+    }
+
+    private string ResolveArmorType()
+    {
+        if (Armor.Keywords is not { Count: > 0 })
+        {
+            return string.Empty;
+        }
+
+        if (_linkCache is null)
+        {
+            return string.Empty;
+        }
+
+        foreach (var keywordLink in Armor.Keywords)
+        {
+            if (!_linkCache.TryResolve<IKeywordGetter>(keywordLink.FormKey, out var keyword))
+            {
+                continue;
+            }
+
+            var editorId = keyword.EditorID;
+            if (string.IsNullOrEmpty(editorId))
+            {
+                continue;
+            }
+
+            if (editorId.Equals("ArmorHeavy", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Heavy";
+            }
+
+            if (editorId.Equals("ArmorLight", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Light";
+            }
+
+            if (editorId.Equals("ArmorClothing", StringComparison.OrdinalIgnoreCase) ||
+                editorId.StartsWith("Clothing", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Clothing";
+            }
+        }
+
+        return string.Empty;
     }
 }

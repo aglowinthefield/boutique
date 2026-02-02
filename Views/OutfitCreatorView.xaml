@@ -32,8 +32,15 @@
             <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="#0078D4"
                     Margin="0,0,0,2" Visibility="Collapsed" />
 
-            <Border Grid.Row="1" Padding="6" BorderBrush="#FFD9D9D9" BorderThickness="1" CornerRadius="4"
-                    Margin="0,0,0,6">
+            <Grid Grid.Row="1" Margin="0,0,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Rectangle Grid.Column="0" Width="3" Fill="#555555"
+                         Margin="4,-6,10,-6" />
+              <Border Grid.Column="1" Padding="6" Margin="0,0,0,6" BorderBrush="{DynamicResource Brush.Border}"
+                      BorderThickness="1" CornerRadius="3" Opacity="0.6">
               <StackPanel>
                 <Grid Margin="0,0,0,4">
                   <Grid.ColumnDefinitions>
@@ -108,9 +115,6 @@
                                VerticalAlignment="Center"
                                Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
                   </StackPanel>
-                  <TextBlock Text="{Binding EditorId, Mode=OneWay}"
-                             Margin="0,2,0,0" FontSize="11" Foreground="Gray"
-                             Visibility="{Binding IsOverride, Converter={StaticResource InverseBoolToVisConverter}}" />
                   <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
                              Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
                              Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
@@ -132,19 +136,43 @@
               </Grid>
 
               <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
-                <ItemsControl ItemsSource="{Binding Pieces}">
+                <ItemsControl ItemsSource="{Binding Pieces}" Margin="26,0,0,0">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Grid Margin="0,2,0,2">
+                      <Grid Margin="0,1,0,1">
                         <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="70" />
                           <ColumnDefinition Width="*" />
                           <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding SummaryLine}"
+                        <TextBlock Grid.Column="0" Text="{Binding SlotSummary}"
+                                   VerticalAlignment="Center" FontSize="11">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Foreground" Value="{DynamicResource Brush.TextTertiary}" />
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                  <Setter Property="Foreground" Value="#C75050" />
+                                  <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
                                    VerticalAlignment="Center" TextWrapping="NoWrap"
-                                   TextTrimming="CharacterEllipsis" FontSize="12"
-                                   Margin="26,0,0,0" />
-                        <Button Grid.Column="1"
+                                   TextTrimming="CharacterEllipsis" FontSize="11">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                  <Setter Property="Foreground" Value="#C75050" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <Button Grid.Column="2"
                                 Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 CommandParameter="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
@@ -161,6 +189,7 @@
               </StackPanel>
             </StackPanel>
             </Border>
+            </Grid>
 
             <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"
                     Margin="0,-4,0,6" Visibility="Collapsed" />
@@ -192,11 +221,12 @@
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="⠿" FontSize="11" Margin="0,0,4,0"
+                <TextBlock Grid.Column="0" Text="⠿" FontSize="11" Margin="0"
                            Foreground="{DynamicResource Brush.TextTertiary}"
                            VerticalAlignment="Center" Cursor="SizeAll"
                            ToolTip="Drag to reorder"
@@ -206,21 +236,18 @@
 
                 <ToggleButton Grid.Column="1"
                               IsChecked="{Binding IsExpanded}"
-                              Width="16" Height="16"
-                              Margin="0,0,4,0"
+                              Margin="0"
                               Background="Transparent"
                               BorderThickness="0"
-                              Cursor="Hand">
+                              Cursor="Hand"
+                              VerticalAlignment="Center">
                   <ToggleButton.Style>
                     <Style TargetType="ToggleButton">
                       <Setter Property="Template">
                         <Setter.Value>
                           <ControlTemplate TargetType="ToggleButton">
-                            <Border Background="{TemplateBinding Background}">
-                              <TextBlock x:Name="Arrow" Text="▶" FontSize="8"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                                         Foreground="{DynamicResource Brush.TextTertiary}" />
-                            </Border>
+                            <TextBlock x:Name="Arrow" Text="▶" FontSize="8"
+                                       Foreground="{DynamicResource Brush.TextTertiary}" />
                             <ControlTemplate.Triggers>
                               <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Arrow" Property="Text" Value="▼" />
@@ -237,29 +264,43 @@
                   </ToggleButton.Style>
                 </ToggleButton>
 
-                <TextBox Grid.Column="2"
-                         Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                         FontSize="11" FontWeight="SemiBold"
-                         Foreground="{DynamicResource Brush.TextSecondary}"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         Padding="0"
-                         VerticalAlignment="Center"
-                         CharacterCasing="Upper">
-                  <TextBox.Style>
-                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                      <Setter Property="BorderThickness" Value="0" />
-                      <Setter Property="Background" Value="Transparent" />
-                      <Style.Triggers>
-                        <DataTrigger Binding="{Binding Path=(views:OutfitCreatorView.IsDragging), RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}" Value="True">
-                          <Setter Property="IsHitTestVisible" Value="False" />
-                        </DataTrigger>
-                      </Style.Triggers>
-                    </Style>
-                  </TextBox.Style>
-                </TextBox>
+                <Image Grid.Column="2" Source="{Binding IconUri}" Width="14" Height="14"
+                       RenderOptions.BitmapScalingMode="NearestNeighbor"
+                       Cursor="Hand" Opacity="0.8" Margin="4,0,2,0"
+                       VerticalAlignment="Center"
+                       MouseLeftButtonDown="SeparatorIcon_MouseLeftButtonDown"
+                       ToolTip="Click to change icon" />
 
-                <Button Grid.Column="4"
+                <Grid Grid.Column="3" Margin="2,0,0,0" Background="Transparent"
+                      MouseLeftButtonDown="SeparatorName_MouseLeftButtonDown"
+                      Cursor="Hand" ToolTip="Click to rename">
+                  <TextBlock x:Name="SeparatorNameDisplay"
+                             Text="{Binding Name}"
+                             FontSize="11" FontWeight="SemiBold"
+                             Foreground="{DynamicResource Brush.TextSecondary}"
+                             VerticalAlignment="Center" />
+                  <TextBox x:Name="SeparatorNameEditor"
+                           Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           FontSize="11" FontWeight="SemiBold"
+                           Foreground="{DynamicResource Brush.TextSecondary}"
+                           BorderThickness="0"
+                           Background="Transparent"
+                           Padding="0"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed"
+                           LostFocus="SeparatorNameEditor_LostFocus"
+                           KeyDown="SeparatorNameEditor_KeyDown" />
+                </Grid>
+
+                <TextBlock Grid.Column="4"
+                           Text="{Binding ChildCount, StringFormat='({0})'}"
+                           FontSize="10"
+                           Foreground="{DynamicResource Brush.TextTertiary}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           Margin="0,0,6,0" />
+
+                <Button Grid.Column="5"
                         Command="{Binding RemoveSelfCommand}"
                         Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                         Width="20" Height="20" FontSize="10"
@@ -292,7 +333,7 @@
 
       <!-- Left Panel: Plugin Selection -->
       <GroupBox Grid.Column="0" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.SourcePlugins}}"
-                Padding="6">
+                Padding="6" BorderThickness="0">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -323,12 +364,12 @@
         </Grid>
       </GroupBox>
 
-      <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="LightGray"
+      <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="Transparent"
                     utilities:GridSplitterBehavior.PersistKey="OutfitCreator.PluginsColumn" />
 
       <!-- Middle Panel: Armors from Selected Plugin -->
       <GroupBox Grid.Column="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.AvailableArmors}}"
-                Padding="6">
+                Padding="6" BorderThickness="0">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -376,8 +417,14 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Width="*"
                                   IsReadOnly="True" Binding="{Binding DisplayName, Mode=OneWay}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Width="150"
+                                  IsReadOnly="True" Binding="{Binding EditorID, Mode=OneWay}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Type}}" Width="70"
+                                  IsReadOnly="True" Binding="{Binding ArmorType, Mode=OneWay}" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Slots}}" Width="100"
                                   IsReadOnly="True" Binding="{Binding SlotSummary, Mode=OneWay}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Width="120"
+                                  IsReadOnly="True" Binding="{Binding ModDisplayName, Mode=OneWay}" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormID}}" Width="100"
                                   IsReadOnly="True" SortMemberPath="FormIdSortable"
                                   Binding="{Binding FormIdDisplay, Mode=OneWay}" />
@@ -393,12 +440,12 @@
         </Grid>
       </GroupBox>
 
-      <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" Background="LightGray"
+      <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" Background="Transparent"
                     utilities:GridSplitterBehavior.PersistKey="OutfitCreator.ArmorsColumn" />
 
       <!-- Right Panel: Outfit Drafts -->
       <GroupBox Grid.Column="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.OutfitQueue}}"
-                Padding="6"
+                Padding="6" BorderThickness="0"
                 IsEnabled="{Binding IsCreatingOutfits, Converter={StaticResource InverseBoolConverter}}">
         <Grid>
           <Grid.RowDefinitions>

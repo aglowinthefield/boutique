@@ -239,6 +239,9 @@
     <data name="Header_Slots" xml:space="preserve">
     <value>Slots</value>
   </data>
+    <data name="Header_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
     <data name="Header_Armor" xml:space="preserve">
     <value>Armor</value>
   </data>

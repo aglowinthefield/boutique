@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:utilities="clr-namespace:Boutique.Utilities">
+                    xmlns:utilities="clr-namespace:Boutique.Utilities"
+                    xmlns:views="clr-namespace:Boutique.Views">
   <!-- Built-in -->
   <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
 
@@ -14,4 +15,5 @@
   <utilities:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
   <utilities:InequalityToVisibilityConverter x:Key="InequalityToVisConverter" />
   <utilities:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+  <views:IconNameToUriConverter x:Key="IconNameToUriConverter" />
 </ResourceDictionary>
