@@ -8,10 +8,272 @@
              xmlns:utilities="clr-namespace:Boutique.Utilities"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
+             xmlns:views="clr-namespace:Boutique.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="800"
              d:DesignWidth="1400">
+  <UserControl.Resources>
+    <views:OutfitQueueItemTemplateSelector x:Key="QueueItemTemplateSelector">
+      <views:OutfitQueueItemTemplateSelector.DraftTemplate>
+        <DataTemplate DataType="{x:Type vm:OutfitDraftViewModel}">
+          <Grid Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisConverter}}"
+                AllowDrop="True"
+                DragEnter="QueueItem_OnDragEnter"
+                DragLeave="QueueItem_OnDragLeave"
+                DragOver="QueueItem_OnDragOver"
+                Drop="QueueItem_OnDrop">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="#0078D4"
+                    Margin="0,0,0,2" Visibility="Collapsed" />
+
+            <Border Grid.Row="1" Padding="6" BorderBrush="#FFD9D9D9" BorderThickness="1" CornerRadius="4"
+                    Margin="0,0,0,6">
+              <StackPanel>
+                <Grid Margin="0,0,0,4">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <TextBlock Grid.Column="0" Text="⠿" FontSize="14" Margin="0,0,6,0"
+                             Foreground="{DynamicResource Brush.TextSecondary}"
+                             VerticalAlignment="Top" Cursor="SizeAll"
+                             ToolTip="Drag to reorder"
+                             PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
+                             PreviewMouseMove="DragHandle_PreviewMouseMove"
+                             PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
+
+                  <ToggleButton Grid.Column="1"
+                              IsChecked="{Binding IsExpanded}"
+                              Width="20" Height="20"
+                              Margin="0,0,6,0"
+                              VerticalAlignment="Top"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Cursor="Hand">
+                  <ToggleButton.Style>
+                    <Style TargetType="ToggleButton">
+                      <Setter Property="Template">
+                        <Setter.Value>
+                          <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="{TemplateBinding Background}">
+                              <TextBlock x:Name="Arrow" Text="▶" FontSize="10"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource Brush.TextSecondary}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                              <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Arrow" Property="Text" Value="▼" />
+                              </Trigger>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Foreground"
+                                        Value="{DynamicResource Brush.TextPrimary}" />
+                              </Trigger>
+                            </ControlTemplate.Triggers>
+                          </ControlTemplate>
+                        </Setter.Value>
+                      </Setter>
+                    </Style>
+                  </ToggleButton.Style>
+                </ToggleButton>
+
+                <StackPanel Grid.Column="2" Orientation="Vertical">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBox Width="180"
+                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PreviewTextInput="OutfitNameTextBox_OnPreviewTextInput"
+                             DataObject.Pasting="OutfitNameTextBox_OnPasting"
+                             MaxLength="40" HorizontalAlignment="Left"
+                             IsReadOnly="{Binding IsOverride}">
+                      <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=(views:OutfitCreatorView.IsDragging), RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}" Value="True">
+                              <Setter Property="IsHitTestVisible" Value="False" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBox.Style>
+                    </TextBox>
+                    <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
+                               Margin="8,0,0,0" FontSize="11" Foreground="Gray"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding EditorId, Mode=OneWay}"
+                             Margin="0,2,0,0" FontSize="11" Foreground="Gray"
+                             Visibility="{Binding IsOverride, Converter={StaticResource InverseBoolToVisConverter}}" />
+                  <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
+                             Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
+                             Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Top">
+                  <Button Content="👁" Command="{Binding PreviewCommand}"
+                          Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                          Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" />
+                  <Button Content="⎘" Command="{Binding DuplicateCommand}"
+                          Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                          Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
+                  <Button Command="{Binding RemoveSelfCommand}"
+                          Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                          Width="28" Height="28" FontSize="14"
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemoveOutfit}}" />
+                </StackPanel>
+              </Grid>
+
+              <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
+                <ItemsControl ItemsSource="{Binding Pieces}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="0,2,0,2">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*" />
+                          <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding SummaryLine}"
+                                   VerticalAlignment="Center" TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis" FontSize="12"
+                                   Margin="26,0,0,0" />
+                        <Button Grid.Column="1"
+                                Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="4,0,0,0" FontSize="9"
+                                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemovePiece}}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoPiecesSelected}}"
+                           Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+                           HorizontalAlignment="Left" FontSize="12" Margin="26,2,0,0"
+                           Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
+              </StackPanel>
+            </StackPanel>
+            </Border>
+
+            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"
+                    Margin="0,-4,0,6" Visibility="Collapsed" />
+          </Grid>
+        </DataTemplate>
+      </views:OutfitQueueItemTemplateSelector.DraftTemplate>
+      <views:OutfitQueueItemTemplateSelector.SeparatorTemplate>
+        <DataTemplate DataType="{x:Type vm:OutfitSeparatorViewModel}">
+          <Grid AllowDrop="True" Margin="0,8,0,0"
+                DragEnter="QueueItem_OnDragEnter"
+                DragLeave="QueueItem_OnDragLeave"
+                DragOver="QueueItem_OnDragOver"
+                Drop="QueueItem_OnDrop">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="#0078D4"
+                    Margin="0,0,0,2" Visibility="Collapsed" />
+
+            <Border x:Name="SeparatorBorder" Grid.Row="1" Padding="2,6,2,4" BorderThickness="0,0,0,1"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    Background="Transparent"
+                    Margin="0,0,0,6">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="⠿" FontSize="11" Margin="0,0,4,0"
+                           Foreground="{DynamicResource Brush.TextTertiary}"
+                           VerticalAlignment="Center" Cursor="SizeAll"
+                           ToolTip="Drag to reorder"
+                           PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
+                           PreviewMouseMove="DragHandle_PreviewMouseMove"
+                           PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
+
+                <ToggleButton Grid.Column="1"
+                              IsChecked="{Binding IsExpanded}"
+                              Width="16" Height="16"
+                              Margin="0,0,4,0"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Cursor="Hand">
+                  <ToggleButton.Style>
+                    <Style TargetType="ToggleButton">
+                      <Setter Property="Template">
+                        <Setter.Value>
+                          <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="{TemplateBinding Background}">
+                              <TextBlock x:Name="Arrow" Text="▶" FontSize="8"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource Brush.TextTertiary}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                              <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Arrow" Property="Text" Value="▼" />
+                              </Trigger>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Foreground"
+                                        Value="{DynamicResource Brush.TextSecondary}" />
+                              </Trigger>
+                            </ControlTemplate.Triggers>
+                          </ControlTemplate>
+                        </Setter.Value>
+                      </Setter>
+                    </Style>
+                  </ToggleButton.Style>
+                </ToggleButton>
+
+                <TextBox Grid.Column="2"
+                         Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                         FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="0"
+                         VerticalAlignment="Center"
+                         CharacterCasing="Upper">
+                  <TextBox.Style>
+                    <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                      <Setter Property="BorderThickness" Value="0" />
+                      <Setter Property="Background" Value="Transparent" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=(views:OutfitCreatorView.IsDragging), RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}" Value="True">
+                          <Setter Property="IsHitTestVisible" Value="False" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBox.Style>
+                </TextBox>
+
+                <Button Grid.Column="4"
+                        Command="{Binding RemoveSelfCommand}"
+                        Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                        Width="20" Height="20" FontSize="10"
+                        ToolTip="Remove separator" />
+              </Grid>
+            </Border>
+
+            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"
+                    Margin="0,-4,0,6" Visibility="Collapsed" />
+          </Grid>
+        </DataTemplate>
+      </views:OutfitQueueItemTemplateSelector.SeparatorTemplate>
+    </views:OutfitQueueItemTemplateSelector>
+  </UserControl.Resources>
   <Grid Margin="4,0,0,6">
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
@@ -185,130 +447,8 @@
                        Visibility="{Binding HasOutfitDrafts, Converter={StaticResource InverseBoolToVisConverter}}" />
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-              <ItemsControl ItemsSource="{Binding OutfitDrafts}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Border Margin="0,0,0,6" Padding="6" BorderBrush="#FFD9D9D9" BorderThickness="1" CornerRadius="4"
-                            AllowDrop="True"
-                            DragEnter="OutfitDraftBorder_OnDragEnter"
-                            DragLeave="OutfitDraftBorder_OnDragLeave"
-                            DragOver="OutfitDraftBorder_OnDragOver"
-                            Drop="OutfitDraftBorder_OnDrop"
-                            PreviewMouseLeftButtonDown="OutfitDraftBorder_PreviewMouseLeftButtonDown"
-                            PreviewMouseMove="OutfitDraftBorder_PreviewMouseMove"
-                            PreviewMouseLeftButtonUp="OutfitDraftBorder_PreviewMouseLeftButtonUp"
-                            Cursor="Hand">
-                      <StackPanel>
-                        <Grid Margin="0,0,0,4">
-                          <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                          </Grid.ColumnDefinitions>
-
-                          <ToggleButton Grid.Column="0"
-                                        IsChecked="{Binding IsExpanded}"
-                                        Width="20" Height="20"
-                                        Margin="0,0,6,0"
-                                        VerticalAlignment="Top"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Cursor="Hand">
-                            <ToggleButton.Style>
-                              <Style TargetType="ToggleButton">
-                                <Setter Property="Template">
-                                  <Setter.Value>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                      <Border Background="{TemplateBinding Background}">
-                                        <TextBlock x:Name="Arrow" Text="▶" FontSize="10"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource Brush.TextSecondary}" />
-                                      </Border>
-                                      <ControlTemplate.Triggers>
-                                        <Trigger Property="IsChecked" Value="True">
-                                          <Setter TargetName="Arrow" Property="Text" Value="▼" />
-                                        </Trigger>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                          <Setter TargetName="Arrow" Property="Foreground"
-                                                  Value="{DynamicResource Brush.TextPrimary}" />
-                                        </Trigger>
-                                      </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                  </Setter.Value>
-                                </Setter>
-                              </Style>
-                            </ToggleButton.Style>
-                          </ToggleButton>
-
-                          <StackPanel Grid.Column="1" Orientation="Vertical">
-                            <StackPanel Orientation="Horizontal">
-                              <TextBox Width="180"
-                                       Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                       PreviewTextInput="OutfitNameTextBox_OnPreviewTextInput"
-                                       DataObject.Pasting="OutfitNameTextBox_OnPasting"
-                                       MaxLength="40" HorizontalAlignment="Left"
-                                       IsReadOnly="{Binding IsOverride}" />
-                              <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
-                                         Margin="8,0,0,0" FontSize="11" Foreground="Gray"
-                                         VerticalAlignment="Center"
-                                         Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
-                            </StackPanel>
-                            <TextBlock Text="{Binding EditorId, Mode=OneWay}"
-                                       Margin="0,2,0,0" FontSize="11" Foreground="Gray"
-                                       Visibility="{Binding IsOverride, Converter={StaticResource InverseBoolToVisConverter}}" />
-                            <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
-                                       Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
-                                       Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
-                          </StackPanel>
-                          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
-                            <Button Content="👁" Command="{Binding PreviewCommand}"
-                                    Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                                    Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
-                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" />
-                            <Button Content="⎘" Command="{Binding DuplicateCommand}"
-                                    Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                                    Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
-                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
-                            <Button Command="{Binding RemoveSelfCommand}"
-                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                                    Width="28" Height="28" FontSize="14"
-                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemoveOutfit}}" />
-                          </StackPanel>
-                        </Grid>
-
-                        <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
-                          <ItemsControl ItemsSource="{Binding Pieces}">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                <Grid Margin="0,2,0,2">
-                                  <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                  </Grid.ColumnDefinitions>
-                                  <TextBlock Grid.Column="0" Text="{Binding SummaryLine}"
-                                             VerticalAlignment="Center" TextWrapping="NoWrap"
-                                             TextTrimming="CharacterEllipsis" FontSize="12"
-                                             Margin="26,0,0,0" />
-                                  <Button Grid.Column="1"
-                                          Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                          CommandParameter="{Binding}"
-                                          Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                                          Margin="4,0,0,0" FontSize="9"
-                                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemovePiece}}" />
-                                </Grid>
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoPiecesSelected}}"
-                                     Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
-                                     HorizontalAlignment="Left" FontSize="12" Margin="26,2,0,0"
-                                     Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
-                        </StackPanel>
-                      </StackPanel>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding OutfitDrafts}"
+                            ItemTemplateSelector="{StaticResource QueueItemTemplateSelector}" />
             </ScrollViewer>
           </Grid>
         </Grid>
@@ -319,11 +459,15 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <TextBlock Grid.Column="0"
-                 Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} outfit(s)'}"
+                 Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} item(s)'}"
                  VerticalAlignment="Center" />
-      <Button Grid.Column="1" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
+      <Button Grid.Column="1" Content="+ Separator" Click="AddSeparator_Click"
+              Padding="12,8" Margin="0,0,8,0"
+              ToolTip="Add a separator to organize outfits" />
+      <Button Grid.Column="2" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
               Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
               IsEnabled="{Binding HasOutfitDrafts}">
         <Grid>

@@ -8,7 +8,7 @@ using ReactiveUI.SourceGenerators;
 
 namespace Boutique.ViewModels;
 
-public partial class OutfitDraftViewModel : ReactiveObject
+public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 {
     private readonly Func<OutfitDraftViewModel, Task> _duplicateDraft;
     private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
@@ -18,6 +18,7 @@ public partial class OutfitDraftViewModel : ReactiveObject
     private string _editorId = string.Empty;
 
     [Reactive] private bool _isExpanded = true;
+    [Reactive] private bool _isVisible = true;
     [Reactive] private FormKey? _formKey;
 
     private string _name = string.Empty;
@@ -61,6 +62,8 @@ public partial class OutfitDraftViewModel : ReactiveObject
     }
 
     public Guid Id { get; } = Guid.NewGuid();
+
+    public string ItemId => $"draft:{EditorId}";
 
     public string Name
     {

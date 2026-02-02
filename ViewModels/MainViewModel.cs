@@ -132,6 +132,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         _draftManager.RequestNameAsync = async tuple =>
             await RequestOutfitName.Handle(tuple).ToTask();
         _draftManager.PreviewDraftAsync = PreviewDraftAsync;
+        _draftManager.ConfirmDeleteAsync = async message =>
+            await ConfirmDelete.Handle(message).ToTask();
 
         _draftManager.WhenAnyValue(m => m.HasDrafts)
             .Subscribe(v => HasOutfitDrafts = v);
@@ -142,7 +144,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         ConfigureArmorFiltering();
 
-        OutfitDrafts = _draftManager.Drafts;
+        OutfitDrafts = _draftManager.QueueItems;
         ExistingOutfits = _draftManager.ExistingOutfits;
         HasOutfitDrafts = _draftManager.HasDrafts;
         HasExistingPluginOutfits = _draftManager.HasExistingOutfits;
@@ -194,6 +196,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     public Interaction<string, Unit> PatchCreatedNotification { get; } = new();
     public Interaction<string, bool> ConfirmOverwritePatch { get; } = new();
+    public Interaction<string, bool> ConfirmDelete { get; } = new();
     public Interaction<(string Prompt, string DefaultValue), string?> RequestOutfitName { get; } = new();
     public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
     public Interaction<MissingMastersResult, bool> HandleMissingMasters { get; } = new();
@@ -263,7 +266,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
     }
 
-    public ReadOnlyObservableCollection<OutfitDraftViewModel> OutfitDrafts { get; }
+    public ReadOnlyObservableCollection<IOutfitQueueItem> OutfitDrafts { get; }
 
     public ReadOnlyObservableCollection<ExistingOutfitViewModel> ExistingOutfits { get; }
 
@@ -446,9 +449,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         _draftManager.SuppressAutoSave = true;
         try
         {
-            var countBefore = _draftManager.Drafts.Count;
+            var countBefore = _draftManager.Drafts.Count();
             _draftManager.AddDraftsFromOutfits(outfits, linkCache, targetModKey, GetWinningModForOutfit);
-            var loadedCount = _draftManager.Drafts.Count - countBefore;
+            var loadedCount = _draftManager.Drafts.Count() - countBefore;
 
             if (loadedCount > 0)
             {
@@ -1153,8 +1156,13 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public bool TryAddPiecesToDraft(OutfitDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces) =>
         _draftManager.TryAddPieces(draft, pieces);
 
-    public void MoveDraft(OutfitDraftViewModel draft, int toIndex) =>
-        _draftManager.MoveDraft(draft, toIndex);
+    public void MoveDraft(IOutfitQueueItem item, int targetIndex, bool insertBefore = true) =>
+        _draftManager.MoveItem(item, targetIndex, insertBefore);
+
+    public List<IOutfitQueueItem> GetGroupedItems(OutfitSeparatorViewModel separator) =>
+        _draftManager.GetGroupedItems(separator);
+
+    public void AddSeparator() => _draftManager.AddSeparator();
 
     private void TriggerAutoSave() => _autoSaveTrigger.OnNext(Unit.Default);
 

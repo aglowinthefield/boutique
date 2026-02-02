@@ -31,6 +31,12 @@ public class OutfitDraftsState
 {
     public List<string>? Order { get; set; }
     public HashSet<string>? Collapsed { get; set; }
+    public List<SeparatorState>? Separators { get; set; }
+}
+
+public class SeparatorState
+{
+    public string? Name { get; set; }
 }
 
 public class SecondaryWindowGeometry
@@ -273,7 +279,7 @@ public class GuiSettingsService
     public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
         _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
 
-    public void SetOutfitDraftOrder(string patchName, IEnumerable<string> editorIds)
+    public void SetOutfitDraftOrder(string patchName, IEnumerable<string> itemIds, IEnumerable<SeparatorState>? separators = null)
     {
         _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
 
@@ -283,7 +289,8 @@ public class GuiSettingsService
             _settings.OutfitDraftsStates[patchName] = state;
         }
 
-        state.Order = editorIds.ToList();
+        state.Order = itemIds.ToList();
+        state.Separators = separators?.ToList();
         SaveSettings();
     }
 

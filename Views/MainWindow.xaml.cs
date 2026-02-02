@@ -67,6 +67,21 @@ public partial class MainWindow : Window
         });
         _bindings.Add(confirmDisposable);
 
+        var confirmDeleteDisposable = viewModel.ConfirmDelete.RegisterHandler(async interaction =>
+        {
+            var message = interaction.Input;
+            var result = await Dispatcher.InvokeAsync(() =>
+                MessageBox.Show(
+                    this,
+                    message,
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.No));
+            interaction.SetOutput(result == MessageBoxResult.Yes);
+        });
+        _bindings.Add(confirmDeleteDisposable);
+
         var outfitNameDisposable = viewModel.RequestOutfitName.RegisterHandler(async interaction =>
         {
             var (prompt, defaultValue) = interaction.Input;
