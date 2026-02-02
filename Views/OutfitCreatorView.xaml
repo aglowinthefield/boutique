@@ -415,7 +415,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Width="*"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Width="Auto"
                                   IsReadOnly="True" Binding="{Binding DisplayName, Mode=OneWay}" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Width="Auto"
                                   IsReadOnly="True" Binding="{Binding EditorID, Mode=OneWay}" />

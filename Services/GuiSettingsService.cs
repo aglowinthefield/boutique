@@ -15,6 +15,7 @@ public class GuiSettings
     public string? LastDistributionFilePath { get; set; }
     public string? Language { get; set; }
     public List<string>? BlacklistedPlugins { get; set; }
+    public bool AutoUpdateEnabled { get; set; }
 
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
@@ -165,6 +166,21 @@ public class GuiSettingsService
         set
         {
             _settings.BlacklistedPlugins = value;
+            SaveSettings();
+        }
+    }
+
+    public bool AutoUpdateEnabled
+    {
+        get => _settings.AutoUpdateEnabled;
+        set
+        {
+            if (_settings.AutoUpdateEnabled == value)
+            {
+                return;
+            }
+
+            _settings.AutoUpdateEnabled = value;
             SaveSettings();
         }
     }
