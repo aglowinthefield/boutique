@@ -378,17 +378,48 @@
           </Grid.RowDefinitions>
 
           <Grid Grid.Row="0" Margin="0,0,0,4">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto" />
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
-            <TextBox Grid.Column="1" Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Column="2"
-                       Text="{Binding OutfitArmorsTotalCount, StringFormat='{}{0} armors'}"
-                       Margin="8,0,0,0" VerticalAlignment="Center" />
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Search Bar Row -->
+            <Grid Grid.Row="0" Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
+                         Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+              <TextBox Grid.Column="1" Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
+              <TextBlock Grid.Column="2"
+                         Text="{Binding OutfitArmorsTotalCount, StringFormat='{}{0} armors'}"
+                         Margin="8,0,0,0" VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Filter Row -->
+            <WrapPanel Grid.Row="1" Orientation="Horizontal">
+              <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
+                <TextBlock Text="Type:"
+                           Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                <ComboBox ItemsSource="{Binding OutfitArmorTypeFilterOptions}"
+                          SelectedItem="{Binding SelectedOutfitArmorType}"
+                          MinWidth="100" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
+                <TextBlock Text="Slot:"
+                           Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+                <ComboBox ItemsSource="{Binding OutfitSlotFilterOptions}"
+                          SelectedItem="{Binding SelectedOutfitSlot}"
+                          MinWidth="110" />
+              </StackPanel>
+
+              <Button Content="Clear Filters"
+                      Click="ClearOutfitFilters_Click"
+                      Padding="8,2" VerticalAlignment="Center" Margin="0,2,0,2" />
+            </WrapPanel>
           </Grid>
 
           <DataGrid x:Name="OutfitArmorsGrid"

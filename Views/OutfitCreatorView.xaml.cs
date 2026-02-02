@@ -231,6 +231,17 @@ public partial class OutfitCreatorView
 
     private void AddSeparator_Click(object sender, RoutedEventArgs e) => ViewModel?.AddSeparator();
 
+    private void ClearOutfitFilters_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } viewModel)
+        {
+            return;
+        }
+
+        viewModel.SelectedOutfitArmorType = null;
+        viewModel.SelectedOutfitSlot = null;
+    }
+
     private void SeparatorIconButton_Click(object sender, RoutedEventArgs e) =>
         OpenIconPicker((sender as FrameworkElement)?.DataContext as OutfitSeparatorViewModel);
 

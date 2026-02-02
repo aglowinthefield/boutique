@@ -15,5 +15,6 @@
   <utilities:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
   <utilities:InequalityToVisibilityConverter x:Key="InequalityToVisConverter" />
   <utilities:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+  <utilities:CollectionContainsConverter x:Key="CollectionContainsConverter" />
   <views:IconNameToUriConverter x:Key="IconNameToUriConverter" />
 </ResourceDictionary>

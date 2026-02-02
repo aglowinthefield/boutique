@@ -126,3 +126,31 @@ public class StringNotEmptyConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
+
+/// <summary>
+///     Returns true if the collection contains the parameter value, false otherwise.
+/// </summary>
+public class CollectionContainsConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not IEnumerable collection || parameter is null)
+        {
+            return false;
+        }
+
+        var parameterString = parameter.ToString();
+        foreach (var item in collection)
+        {
+            if (string.Equals(item?.ToString(), parameterString, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}

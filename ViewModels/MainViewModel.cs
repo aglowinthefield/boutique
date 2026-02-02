@@ -77,6 +77,10 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     [Reactive] private string _outfitSearchText = string.Empty;
 
+    [Reactive] private string? _selectedOutfitArmorType;
+
+    [Reactive] private string? _selectedOutfitSlot;
+
     [Reactive] private int _progressCurrent;
 
     [Reactive] private int _progressTotal;
@@ -216,6 +220,14 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredSourceArmors { get; private set; } = null!;
     public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredTargetArmors { get; private set; } = null!;
     public ReadOnlyObservableCollection<ArmorRecordViewModel> FilteredOutfitArmors { get; private set; } = null!;
+
+    public List<string> OutfitArmorTypeFilterOptions { get; } = ["(All)", "Heavy", "Light", "Clothing"];
+
+    public List<string> OutfitSlotFilterOptions { get; } =
+    [
+        "(All)", "Head", "Hair", "Body", "Hands", "Forearms", "Amulet", "Ring", "Feet", "Calves", "Shield",
+        "LongHair", "Circlet", "Ears"
+    ];
 
     public IList SelectedOutfitArmors
     {
@@ -505,10 +517,41 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             .Subscribe());
         FilteredTargetArmors = filteredTargetArmors;
 
-        var outfitArmorFilter = this.WhenAnyValue(vm => vm.OutfitSearchText)
+        var outfitArmorFilter = this.WhenAnyValue(
+                vm => vm.OutfitSearchText,
+                vm => vm.SelectedOutfitArmorType,
+                vm => vm.SelectedOutfitSlot)
             .Throttle(TimeSpan.FromMilliseconds(200))
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor => armor.MatchesSearch(searchText)));
+            .Select(tuple => new Func<ArmorRecordViewModel, bool>(armor =>
+            {
+                var (searchText, selectedType, selectedSlot) = tuple;
+
+                if (!armor.MatchesSearch(searchText))
+                {
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(selectedType) && selectedType != "(All)")
+                {
+                    var armorType = armor.ArmorType;
+                    if (string.IsNullOrEmpty(armorType) || !string.Equals(armorType, selectedType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(selectedSlot) && selectedSlot != "(All)")
+                {
+                    var slotSummary = armor.SlotSummary;
+                    if (!slotSummary.Contains(selectedSlot, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
 
         _disposables.Add(_outfitArmorsSource.Connect()
             .Filter(outfitArmorFilter)
