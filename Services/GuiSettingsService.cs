@@ -17,7 +17,6 @@ public class GuiSettings
     public string? Language { get; set; }
     public List<string>? BlacklistedPlugins { get; set; }
     public bool AutoUpdateEnabled { get; set; }
-    public bool IsFilePreviewExpanded { get; set; }
 
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
@@ -71,12 +70,6 @@ public class GuiSettingsService
     }
 
     public static GuiSettingsService? Current { get; private set; }
-
-    public bool IsFilePreviewExpanded
-    {
-        get => Get<bool>();
-        set => Set(value);
-    }
 
     public string? SkyrimDataPath
     {
