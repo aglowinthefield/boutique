@@ -36,7 +36,9 @@ public sealed class ContainerRecordViewModel
   public int ItemCount => Items.Count;
   public string DisplayName => string.IsNullOrEmpty(Name) ? EditorId : Name;
   public bool IsMerchantContainer => !string.IsNullOrEmpty(MerchantFaction);
-  public string CellPlacementsDisplay => CellPlacements.Count > 0 ? string.Join(", ", CellPlacements.Take(3)) + (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : "") : "";
+  public string CellPlacementsDisplay => CellPlacements.Count > 0
+      ? string.Join(", ", CellPlacements.Take(3)) + (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : string.Empty)
+      : string.Empty;
 
   private static List<ContainerContentItem> ResolveItems(
       IContainerGetter container,

@@ -78,14 +78,14 @@
                 EnableRowVirtualization="True" EnableColumnVirtualization="True"
                 RowHeight="28">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
-          <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="180" CanUserSort="True"
+          <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="Auto" CanUserSort="True" />
+          <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="Auto" CanUserSort="True"
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-          <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="50" CanUserSort="True" />
-          <DataGridTextColumn Header="Merchant" Binding="{Binding MerchantFaction}" Width="120" CanUserSort="True" />
-          <DataGridTextColumn Header="Cells" Binding="{Binding CellPlacementsDisplay}" Width="150" CanUserSort="True" />
-          <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="120" CanUserSort="True" />
-          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="65" CanUserSort="True" IsReadOnly="True" />
+          <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="45" CanUserSort="True" />
+          <DataGridTextColumn Header="Merchant" Binding="{Binding MerchantFaction}" Width="Auto" CanUserSort="True" />
+          <DataGridTextColumn Header="Cells" Binding="{Binding CellPlacementsDisplay}" Width="*" CanUserSort="True" />
+          <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="Auto" CanUserSort="True" />
+          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="70" CanUserSort="True" IsReadOnly="True" />
         </DataGrid.Columns>
       </DataGrid>
 

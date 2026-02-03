@@ -572,7 +572,7 @@ public class GameDataCacheService : IDisposable
     return new DirectoryInfo(directory).Name;
   }
 
-  private (List<NpcFilterData> filterData, List<NpcRecordViewModel> viewModels) LoadNpcs(
+  private (List<NpcFilterData> FilterData, List<NpcRecordViewModel> ViewModels) LoadNpcs(
       ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
       Dictionary<FormKey, string> keywordLookup,
       Dictionary<FormKey, string> factionLookup,
@@ -894,7 +894,7 @@ public class GameDataCacheService : IDisposable
     return containers;
   }
 
-  private Dictionary<FormKey, string> BuildMerchantContainerLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  private static Dictionary<FormKey, string> BuildMerchantContainerLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, string>();
 
@@ -905,15 +905,25 @@ public class GameDataCacheService : IDisposable
         continue;
       }
 
-      var containerFormKey = faction.MerchantContainer.FormKey;
+      if (!linkCache.TryResolve<IPlacedObjectGetter>(faction.MerchantContainer.FormKey, out var placedRef))
+      {
+        continue;
+      }
+
+      if (placedRef.Base.IsNull)
+      {
+        continue;
+      }
+
+      var baseContainerFormKey = placedRef.Base.FormKey;
       var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
-      result.TryAdd(containerFormKey, factionName);
+      result.TryAdd(baseContainerFormKey, factionName);
     }
 
     return result;
   }
 
-  private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  private static Dictionary<FormKey, List<string>> BuildCellPlacementLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, List<string>>();
 
