@@ -18,575 +18,575 @@ namespace Boutique.ViewModels;
 
 public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposable
 {
-    private readonly ArmorPreviewService _armorPreviewService;
-    private readonly GameDataCacheService _cache;
-    private readonly CompositeDisposable _disposables = new();
-    private readonly ILogger _logger;
-    private readonly MutagenService _mutagenService;
+  private readonly ArmorPreviewService _armorPreviewService;
+  private readonly GameDataCacheService _cache;
+  private readonly CompositeDisposable _disposables = new();
+  private readonly ILogger _logger;
+  private readonly MutagenService _mutagenService;
 
-    private readonly IObservable<bool> _notLoading;
-    private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
-    private readonly NpcScanningService _npcScanningService;
-    private readonly SourceList<OutfitRecordViewModel> _outfitsSource = new();
-    private readonly SettingsViewModel _settings;
+  private readonly IObservable<bool> _notLoading;
+  private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
+  private readonly NpcScanningService _npcScanningService;
+  private readonly SourceList<OutfitRecordViewModel> _outfitsSource = new();
+  private readonly SettingsViewModel _settings;
 
-    [Reactive] private bool _hideVanillaOutfits;
+  [Reactive] private bool _hideVanillaOutfits;
 
-    [Reactive] private bool _isLoading;
+  [Reactive] private bool _isLoading;
 
-    [Reactive] private bool _showOnlyLeveledOutfits;
+  [Reactive] private bool _showOnlyLeveledOutfits;
 
-    [Reactive] private string _selectedOutfitContents = string.Empty;
+  [Reactive] private string _selectedOutfitContents = string.Empty;
 
-    private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
+  private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
 
-    [Reactive] private string _outfitSearchText = string.Empty;
+  [Reactive] private string _outfitSearchText = string.Empty;
 
-    [Reactive] private string _statusMessage = string.Empty;
+  [Reactive] private string _statusMessage = string.Empty;
 
 
-    public DistributionOutfitsTabViewModel(
-        NpcScanningService npcScanningService,
-        NpcOutfitResolutionService npcOutfitResolutionService,
-        ArmorPreviewService armorPreviewService,
-        MutagenService mutagenService,
-        GameDataCacheService cache,
-        SettingsViewModel settings,
-        ILogger logger)
-    {
-        _npcScanningService = npcScanningService;
-        _npcOutfitResolutionService = npcOutfitResolutionService;
-        _armorPreviewService = armorPreviewService;
-        _mutagenService = mutagenService;
-        _cache = cache;
-        _settings = settings;
-        _logger = logger.ForContext<DistributionOutfitsTabViewModel>();
+  public DistributionOutfitsTabViewModel(
+      NpcScanningService npcScanningService,
+      NpcOutfitResolutionService npcOutfitResolutionService,
+      ArmorPreviewService armorPreviewService,
+      MutagenService mutagenService,
+      GameDataCacheService cache,
+      SettingsViewModel settings,
+      ILogger logger)
+  {
+    _npcScanningService = npcScanningService;
+    _npcOutfitResolutionService = npcOutfitResolutionService;
+    _armorPreviewService = armorPreviewService;
+    _mutagenService = mutagenService;
+    _cache = cache;
+    _settings = settings;
+    _logger = logger.ForContext<DistributionOutfitsTabViewModel>();
 
-        _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
+    _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
 
-        var filterPredicate = this.WhenAnyValue(
-                vm => vm.OutfitSearchText,
-                vm => vm.HideVanillaOutfits,
-                vm => vm.ShowOnlyLeveledOutfits)
-            .Throttle(TimeSpan.FromMilliseconds(200))
-            .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2, tuple.Item3));
+    var filterPredicate = this.WhenAnyValue(
+            vm => vm.OutfitSearchText,
+            vm => vm.HideVanillaOutfits,
+            vm => vm.ShowOnlyLeveledOutfits)
+        .Throttle(TimeSpan.FromMilliseconds(200))
+        .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2, tuple.Item3));
 
-        _disposables.Add(_outfitsSource.Connect()
-            .Filter(filterPredicate)
-            .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out var filteredOutfits)
-            .Subscribe());
-        FilteredOutfits = filteredOutfits;
+    _disposables.Add(_outfitsSource.Connect()
+        .Filter(filterPredicate)
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Bind(out var filteredOutfits)
+        .Subscribe());
+    FilteredOutfits = filteredOutfits;
 
-        this.WhenAnyValue(vm => vm.SelectedOutfit)
-            .Subscribe(async _ =>
-            {
-                UpdateSelectedOutfitContents();
-                await UpdateSelectedOutfitNpcAssignmentsAsync();
-            });
-    }
-
-    public IObservableList<OutfitRecordViewModel> Outfits => _outfitsSource;
-
-    public OutfitRecordViewModel? SelectedOutfit
-    {
-        get => field;
-        set
+    this.WhenAnyValue(vm => vm.SelectedOutfit)
+        .Subscribe(async _ =>
         {
-            // Clear previous selection
-            field?.IsSelected = false;
-
-            this.RaiseAndSetIfChanged(ref field, value);
-
-            // Set new selection
-            value?.IsSelected = true;
-        }
-    }
-
-    public ReadOnlyObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; }
-
-    public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; } = [];
-
-    public ObservableCollection<OutfitDistributionSummary> SelectedOutfitDistributions { get; } = [];
-
-    public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
-
-    public bool IsInitialized => _mutagenService.IsInitialized;
-
-    /// <summary>
-    ///     Event raised when an outfit is copied to create a distribution entry.
-    /// </summary>
-    public event EventHandler<CopiedOutfit>? OutfitCopied;
-
-    [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    public async Task LoadOutfitsAsync()
-    {
-        _logger.Debug("LoadOutfitsAsync started");
-
-        try
-        {
-            IsLoading = true;
-
-            // Initialize MutagenService if not already initialized
-            if (!_mutagenService.IsInitialized)
-            {
-                var dataPath = _settings.SkyrimDataPath;
-                _logger.Debug("MutagenService not initialized, data path: {DataPath}", dataPath);
-
-                if (string.IsNullOrWhiteSpace(dataPath))
-                {
-                    StatusMessage = "Please set the Skyrim data path in Settings before loading outfits.";
-                    _logger.Warning("Skyrim data path is not set");
-                    return;
-                }
-
-                if (!Directory.Exists(dataPath))
-                {
-                    StatusMessage = $"Skyrim data path does not exist: {dataPath}";
-                    _logger.Warning("Skyrim data path does not exist: {DataPath}", dataPath);
-                    return;
-                }
-
-                StatusMessage = "Initializing Skyrim environment...";
-                _logger.Debug("Initializing MutagenService...");
-                await _mutagenService.InitializeAsync(dataPath);
-                _logger.Debug("MutagenService initialized successfully");
-                this.RaisePropertyChanged(nameof(IsInitialized));
-            }
-
-            if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-            {
-                StatusMessage = "LinkCache not available.";
-                _logger.Warning("LinkCache not available");
-                return;
-            }
-
-            // Load all outfits from the load order
-            StatusMessage = "Loading outfits from load order...";
-            _logger.Debug("Loading outfits from load order...");
-            var outfits = await Task.Run(() =>
-                linkCache.WinningOverrides<IOutfitGetter>().ToList());
-            _logger.Debug("Loaded {Count} outfits from load order", outfits.Count);
-
-            // Use cached NPC assignments from startup (already calculated correctly)
-            if (_cache.AllNpcOutfitAssignments.Count > 0)
-            {
-                _npcAssignments = _cache.AllNpcOutfitAssignments
-                    .Select(vm => vm.Assignment)
-                    .ToList();
-                _logger.Debug("Using {Count} cached NPC outfit assignments", _npcAssignments.Count);
-
-                // Update counts now that we have both outfits and assignments
-                UpdateOutfitNpcCounts();
-            }
-
-            var outfitViewModels = outfits.Select(o =>
-            {
-                var result = OutfitResolver.GatherArmorPieces(o, linkCache);
-                return new OutfitRecordViewModel(o, result.ContainsLeveledItems);
-            }).ToList();
-
-            _outfitsSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(outfitViewModels);
-            });
-
-            if (_npcAssignments != null)
-            {
-                UpdateOutfitNpcCounts();
-            }
-
-            StatusMessage = $"Loaded {outfits.Count} outfits.";
-            _logger.Information("Loaded {OutfitCount} outfits from load order.", outfits.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to load outfits.");
-            StatusMessage = $"Error loading outfits: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private async Task PreviewOutfitAsync(OutfitRecordViewModel? outfitVm)
-    {
-        if (outfitVm == null)
-        {
-            StatusMessage = "No outfit selected for preview.";
-            return;
-        }
-
-        if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not { } linkCache)
-        {
-            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
-            return;
-        }
-
-        var outfit = outfitVm.Outfit;
-        var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-
-        if (initialResult.ArmorPieces.Count == 0)
-        {
-            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
-            return;
-        }
-
-        try
-        {
-            StatusMessage = $"Building preview for {label}...";
-
-            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
-            var collection = new ArmorPreviewSceneCollection(
-                1,
-                0,
-                new[] { metadata },
-                async (_, gender) =>
-                {
-                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-                    return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
-                });
-
-            await ShowPreview.Handle(collection);
-            StatusMessage = $"Preview ready for {label}.";
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-            StatusMessage = $"Failed to preview outfit: {ex.Message}";
-        }
-    }
-
-    [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private async Task PreviewDistributionOutfitAsync(OutfitDistribution? clickedDistribution)
-    {
-        if (clickedDistribution == null)
-        {
-            StatusMessage = "No distribution to preview.";
-            return;
-        }
-
-        if (!_mutagenService.IsInitialized ||
-            _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            StatusMessage = "Initialize Skyrim data path before previewing outfits.";
-            return;
-        }
-
-        var outfitFormKey = clickedDistribution.OutfitFormKey;
-        if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
-        {
-            StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
-            return;
-        }
-
-        var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-
-        if (initialResult.ArmorPieces.Count == 0)
-        {
-            StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
-            return;
-        }
-
-        var owningNpc = SelectedOutfitNpcAssignments
-            .FirstOrDefault(npc => npc.Distributions.Contains(clickedDistribution));
-        var initialGender = owningNpc != null
-            ? GetNpcGender(owningNpc.NpcFormKey, linkCache)
-            : GenderedModelVariant.Female;
-
-        try
-        {
-            StatusMessage = $"Building preview for {label}...";
-
-            var metadata = new OutfitMetadata(
-                clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
-                clickedDistribution.FileName,
-                clickedDistribution.IsWinner,
-                initialResult.ContainsLeveledItems);
-            var collection = new ArmorPreviewSceneCollection(
-                1,
-                0,
-                new[] { metadata },
-                async (_, gender) =>
-                {
-                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-                    return scene with
-                    {
-                        OutfitLabel =
-                        clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
-                        SourceFile = clickedDistribution.FileName,
-                        IsWinner = clickedDistribution.IsWinner
-                    };
-                },
-                initialGender);
-
-            await ShowPreview.Handle(collection);
-            StatusMessage = $"Preview ready for {label}.";
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-            StatusMessage = $"Failed to preview outfit: {ex.Message}";
-        }
-    }
-
-    [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private Task CopyOutfit(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, false);
-
-    [ReactiveCommand(CanExecute = nameof(_notLoading))]
-    private Task CopyOutfitAsOverride(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, true);
-
-    private Task CopyOutfitInternal(OutfitRecordViewModel outfitVm, bool isOverride)
-    {
-        var outfit = outfitVm.Outfit;
-        var editorId = outfit.EditorID ?? outfit.FormKey.ToString();
-
-        var copiedOutfit = new CopiedOutfit
-        {
-            OutfitFormKey = outfit.FormKey,
-            OutfitEditorId = editorId,
-            Description = editorId,
-            IsOverride = isOverride
-        };
-
-        OutfitCopied?.Invoke(this, copiedOutfit);
-        _logger.Debug("Copied outfit {EditorId} to Create tab (override={IsOverride})", editorId, isOverride);
-
-        return Task.CompletedTask;
-    }
-
-    private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla, bool showOnlyLeveled)
-    {
-        var term = searchText?.Trim().ToLowerInvariant() ?? string.Empty;
-        return vm =>
-        {
-            if (!string.IsNullOrEmpty(term) && !vm.MatchesSearch(term))
-            {
-                return false;
-            }
-
-            if (hideVanilla && IsVanillaDistribution(vm.FormKey))
-            {
-                return false;
-            }
-
-            if (showOnlyLeveled && !vm.ContainsLeveledItems)
-            {
-                return false;
-            }
-
-            return true;
-        };
-    }
-
-    /// <summary>
-    ///     Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
-    ///     An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
-    /// </summary>
-    private bool IsVanillaDistribution(FormKey outfitFormKey)
-    {
-        if (_npcAssignments == null || _npcAssignments.Count == 0)
-        {
-            return false; // If no assignments loaded, don't filter anything
-        }
-
-        // Find all NPCs whose final outfit is this one
-        var npcsWithThisOutfit = _npcAssignments
-            .Where(a => a.FinalOutfitFormKey == outfitFormKey)
-            .ToList();
-
-        if (npcsWithThisOutfit.Count == 0)
-        {
-            return true; // No NPCs use this outfit, consider it vanilla
-        }
-
-        foreach (var assignment in npcsWithThisOutfit)
-        {
-            var lookup = _cache.LookupNpc(assignment.NpcFormKey);
-            if (!lookup.HasValue)
-            {
-                continue;
-            }
-
-            var npcData = lookup.Value;
-            if (!npcData.DefaultOutfitFormKey.HasValue || npcData.DefaultOutfitFormKey.Value != outfitFormKey)
-            {
-                return false;
-            }
-        }
-
-        // All NPCs with this outfit have it as their default - it's a vanilla distribution
-        return true;
-    }
-
-    private async Task UpdateSelectedOutfitNpcAssignmentsAsync()
-    {
-        SelectedOutfitNpcAssignments.Clear();
-        SelectedOutfitDistributions.Clear();
-
-        if (SelectedOutfit == null || _npcAssignments == null)
-        {
-            return;
-        }
-
-        var outfitFormKey = SelectedOutfit.FormKey;
-        var selectedOutfitRef = SelectedOutfit;
-
-        // Run filtering on background thread to avoid UI freeze
-        var (matchingAssignments, distributionSummaries) = await Task.Run(() =>
-        {
-            // Find all NPCs that have this outfit as their final resolved outfit
-            var assignments = _npcAssignments
-                .Where(assignment => assignment.FinalOutfitFormKey == outfitFormKey)
-                .Select(assignment => new NpcOutfitAssignmentViewModel(assignment))
-                .ToList();
-
-            // Extract unique distribution files with NPC counts
-            var distributions = assignments
-                .SelectMany(a => a.Distributions.Select(d => (Npc: a, Dist: d)))
-                .GroupBy(x => x.Dist.FileName)
-                .Select(g =>
-                {
-                    var first = g.First().Dist;
-                    return new OutfitDistributionSummary
-                    {
-                        FileName = first.FileName,
-                        FileType = first.FileType,
-                        OutfitEditorId = first.OutfitEditorId,
-                        OutfitFormKey = first.OutfitFormKey,
-                        IsWinner = g.Any(x => x.Dist.IsWinner),
-                        NpcCount = g.Select(x => x.Npc.NpcFormKey).Distinct().Count(),
-                        TargetingDescription = first.TargetingDescription
-                    };
-                })
-                .OrderByDescending(d => d.IsWinner)
-                .ThenByDescending(d => d.NpcCount)
-                .ToList();
-
-            return (assignments, distributions);
+          UpdateSelectedOutfitContents();
+          await UpdateSelectedOutfitNpcAssignmentsAsync();
         });
+  }
 
-        // Check if selection changed while we were processing
-        if (SelectedOutfit != selectedOutfitRef)
-        {
-            return;
-        }
+  public IObservableList<OutfitRecordViewModel> Outfits => _outfitsSource;
 
-        foreach (var vm in matchingAssignments)
-        {
-            SelectedOutfitNpcAssignments.Add(vm);
-        }
-
-        foreach (var dist in distributionSummaries)
-        {
-            SelectedOutfitDistributions.Add(dist);
-        }
-
-        _logger.Debug(
-            "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}, {DistCount} distribution files",
-            matchingAssignments.Count,
-            selectedOutfitRef.EditorID,
-            distributionSummaries.Count);
-    }
-
-    private void UpdateSelectedOutfitContents()
+  public OutfitRecordViewModel? SelectedOutfit
+  {
+    get => field;
+    set
     {
-        if (SelectedOutfit == null)
-        {
-            SelectedOutfitContents = string.Empty;
-            return;
-        }
+      // Clear previous selection
+      field?.IsSelected = false;
 
-        if (!_mutagenService.IsInitialized ||
-            _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-            SelectedOutfitContents = "LinkCache not available.";
-            return;
-        }
+      this.RaiseAndSetIfChanged(ref field, value);
 
-        var outfit = SelectedOutfit.Outfit;
-        var tree = OutfitResolver.BuildOutfitTree(outfit, linkCache);
-        SelectedOutfitContents = OutfitResolver.RenderOutfitTreeAsText(tree);
+      // Set new selection
+      value?.IsSelected = true;
     }
+  }
 
-    private void UpdateOutfitNpcCounts()
+  public ReadOnlyObservableCollection<OutfitRecordViewModel> FilteredOutfits { get; }
+
+  public ObservableCollection<NpcOutfitAssignmentViewModel> SelectedOutfitNpcAssignments { get; } = [];
+
+  public ObservableCollection<OutfitDistributionSummary> SelectedOutfitDistributions { get; } = [];
+
+  public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
+
+  public bool IsInitialized => _mutagenService.IsInitialized;
+
+  /// <summary>
+  ///     Event raised when an outfit is copied to create a distribution entry.
+  /// </summary>
+  public event EventHandler<CopiedOutfit>? OutfitCopied;
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  public async Task LoadOutfitsAsync()
+  {
+    _logger.Debug("LoadOutfitsAsync started");
+
+    try
     {
-        if (_npcAssignments == null)
-        {
-            foreach (var outfit in _outfitsSource.Items)
-            {
-                outfit.NpcCount = 0;
-            }
+      IsLoading = true;
 
-            return;
+      // Initialize MutagenService if not already initialized
+      if (!_mutagenService.IsInitialized)
+      {
+        var dataPath = _settings.SkyrimDataPath;
+        _logger.Debug("MutagenService not initialized, data path: {DataPath}", dataPath);
+
+        if (string.IsNullOrWhiteSpace(dataPath))
+        {
+          StatusMessage = "Please set the Skyrim data path in Settings before loading outfits.";
+          _logger.Warning("Skyrim data path is not set");
+          return;
         }
 
-        var outfitNpcSets = new Dictionary<FormKey, HashSet<FormKey>>();
-
-        foreach (var assignment in _npcAssignments)
+        if (!Directory.Exists(dataPath))
         {
-            var finalOutfitFormKey = assignment.FinalOutfitFormKey;
-            if (finalOutfitFormKey.HasValue)
-            {
-                if (!outfitNpcSets.TryGetValue(finalOutfitFormKey.Value, out var npcSet))
-                {
-                    npcSet = [];
-                    outfitNpcSets[finalOutfitFormKey.Value] = npcSet;
-                }
-
-                npcSet.Add(assignment.NpcFormKey);
-            }
+          StatusMessage = $"Skyrim data path does not exist: {dataPath}";
+          _logger.Warning("Skyrim data path does not exist: {DataPath}", dataPath);
+          return;
         }
 
-        foreach (var outfit in _outfitsSource.Items)
-        {
-            if (outfitNpcSets.TryGetValue(outfit.FormKey, out var npcSet))
-            {
-                outfit.NpcCount = npcSet.Count;
-            }
-            else
-            {
-                outfit.NpcCount = 0;
-            }
-        }
+        StatusMessage = "Initializing Skyrim environment...";
+        _logger.Debug("Initializing MutagenService...");
+        await _mutagenService.InitializeAsync(dataPath);
+        _logger.Debug("MutagenService initialized successfully");
+        this.RaisePropertyChanged(nameof(IsInitialized));
+      }
+
+      if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+      {
+        StatusMessage = "LinkCache not available.";
+        _logger.Warning("LinkCache not available");
+        return;
+      }
+
+      // Load all outfits from the load order
+      StatusMessage = "Loading outfits from load order...";
+      _logger.Debug("Loading outfits from load order...");
+      var outfits = await Task.Run(() =>
+          linkCache.WinningOverrides<IOutfitGetter>().ToList());
+      _logger.Debug("Loaded {Count} outfits from load order", outfits.Count);
+
+      // Use cached NPC assignments from startup (already calculated correctly)
+      if (_cache.AllNpcOutfitAssignments.Count > 0)
+      {
+        _npcAssignments = _cache.AllNpcOutfitAssignments
+            .Select(vm => vm.Assignment)
+            .ToList();
+        _logger.Debug("Using {Count} cached NPC outfit assignments", _npcAssignments.Count);
+
+        // Update counts now that we have both outfits and assignments
+        UpdateOutfitNpcCounts();
+      }
+
+      var outfitViewModels = outfits.Select(o =>
+      {
+        var result = OutfitResolver.GatherArmorPieces(o, linkCache);
+        return new OutfitRecordViewModel(o, result.ContainsLeveledItems);
+      }).ToList();
+
+      _outfitsSource.Edit(list =>
+      {
+        list.Clear();
+        list.AddRange(outfitViewModels);
+      });
+
+      if (_npcAssignments != null)
+      {
+        UpdateOutfitNpcCounts();
+      }
+
+      StatusMessage = $"Loaded {outfits.Count} outfits.";
+      _logger.Information("Loaded {OutfitCount} outfits from load order.", outfits.Count);
     }
-
-    private static GenderedModelVariant GetNpcGender(
-        FormKey npcFormKey,
-        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    catch (Exception ex)
     {
-        if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
+      _logger.Error(ex, "Failed to load outfits.");
+      StatusMessage = $"Error loading outfits: {ex.Message}";
+    }
+    finally
+    {
+      IsLoading = false;
+    }
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private async Task PreviewOutfitAsync(OutfitRecordViewModel? outfitVm)
+  {
+    if (outfitVm == null)
+    {
+      StatusMessage = "No outfit selected for preview.";
+      return;
+    }
+
+    if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not { } linkCache)
+    {
+      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      return;
+    }
+
+    var outfit = outfitVm.Outfit;
+    var label = outfit.EditorID ?? outfit.FormKey.ToString();
+    var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+
+    if (initialResult.ArmorPieces.Count == 0)
+    {
+      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      return;
+    }
+
+    try
+    {
+      StatusMessage = $"Building preview for {label}...";
+
+      var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
+      var collection = new ArmorPreviewSceneCollection(
+          1,
+          0,
+          new[] { metadata },
+          async (_, gender) =>
+          {
+            var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+            var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+            return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
+          });
+
+      await ShowPreview.Handle(collection);
+      StatusMessage = $"Preview ready for {label}.";
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
+      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+    }
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private async Task PreviewDistributionOutfitAsync(OutfitDistribution? clickedDistribution)
+  {
+    if (clickedDistribution == null)
+    {
+      StatusMessage = "No distribution to preview.";
+      return;
+    }
+
+    if (!_mutagenService.IsInitialized ||
+        _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      return;
+    }
+
+    var outfitFormKey = clickedDistribution.OutfitFormKey;
+    if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
+    {
+      StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
+      return;
+    }
+
+    var label = outfit.EditorID ?? outfit.FormKey.ToString();
+    var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+
+    if (initialResult.ArmorPieces.Count == 0)
+    {
+      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      return;
+    }
+
+    var owningNpc = SelectedOutfitNpcAssignments
+        .FirstOrDefault(npc => npc.Distributions.Contains(clickedDistribution));
+    var initialGender = owningNpc != null
+        ? GetNpcGender(owningNpc.NpcFormKey, linkCache)
+        : GenderedModelVariant.Female;
+
+    try
+    {
+      StatusMessage = $"Building preview for {label}...";
+
+      var metadata = new OutfitMetadata(
+          clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
+          clickedDistribution.FileName,
+          clickedDistribution.IsWinner,
+          initialResult.ContainsLeveledItems);
+      var collection = new ArmorPreviewSceneCollection(
+          1,
+          0,
+          new[] { metadata },
+          async (_, gender) =>
+          {
+            var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+            var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+            return scene with
+            {
+              OutfitLabel =
+                      clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
+              SourceFile = clickedDistribution.FileName,
+              IsWinner = clickedDistribution.IsWinner
+            };
+          },
+          initialGender);
+
+      await ShowPreview.Handle(collection);
+      StatusMessage = $"Preview ready for {label}.";
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
+      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+    }
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private Task CopyOutfit(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, false);
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private Task CopyOutfitAsOverride(OutfitRecordViewModel outfitVm) => CopyOutfitInternal(outfitVm, true);
+
+  private Task CopyOutfitInternal(OutfitRecordViewModel outfitVm, bool isOverride)
+  {
+    var outfit = outfitVm.Outfit;
+    var editorId = outfit.EditorID ?? outfit.FormKey.ToString();
+
+    var copiedOutfit = new CopiedOutfit
+    {
+      OutfitFormKey = outfit.FormKey,
+      OutfitEditorId = editorId,
+      Description = editorId,
+      IsOverride = isOverride
+    };
+
+    OutfitCopied?.Invoke(this, copiedOutfit);
+    _logger.Debug("Copied outfit {EditorId} to Create tab (override={IsOverride})", editorId, isOverride);
+
+    return Task.CompletedTask;
+  }
+
+  private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla, bool showOnlyLeveled)
+  {
+    var term = searchText?.Trim().ToLowerInvariant() ?? string.Empty;
+    return vm =>
+    {
+      if (!string.IsNullOrEmpty(term) && !vm.MatchesSearch(term))
+      {
+        return false;
+      }
+
+      if (hideVanilla && IsVanillaDistribution(vm.FormKey))
+      {
+        return false;
+      }
+
+      if (showOnlyLeveled && !vm.ContainsLeveledItems)
+      {
+        return false;
+      }
+
+      return true;
+    };
+  }
+
+  /// <summary>
+  ///     Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
+  ///     An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
+  /// </summary>
+  private bool IsVanillaDistribution(FormKey outfitFormKey)
+  {
+    if (_npcAssignments == null || _npcAssignments.Count == 0)
+    {
+      return false; // If no assignments loaded, don't filter anything
+    }
+
+    // Find all NPCs whose final outfit is this one
+    var npcsWithThisOutfit = _npcAssignments
+        .Where(a => a.FinalOutfitFormKey == outfitFormKey)
+        .ToList();
+
+    if (npcsWithThisOutfit.Count == 0)
+    {
+      return true; // No NPCs use this outfit, consider it vanilla
+    }
+
+    foreach (var assignment in npcsWithThisOutfit)
+    {
+      var lookup = _cache.LookupNpc(assignment.NpcFormKey);
+      if (!lookup.HasValue)
+      {
+        continue;
+      }
+
+      var npcData = lookup.Value;
+      if (!npcData.DefaultOutfitFormKey.HasValue || npcData.DefaultOutfitFormKey.Value != outfitFormKey)
+      {
+        return false;
+      }
+    }
+
+    // All NPCs with this outfit have it as their default - it's a vanilla distribution
+    return true;
+  }
+
+  private async Task UpdateSelectedOutfitNpcAssignmentsAsync()
+  {
+    SelectedOutfitNpcAssignments.Clear();
+    SelectedOutfitDistributions.Clear();
+
+    if (SelectedOutfit == null || _npcAssignments == null)
+    {
+      return;
+    }
+
+    var outfitFormKey = SelectedOutfit.FormKey;
+    var selectedOutfitRef = SelectedOutfit;
+
+    // Run filtering on background thread to avoid UI freeze
+    var (matchingAssignments, distributionSummaries) = await Task.Run(() =>
+    {
+      // Find all NPCs that have this outfit as their final resolved outfit
+      var assignments = _npcAssignments
+              .Where(assignment => assignment.FinalOutfitFormKey == outfitFormKey)
+              .Select(assignment => new NpcOutfitAssignmentViewModel(assignment))
+              .ToList();
+
+      // Extract unique distribution files with NPC counts
+      var distributions = assignments
+              .SelectMany(a => a.Distributions.Select(d => (Npc: a, Dist: d)))
+              .GroupBy(x => x.Dist.FileName)
+              .Select(g =>
+              {
+              var first = g.First().Dist;
+              return new OutfitDistributionSummary
+              {
+                FileName = first.FileName,
+                FileType = first.FileType,
+                OutfitEditorId = first.OutfitEditorId,
+                OutfitFormKey = first.OutfitFormKey,
+                IsWinner = g.Any(x => x.Dist.IsWinner),
+                NpcCount = g.Select(x => x.Npc.NpcFormKey).Distinct().Count(),
+                TargetingDescription = first.TargetingDescription
+              };
+            })
+              .OrderByDescending(d => d.IsWinner)
+              .ThenByDescending(d => d.NpcCount)
+              .ToList();
+
+      return (assignments, distributions);
+    });
+
+    // Check if selection changed while we were processing
+    if (SelectedOutfit != selectedOutfitRef)
+    {
+      return;
+    }
+
+    foreach (var vm in matchingAssignments)
+    {
+      SelectedOutfitNpcAssignments.Add(vm);
+    }
+
+    foreach (var dist in distributionSummaries)
+    {
+      SelectedOutfitDistributions.Add(dist);
+    }
+
+    _logger.Debug(
+        "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}, {DistCount} distribution files",
+        matchingAssignments.Count,
+        selectedOutfitRef.EditorID,
+        distributionSummaries.Count);
+  }
+
+  private void UpdateSelectedOutfitContents()
+  {
+    if (SelectedOutfit == null)
+    {
+      SelectedOutfitContents = string.Empty;
+      return;
+    }
+
+    if (!_mutagenService.IsInitialized ||
+        _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+      SelectedOutfitContents = "LinkCache not available.";
+      return;
+    }
+
+    var outfit = SelectedOutfit.Outfit;
+    var tree = OutfitResolver.BuildOutfitTree(outfit, linkCache);
+    SelectedOutfitContents = OutfitResolver.RenderOutfitTreeAsText(tree);
+  }
+
+  private void UpdateOutfitNpcCounts()
+  {
+    if (_npcAssignments == null)
+    {
+      foreach (var outfit in _outfitsSource.Items)
+      {
+        outfit.NpcCount = 0;
+      }
+
+      return;
+    }
+
+    var outfitNpcSets = new Dictionary<FormKey, HashSet<FormKey>>();
+
+    foreach (var assignment in _npcAssignments)
+    {
+      var finalOutfitFormKey = assignment.FinalOutfitFormKey;
+      if (finalOutfitFormKey.HasValue)
+      {
+        if (!outfitNpcSets.TryGetValue(finalOutfitFormKey.Value, out var npcSet))
         {
-            return npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female)
-                ? GenderedModelVariant.Female
-                : GenderedModelVariant.Male;
+          npcSet = [];
+          outfitNpcSets[finalOutfitFormKey.Value] = npcSet;
         }
 
-        return GenderedModelVariant.Female;
+        npcSet.Add(assignment.NpcFormKey);
+      }
     }
 
-    public void Dispose()
+    foreach (var outfit in _outfitsSource.Items)
     {
-        _disposables.Dispose();
-        _outfitsSource.Dispose();
-        GC.SuppressFinalize(this);
+      if (outfitNpcSets.TryGetValue(outfit.FormKey, out var npcSet))
+      {
+        outfit.NpcCount = npcSet.Count;
+      }
+      else
+      {
+        outfit.NpcCount = 0;
+      }
     }
+  }
+
+  private static GenderedModelVariant GetNpcGender(
+      FormKey npcFormKey,
+      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  {
+    if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
+    {
+      return npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female)
+          ? GenderedModelVariant.Female
+          : GenderedModelVariant.Male;
+    }
+
+    return GenderedModelVariant.Female;
+  }
+
+  public void Dispose()
+  {
+    _disposables.Dispose();
+    _outfitsSource.Dispose();
+    GC.SuppressFinalize(this);
+  }
 }
 
 public class OutfitDistributionSummary
 {
-    public required string FileName { get; init; }
-    public required DistributionFileType FileType { get; init; }
-    public string? OutfitEditorId { get; init; }
-    public FormKey OutfitFormKey { get; init; }
-    public bool IsWinner { get; init; }
-    public int NpcCount { get; init; }
-    public string? TargetingDescription { get; init; }
+  public required string FileName { get; init; }
+  public required DistributionFileType FileType { get; init; }
+  public string? OutfitEditorId { get; init; }
+  public FormKey OutfitFormKey { get; init; }
+  public bool IsWinner { get; init; }
+  public int NpcCount { get; init; }
+  public string? TargetingDescription { get; init; }
 }

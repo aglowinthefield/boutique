@@ -11,18 +11,18 @@ namespace Boutique.Utilities;
 /// </summary>
 public class DistributionFileTypeConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    if (value is not Enum enumValue)
     {
-        if (value is not Enum enumValue)
-        {
-            return string.Empty;
-        }
-
-        var field = enumValue.GetType().GetField(enumValue.ToString());
-        var attr = field?.GetCustomAttribute<DescriptionAttribute>();
-        return attr?.Description ?? enumValue.ToString();
+      return string.Empty;
     }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException("ConvertBack is not supported for enum descriptions");
+    var field = enumValue.GetType().GetField(enumValue.ToString());
+    var attr = field?.GetCustomAttribute<DescriptionAttribute>();
+    return attr?.Description ?? enumValue.ToString();
+  }
+
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException("ConvertBack is not supported for enum descriptions");
 }
