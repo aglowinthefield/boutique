@@ -95,11 +95,6 @@ public static class OutfitResolver
 
         foreach (var itemLink in items)
         {
-            if (itemLink == null)
-            {
-                continue;
-            }
-
             var targetKeyNullable = itemLink.FormKeyNullable;
             if (!targetKeyNullable.HasValue || targetKeyNullable.Value == FormKey.Null)
             {
@@ -152,7 +147,7 @@ public static class OutfitResolver
         ref bool containsLeveledItems)
     {
         var items = formList.Items;
-        if (items == null || items.Count == 0)
+        if (items.Count == 0)
         {
             return;
         }
@@ -282,11 +277,6 @@ public static class OutfitResolver
 
         foreach (var itemLink in items)
         {
-            if (itemLink == null)
-            {
-                continue;
-            }
-
             var targetKey = itemLink.FormKeyNullable;
             if (!targetKey.HasValue || targetKey.Value == FormKey.Null)
             {
@@ -331,20 +321,22 @@ public static class OutfitResolver
                 flags);
 
             var entries = leveledItem.Entries;
-            if (entries != null)
+            if (entries == null)
             {
-                foreach (var entry in entries)
-                {
-                    if (!TryGetEntryFormKey(entry, out var entryFormKey))
-                    {
-                        continue;
-                    }
+                return node;
+            }
 
-                    var childNode = BuildTreeNode(entryFormKey, linkCache, visited);
-                    if (childNode != null)
-                    {
-                        node.Children.Add(childNode);
-                    }
+            foreach (var entry in entries)
+            {
+                if (!TryGetEntryFormKey(entry, out var entryFormKey))
+                {
+                    continue;
+                }
+
+                var childNode = BuildTreeNode(entryFormKey, linkCache, visited);
+                if (childNode != null)
+                {
+                    node.Children.Add(childNode);
                 }
             }
 
