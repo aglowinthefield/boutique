@@ -168,7 +168,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             try
             {
                 using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease());
-                return mod.Armors.ToList();
+                return mod.Armors
+                    .Where(a => !string.IsNullOrWhiteSpace(a.Name?.String) || !string.IsNullOrWhiteSpace(a.EditorID))
+                    .ToList();
             }
             catch (Exception)
             {
@@ -202,6 +204,43 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
             {
                 return Enumerable.Empty<IOutfitGetter>();
             }
+        });
+    }
+
+    public async Task<IEnumerable<string>> GetPluginsWithArmorsOrOutfitsAsync()
+    {
+        var allPlugins = await GetAvailablePluginsAsync();
+
+        return await Task.Run(() =>
+        {
+            var result = new List<string>();
+
+            foreach (var pluginFileName in allPlugins)
+            {
+                var pluginPath = Path.Combine(DataFolderPath!, pluginFileName);
+                if (!File.Exists(pluginPath))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease());
+                    var hasArmors = mod.Armors.Any(a => !string.IsNullOrWhiteSpace(a.Name?.String));
+                    var hasOutfits = mod.Outfits.Any();
+
+                    if (hasArmors || hasOutfits)
+                    {
+                        result.Add(pluginFileName);
+                    }
+                }
+                catch
+                {
+                    // Skip plugins that can't be read
+                }
+            }
+
+            return result;
         });
     }
 

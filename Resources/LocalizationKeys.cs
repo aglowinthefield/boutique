@@ -76,6 +76,7 @@ public static class LocalizationKeys
         public const string FormID = "Header_FormID";
         public const string Mod = "Header_Mod";
         public const string Slots = "Header_Slots";
+        public const string Type = "Header_Type";
         public const string Armor = "Header_Armor";
         public const string NPCs = "Header_NPCs";
         public const string FinalOutfit = "Header_FinalOutfit";

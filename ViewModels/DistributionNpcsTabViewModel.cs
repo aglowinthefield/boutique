@@ -1,9 +1,7 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
@@ -275,9 +273,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         }
 
         var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
 
-        if (armorPieces.Count == 0)
+        if (initialResult.ArmorPieces.Count == 0)
         {
             StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
             return;
@@ -288,14 +286,15 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
             StatusMessage = $"Building preview for {label}...";
 
             var npcGender = GetNpcGender(npcAssignment.NpcFormKey, linkCache);
-            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false);
+            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
             var collection = new ArmorPreviewSceneCollection(
                 1,
                 0,
                 new[] { metadata },
                 async (_, gender) =>
                 {
-                    var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
+                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
                     return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
                 },
                 npcGender);
@@ -347,10 +346,20 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
             }
 
             var metadata = distributions
-                .Select(d => new OutfitMetadata(
-                    d.OutfitEditorId ?? d.OutfitFormKey.ToString(),
-                    d.FileName,
-                    d.IsWinner))
+                .Select(d =>
+                {
+                    var containsLeveled = false;
+                    if (linkCache.TryResolve<IOutfitGetter>(d.OutfitFormKey, out var o))
+                    {
+                        var checkResult = OutfitResolver.GatherArmorPieces(o, linkCache);
+                        containsLeveled = checkResult.ContainsLeveledItems;
+                    }
+                    return new OutfitMetadata(
+                        d.OutfitEditorId ?? d.OutfitFormKey.ToString(),
+                        d.FileName,
+                        d.IsWinner,
+                        containsLeveled);
+                })
                 .ToList();
 
             var npcGender = GetNpcGender(SelectedNpcAssignment.NpcFormKey, linkCache);
@@ -367,14 +376,14 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
                         throw new InvalidOperationException($"Could not resolve outfit: {distribution.OutfitFormKey}");
                     }
 
-                    var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-                    if (armorPieces.Count == 0)
+                    var outfitResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount + index);
+                    if (outfitResult.ArmorPieces.Count == 0)
                     {
                         throw new InvalidOperationException(
                             $"Outfit '{outfit.EditorID ?? outfit.FormKey.ToString()}' has no armor pieces");
                     }
 
-                    var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
+                    var scene = await _armorPreviewService.BuildPreviewAsync(outfitResult.ArmorPieces, gender);
                     return scene with
                     {
                         OutfitLabel = distribution.OutfitEditorId ?? distribution.OutfitFormKey.ToString(),
@@ -559,26 +568,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
             return;
         }
 
-        var sb = new StringBuilder();
-        sb.Append(CultureInfo.InvariantCulture, $"Outfit: {outfit.EditorID ?? outfit.FormKey.ToString()}").AppendLine();
-        sb.AppendLine();
-
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (armorPieces.Count == 0)
-        {
-            sb.AppendLine("(No armor pieces)");
-        }
-        else
-        {
-            sb.AppendLine("Armor Pieces:");
-            foreach (var armor in armorPieces)
-            {
-                var armorName = armor.EditorID ?? armor.FormKeyString;
-                sb.Append(CultureInfo.InvariantCulture, $"  - {armorName}").AppendLine();
-            }
-        }
-
-        SelectedNpcOutfitContents = sb.ToString();
+        var tree = OutfitResolver.BuildOutfitTree(outfit, linkCache);
+        SelectedNpcOutfitContents = OutfitResolver.RenderOutfitTreeAsText(tree);
     }
 
     private static GenderedModelVariant GetNpcGender(

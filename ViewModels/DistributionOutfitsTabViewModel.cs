@@ -34,11 +34,16 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
     [Reactive] private bool _isLoading;
 
+    [Reactive] private bool _showOnlyLeveledOutfits;
+
+    [Reactive] private string _selectedOutfitContents = string.Empty;
+
     private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
 
     [Reactive] private string _outfitSearchText = string.Empty;
 
     [Reactive] private string _statusMessage = string.Empty;
+
 
     public DistributionOutfitsTabViewModel(
         NpcScanningService npcScanningService,
@@ -59,9 +64,12 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
         _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
 
-        var filterPredicate = this.WhenAnyValue(vm => vm.OutfitSearchText, vm => vm.HideVanillaOutfits)
+        var filterPredicate = this.WhenAnyValue(
+                vm => vm.OutfitSearchText,
+                vm => vm.HideVanillaOutfits,
+                vm => vm.ShowOnlyLeveledOutfits)
             .Throttle(TimeSpan.FromMilliseconds(200))
-            .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2));
+            .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2, tuple.Item3));
 
         _disposables.Add(_outfitsSource.Connect()
             .Filter(filterPredicate)
@@ -71,7 +79,11 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
         FilteredOutfits = filteredOutfits;
 
         this.WhenAnyValue(vm => vm.SelectedOutfit)
-            .Subscribe(async _ => await UpdateSelectedOutfitNpcAssignmentsAsync());
+            .Subscribe(async _ =>
+            {
+                UpdateSelectedOutfitContents();
+                await UpdateSelectedOutfitNpcAssignmentsAsync();
+            });
     }
 
     public IObservableList<OutfitRecordViewModel> Outfits => _outfitsSource;
@@ -168,21 +180,25 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
                 UpdateOutfitNpcCounts();
             }
 
-            var outfitViewModels = outfits.Select(o => new OutfitRecordViewModel(o)).ToList();
+            var outfitViewModels = outfits.Select(o =>
+            {
+                var result = OutfitResolver.GatherArmorPieces(o, linkCache);
+                return new OutfitRecordViewModel(o, result.ContainsLeveledItems);
+            }).ToList();
+
             _outfitsSource.Edit(list =>
             {
                 list.Clear();
                 list.AddRange(outfitViewModels);
             });
 
-            // Update NPC counts for each outfit (after both outfits and assignments are loaded)
             if (_npcAssignments != null)
             {
                 UpdateOutfitNpcCounts();
             }
 
-            StatusMessage = $"Loaded {outfits.Count} outfits from load order.";
-            _logger.Information("Loaded {Count} outfits from load order.", outfits.Count);
+            StatusMessage = $"Loaded {outfits.Count} outfits.";
+            _logger.Information("Loaded {OutfitCount} outfits from load order.", outfits.Count);
         }
         catch (Exception ex)
         {
@@ -212,9 +228,9 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
         var outfit = outfitVm.Outfit;
         var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
 
-        if (armorPieces.Count == 0)
+        if (initialResult.ArmorPieces.Count == 0)
         {
             StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
             return;
@@ -224,14 +240,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
         {
             StatusMessage = $"Building preview for {label}...";
 
-            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false);
+            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
             var collection = new ArmorPreviewSceneCollection(
                 1,
                 0,
                 new[] { metadata },
                 async (_, gender) =>
                 {
-                    var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
+                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
                     return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
                 });
 
@@ -269,9 +286,9 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
         }
 
         var label = outfit.EditorID ?? outfit.FormKey.ToString();
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
 
-        if (armorPieces.Count == 0)
+        if (initialResult.ArmorPieces.Count == 0)
         {
             StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
             return;
@@ -290,14 +307,16 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
             var metadata = new OutfitMetadata(
                 clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
                 clickedDistribution.FileName,
-                clickedDistribution.IsWinner);
+                clickedDistribution.IsWinner,
+                initialResult.ContainsLeveledItems);
             var collection = new ArmorPreviewSceneCollection(
                 1,
                 0,
                 new[] { metadata },
                 async (_, gender) =>
                 {
-                    var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
+                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
                     return scene with
                     {
                         OutfitLabel =
@@ -343,17 +362,22 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
         return Task.CompletedTask;
     }
 
-    private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla)
+    private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla, bool showOnlyLeveled)
     {
         var term = searchText?.Trim().ToLowerInvariant() ?? string.Empty;
-        return outfit =>
+        return vm =>
         {
-            if (!string.IsNullOrEmpty(term) && !outfit.MatchesSearch(term))
+            if (!string.IsNullOrEmpty(term) && !vm.MatchesSearch(term))
             {
                 return false;
             }
 
-            if (hideVanilla && IsVanillaDistribution(outfit.FormKey))
+            if (hideVanilla && IsVanillaDistribution(vm.FormKey))
+            {
+                return false;
+            }
+
+            if (showOnlyLeveled && !vm.ContainsLeveledItems)
             {
                 return false;
             }
@@ -470,6 +494,26 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
             matchingAssignments.Count,
             selectedOutfitRef.EditorID,
             distributionSummaries.Count);
+    }
+
+    private void UpdateSelectedOutfitContents()
+    {
+        if (SelectedOutfit == null)
+        {
+            SelectedOutfitContents = string.Empty;
+            return;
+        }
+
+        if (!_mutagenService.IsInitialized ||
+            _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        {
+            SelectedOutfitContents = "LinkCache not available.";
+            return;
+        }
+
+        var outfit = SelectedOutfit.Outfit;
+        var tree = OutfitResolver.BuildOutfitTree(outfit, linkCache);
+        SelectedOutfitContents = OutfitResolver.RenderOutfitTreeAsText(tree);
     }
 
     private void UpdateOutfitNpcCounts()

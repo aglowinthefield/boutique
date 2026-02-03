@@ -194,6 +194,24 @@ public partial class SettingsViewModel : ReactiveObject
 
     public static bool IsTutorialEnabled => FeatureFlags.TutorialEnabled;
 
+    public bool AutoUpdateEnabled
+    {
+        get => _guiSettings.AutoUpdateEnabled;
+        set
+        {
+            if (_guiSettings.AutoUpdateEnabled == value)
+            {
+                return;
+            }
+
+            _guiSettings.AutoUpdateEnabled = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    [ReactiveCommand]
+    private void TestAutoUpdate() => App.CheckForUpdates(forceShow: true);
+
     [ReactiveCommand]
     private void BrowseDataPath()
     {

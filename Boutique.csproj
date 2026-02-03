@@ -24,7 +24,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
         <!-- Feature flags (set to true to enable) -->
-        <EnableAutoUpdate>false</EnableAutoUpdate>
+        <EnableAutoUpdate>true</EnableAutoUpdate>
         <EnableTutorial>false</EnableTutorial>
     </PropertyGroup>
 
@@ -84,6 +84,7 @@
 
     <ItemGroup>
         <Resource Include="Assets\eye.png" />
+        <Resource Include="Assets\sprites\*.png" />
     </ItemGroup>
 
     <ItemGroup>

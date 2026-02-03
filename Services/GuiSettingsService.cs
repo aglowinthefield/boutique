@@ -15,6 +15,7 @@ public class GuiSettings
     public string? LastDistributionFilePath { get; set; }
     public string? Language { get; set; }
     public List<string>? BlacklistedPlugins { get; set; }
+    public bool AutoUpdateEnabled { get; set; }
 
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
@@ -24,6 +25,20 @@ public class GuiSettings
 
     public Dictionary<string, double>? GridSplitterPositions { get; set; }
     public Dictionary<string, SecondaryWindowGeometry>? SecondaryWindowGeometries { get; set; }
+    public Dictionary<string, OutfitDraftsState>? OutfitDraftsStates { get; set; }
+}
+
+public class OutfitDraftsState
+{
+    public List<string>? Order { get; set; }
+    public HashSet<string>? Collapsed { get; set; }
+    public List<SeparatorState>? Separators { get; set; }
+}
+
+public class SeparatorState
+{
+    public string? Name { get; set; }
+    public string? Icon { get; set; }
 }
 
 public class SecondaryWindowGeometry
@@ -155,6 +170,21 @@ public class GuiSettingsService
         }
     }
 
+    public bool AutoUpdateEnabled
+    {
+        get => _settings.AutoUpdateEnabled;
+        set
+        {
+            if (_settings.AutoUpdateEnabled == value)
+            {
+                return;
+            }
+
+            _settings.AutoUpdateEnabled = value;
+            SaveSettings();
+        }
+    }
+
     public void RestoreWindowGeometry(Window window)
     {
         if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
@@ -261,6 +291,52 @@ public class GuiSettingsService
 
         _settings.GridSplitterPositions[key] = position;
         SaveSettings();
+    }
+
+    public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
+        _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
+
+    public void SetOutfitDraftOrder(string patchName, IEnumerable<string> itemIds, IEnumerable<SeparatorState>? separators = null)
+    {
+        _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
+
+        if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
+        {
+            state = new OutfitDraftsState();
+            _settings.OutfitDraftsStates[patchName] = state;
+        }
+
+        state.Order = itemIds.ToList();
+        state.Separators = separators?.ToList();
+        SaveSettings();
+    }
+
+    public bool IsOutfitDraftCollapsed(string patchName, string editorId)
+    {
+        var state = _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
+        return state?.Collapsed?.Contains(editorId) == true;
+    }
+
+    public void SetOutfitDraftCollapsed(string patchName, string editorId, bool collapsed)
+    {
+        _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
+
+        if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
+        {
+            state = new OutfitDraftsState();
+            _settings.OutfitDraftsStates[patchName] = state;
+        }
+
+        state.Collapsed ??= [];
+
+        var changed = collapsed
+            ? state.Collapsed.Add(editorId)
+            : state.Collapsed.Remove(editorId);
+
+        if (changed)
+        {
+            SaveSettings();
+        }
     }
 
     private static bool IsOnScreen(double left, double top, double width, double height)

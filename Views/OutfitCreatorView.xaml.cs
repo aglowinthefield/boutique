@@ -12,10 +12,23 @@ namespace Boutique.Views;
 public partial class OutfitCreatorView
 {
     private const string ArmorDragDataFormat = "Boutique.ArmorRecords";
+    private const string QueueItemDragDataFormat = "Boutique.QueueItem";
     private MainViewModel? _currentViewModel;
 
     private Point? _outfitDragStartPoint;
+    private Point? _draftDragStartPoint;
+    private IOutfitQueueItem? _draggedItem;
     private bool _syncingOutfitSelection;
+
+    public static readonly DependencyProperty IsDraggingProperty =
+        DependencyProperty.RegisterAttached(
+            "IsDragging",
+            typeof(bool),
+            typeof(OutfitCreatorView),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+
+    public static bool GetIsDragging(DependencyObject obj) => (bool)obj.GetValue(IsDraggingProperty);
+    public static void SetIsDragging(DependencyObject obj, bool value) => obj.SetValue(IsDraggingProperty, value);
 
     public OutfitCreatorView()
     {
@@ -216,6 +229,95 @@ public partial class OutfitCreatorView
         await viewModel.PreviewArmorAsync(armor);
     }
 
+    private void AddSeparator_Click(object sender, RoutedEventArgs e) => ViewModel?.AddSeparator();
+
+    private void ClearOutfitFilters_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } viewModel)
+        {
+            return;
+        }
+
+        viewModel.SelectedOutfitArmorType = null;
+        viewModel.SelectedOutfitSlot = null;
+    }
+
+    private void SeparatorIconButton_Click(object sender, RoutedEventArgs e) =>
+        OpenIconPicker((sender as FrameworkElement)?.DataContext as OutfitSeparatorViewModel);
+
+    private void SeparatorIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
+        OpenIconPicker((sender as FrameworkElement)?.DataContext as OutfitSeparatorViewModel);
+
+    private void OpenIconPicker(OutfitSeparatorViewModel? separator)
+    {
+        if (separator == null)
+        {
+            return;
+        }
+
+        var (icon, wasCleared) = IconPickerDialog.Show(Window.GetWindow(this), separator.Icon);
+
+        if (wasCleared)
+        {
+            separator.Icon = null;
+        }
+        else if (icon != null)
+        {
+            separator.Icon = icon;
+        }
+    }
+
+    private void SeparatorName_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Grid grid)
+        {
+            return;
+        }
+
+        var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
+        var textBox = grid.Children.OfType<TextBox>().FirstOrDefault();
+        if (textBlock == null || textBox == null)
+        {
+            return;
+        }
+
+        textBlock.Visibility = Visibility.Collapsed;
+        textBox.Visibility = Visibility.Visible;
+        textBox.Focus();
+        textBox.SelectAll();
+        e.Handled = true;
+    }
+
+    private void SeparatorNameEditor_LostFocus(object sender, RoutedEventArgs e) =>
+        HideSeparatorNameEditor(sender as TextBox);
+
+    private void SeparatorNameEditor_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.Escape)
+        {
+            HideSeparatorNameEditor(sender as TextBox);
+            e.Handled = true;
+        }
+    }
+
+    private static void HideSeparatorNameEditor(TextBox? textBox)
+    {
+        if (textBox == null)
+        {
+            return;
+        }
+
+        var parent = textBox.Parent as Grid;
+        var textBlock = parent?.Children.OfType<TextBlock>().FirstOrDefault();
+        if (textBlock == null)
+        {
+            return;
+        }
+
+        textBox.Visibility = Visibility.Collapsed;
+        textBlock.Visibility = Visibility.Visible;
+    }
+
     private void OutfitNameTextBox_OnPreviewTextInput(object sender, TextCompositionEventArgs e) =>
         e.Handled = !InputPatterns.Identifier.IsValid(e.Text);
 
@@ -293,28 +395,24 @@ public partial class OutfitCreatorView
             DispatcherPriority.Background);
     }
 
-    private void OutfitDraftBorder_OnDragEnter(object sender, DragEventArgs e) =>
-        HandleDropTargetDrag(sender as Border, e);
+    private void QueueItem_OnDragEnter(object sender, DragEventArgs e) =>
+        UpdateDropIndicator(sender as Grid, e);
 
-    private void OutfitDraftBorder_OnDragOver(object sender, DragEventArgs e) =>
-        HandleDropTargetDrag(sender as Border, e);
+    private void QueueItem_OnDragOver(object sender, DragEventArgs e) =>
+        UpdateDropIndicator(sender as Grid, e);
 
-    private void OutfitDraftBorder_OnDragLeave(object sender, DragEventArgs e)
+    private void QueueItem_OnDragLeave(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
-
+        HideAllIndicators(sender as Grid);
+        ClearConflictHighlights(sender as Grid);
         e.Handled = true;
     }
 
-    private void OutfitDraftBorder_OnDrop(object sender, DragEventArgs e)
+    private void QueueItem_OnDrop(object sender, DragEventArgs e)
     {
-        if (sender is Border border)
-        {
-            SetDropTargetState(border, false);
-        }
+        var insertBefore = IsInTopHalf(sender as Grid, e);
+        HideAllIndicators(sender as Grid);
+        ClearConflictHighlights(sender as Grid);
 
         if (ViewModel is not MainViewModel viewModel)
         {
@@ -322,20 +420,270 @@ public partial class OutfitCreatorView
             return;
         }
 
-        if (sender is not Border draftBorder || draftBorder.DataContext is not OutfitDraftViewModel draft)
+        if (sender is not Grid { DataContext: IOutfitQueueItem targetItem })
         {
             e.Handled = true;
             return;
         }
 
-        if (!TryExtractArmorRecords(e.Data, out var pieces) || pieces.Count == 0)
+        if (TryExtractQueueItem(e.Data, out var sourceItem) && sourceItem != targetItem)
         {
+            if (sourceItem is OutfitSeparatorViewModel sourceSeparator)
+            {
+                var groupedItems = viewModel.GetGroupedItems(sourceSeparator);
+                if (groupedItems.Contains(targetItem))
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (sourceItem is OutfitDraftViewModel && targetItem is OutfitSeparatorViewModel targetSeparator)
+            {
+                var groupedItems = viewModel.GetGroupedItems(targetSeparator);
+                var lastItem = groupedItems[^1];
+                var lastIndex = viewModel.OutfitDrafts.IndexOf(lastItem);
+                if (lastIndex >= 0)
+                {
+                    viewModel.MoveDraft(sourceItem, lastIndex, insertBefore: false);
+                }
+
+                e.Handled = true;
+                return;
+            }
+
+            var targetIndex = viewModel.OutfitDrafts.IndexOf(targetItem);
+            if (targetIndex >= 0)
+            {
+                viewModel.MoveDraft(sourceItem, targetIndex, insertBefore);
+            }
+
             e.Handled = true;
             return;
         }
 
-        viewModel.TryAddPiecesToDraft(draft, pieces);
+        if (targetItem is OutfitDraftViewModel targetDraft &&
+            TryExtractArmorRecords(e.Data, out var pieces) && pieces.Count > 0)
+        {
+            viewModel.TryAddPiecesToDraft(targetDraft, pieces);
+        }
+
         e.Handled = true;
+    }
+
+    private void UpdateDropIndicator(Grid? container, DragEventArgs e)
+    {
+        if (container == null)
+        {
+            return;
+        }
+
+        if (HasQueueItem(e.Data) && TryExtractQueueItem(e.Data, out var sourceItem))
+        {
+            if (sourceItem is OutfitSeparatorViewModel sourceSeparator &&
+                container.DataContext is IOutfitQueueItem targetItem &&
+                ViewModel is MainViewModel viewModel)
+            {
+                var groupedItems = viewModel.GetGroupedItems(sourceSeparator);
+                if (groupedItems.Contains(targetItem))
+                {
+                    HideAllIndicators(container);
+                    e.Effects = DragDropEffects.None;
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (sourceItem is OutfitDraftViewModel &&
+                container.DataContext is OutfitSeparatorViewModel)
+            {
+                HideDropIndicators(container);
+                SetSeparatorHighlight(container, true);
+                e.Effects = DragDropEffects.Move;
+            }
+            else
+            {
+                SetSeparatorHighlight(container, false);
+                var topHalf = IsInTopHalf(container, e);
+                ShowDropIndicator(container, topHalf);
+                e.Effects = DragDropEffects.Move;
+            }
+        }
+        else if (HasArmorRecords(e.Data))
+        {
+            HideAllIndicators(container);
+            UpdateConflictHighlights(container, e.Data);
+            e.Effects = DragDropEffects.Copy;
+        }
+        else
+        {
+            HideAllIndicators(container);
+            e.Effects = DragDropEffects.None;
+        }
+
+        e.Handled = true;
+    }
+
+    private static void UpdateConflictHighlights(Grid? container, IDataObject data)
+    {
+        if (container?.DataContext is not OutfitDraftViewModel draft)
+        {
+            return;
+        }
+
+        if (!TryExtractArmorRecords(data, out var draggedPieces))
+        {
+            return;
+        }
+
+        foreach (var existingPiece in draft.Pieces)
+        {
+            existingPiece.IsConflicting = draggedPieces.Any(dp => dp.ConflictsWithSlot(existingPiece));
+        }
+    }
+
+    private static void ClearConflictHighlights(Grid? container)
+    {
+        if (container?.DataContext is not OutfitDraftViewModel draft)
+        {
+            return;
+        }
+
+        foreach (var piece in draft.Pieces)
+        {
+            piece.IsConflicting = false;
+        }
+    }
+
+    private static bool IsInTopHalf(Grid? container, DragEventArgs e)
+    {
+        if (container == null)
+        {
+            return true;
+        }
+
+        var position = e.GetPosition(container);
+        return position.Y < container.ActualHeight / 2;
+    }
+
+    private static void ShowDropIndicator(Grid container, bool showTop)
+    {
+        var topIndicator = FindChild<Border>(container, "DropIndicatorTop");
+        var bottomIndicator = FindChild<Border>(container, "DropIndicatorBottom");
+
+        topIndicator?.Visibility = showTop ? Visibility.Visible : Visibility.Collapsed;
+
+        bottomIndicator?.Visibility = showTop ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private static void HideDropIndicators(Grid? container)
+    {
+        if (container == null)
+        {
+            return;
+        }
+
+        var topIndicator = FindChild<Border>(container, "DropIndicatorTop");
+        var bottomIndicator = FindChild<Border>(container, "DropIndicatorBottom");
+
+        topIndicator?.Visibility = Visibility.Collapsed;
+
+        bottomIndicator?.Visibility = Visibility.Collapsed;
+    }
+
+    private static void SetSeparatorHighlight(Grid? container, bool highlight)
+    {
+        if (container == null)
+        {
+            return;
+        }
+
+        var separatorBorder = FindChild<Border>(container, "SeparatorBorder");
+        if (separatorBorder == null)
+        {
+            return;
+        }
+
+        separatorBorder.BorderBrush = highlight
+            ? new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4))
+            : Brushes.Transparent;
+    }
+
+    private static void HideAllIndicators(Grid? container)
+    {
+        HideDropIndicators(container);
+        SetSeparatorHighlight(container, false);
+    }
+
+    private static T? FindChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+    {
+        var count = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T element && element.Name == name)
+            {
+                return element;
+            }
+
+            var result = FindChild<T>(child, name);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private void DragHandle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: IOutfitQueueItem item })
+        {
+            return;
+        }
+
+        _draftDragStartPoint = e.GetPosition(null);
+        _draggedItem = item;
+        e.Handled = true;
+    }
+
+    private void DragHandle_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _draftDragStartPoint == null || _draggedItem == null)
+        {
+            return;
+        }
+
+        var position = e.GetPosition(null);
+        if (Math.Abs(position.X - _draftDragStartPoint.Value.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(position.Y - _draftDragStartPoint.Value.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var item = _draggedItem;
+        _draftDragStartPoint = null;
+        _draggedItem = null;
+
+        SetIsDragging(this, true);
+        try
+        {
+            var data = new DataObject(QueueItemDragDataFormat, item);
+            DragDrop.DoDragDrop((DependencyObject)sender, data, DragDropEffects.Move);
+        }
+        finally
+        {
+            SetIsDragging(this, false);
+        }
+
+        e.Handled = true;
+    }
+
+    private void DragHandle_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _draftDragStartPoint = null;
+        _draggedItem = null;
     }
 
     private static void HandleDropTargetDrag(Border? border, DragEventArgs e)
@@ -345,7 +693,12 @@ public partial class OutfitCreatorView
             return;
         }
 
-        if (HasArmorRecords(e.Data))
+        if (HasQueueItem(e.Data))
+        {
+            SetDropTargetState(border, true);
+            e.Effects = DragDropEffects.Move;
+        }
+        else if (HasArmorRecords(e.Data))
         {
             SetDropTargetState(border, true);
             e.Effects = DragDropEffects.Copy;
@@ -360,6 +713,25 @@ public partial class OutfitCreatorView
     }
 
     private static bool HasArmorRecords(IDataObject data) => data.GetDataPresent(ArmorDragDataFormat);
+
+    private static bool HasQueueItem(IDataObject data) => data.GetDataPresent(QueueItemDragDataFormat);
+
+    private static bool TryExtractQueueItem(IDataObject data, out IOutfitQueueItem item)
+    {
+        item = null!;
+        if (!HasQueueItem(data))
+        {
+            return false;
+        }
+
+        if (data.GetData(QueueItemDragDataFormat) is IOutfitQueueItem i)
+        {
+            item = i;
+            return true;
+        }
+
+        return false;
+    }
 
     private static bool TryExtractArmorRecords(IDataObject data, out List<ArmorRecordViewModel> pieces)
     {

@@ -1721,8 +1721,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         var outfit = entry.SelectedOutfit;
         var label = outfit.EditorID ?? outfit.FormKey.ToString();
 
-        var armorPieces = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (armorPieces.Count == 0)
+        var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+        if (initialResult.ArmorPieces.Count == 0)
         {
             StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
             return;
@@ -1739,14 +1739,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                 _ => GenderedModelVariant.Female
             };
 
-            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false);
+            var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
             var collection = new ArmorPreviewSceneCollection(
                 1,
                 0,
                 new[] { metadata },
                 async (_, gender) =>
                 {
-                    var scene = await _armorPreviewService.BuildPreviewAsync(armorPieces, gender);
+                    var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+                    var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
                     return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
                 },
                 initialGender);

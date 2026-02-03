@@ -168,8 +168,21 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         LoadingPanel.Visibility = Visibility.Collapsed;
 
         UpdateMetadataDisplay(_currentSceneIndex);
+        UpdateLeveledItemsPanel(_currentSceneIndex);
         UpdateMissingAssetsPanel(scene);
         RenderScene(scene);
+    }
+
+    private void UpdateLeveledItemsPanel(int sceneIndex)
+    {
+        var metadata = _sceneCollection.Metadata[sceneIndex];
+        LeveledItemsPanel.Visibility = metadata.ContainsLeveledItems ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnRandomize(object sender, RoutedEventArgs e)
+    {
+        _sceneCollection.ClearCache();
+        BuildScene();
     }
 
     private void UpdateMetadataDisplay(int sceneIndex)

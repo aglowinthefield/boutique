@@ -30,7 +30,8 @@ public sealed record ArmorPreviewScene(
 public sealed record OutfitMetadata(
     string? OutfitLabel,
     string? SourceFile,
-    bool IsWinner);
+    bool IsWinner,
+    bool ContainsLeveledItems = false);
 
 public sealed class ArmorPreviewSceneCollection
 {

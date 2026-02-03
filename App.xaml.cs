@@ -87,36 +87,55 @@ public partial class App
             throw;
         }
 
-        if (FeatureFlags.AutoUpdateEnabled)
+        if (FeatureFlags.AutoUpdateEnabled && Services.GuiSettingsService.Current?.AutoUpdateEnabled == true)
         {
             _ = Task.Run(async () =>
             {
                 await Task.Delay(1500);
-                Current.Dispatcher.Invoke(CheckForUpdates);
+                Current.Dispatcher.Invoke(() => CheckForUpdates(forceShow: false));
             });
         }
     }
 
-    private static void CheckForUpdates()
+    private static string _pendingReleaseNotes = string.Empty;
+    private static bool _forceShowUpdate;
+
+    public static void CheckForUpdates(bool forceShow = false)
     {
         if (!FeatureFlags.AutoUpdateEnabled)
         {
             return;
         }
 
+        if (!forceShow && Services.GuiSettingsService.Current?.AutoUpdateEnabled != true)
+        {
+            return;
+        }
+
+        _forceShowUpdate = forceShow;
+
         try
         {
-            AutoUpdater.ShowSkipButton = true;
-            AutoUpdater.ShowRemindLaterButton = true;
-            AutoUpdater.ReportErrors = false;
+            AutoUpdater.ReportErrors = forceShow;
             AutoUpdater.RunUpdateAsAdmin = false;
             AutoUpdater.HttpUserAgent = "Boutique-Updater";
+            AutoUpdater.InstallationPath = AppDomain.CurrentDomain.BaseDirectory;
 
-            AutoUpdater.ParseUpdateInfoEvent += ParseGitHubRelease;
-            const string updateUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases/latest";
+            var installedVersion = GetInstalledVersion();
+            if (installedVersion != null)
+            {
+                AutoUpdater.InstalledVersion = installedVersion;
+                Log.Information("Current installed version: {Version}", installedVersion);
+            }
+
+            AutoUpdater.ParseUpdateInfoEvent -= ParseGitHubReleases;
+            AutoUpdater.ParseUpdateInfoEvent += ParseGitHubReleases;
+            AutoUpdater.CheckForUpdateEvent -= OnCheckForUpdate;
+            AutoUpdater.CheckForUpdateEvent += OnCheckForUpdate;
+            const string updateUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
 
             AutoUpdater.Start(updateUrl);
-            Log.Information("Update check initiated.");
+            Log.Information("Update check initiated (forceShow: {ForceShow}).", forceShow);
         }
         catch (Exception ex)
         {
@@ -124,59 +143,156 @@ public partial class App
         }
     }
 
-    private static void ParseGitHubRelease(ParseUpdateInfoEventArgs args)
+    private static void OnCheckForUpdate(UpdateInfoEventArgs args)
+    {
+        if (args.IsUpdateAvailable)
+        {
+            var dialog = new Views.UpdateDialog
+            {
+                CurrentVersion = (AutoUpdater.InstalledVersion ?? new Version(0, 0, 0)).ToString(),
+                LatestVersion = args.CurrentVersion,
+                ReleaseNotes = _pendingReleaseNotes,
+                DownloadUrl = args.DownloadURL,
+                Owner = Current.MainWindow,
+                DataContext = null
+            };
+            dialog.DataContext = dialog;
+
+            if (dialog.ShowDialog() == true && dialog.Result == Views.UpdateResult.Update)
+            {
+                try
+                {
+                    if (AutoUpdater.DownloadUpdate(args))
+                    {
+                        Current.Shutdown();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to download update.");
+                    MessageBox.Show(
+                        $"Failed to download update: {ex.Message}",
+                        "Update Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+        }
+        else if (_forceShowUpdate)
+        {
+            MessageBox.Show(
+                "You are running the latest version.",
+                "No Update Available",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+    }
+
+    private static Version? GetInstalledVersion()
+    {
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        var infoVersion = assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion;
+
+        if (string.IsNullOrEmpty(infoVersion))
+        {
+            return assembly.GetName().Version;
+        }
+
+        return ParseSemanticVersion(infoVersion);
+    }
+
+    private static void ParseGitHubReleases(ParseUpdateInfoEventArgs args)
     {
         try
         {
             using var doc = JsonDocument.Parse(args.RemoteData);
-            var root = doc.RootElement;
+            var releases = doc.RootElement;
 
-            var tagName = root.GetProperty("tag_name").GetString() ?? string.Empty;
-            var version = tagName.TrimStart('v');
-            var changelogUrl = root.GetProperty("html_url").GetString() ?? string.Empty;
-
-            string? downloadUrl = null;
-            if (root.TryGetProperty("assets", out var assets))
+            if (releases.ValueKind != JsonValueKind.Array || releases.GetArrayLength() == 0)
             {
-                foreach (var asset in assets.EnumerateArray())
+                Log.Warning("No releases found in GitHub response.");
+                return;
+            }
+
+            var installedVersion = AutoUpdater.InstalledVersion ?? new Version(0, 0, 0);
+            var newerReleases = new List<(Version Version, string Tag, string Body, string? DownloadUrl)>();
+
+            foreach (var release in releases.EnumerateArray())
+            {
+                var tagName = release.GetProperty("tag_name").GetString() ?? string.Empty;
+                var parsedVersion = ParseSemanticVersion(tagName);
+                if (parsedVersion == null || parsedVersion <= installedVersion)
                 {
-                    var name = asset.GetProperty("name").GetString() ?? string.Empty;
-                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                }
+
+                var body = release.TryGetProperty("body", out var bodyProp)
+                    ? bodyProp.GetString() ?? string.Empty
+                    : string.Empty;
+
+                string? downloadUrl = null;
+                if (release.TryGetProperty("assets", out var assets))
+                {
+                    foreach (var asset in assets.EnumerateArray())
                     {
-                        downloadUrl = asset.GetProperty("browser_download_url").GetString();
-                        break;
+                        var name = asset.GetProperty("name").GetString() ?? string.Empty;
+                        if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                        {
+                            downloadUrl = asset.GetProperty("browser_download_url").GetString();
+                            break;
+                        }
                     }
                 }
+
+                newerReleases.Add((parsedVersion, tagName, body, downloadUrl));
             }
 
-            if (string.IsNullOrEmpty(downloadUrl))
+            if (newerReleases.Count == 0)
             {
-                Log.Warning("No zip asset found in GitHub release.");
+                Log.Information("No newer releases found. Current version: {Version}", installedVersion);
                 return;
             }
 
-            var parsedVersion = ParseSemanticVersion(version);
-            if (parsedVersion == null)
+            newerReleases.Sort((a, b) => b.Version.CompareTo(a.Version));
+            var latest = newerReleases[0];
+
+            if (string.IsNullOrEmpty(latest.DownloadUrl))
             {
-                Log.Warning("Could not parse version from tag: {Tag}", tagName);
+                Log.Warning("No zip asset found in latest release {Tag}.", latest.Tag);
                 return;
             }
+
+            var sb = new StringBuilder();
+            foreach (var (version, tag, body, _) in newerReleases)
+            {
+                sb.AppendLine($"═══ {tag} ═══");
+                sb.AppendLine();
+                sb.AppendLine(string.IsNullOrWhiteSpace(body) ? "(No release notes)" : body.Trim());
+                sb.AppendLine();
+            }
+            _pendingReleaseNotes = sb.ToString().TrimEnd();
 
             args.UpdateInfo = new UpdateInfoEventArgs
             {
-                CurrentVersion = parsedVersion.ToString(),
-                ChangelogURL = changelogUrl,
-                DownloadURL = downloadUrl,
+                CurrentVersion = latest.Version.ToString(),
+                DownloadURL = latest.DownloadUrl,
                 Mandatory = new Mandatory { Value = false }
             };
 
-            Log.Information("Found update: {Version} at {Url}", version, downloadUrl);
+            Log.Information(
+                "Found {Count} newer release(s). Latest: {Version}",
+                newerReleases.Count,
+                latest.Version);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to parse GitHub release info.");
+            Log.Warning(ex, "Failed to parse GitHub releases info.");
         }
     }
+
 
     private static Version? ParseSemanticVersion(string versionString)
     {

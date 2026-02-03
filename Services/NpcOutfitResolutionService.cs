@@ -281,16 +281,9 @@ public class NpcOutfitResolutionService
             {
                 if (SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
                 {
-                    var outfitFormKey = FormKeyHelper.ResolveOutfit(filter.OutfitIdentifier, linkCache);
-                    if (outfitFormKey != null && !outfitFormKey.Value.IsNull)
+                    var outfitSource = ResolveOutfitFromIdentifier(filter.OutfitIdentifier, linkCache);
+                    if (outfitSource.HasValue)
                     {
-                        string? outfitEditorId = null;
-                        if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
-                        {
-                            outfitEditorId = outfit.EditorID;
-                        }
-
-                        // Use pre-built lookups for classification
                         var hasRaceTargeting = filter.FormFilters.Expressions
                             .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
                             .Any(p => raceEditorIds.Contains(p.Value));
@@ -306,7 +299,7 @@ public class NpcOutfitResolutionService
                         var targetingDescription = filter.GetTargetingDescription();
                         var hasTraitFilters = !filter.TraitFilters.IsEmpty;
 
-                        spidLines.Add((line, filter, outfitFormKey.Value, outfitEditorId, hasRaceTargeting, usesKeywordTargeting, usesFactionTargeting, targetingDescription, hasTraitFilters));
+                        spidLines.Add((line, filter, outfitSource.Value.FormKey, outfitSource.Value.EditorId, hasRaceTargeting, usesKeywordTargeting, usesFactionTargeting, targetingDescription, hasTraitFilters));
                     }
                 }
             }
@@ -476,6 +469,22 @@ public class NpcOutfitResolutionService
             : null;
 
         return (resolvedFormKey, editorId);
+    }
+
+    private static (FormKey FormKey, string? EditorId)? ResolveOutfitFromIdentifier(
+        string identifier,
+        ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    {
+        var outfitFormKey = FormKeyHelper.ResolveOutfit(identifier, linkCache);
+        if (outfitFormKey.HasValue && !outfitFormKey.Value.IsNull)
+        {
+            if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
+            {
+                return (outfit.FormKey, outfit.EditorID);
+            }
+        }
+
+        return null;
     }
 
     private static List<NpcOutfitAssignment> BuildNpcOutfitAssignmentsFromFilterData(
