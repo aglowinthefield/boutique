@@ -36,6 +36,7 @@
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="140" />
@@ -146,11 +147,18 @@
                 Margin="16,0,0,0" MinWidth="90" />
       </StackPanel>
 
-      <!-- Row 10: Blacklist ESPs -->
-      <TextBlock Grid.Row="10" Grid.Column="0" Text="{lex:Loc Settings_Blacklist}"
+      <!-- Row 10: Experimental Features -->
+      <TextBlock Grid.Row="10" Grid.Column="0" Text="Experimental"
+                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+      <CheckBox Grid.Row="10" Grid.Column="1" Margin="0,0,0,12"
+                IsChecked="{Binding Settings.ShowContainersTab}" VerticalAlignment="Center"
+                Content="Show Containers tab (experimental)" />
+
+      <!-- Row 11: Blacklist ESPs -->
+      <TextBlock Grid.Row="11" Grid.Column="0" Text="{lex:Loc Settings_Blacklist}"
                  Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}"
                  VerticalAlignment="Top" Margin="0,4,0,0" />
-      <StackPanel Grid.Row="10" Grid.Column="1" Margin="0,0,0,12">
+      <StackPanel Grid.Row="11" Grid.Column="1" Margin="0,0,0,12">
         <controls:FilterableSelector
           ItemsSource="{Binding Settings.AvailableBlacklistPlugins}"
           SelectedItem="{Binding Settings.SelectedBlacklistPlugin, Mode=TwoWay}"

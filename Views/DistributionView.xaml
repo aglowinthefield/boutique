@@ -27,7 +27,8 @@
       </TabItem>
 
       <!-- CONTAINERS TAB -->
-      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Containers}}">
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Containers}}"
+               Visibility="{Binding Settings.ShowContainersTab, Converter={StaticResource BoolToVisConverter}}">
         <views:DistributionContainersTabView DataContext="{Binding ContainersTab}" />
       </TabItem>
 

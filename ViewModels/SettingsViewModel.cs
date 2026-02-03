@@ -209,6 +209,21 @@ public partial class SettingsViewModel : ReactiveObject
         }
     }
 
+    public bool ShowContainersTab
+    {
+        get => _guiSettings.ShowContainersTab;
+        set
+        {
+            if (_guiSettings.ShowContainersTab == value)
+            {
+                return;
+            }
+
+            _guiSettings.ShowContainersTab = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
     [ReactiveCommand]
     private void TestAutoUpdate() => App.CheckForUpdates(forceShow: true);
 

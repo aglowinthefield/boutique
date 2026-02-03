@@ -17,6 +17,7 @@ public class GuiSettings
   public string? Language { get; set; }
   public List<string>? BlacklistedPlugins { get; set; }
   public bool AutoUpdateEnabled { get; set; }
+  public bool ShowContainersTab { get; set; }
 
   public double? WindowLeft { get; set; }
   public double? WindowTop { get; set; }
@@ -147,6 +148,21 @@ public class GuiSettingsService
       }
 
       _settings.AutoUpdateEnabled = value;
+      SaveSettings();
+    }
+  }
+
+  public bool ShowContainersTab
+  {
+    get => _settings.ShowContainersTab;
+    set
+    {
+      if (_settings.ShowContainersTab == value)
+      {
+        return;
+      }
+
+      _settings.ShowContainersTab = value;
       SaveSettings();
     }
   }
