@@ -272,6 +272,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
         draft.RemovePiece(piece);
         RaiseStatus($"Removed {piece.DisplayName} from outfit '{draft.EditorId}'.");
         _logger.Information("Removed armor {Armor} from outfit draft {EditorId}.", piece.DisplayName, draft.EditorId);
+        RaiseDraftModified();
     }
 
     public bool TryAddPieces(OutfitDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces)
@@ -339,6 +340,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
             draft.EditorId,
             string.Join(", ", added.Select(a => a.DisplayName)));
 
+        RaiseDraftModified();
         return true;
     }
 
