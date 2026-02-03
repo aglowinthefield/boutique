@@ -9,362 +9,362 @@ namespace Boutique.Services;
 
 public class GuiSettings
 {
-    public string? SkyrimDataPath { get; set; }
-    public string? OutputPatchPath { get; set; }
-    public string? PatchFileName { get; set; }
-    public SkyrimRelease SelectedSkyrimRelease { get; set; }
-    public string? LastDistributionFilePath { get; set; }
-    public string? Language { get; set; }
-    public List<string>? BlacklistedPlugins { get; set; }
-    public bool AutoUpdateEnabled { get; set; }
+  public string? SkyrimDataPath { get; set; }
+  public string? OutputPatchPath { get; set; }
+  public string? PatchFileName { get; set; }
+  public SkyrimRelease SelectedSkyrimRelease { get; set; }
+  public string? LastDistributionFilePath { get; set; }
+  public string? Language { get; set; }
+  public List<string>? BlacklistedPlugins { get; set; }
+  public bool AutoUpdateEnabled { get; set; }
 
-    public double? WindowLeft { get; set; }
-    public double? WindowTop { get; set; }
-    public double? WindowWidth { get; set; }
-    public double? WindowHeight { get; set; }
-    public WindowState? WindowState { get; set; }
+  public double? WindowLeft { get; set; }
+  public double? WindowTop { get; set; }
+  public double? WindowWidth { get; set; }
+  public double? WindowHeight { get; set; }
+  public WindowState? WindowState { get; set; }
 
-    public Dictionary<string, double>? GridSplitterPositions { get; set; }
-    public Dictionary<string, SecondaryWindowGeometry>? SecondaryWindowGeometries { get; set; }
-    public Dictionary<string, OutfitDraftsState>? OutfitDraftsStates { get; set; }
+  public Dictionary<string, double>? GridSplitterPositions { get; set; }
+  public Dictionary<string, SecondaryWindowGeometry>? SecondaryWindowGeometries { get; set; }
+  public Dictionary<string, OutfitDraftsState>? OutfitDraftsStates { get; set; }
 }
 
 public class OutfitDraftsState
 {
-    public List<string>? Order { get; set; }
-    public HashSet<string>? Collapsed { get; set; }
-    public List<SeparatorState>? Separators { get; set; }
+  public List<string>? Order { get; set; }
+  public HashSet<string>? Collapsed { get; set; }
+  public List<SeparatorState>? Separators { get; set; }
 }
 
 public class SeparatorState
 {
-    public string? Name { get; set; }
-    public string? Icon { get; set; }
+  public string? Name { get; set; }
+  public string? Icon { get; set; }
 }
 
 public class SecondaryWindowGeometry
 {
-    public double? Left { get; set; }
-    public double? Top { get; set; }
-    public double? Width { get; set; }
-    public double? Height { get; set; }
+  public double? Left { get; set; }
+  public double? Top { get; set; }
+  public double? Width { get; set; }
+  public double? Height { get; set; }
 }
 
 public class GuiSettingsService
 {
-    private const string SettingsFileName = "gui-settings.json";
+  private const string SettingsFileName = "gui-settings.json";
 
-    private static readonly string ConfigPath = Path.Combine(
-        AppDomain.CurrentDomain.BaseDirectory, ".config", SettingsFileName);
+  private static readonly string ConfigPath = Path.Combine(
+      AppDomain.CurrentDomain.BaseDirectory, ".config", SettingsFileName);
 
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+  private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-    private readonly ILogger _logger;
-    private GuiSettings _settings = new();
+  private readonly ILogger _logger;
+  private GuiSettings _settings = new();
 
-    public GuiSettingsService(ILogger logger)
+  public GuiSettingsService(ILogger logger)
+  {
+    _logger = logger.ForContext<GuiSettingsService>();
+    LoadSettings();
+    Current = this;
+  }
+
+  public static GuiSettingsService? Current { get; private set; }
+
+  public string? SkyrimDataPath
+  {
+    get => Get<string?>();
+    set => Set(value);
+  }
+
+  public string? PatchFileName
+  {
+    get => Get<string?>();
+    set => Set(value);
+  }
+
+  public string? OutputPatchPath
+  {
+    get => Get<string?>();
+    set => Set(value);
+  }
+
+  public SkyrimRelease SelectedSkyrimRelease
+  {
+    get => Get<SkyrimRelease>();
+    set => Set(value);
+  }
+
+  public string? LastDistributionFilePath
+  {
+    get => Get<string?>();
+    set => Set(value);
+  }
+
+  public string? Language
+  {
+    get => Get<string?>();
+    set => Set(value);
+  }
+
+  public List<string>? BlacklistedPlugins
+  {
+    get => Get<List<string>?>();
+    set => Set(value, skipEquality: true);
+  }
+
+  private T? Get<T>([CallerMemberName] string? name = null)
+  {
+    var prop = typeof(GuiSettings).GetProperty(name!);
+    return (T?)prop?.GetValue(_settings);
+  }
+
+  private void Set<T>(T value, bool skipEquality = false, [CallerMemberName] string? name = null)
+  {
+    var prop = typeof(GuiSettings).GetProperty(name!);
+    if (prop == null)
     {
-        _logger = logger.ForContext<GuiSettingsService>();
-        LoadSettings();
-        Current = this;
+      return;
     }
 
-    public static GuiSettingsService? Current { get; private set; }
-
-    public string? SkyrimDataPath
+    if (!skipEquality && Equals(prop.GetValue(_settings), value))
     {
-        get => Get<string?>();
-        set => Set(value);
+      return;
     }
 
-    public string? PatchFileName
+    prop.SetValue(_settings, value);
+    SaveSettings();
+  }
+
+  public bool AutoUpdateEnabled
+  {
+    get => _settings.AutoUpdateEnabled;
+    set
     {
-        get => Get<string?>();
-        set => Set(value);
+      if (_settings.AutoUpdateEnabled == value)
+      {
+        return;
+      }
+
+      _settings.AutoUpdateEnabled = value;
+      SaveSettings();
+    }
+  }
+
+  public void RestoreWindowGeometry(Window window)
+  {
+    if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
+        _settings.WindowWidth.Value > 0 && _settings.WindowHeight.Value > 0)
+    {
+      window.Width = _settings.WindowWidth.Value;
+      window.Height = _settings.WindowHeight.Value;
     }
 
-    public string? OutputPatchPath
+    if (_settings.WindowLeft.HasValue && _settings.WindowTop.HasValue)
     {
-        get => Get<string?>();
-        set => Set(value);
+      var left = _settings.WindowLeft.Value;
+      var top = _settings.WindowTop.Value;
+
+      if (IsOnScreen(left, top, window.Width, window.Height))
+      {
+        window.Left = left;
+        window.Top = top;
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+      }
     }
 
-    public SkyrimRelease SelectedSkyrimRelease
+    if (_settings.WindowState.HasValue && _settings.WindowState.Value != WindowState.Minimized)
     {
-        get => Get<SkyrimRelease>();
-        set => Set(value);
+      window.WindowState = _settings.WindowState.Value;
+    }
+  }
+
+  public void SaveWindowGeometry(Window window)
+  {
+    if (window.WindowState == WindowState.Normal)
+    {
+      _settings.WindowLeft = window.Left;
+      _settings.WindowTop = window.Top;
+      _settings.WindowWidth = window.Width;
+      _settings.WindowHeight = window.Height;
+    }
+    else if (window.WindowState == WindowState.Maximized)
+    {
+      _settings.WindowLeft = window.RestoreBounds.Left;
+      _settings.WindowTop = window.RestoreBounds.Top;
+      _settings.WindowWidth = window.RestoreBounds.Width;
+      _settings.WindowHeight = window.RestoreBounds.Height;
     }
 
-    public string? LastDistributionFilePath
+    _settings.WindowState = window.WindowState;
+    SaveSettings();
+  }
+
+  public void RestoreSecondaryWindowGeometry(Window window, string windowKey)
+  {
+    var geometry = _settings.SecondaryWindowGeometries?.GetValueOrDefault(windowKey);
+    if (geometry == null)
     {
-        get => Get<string?>();
-        set => Set(value);
+      return;
     }
 
-    public string? Language
+    if (geometry.Width.HasValue && geometry.Height.HasValue &&
+        geometry.Width.Value > 0 && geometry.Height.Value > 0)
     {
-        get => Get<string?>();
-        set => Set(value);
+      window.Width = geometry.Width.Value;
+      window.Height = geometry.Height.Value;
     }
 
-    public List<string>? BlacklistedPlugins
+    if (geometry.Left.HasValue && geometry.Top.HasValue)
     {
-        get => Get<List<string>?>();
-        set => Set(value, skipEquality: true);
+      if (IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
+      {
+        window.Left = geometry.Left.Value;
+        window.Top = geometry.Top.Value;
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+      }
+    }
+  }
+
+  public void SaveSecondaryWindowGeometry(Window window, string windowKey)
+  {
+    _settings.SecondaryWindowGeometries ??= new Dictionary<string, SecondaryWindowGeometry>();
+
+    var geometry = new SecondaryWindowGeometry
+    {
+      Left = window.Left,
+      Top = window.Top,
+      Width = window.Width,
+      Height = window.Height
+    };
+
+    _settings.SecondaryWindowGeometries[windowKey] = geometry;
+    SaveSettings();
+  }
+
+  public double? GetSplitterPosition(string key) =>
+      _settings.GridSplitterPositions?.TryGetValue(key, out var position) == true ? position : null;
+
+  public void SetSplitterPosition(string key, double position)
+  {
+    _settings.GridSplitterPositions ??= new Dictionary<string, double>();
+
+    if (_settings.GridSplitterPositions.TryGetValue(key, out var existing) &&
+        Math.Abs(existing - position) < 0.1)
+    {
+      return;
     }
 
-    private T? Get<T>([CallerMemberName] string? name = null)
+    _settings.GridSplitterPositions[key] = position;
+    SaveSettings();
+  }
+
+  public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
+      _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
+
+  public void SetOutfitDraftOrder(string patchName, IEnumerable<string> itemIds, IEnumerable<SeparatorState>? separators = null)
+  {
+    _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
+
+    if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
     {
-        var prop = typeof(GuiSettings).GetProperty(name!);
-        return (T?)prop?.GetValue(_settings);
+      state = new OutfitDraftsState();
+      _settings.OutfitDraftsStates[patchName] = state;
     }
 
-    private void Set<T>(T value, bool skipEquality = false, [CallerMemberName] string? name = null)
+    state.Order = itemIds.ToList();
+    state.Separators = separators?.ToList();
+    SaveSettings();
+  }
+
+  public bool IsOutfitDraftCollapsed(string patchName, string editorId)
+  {
+    var state = _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
+    return state?.Collapsed?.Contains(editorId) == true;
+  }
+
+  public void SetOutfitDraftCollapsed(string patchName, string editorId, bool collapsed)
+  {
+    _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
+
+    if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
     {
-        var prop = typeof(GuiSettings).GetProperty(name!);
-        if (prop == null)
-        {
-            return;
-        }
-
-        if (!skipEquality && Equals(prop.GetValue(_settings), value))
-        {
-            return;
-        }
-
-        prop.SetValue(_settings, value);
-        SaveSettings();
+      state = new OutfitDraftsState();
+      _settings.OutfitDraftsStates[patchName] = state;
     }
 
-    public bool AutoUpdateEnabled
-    {
-        get => _settings.AutoUpdateEnabled;
-        set
-        {
-            if (_settings.AutoUpdateEnabled == value)
-            {
-                return;
-            }
+    state.Collapsed ??= [];
 
-            _settings.AutoUpdateEnabled = value;
-            SaveSettings();
-        }
+    var changed = collapsed
+        ? state.Collapsed.Add(editorId)
+        : state.Collapsed.Remove(editorId);
+
+    if (changed)
+    {
+      SaveSettings();
+    }
+  }
+
+  private static bool IsOnScreen(double left, double top, double width, double height)
+  {
+    var virtualScreenLeft = SystemParameters.VirtualScreenLeft;
+    var virtualScreenTop = SystemParameters.VirtualScreenTop;
+    var virtualScreenWidth = SystemParameters.VirtualScreenWidth;
+    var virtualScreenHeight = SystemParameters.VirtualScreenHeight;
+
+    var virtualScreen = new Rect(virtualScreenLeft, virtualScreenTop, virtualScreenWidth, virtualScreenHeight);
+    var windowRect = new Rect(left, top, width, height);
+
+    if (!windowRect.IntersectsWith(virtualScreen))
+    {
+      return false;
     }
 
-    public void RestoreWindowGeometry(Window window)
+    var intersection = Rect.Intersect(windowRect, virtualScreen);
+    return intersection.Width >= 100 && intersection.Height >= 100;
+  }
+
+  private void LoadSettings()
+  {
+    try
     {
-        if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
-            _settings.WindowWidth.Value > 0 && _settings.WindowHeight.Value > 0)
-        {
-            window.Width = _settings.WindowWidth.Value;
-            window.Height = _settings.WindowHeight.Value;
-        }
+      if (!File.Exists(ConfigPath))
+      {
+        _logger.Debug("GUI settings file not found, using defaults");
+        return;
+      }
 
-        if (_settings.WindowLeft.HasValue && _settings.WindowTop.HasValue)
-        {
-            var left = _settings.WindowLeft.Value;
-            var top = _settings.WindowTop.Value;
-
-            if (IsOnScreen(left, top, window.Width, window.Height))
-            {
-                window.Left = left;
-                window.Top = top;
-                window.WindowStartupLocation = WindowStartupLocation.Manual;
-            }
-        }
-
-        if (_settings.WindowState.HasValue && _settings.WindowState.Value != WindowState.Minimized)
-        {
-            window.WindowState = _settings.WindowState.Value;
-        }
+      var json = File.ReadAllText(ConfigPath);
+      var loaded = JsonSerializer.Deserialize<GuiSettings>(json);
+      if (loaded != null)
+      {
+        _settings = loaded;
+      }
     }
-
-    public void SaveWindowGeometry(Window window)
+    catch (Exception ex)
     {
-        if (window.WindowState == WindowState.Normal)
-        {
-            _settings.WindowLeft = window.Left;
-            _settings.WindowTop = window.Top;
-            _settings.WindowWidth = window.Width;
-            _settings.WindowHeight = window.Height;
-        }
-        else if (window.WindowState == WindowState.Maximized)
-        {
-            _settings.WindowLeft = window.RestoreBounds.Left;
-            _settings.WindowTop = window.RestoreBounds.Top;
-            _settings.WindowWidth = window.RestoreBounds.Width;
-            _settings.WindowHeight = window.RestoreBounds.Height;
-        }
-
-        _settings.WindowState = window.WindowState;
-        SaveSettings();
+      _logger.Warning(ex, "Failed to load GUI settings, using defaults");
     }
+  }
 
-    public void RestoreSecondaryWindowGeometry(Window window, string windowKey)
+  private void SaveSettings()
+  {
+    try
     {
-        var geometry = _settings.SecondaryWindowGeometries?.GetValueOrDefault(windowKey);
-        if (geometry == null)
-        {
-            return;
-        }
+      var dir = Path.GetDirectoryName(ConfigPath);
+      if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+      {
+        Directory.CreateDirectory(dir);
+      }
 
-        if (geometry.Width.HasValue && geometry.Height.HasValue &&
-            geometry.Width.Value > 0 && geometry.Height.Value > 0)
-        {
-            window.Width = geometry.Width.Value;
-            window.Height = geometry.Height.Value;
-        }
+      var json = JsonSerializer.Serialize(_settings, JsonOptions);
+      File.WriteAllText(ConfigPath, json);
 
-        if (geometry.Left.HasValue && geometry.Top.HasValue)
-        {
-            if (IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
-            {
-                window.Left = geometry.Left.Value;
-                window.Top = geometry.Top.Value;
-                window.WindowStartupLocation = WindowStartupLocation.Manual;
-            }
-        }
+      _logger.Debug("Saved GUI settings");
     }
-
-    public void SaveSecondaryWindowGeometry(Window window, string windowKey)
+    catch (Exception ex)
     {
-        _settings.SecondaryWindowGeometries ??= new Dictionary<string, SecondaryWindowGeometry>();
-
-        var geometry = new SecondaryWindowGeometry
-        {
-            Left = window.Left,
-            Top = window.Top,
-            Width = window.Width,
-            Height = window.Height
-        };
-
-        _settings.SecondaryWindowGeometries[windowKey] = geometry;
-        SaveSettings();
+      _logger.Warning(ex, "Failed to save GUI settings");
     }
-
-    public double? GetSplitterPosition(string key) =>
-        _settings.GridSplitterPositions?.TryGetValue(key, out var position) == true ? position : null;
-
-    public void SetSplitterPosition(string key, double position)
-    {
-        _settings.GridSplitterPositions ??= new Dictionary<string, double>();
-
-        if (_settings.GridSplitterPositions.TryGetValue(key, out var existing) &&
-            Math.Abs(existing - position) < 0.1)
-        {
-            return;
-        }
-
-        _settings.GridSplitterPositions[key] = position;
-        SaveSettings();
-    }
-
-    public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
-        _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
-
-    public void SetOutfitDraftOrder(string patchName, IEnumerable<string> itemIds, IEnumerable<SeparatorState>? separators = null)
-    {
-        _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
-
-        if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
-        {
-            state = new OutfitDraftsState();
-            _settings.OutfitDraftsStates[patchName] = state;
-        }
-
-        state.Order = itemIds.ToList();
-        state.Separators = separators?.ToList();
-        SaveSettings();
-    }
-
-    public bool IsOutfitDraftCollapsed(string patchName, string editorId)
-    {
-        var state = _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
-        return state?.Collapsed?.Contains(editorId) == true;
-    }
-
-    public void SetOutfitDraftCollapsed(string patchName, string editorId, bool collapsed)
-    {
-        _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
-
-        if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
-        {
-            state = new OutfitDraftsState();
-            _settings.OutfitDraftsStates[patchName] = state;
-        }
-
-        state.Collapsed ??= [];
-
-        var changed = collapsed
-            ? state.Collapsed.Add(editorId)
-            : state.Collapsed.Remove(editorId);
-
-        if (changed)
-        {
-            SaveSettings();
-        }
-    }
-
-    private static bool IsOnScreen(double left, double top, double width, double height)
-    {
-        var virtualScreenLeft = SystemParameters.VirtualScreenLeft;
-        var virtualScreenTop = SystemParameters.VirtualScreenTop;
-        var virtualScreenWidth = SystemParameters.VirtualScreenWidth;
-        var virtualScreenHeight = SystemParameters.VirtualScreenHeight;
-
-        var virtualScreen = new Rect(virtualScreenLeft, virtualScreenTop, virtualScreenWidth, virtualScreenHeight);
-        var windowRect = new Rect(left, top, width, height);
-
-        if (!windowRect.IntersectsWith(virtualScreen))
-        {
-            return false;
-        }
-
-        var intersection = Rect.Intersect(windowRect, virtualScreen);
-        return intersection.Width >= 100 && intersection.Height >= 100;
-    }
-
-    private void LoadSettings()
-    {
-        try
-        {
-            if (!File.Exists(ConfigPath))
-            {
-                _logger.Debug("GUI settings file not found, using defaults");
-                return;
-            }
-
-            var json = File.ReadAllText(ConfigPath);
-            var loaded = JsonSerializer.Deserialize<GuiSettings>(json);
-            if (loaded != null)
-            {
-                _settings = loaded;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.Warning(ex, "Failed to load GUI settings, using defaults");
-        }
-    }
-
-    private void SaveSettings()
-    {
-        try
-        {
-            var dir = Path.GetDirectoryName(ConfigPath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
-
-            var json = JsonSerializer.Serialize(_settings, JsonOptions);
-            File.WriteAllText(ConfigPath, json);
-
-            _logger.Debug("Saved GUI settings");
-        }
-        catch (Exception ex)
-        {
-            _logger.Warning(ex, "Failed to save GUI settings");
-        }
-    }
+  }
 }

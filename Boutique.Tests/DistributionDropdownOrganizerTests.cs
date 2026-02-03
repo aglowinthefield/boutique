@@ -1,7 +1,6 @@
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
-using FluentAssertions;
 using Xunit;
 
 namespace Boutique.Tests;

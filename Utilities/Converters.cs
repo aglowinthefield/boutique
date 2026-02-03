@@ -10,11 +10,11 @@ namespace Boutique.Utilities;
 /// </summary>
 public class InverseBoolToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is true ? Visibility.Collapsed : Visibility.Visible;
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      value is true ? Visibility.Collapsed : Visibility.Visible;
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is Visibility.Collapsed;
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      value is Visibility.Collapsed;
 }
 
 /// <summary>
@@ -23,26 +23,26 @@ public class InverseBoolToVisibilityConverter : IValueConverter
 /// </summary>
 public class CollectionCountToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    var count = value switch
     {
-        var count = value switch
-        {
-            int i => i,
-            ICollection c => c.Count,
-            _ => 0
-        };
+      int i => i,
+      ICollection c => c.Count,
+      _ => 0
+    };
 
-        var isVisible = count > 0;
-        if (parameter is "Inverse")
-        {
-            isVisible = !isVisible;
-        }
-
-        return isVisible ? Visibility.Visible : Visibility.Collapsed;
+    var isVisible = count > 0;
+    if (parameter is "Inverse")
+    {
+      isVisible = !isVisible;
     }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+    return isVisible ? Visibility.Visible : Visibility.Collapsed;
+  }
+
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -51,15 +51,15 @@ public class CollectionCountToVisibilityConverter : IValueConverter
 /// </summary>
 public class StringEmptyToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var isEmpty = string.IsNullOrEmpty(value as string);
-        var isVisible = parameter is "Inverse" ? isEmpty : !isEmpty;
-        return isVisible ? Visibility.Visible : Visibility.Collapsed;
-    }
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    var isEmpty = string.IsNullOrEmpty(value as string);
+    var isVisible = parameter is "Inverse" ? isEmpty : !isEmpty;
+    return isVisible ? Visibility.Visible : Visibility.Collapsed;
+  }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -68,15 +68,15 @@ public class StringEmptyToVisibilityConverter : IValueConverter
 /// </summary>
 public class NullToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var isNull = value is null;
-        var isVisible = parameter is "Inverse" ? isNull : !isNull;
-        return isVisible ? Visibility.Visible : Visibility.Collapsed;
-    }
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    var isNull = value is null;
+    var isVisible = parameter is "Inverse" ? isNull : !isNull;
+    return isVisible ? Visibility.Visible : Visibility.Collapsed;
+  }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -84,11 +84,11 @@ public class NullToVisibilityConverter : IValueConverter
 /// </summary>
 public class InverseBoolConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is not true;
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      value is not true;
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is not true;
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      value is not true;
 }
 
 /// <summary>
@@ -96,11 +96,11 @@ public class InverseBoolConverter : IValueConverter
 /// </summary>
 public class EqualityToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        Equals(value?.ToString(), parameter?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      Equals(value?.ToString(), parameter?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -108,11 +108,11 @@ public class EqualityToVisibilityConverter : IValueConverter
 /// </summary>
 public class InequalityToVisibilityConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        Equals(value?.ToString(), parameter?.ToString()) ? Visibility.Collapsed : Visibility.Visible;
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      Equals(value?.ToString(), parameter?.ToString()) ? Visibility.Collapsed : Visibility.Visible;
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -120,11 +120,11 @@ public class InequalityToVisibilityConverter : IValueConverter
 /// </summary>
 public class StringNotEmptyConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        !string.IsNullOrWhiteSpace(value as string);
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      !string.IsNullOrWhiteSpace(value as string);
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
 
 /// <summary>
@@ -132,25 +132,25 @@ public class StringNotEmptyConverter : IValueConverter
 /// </summary>
 public class CollectionContainsConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    if (value is not IEnumerable collection || parameter is null)
     {
-        if (value is not IEnumerable collection || parameter is null)
-        {
-            return false;
-        }
-
-        var parameterString = parameter.ToString();
-        foreach (var item in collection)
-        {
-            if (string.Equals(item?.ToString(), parameterString, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
+      return false;
     }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+    var parameterString = parameter.ToString();
+    foreach (var item in collection)
+    {
+      if (string.Equals(item?.ToString(), parameterString, StringComparison.Ordinal))
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }
