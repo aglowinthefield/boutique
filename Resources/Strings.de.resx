@@ -144,6 +144,18 @@
     <data name="Settings_Blacklist" xml:space="preserve">
     <value>Sperrliste:</value>
   </data>
+    <data name="Settings_Group_GameConfiguration" xml:space="preserve">
+    <value>Spielkonfiguration</value>
+  </data>
+    <data name="Settings_Group_PatchSettings" xml:space="preserve">
+    <value>Patch-Einstellungen</value>
+  </data>
+    <data name="Settings_Group_Appearance" xml:space="preserve">
+    <value>Erscheinungsbild</value>
+  </data>
+    <data name="Settings_Group_Advanced" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
 
     <!-- Common Buttons -->
     <data name="Button_Browse" xml:space="preserve">

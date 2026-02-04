@@ -7,13 +7,13 @@
              xmlns:themes="clr-namespace:Boutique.Themes"
              xmlns:controls="clr-namespace:Boutique.Controls"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="400"
              d:DesignWidth="1200">
   <Grid Margin="16">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
@@ -22,170 +22,222 @@
                Style="{DynamicResource {x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}}"
                FontSize="18" Margin="0,0,0,20" />
 
-    <!-- Settings Grid -->
-    <Grid Grid.Row="1">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-      </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="140" />
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="Auto" />
-      </Grid.ColumnDefinitions>
+    <!-- Grouped Settings with ScrollViewer -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="0,0,0,12">
 
-      <!-- Row 0: Skyrim Release -->
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_SkyrimRelease}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <ComboBox Grid.Row="0" Grid.Column="1"
-                ItemsSource="{Binding Settings.SkyrimReleaseOptions}"
-                SelectedItem="{Binding Settings.SelectedSkyrimRelease}"
-                Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+        <!-- Group 1: Game Configuration -->
+        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.GameConfiguration}}"
+                  Padding="12" Margin="0,0,0,12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-      <!-- Row 1: Skyrim Data Path -->
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_SkyrimDataPath}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
-               Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
-      <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
-        <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0"
-                MinWidth="80" />
-        <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
+            <!-- Row 0: Skyrim Release -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_SkyrimRelease}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="0" Grid.Column="1"
+                      ItemsSource="{Binding Settings.SkyrimReleaseOptions}"
+                      SelectedItem="{Binding Settings.SelectedSkyrimRelease}"
+                      Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+
+            <!-- Row 1: Skyrim Data Path -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_SkyrimDataPath}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
+                     Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
+              <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0"
+                      MinWidth="80" />
+              <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
+            </StackPanel>
+
+            <!-- Row 2: Detection -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_Detection}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                       Text="{Binding Settings.DetectionSource}"
+                       FontStyle="Italic" VerticalAlignment="Center">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Foreground" Value="Green" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Settings.DetectionFailed}" Value="True">
+                      <Setter Property="Foreground" Value="Red" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </Grid>
+        </GroupBox>
+
+        <!-- Group 2: Patch Settings -->
+        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.PatchSettings}}"
+                  Padding="12" Margin="0,0,0,12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Row 0: Patch File Name -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,12,12"
+                     Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
+                       VerticalAlignment="Center" Margin="0,0,0,12" />
+
+            <!-- Row 1: Output Path -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_OutputPath}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
+                     Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="{lex:Loc Settings_OutputPathTooltip}" />
+            <Button Grid.Row="1" Grid.Column="2" Content="{lex:Loc Button_Browse}" Margin="0,0,0,12"
+                    Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
+
+            <!-- Row 2: Blacklist ESPs -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_Blacklist}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}"
+                       VerticalAlignment="Top" Margin="0,4,0,0" />
+            <StackPanel Grid.Row="2" Grid.Column="1">
+              <controls:FilterableSelector
+                ItemsSource="{Binding Settings.AvailableBlacklistPlugins}"
+                SelectedItem="{Binding Settings.SelectedBlacklistPlugin, Mode=TwoWay}"
+                MinWidth="200" MaxDropDownHeight="200" HorizontalAlignment="Left" />
+              <ItemsControl ItemsSource="{Binding Settings.BlacklistedPluginNames}" Margin="0,8,0,0">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{DynamicResource Brush.CardBackground}"
+                            BorderBrush="{DynamicResource Brush.BorderMedium}"
+                            BorderThickness="1" CornerRadius="3" Padding="6,2" Margin="0,0,4,4">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                        <Button Content="✕" Padding="4,0" Margin="6,0,0,0"
+                                Command="{Binding DataContext.Settings.RemoveBlacklistPluginCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
+        <!-- Group 3: Appearance -->
+        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.Appearance}}"
+                  Padding="12" Margin="0,0,0,12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Row 0: Theme -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_Theme}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="0" Grid.Column="1"
+                      ItemsSource="{Binding Settings.ThemeOptions}"
+                      SelectedItem="{Binding Settings.SelectedTheme}"
+                      Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
+
+            <!-- Row 1: Font Size -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_FontSize}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="1" Grid.Column="1"
+                      ItemsSource="{Binding Settings.FontScaleOptions}"
+                      SelectedItem="{Binding Settings.SelectedFontScale}"
+                      Width="100" Margin="0,0,0,12" HorizontalAlignment="Left">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding StringFormat={}{0:P0}}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <!-- Row 2: Language -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_Language}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <ComboBox Grid.Row="2" Grid.Column="1"
+                      ItemsSource="{Binding Settings.AvailableLanguages}"
+                      SelectedItem="{Binding Settings.SelectedLanguage}"
+                      Width="180" Margin="0,0,0,12" HorizontalAlignment="Left" />
+          </Grid>
+        </GroupBox>
+
+        <!-- Group 4: Advanced -->
+        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.Advanced}}"
+                  Padding="12" Margin="0,0,0,12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Row 0: Tutorial (hidden when feature is disabled) -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
+                       Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
+            <Button Grid.Row="0" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
+                    Command="{Binding Settings.RestartTutorialCommand}"
+                    HorizontalAlignment="Left" MinWidth="120" Margin="0,0,0,12"
+                    Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
+
+            <!-- Row 1: Auto Update -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto Update"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+              <CheckBox IsChecked="{Binding Settings.AutoUpdateEnabled}" VerticalAlignment="Center"
+                        Content="Check for updates on startup" />
+              <Button Content="Check Now" Command="{Binding Settings.TestAutoUpdateCommand}"
+                      Margin="16,0,0,0" MinWidth="90" />
+            </StackPanel>
+
+            <!-- Row 2: Experimental Features -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Experimental"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <CheckBox Grid.Row="2" Grid.Column="1"
+                      IsChecked="{Binding Settings.ShowContainersTab}" VerticalAlignment="Center"
+                      Content="Show Containers tab (Requires Restart)" />
+          </Grid>
+        </GroupBox>
+
       </StackPanel>
-
-      <!-- Row 2: Patch File Name -->
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <TextBox Grid.Row="2" Grid.Column="1" Margin="0,0,12,12"
-               Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
-      <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
-                 VerticalAlignment="Center" Margin="0,0,0,12" />
-
-      <!-- Row 3: Output Path -->
-      <TextBlock Grid.Row="3" Grid.Column="0" Text="{lex:Loc Settings_OutputPath}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,12,12"
-               Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"
-               ToolTip="{lex:Loc Settings_OutputPathTooltip}" />
-      <Button Grid.Row="3" Grid.Column="2" Content="{lex:Loc Button_Browse}" Margin="0,0,0,12"
-              Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
-
-      <!-- Row 4: Detection -->
-      <TextBlock Grid.Row="4" Grid.Column="0" Text="{lex:Loc Settings_Detection}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
-                 Text="{Binding Settings.DetectionSource}"
-                 FontStyle="Italic" VerticalAlignment="Center" Margin="0,0,0,12">
-        <TextBlock.Style>
-          <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="Green" />
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding Settings.DetectionFailed}" Value="True">
-                <Setter Property="Foreground" Value="Red" />
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </TextBlock.Style>
-      </TextBlock>
-
-      <!-- Row 5: Theme -->
-      <TextBlock Grid.Row="5" Grid.Column="0" Text="{lex:Loc Settings_Theme}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <ComboBox Grid.Row="5" Grid.Column="1"
-                ItemsSource="{Binding Settings.ThemeOptions}"
-                SelectedItem="{Binding Settings.SelectedTheme}"
-                Width="140" Margin="0,0,0,12" HorizontalAlignment="Left" />
-
-      <!-- Row 6: Font Size -->
-      <TextBlock Grid.Row="6" Grid.Column="0" Text="{lex:Loc Settings_FontSize}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <ComboBox Grid.Row="6" Grid.Column="1"
-                ItemsSource="{Binding Settings.FontScaleOptions}"
-                SelectedItem="{Binding Settings.SelectedFontScale}"
-                Width="100" Margin="0,0,0,12" HorizontalAlignment="Left">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding StringFormat={}{0:P0}}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-
-      <!-- Row 7: Language -->
-      <TextBlock Grid.Row="7" Grid.Column="0" Text="{lex:Loc Settings_Language}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <ComboBox Grid.Row="7" Grid.Column="1"
-                ItemsSource="{Binding Settings.AvailableLanguages}"
-                SelectedItem="{Binding Settings.SelectedLanguage}"
-                Width="180" Margin="0,0,0,12" HorizontalAlignment="Left" />
-
-      <!-- Row 8: Tutorial (hidden when feature is disabled) -->
-      <TextBlock Grid.Row="8" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
-                 Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-      <Button Grid.Row="8" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
-              Command="{Binding Settings.RestartTutorialCommand}"
-              HorizontalAlignment="Left" MinWidth="120"
-              Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-
-      <!-- Row 9: Auto Update -->
-      <TextBlock Grid.Row="9" Grid.Column="0" Text="Auto Update"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <StackPanel Grid.Row="9" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
-        <CheckBox IsChecked="{Binding Settings.AutoUpdateEnabled}" VerticalAlignment="Center"
-                  Content="Check for updates on startup" />
-        <Button Content="Check Now" Command="{Binding Settings.TestAutoUpdateCommand}"
-                Margin="16,0,0,0" MinWidth="90" />
-      </StackPanel>
-
-      <!-- Row 10: Experimental Features -->
-      <TextBlock Grid.Row="10" Grid.Column="0" Text="Experimental"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-      <CheckBox Grid.Row="10" Grid.Column="1" Margin="0,0,0,12"
-                IsChecked="{Binding Settings.ShowContainersTab}" VerticalAlignment="Center"
-                Content="Show Containers tab (experimental)" />
-
-      <!-- Row 11: Blacklist ESPs -->
-      <TextBlock Grid.Row="11" Grid.Column="0" Text="{lex:Loc Settings_Blacklist}"
-                 Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}"
-                 VerticalAlignment="Top" Margin="0,4,0,0" />
-      <StackPanel Grid.Row="11" Grid.Column="1" Margin="0,0,0,12">
-        <controls:FilterableSelector
-          ItemsSource="{Binding Settings.AvailableBlacklistPlugins}"
-          SelectedItem="{Binding Settings.SelectedBlacklistPlugin, Mode=TwoWay}"
-          MinWidth="200" MaxDropDownHeight="200" HorizontalAlignment="Left" />
-        <ItemsControl ItemsSource="{Binding Settings.BlacklistedPluginNames}" Margin="0,8,0,0">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Background="{DynamicResource Brush.CardBackground}"
-                      BorderBrush="{DynamicResource Brush.BorderMedium}"
-                      BorderThickness="1" CornerRadius="3" Padding="6,2" Margin="0,0,4,4">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding}" VerticalAlignment="Center" />
-                  <Button Content="✕" Padding="4,0" Margin="6,0,0,0"
-                          Command="{Binding DataContext.Settings.RemoveBlacklistPluginCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          CommandParameter="{Binding}"
-                          Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}" />
-                </StackPanel>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>
-    </Grid>
+    </ScrollViewer>
   </Grid>
 </UserControl>

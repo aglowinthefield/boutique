@@ -211,16 +211,28 @@ public class GameDataCacheService : IDisposable
       var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
       var classesTask = Task.Run(() => LoadClasses(linkCache));
       var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
-      var containersTask = Task.Run(() => LoadContainers(linkCache));
 
-      await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
-
-      factionsList = await factionsTask;
-      racesList = await racesTask;
-      keywordsList = await keywordsTask;
-      classesList = await classesTask;
-      outfitsList = await outfitsTask;
-      containersList = await containersTask;
+      if (_guiSettings.ShowContainersTab)
+      {
+        var containersTask = Task.Run(() => LoadContainers(linkCache));
+        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
+        factionsList = await factionsTask;
+        racesList = await racesTask;
+        keywordsList = await keywordsTask;
+        classesList = await classesTask;
+        outfitsList = await outfitsTask;
+        containersList = await containersTask;
+      }
+      else
+      {
+        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
+        factionsList = await factionsTask;
+        racesList = await racesTask;
+        keywordsList = await keywordsTask;
+        classesList = await classesTask;
+        outfitsList = await outfitsTask;
+        containersList = [];
+      }
 
       var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID ?? string.Empty);
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
@@ -353,8 +365,11 @@ public class GameDataCacheService : IDisposable
       await LoadDistributionDataAsync(npcFilterDataList);
 
       IsLoaded = true;
+      var logMessage = _guiSettings.ShowContainersTab
+          ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
+          : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
       _logger.Information(
-          "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
+          logMessage,
           npcFilterDataList.Count,
           factionsList.Count,
           racesList.Count,

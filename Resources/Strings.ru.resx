@@ -144,6 +144,18 @@
     <data name="Settings_Blacklist" xml:space="preserve">
     <value>Чёрный список:</value>
   </data>
+    <data name="Settings_Group_GameConfiguration" xml:space="preserve">
+    <value>Конфигурация игры</value>
+  </data>
+    <data name="Settings_Group_PatchSettings" xml:space="preserve">
+    <value>Настройки патча</value>
+  </data>
+    <data name="Settings_Group_Appearance" xml:space="preserve">
+    <value>Внешний вид</value>
+  </data>
+    <data name="Settings_Group_Advanced" xml:space="preserve">
+    <value>Дополнительно</value>
+  </data>
 
     <!-- Common Buttons -->
     <data name="Button_Browse" xml:space="preserve">

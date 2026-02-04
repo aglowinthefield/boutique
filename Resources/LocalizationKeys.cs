@@ -32,6 +32,14 @@ public static class LocalizationKeys
         public const string Theme = "Settings_Theme";
         public const string Language = "Settings_Language";
         public const string Tutorial = "Settings_Tutorial";
+
+        public static class SettingGroups
+        {
+            public const string GameConfiguration = "Settings_Group_GameConfiguration";
+            public const string PatchSettings = "Settings_Group_PatchSettings";
+            public const string Appearance = "Settings_Group_Appearance";
+            public const string Advanced = "Settings_Group_Advanced";
+        }
     }
 
     public static class Buttons
