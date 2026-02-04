@@ -215,22 +215,22 @@ public class GameDataCacheService : IDisposable
       if (_guiSettings.ShowContainersTab)
       {
         var containersTask = Task.Run(() => LoadContainers(linkCache));
-        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask);
-        factionsList = await factionsTask;
-        racesList = await racesTask;
-        keywordsList = await keywordsTask;
-        classesList = await classesTask;
-        outfitsList = await outfitsTask;
-        containersList = await containersTask;
+        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask).ContinueWith(_ => { });
+        factionsList = await SafeAwait(factionsTask, "Factions");
+        racesList = await SafeAwait(racesTask, "Races");
+        keywordsList = await SafeAwait(keywordsTask, "Keywords");
+        classesList = await SafeAwait(classesTask, "Classes");
+        outfitsList = await SafeAwait(outfitsTask, "Outfits");
+        containersList = await SafeAwait(containersTask, "Containers");
       }
       else
       {
-        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask);
-        factionsList = await factionsTask;
-        racesList = await racesTask;
-        keywordsList = await keywordsTask;
-        classesList = await classesTask;
-        outfitsList = await outfitsTask;
+        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask).ContinueWith(_ => { });
+        factionsList = await SafeAwait(factionsTask, "Factions");
+        racesList = await SafeAwait(racesTask, "Races");
+        keywordsList = await SafeAwait(keywordsTask, "Keywords");
+        classesList = await SafeAwait(classesTask, "Classes");
+        outfitsList = await SafeAwait(outfitsTask, "Outfits");
         containersList = [];
       }
 
@@ -243,37 +243,58 @@ public class GameDataCacheService : IDisposable
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
       {
-        if (race.Keywords == null)
+        try
         {
-          continue;
-        }
-
-        var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kw in race.Keywords)
-        {
-          if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
+          if (race.Keywords == null)
           {
-            keywords.Add(editorId);
+            continue;
           }
-        }
 
-        raceKeywordLookup.TryAdd(race.FormKey, keywords);
+          var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+          foreach (var kw in race.Keywords)
+          {
+            if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
+            {
+              keywords.Add(editorId);
+            }
+          }
+
+          raceKeywordLookup.TryAdd(race.FormKey, keywords);
+        }
+        catch (Exception ex)
+        {
+          _logger.Warning(ex, "Failed to process race {EditorID} from {Plugin}", race.EditorID ?? "Unknown", race.FormKey.ModKey.FileName);
+        }
       }
 
       var templateLookup = new Dictionary<FormKey, string>();
       foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
       {
-        if (!string.IsNullOrWhiteSpace(npc.EditorID))
+        try
         {
-          templateLookup.TryAdd(npc.FormKey, npc.EditorID);
+          if (!string.IsNullOrWhiteSpace(npc.EditorID))
+          {
+            templateLookup.TryAdd(npc.FormKey, npc.EditorID);
+          }
+        }
+        catch (Exception ex)
+        {
+          _logger.Warning(ex, "Failed to process NPC from {Plugin}", npc.FormKey.ModKey.FileName);
         }
       }
 
       foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
       {
-        if (!string.IsNullOrWhiteSpace(lvln.EditorID))
+        try
         {
-          templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
+          if (!string.IsNullOrWhiteSpace(lvln.EditorID))
+          {
+            templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
+          }
+        }
+        catch (Exception ex)
+        {
+          _logger.Warning(ex, "Failed to process leveled NPC from {Plugin}", lvln.FormKey.ModKey.FileName);
         }
       }
 
@@ -469,6 +490,19 @@ public class GameDataCacheService : IDisposable
     }
 
     await LoadAsync();
+  }
+
+  private async Task<T> SafeAwait<T>(Task<T> task, string taskName) where T : new()
+  {
+    try
+    {
+      return await task;
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Failed to load {TaskName} data. Returning empty collection.", taskName);
+      return new T();
+    }
   }
 
   private async Task LoadDistributionDataAsync(List<NpcFilterData> npcFilterDataList)
@@ -915,24 +949,31 @@ public class GameDataCacheService : IDisposable
 
     foreach (var faction in linkCache.WinningOverrides<IFactionGetter>())
     {
-      if (faction.MerchantContainer.IsNull)
+      try
       {
-        continue;
-      }
+        if (faction.MerchantContainer.IsNull)
+        {
+          continue;
+        }
 
-      if (!linkCache.TryResolve<IPlacedObjectGetter>(faction.MerchantContainer.FormKey, out var placedRef))
+        if (!linkCache.TryResolve<IPlacedObjectGetter>(faction.MerchantContainer.FormKey, out var placedRef))
+        {
+          continue;
+        }
+
+        if (placedRef.Base.IsNull)
+        {
+          continue;
+        }
+
+        var baseContainerFormKey = placedRef.Base.FormKey;
+        var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
+        result.TryAdd(baseContainerFormKey, factionName);
+      }
+      catch (Exception ex)
       {
-        continue;
+        Log.Warning(ex, "Failed to process faction {EditorID} from {Plugin}", faction.EditorID ?? "Unknown", faction.FormKey.ModKey.FileName);
       }
-
-      if (placedRef.Base.IsNull)
-      {
-        continue;
-      }
-
-      var baseContainerFormKey = placedRef.Base.FormKey;
-      var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
-      result.TryAdd(baseContainerFormKey, factionName);
     }
 
     return result;
@@ -944,46 +985,53 @@ public class GameDataCacheService : IDisposable
 
     foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
     {
-      var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
-
-      if (cell.Temporary is { } temporary)
+      try
       {
-        foreach (var placed in temporary)
+        var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
+
+        if (cell.Temporary is { } temporary)
         {
-          if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
+          foreach (var placed in temporary)
           {
-            var baseFormKey = placedObj.Base.FormKey;
-            if (!result.TryGetValue(baseFormKey, out var list))
+            if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
             {
-              list = [];
-              result[baseFormKey] = list;
+              var baseFormKey = placedObj.Base.FormKey;
+              if (!result.TryGetValue(baseFormKey, out var list))
+              {
+                list = [];
+                result[baseFormKey] = list;
+              }
+              if (!list.Contains(cellName))
+              {
+                list.Add(cellName);
+              }
             }
-            if (!list.Contains(cellName))
+          }
+        }
+
+        if (cell.Persistent is { } persistent)
+        {
+          foreach (var placed in persistent)
+          {
+            if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
             {
-              list.Add(cellName);
+              var baseFormKey = placedObj.Base.FormKey;
+              if (!result.TryGetValue(baseFormKey, out var list))
+              {
+                list = [];
+                result[baseFormKey] = list;
+              }
+              if (!list.Contains(cellName))
+              {
+                list.Add(cellName);
+              }
             }
           }
         }
       }
-
-      if (cell.Persistent is { } persistent)
+      catch (Exception ex)
       {
-        foreach (var placed in persistent)
-        {
-          if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
-          {
-            var baseFormKey = placedObj.Base.FormKey;
-            if (!result.TryGetValue(baseFormKey, out var list))
-            {
-              list = [];
-              result[baseFormKey] = list;
-            }
-            if (!list.Contains(cellName))
-            {
-              list.Add(cellName);
-            }
-          }
-        }
+        Log.Warning(ex, "Failed to process cell {EditorID} from {Plugin}", cell.EditorID ?? "Unknown", cell.FormKey.ModKey.FileName);
       }
     }
 
