@@ -266,21 +266,7 @@ public class DistributionEntryHydrationService(
         return null;
     }
 
-    public List<ClassRecordViewModel> ResolveClassFormKeys(IEnumerable<FormKey> formKeys)
-    {
-        var classVms = new List<ClassRecordViewModel>();
-
-        foreach (var formKey in formKeys)
-        {
-            var classVm = ResolveClassFormKey(formKey);
-            if (classVm != null)
-            {
-                classVms.Add(classVm);
-            }
-        }
-
-        return classVms;
-    }
+    private List<ClassRecordViewModel> ResolveClassFormKeys(IEnumerable<FormKey> formKeys) => formKeys.Select(ResolveClassFormKey).OfType<ClassRecordViewModel>().ToList();
 
     public ClassRecordViewModel? ResolveClassFormKey(FormKey formKey)
     {
@@ -304,21 +290,7 @@ public class DistributionEntryHydrationService(
         return null;
     }
 
-    public List<OutfitRecordViewModel> ResolveOutfitFilterFormKeys(IEnumerable<FormKey> formKeys)
-    {
-        var outfitVms = new List<OutfitRecordViewModel>();
-
-        foreach (var formKey in formKeys)
-        {
-            var outfitVm = ResolveOutfitFilterFormKey(formKey);
-            if (outfitVm != null)
-            {
-                outfitVms.Add(outfitVm);
-            }
-        }
-
-        return outfitVms;
-    }
+    private List<OutfitRecordViewModel> ResolveOutfitFilterFormKeys(IEnumerable<FormKey> formKeys) => [.. formKeys.Select(ResolveOutfitFilterFormKey).OfType<OutfitRecordViewModel>()];
 
     public OutfitRecordViewModel? ResolveOutfitFilterFormKey(FormKey formKey)
     {
