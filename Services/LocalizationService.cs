@@ -76,11 +76,11 @@ public class LocalizationService
 
             if (matchingLanguage != null)
             {
-                SetLanguage(matchingLanguage.Code, false);
+                SetLanguage(matchingLanguage.Code, true);
             }
             else
             {
-                SetLanguage("en", false);
+                SetLanguage("en", true);
             }
         }
 
