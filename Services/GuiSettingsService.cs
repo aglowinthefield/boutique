@@ -18,6 +18,7 @@ public class GuiSettings
   public List<string>? BlacklistedPlugins { get; set; }
   public bool AutoUpdateEnabled { get; set; }
   public bool ShowContainersTab { get; set; }
+  public bool DebugLoggingEnabled { get; set; }
 
   public double? WindowLeft { get; set; }
   public double? WindowTop { get; set; }
@@ -163,6 +164,21 @@ public class GuiSettingsService
       }
 
       _settings.ShowContainersTab = value;
+      SaveSettings();
+    }
+  }
+
+  public bool DebugLoggingEnabled
+  {
+    get => _settings.DebugLoggingEnabled;
+    set
+    {
+      if (_settings.DebugLoggingEnabled == value)
+      {
+        return;
+      }
+
+      _settings.DebugLoggingEnabled = value;
       SaveSettings();
     }
   }

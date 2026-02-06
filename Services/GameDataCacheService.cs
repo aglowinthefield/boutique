@@ -31,7 +31,7 @@ public class GameDataCacheService : IDisposable
   private readonly SourceCache<NpcFilterData, FormKey> _npcsSource = new(x => x.FormKey);
   private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
   private readonly SourceCache<RaceRecordViewModel, FormKey> _racesSource = new(x => x.FormKey);
-  private readonly SourceCache<KeywordRecordViewModel, FormKey> _keywordsSource = new(x => x.FormKey);
+  private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource = new(x => x.EditorID ?? x.FormKey.ToString());
   private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
   private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
   private readonly SourceCache<OutfitRecordViewModel, FormKey> _outfitRecordsSource = new(x => x.FormKey);
@@ -152,7 +152,7 @@ public class GameDataCacheService : IDisposable
   public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
   public Optional<FactionRecordViewModel> LookupFaction(FormKey key) => _factionsSource.Lookup(key);
   public Optional<RaceRecordViewModel> LookupRace(FormKey key) => _racesSource.Lookup(key);
-  public Optional<KeywordRecordViewModel> LookupKeyword(FormKey key) => _keywordsSource.Lookup(key);
+  public Optional<KeywordRecordViewModel> LookupKeyword(string editorId) => _keywordsSource.Lookup(editorId);
   public Optional<ClassRecordViewModel> LookupClass(FormKey key) => _classesSource.Lookup(key);
 
   public event EventHandler? CacheLoaded;
@@ -530,7 +530,8 @@ public class GameDataCacheService : IDisposable
 
       _logger.Debug("Found {Count} distribution files with outfit distributions.", outfitFiles.Count);
 
-      var fileViewModels = outfitFiles
+      // Include ALL discovered files in the dropdown (both outfit and keyword-only files)
+      var allFileViewModels = discoveredFiles
           .Select(f => new DistributionFileViewModel(f))
           .ToList();
 
@@ -543,7 +544,7 @@ public class GameDataCacheService : IDisposable
       _distributionFilesSource.Edit(cache =>
       {
         cache.Clear();
-        cache.AddOrUpdate(fileViewModels);
+        cache.AddOrUpdate(allFileViewModels);
       });
 
       _npcOutfitAssignmentsSource.Edit(cache =>
@@ -559,7 +560,8 @@ public class GameDataCacheService : IDisposable
                   .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var newKeywords = virtualKeywords
-                  .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty));
+                  .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty))
+                  .ToList();
 
         cache.AddOrUpdate(newKeywords);
       });

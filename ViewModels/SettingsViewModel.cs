@@ -26,6 +26,7 @@ public enum ThemeOption
 public partial class SettingsViewModel : ReactiveObject
 {
     private readonly GuiSettingsService _guiSettings;
+    private readonly ILoggingService _loggingService;
     private readonly LocalizationService _localizationService;
     private readonly MutagenService _mutagenService;
     private readonly PatcherSettings _settings;
@@ -64,6 +65,7 @@ public partial class SettingsViewModel : ReactiveObject
     public SettingsViewModel(
         PatcherSettings settings,
         GuiSettingsService guiSettings,
+        ILoggingService loggingService,
         ThemeService themeService,
         TutorialService tutorialService,
         LocalizationService localizationService,
@@ -71,12 +73,15 @@ public partial class SettingsViewModel : ReactiveObject
     {
         _settings = settings;
         _guiSettings = guiSettings;
+        _loggingService = loggingService;
         _themeService = themeService;
         _tutorialService = tutorialService;
         _localizationService = localizationService;
         _mutagenService = mutagenService;
 
         _mutagenService.Initialized += OnMutagenInitialized;
+
+        _loggingService.IsDebugEnabled = _guiSettings.DebugLoggingEnabled;
 
         BlacklistedPluginNames = new ObservableCollection<string>(guiSettings.BlacklistedPlugins ?? []);
         BlacklistedPluginNames.CollectionChanged += (_, _) =>
@@ -224,6 +229,22 @@ public partial class SettingsViewModel : ReactiveObject
         }
     }
 
+    public bool DebugLoggingEnabled
+    {
+        get => _guiSettings.DebugLoggingEnabled;
+        set
+        {
+            if (_guiSettings.DebugLoggingEnabled == value)
+            {
+                return;
+            }
+
+            _guiSettings.DebugLoggingEnabled = value;
+            _loggingService.IsDebugEnabled = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
     [ReactiveCommand]
     private void TestAutoUpdate() => App.CheckForUpdates(forceShow: true);
 
@@ -280,6 +301,82 @@ public partial class SettingsViewModel : ReactiveObject
             {
                 OutputPatchPath = folder;
             }
+        }
+    }
+
+    [ReactiveCommand]
+    private void OpenTodaysLog()
+    {
+        var logsFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Boutique",
+            "logs");
+
+        var todayLogFile = Path.Combine(logsFolder, $"Boutique-{DateTime.Now:yyyyMMdd}.log");
+
+        if (File.Exists(todayLogFile))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = todayLogFile,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to open log file: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+        else
+        {
+            MessageBox.Show(
+                $"Today's log file does not exist yet:\n{todayLogFile}",
+                "Log File Not Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+    }
+
+    [ReactiveCommand]
+    private void OpenLogsFolder()
+    {
+        var logsFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Boutique",
+            "logs");
+
+        if (Directory.Exists(logsFolder))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = logsFolder,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to open logs folder: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+        else
+        {
+            MessageBox.Show(
+                $"Logs folder does not exist:\n{logsFolder}",
+                "Folder Not Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
     }
 

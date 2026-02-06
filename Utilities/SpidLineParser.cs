@@ -115,8 +115,10 @@ public static class SpidLineParser
 
     private static (string Identifier, string Remainder) ExtractFormIdentifier(string valuePart)
     {
+        var firstPipe = valuePart.IndexOf('|');
         var tildeIndex = valuePart.IndexOf('~');
-        if (tildeIndex >= 0)
+
+        if (tildeIndex >= 0 && (firstPipe < 0 || tildeIndex < firstPipe))
         {
             var afterTilde = valuePart[(tildeIndex + 1)..];
             var modEndIndex = FormKeyHelper.FindModKeyEnd(afterTilde);
@@ -130,8 +132,6 @@ public static class SpidLineParser
                 return (identifier, remainder);
             }
         }
-
-        var firstPipe = valuePart.IndexOf('|');
         if (firstPipe >= 0)
         {
             var firstPart = valuePart[..firstPipe];

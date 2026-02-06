@@ -237,6 +237,38 @@
           </Grid>
         </GroupBox>
 
+        <!-- Group 5: Debug -->
+        <GroupBox Header="Debug" Padding="12" Margin="0,0,0,12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Row 0: Debug Logging -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Debug Logging"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <CheckBox Grid.Row="0" Grid.Column="1"
+                      IsChecked="{Binding Settings.DebugLoggingEnabled}"
+                      Content="Enable debug logging (requires restart)"
+                      Margin="0,0,0,8" />
+
+            <!-- Row 1: Log Files -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Log Files"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+              <Button Content="Open Today's Log" Command="{Binding Settings.OpenTodaysLogCommand}"
+                      MinWidth="130" Margin="0,0,8,0" />
+              <Button Content="Open Logs Folder" Command="{Binding Settings.OpenLogsFolderCommand}"
+                      MinWidth="130" />
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
       </StackPanel>
     </ScrollViewer>
   </Grid>

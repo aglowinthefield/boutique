@@ -1,12 +1,14 @@
 using System.IO;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace Boutique.Services;
 
 public sealed class LoggingService : ILoggingService
 {
     private readonly Logger _logger;
+    private readonly LoggingLevelSwitch _levelSwitch;
     private bool _disposed;
 
     public LoggingService()
@@ -20,8 +22,10 @@ public sealed class LoggingService : ILoggingService
 
         LogFilePattern = Path.Combine(LogDirectory, "Boutique-.log");
 
+        _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
+
         _logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
+            .MinimumLevel.ControlledBy(_levelSwitch)
             .Enrich.FromLogContext()
             .WriteTo.Async(configuration =>
 #pragma warning disable CA1305 // File sink configuration doesn't involve locale-sensitive formatting
@@ -39,6 +43,12 @@ public sealed class LoggingService : ILoggingService
     public ILogger Logger => _logger;
     public string LogDirectory { get; }
     public string LogFilePattern { get; }
+
+    public bool IsDebugEnabled
+    {
+        get => _levelSwitch.MinimumLevel == LogEventLevel.Debug;
+        set => _levelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
+    }
 
     public ILogger ForContext<T>() => _logger.ForContext<T>();
 

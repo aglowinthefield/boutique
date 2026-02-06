@@ -47,10 +47,14 @@ public class DistributionDiscoveryService(ILogger logger)
             };
             var spidFiles = Directory.EnumerateFiles(dataFolderPath, "*_DISTR*.ini", nonRecursiveOptions).ToList();
 
+            _logger.Debug("Searching for SPID files in {DataPath} with pattern *_DISTR*.ini", dataFolderPath);
+            _logger.Debug("Found {Count} SPID files matching pattern", spidFiles.Count);
+
             foreach (var spidFile in spidFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 spidFileCount++;
+                _logger.Debug("Processing SPID file: {FilePath}", spidFile);
                 TryParse(spidFile, DistributionFileType.Spid);
             }
 
@@ -242,8 +246,18 @@ public class DistributionDiscoveryService(ILogger logger)
 
             if (outfitCount == 0 && keywordCount == 0)
             {
+                _logger.Debug(
+                    "Skipping {FilePath}: no outfit or keyword distributions found (total lines: {TotalLines})",
+                    Path.GetFileName(filePath),
+                    totalLines);
                 return null;
             }
+
+            _logger.Debug(
+                "Parsed {FilePath}: {OutfitCount} outfit distributions, {KeywordCount} keyword distributions",
+                Path.GetFileName(filePath),
+                outfitCount,
+                keywordCount);
 
             return new DistributionFile(
                 Path.GetFileName(filePath),
