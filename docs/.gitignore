@@ -1,0 +1,3 @@
+images/*
+!images/.gitkeep
+!images/image-urls.md
