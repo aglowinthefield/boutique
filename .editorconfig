@@ -299,7 +299,7 @@ dotnet_diagnostic.SA1413.severity = none
 dotnet_diagnostic.SA1503.severity = warning
 
 # SA1516: Elements should be separated by blank line
-dotnet_diagnostic.SA1516.severity = suggestion
+dotnet_diagnostic.SA1516.severity = none
 
 # SA1600: Elements should be documented (too noisy, covered by CS1591)
 dotnet_diagnostic.SA1600.severity = none
@@ -363,6 +363,5 @@ dotnet_diagnostic.SA1649.severity = none
 dotnet_diagnostic.SA1611.severity = none
 
 dotnet_diagnostic.SA1615.severity = none
-dotnet_diagnostic.SA1514.severity = none
 
 dotnet_diagnostic.RCS1181.severity = none
