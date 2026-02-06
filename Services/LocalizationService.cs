@@ -89,16 +89,16 @@ public class LocalizationService
 
     public void SetLanguage(string languageCode, bool save = true)
     {
+        if (save)
+        {
+            _guiSettings.Language = languageCode;
+        }
+
         try
         {
             var culture = new CultureInfo(languageCode);
             LocalizeDictionary.Instance.Culture = culture;
             _logger.Information("Language changed to: {Language}", languageCode);
-
-            if (save)
-            {
-                _guiSettings.Language = languageCode;
-            }
         }
         catch (CultureNotFoundException ex)
         {
