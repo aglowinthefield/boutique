@@ -41,154 +41,156 @@
                          Margin="4,-6,10,-6" />
               <Border Grid.Column="1" Padding="6" Margin="0,0,0,6" BorderBrush="{DynamicResource Brush.Border}"
                       BorderThickness="1" CornerRadius="3" Opacity="0.6">
-              <StackPanel>
-                <Grid Margin="0,0,0,4">
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                  </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                  <TextBlock Grid.Column="0" Text="⠿" FontSize="14" Margin="0,0,6,0"
-                             Foreground="{DynamicResource Brush.TextSecondary}"
-                             VerticalAlignment="Top" Cursor="SizeAll"
-                             ToolTip="Drag to reorder"
-                             PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
-                             PreviewMouseMove="DragHandle_PreviewMouseMove"
-                             PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
+                    <TextBlock Grid.Column="0" Text="⠿" FontSize="14" Margin="0,0,6,0"
+                               Foreground="{DynamicResource Brush.TextSecondary}"
+                               VerticalAlignment="Top" Cursor="SizeAll"
+                               ToolTip="Drag to reorder"
+                               PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
+                               PreviewMouseMove="DragHandle_PreviewMouseMove"
+                               PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
 
-                  <ToggleButton Grid.Column="1"
-                              IsChecked="{Binding IsExpanded}"
-                              Width="20" Height="20"
-                              Margin="0,0,6,0"
-                              VerticalAlignment="Top"
-                              Background="Transparent"
-                              BorderThickness="0"
-                              Cursor="Hand">
-                  <ToggleButton.Style>
-                    <Style TargetType="ToggleButton">
-                      <Setter Property="Template">
-                        <Setter.Value>
-                          <ControlTemplate TargetType="ToggleButton">
-                            <Border Background="{TemplateBinding Background}">
-                              <TextBlock x:Name="Arrow" Text="▶" FontSize="10"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                                         Foreground="{DynamicResource Brush.TextSecondary}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                              <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Arrow" Property="Text" Value="▼" />
-                              </Trigger>
-                              <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Arrow" Property="Foreground"
-                                        Value="{DynamicResource Brush.TextPrimary}" />
-                              </Trigger>
-                            </ControlTemplate.Triggers>
-                          </ControlTemplate>
-                        </Setter.Value>
-                      </Setter>
-                    </Style>
-                  </ToggleButton.Style>
-                </ToggleButton>
-
-                <StackPanel Grid.Column="2" Orientation="Vertical">
-                  <StackPanel Orientation="Horizontal">
-                    <TextBox Width="180"
-                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PreviewTextInput="OutfitNameTextBox_OnPreviewTextInput"
-                             DataObject.Pasting="OutfitNameTextBox_OnPasting"
-                             MaxLength="40" HorizontalAlignment="Left"
-                             IsReadOnly="{Binding IsOverride}">
-                      <TextBox.Style>
-                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                          <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=(views:OutfitCreatorView.IsDragging), RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}" Value="True">
-                              <Setter Property="IsHitTestVisible" Value="False" />
-                            </DataTrigger>
-                          </Style.Triggers>
+                    <ToggleButton Grid.Column="1"
+                                  IsChecked="{Binding IsExpanded}"
+                                  Width="20" Height="20"
+                                  Margin="0,0,6,0"
+                                  VerticalAlignment="Top"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Cursor="Hand">
+                      <ToggleButton.Style>
+                        <Style TargetType="ToggleButton">
+                          <Setter Property="Template">
+                            <Setter.Value>
+                              <ControlTemplate TargetType="ToggleButton">
+                                <Border Background="{TemplateBinding Background}">
+                                  <TextBlock x:Name="Arrow" Text="▶" FontSize="10"
+                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             Foreground="{DynamicResource Brush.TextSecondary}" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                  <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Arrow" Property="Text" Value="▼" />
+                                  </Trigger>
+                                  <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Arrow" Property="Foreground"
+                                            Value="{DynamicResource Brush.TextPrimary}" />
+                                  </Trigger>
+                                </ControlTemplate.Triggers>
+                              </ControlTemplate>
+                            </Setter.Value>
+                          </Setter>
                         </Style>
-                      </TextBox.Style>
-                    </TextBox>
-                    <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
-                               Margin="8,0,0,0" FontSize="11" Foreground="Gray"
-                               VerticalAlignment="Center"
-                               Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
-                  </StackPanel>
-                  <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
-                             Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
-                             Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
-                </StackPanel>
-                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Top">
-                  <Button Content="👁" Command="{Binding PreviewCommand}"
-                          Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                          Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
-                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" />
-                  <Button Content="⎘" Command="{Binding DuplicateCommand}"
-                          Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                          Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
-                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
-                  <Button Command="{Binding RemoveSelfCommand}"
-                          Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                          Width="28" Height="28" FontSize="14"
-                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemoveOutfit}}" />
-                </StackPanel>
-              </Grid>
+                      </ToggleButton.Style>
+                    </ToggleButton>
 
-              <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
-                <ItemsControl ItemsSource="{Binding Pieces}" Margin="26,0,0,0">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Grid Margin="0,1,0,1">
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="70" />
-                          <ColumnDefinition Width="*" />
-                          <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding SlotSummary}"
-                                   VerticalAlignment="Center" FontSize="11">
-                          <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                              <Setter Property="Foreground" Value="{DynamicResource Brush.TextTertiary}" />
+                    <StackPanel Grid.Column="2" Orientation="Vertical">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBox Width="180"
+                                 Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PreviewTextInput="OutfitNameTextBox_OnPreviewTextInput"
+                                 DataObject.Pasting="OutfitNameTextBox_OnPasting"
+                                 MaxLength="40" HorizontalAlignment="Left"
+                                 IsReadOnly="{Binding IsOverride}">
+                          <TextBox.Style>
+                            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
                               <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsConflicting}" Value="True">
-                                  <Setter Property="Foreground" Value="#C75050" />
-                                  <Setter Property="FontWeight" Value="SemiBold" />
+                                <DataTrigger
+                                  Binding="{Binding Path=(views:OutfitCreatorView.IsDragging), RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}"
+                                  Value="True">
+                                  <Setter Property="IsHitTestVisible" Value="False" />
                                 </DataTrigger>
                               </Style.Triggers>
                             </Style>
-                          </TextBlock.Style>
-                        </TextBlock>
-                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
-                                   VerticalAlignment="Center" TextWrapping="NoWrap"
-                                   TextTrimming="CharacterEllipsis" FontSize="11">
-                          <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsConflicting}" Value="True">
-                                  <Setter Property="Foreground" Value="#C75050" />
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </TextBlock.Style>
-                        </TextBlock>
-                        <Button Grid.Column="2"
-                                Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}"
-                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                                Margin="4,0,0,0" FontSize="9"
-                                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemovePiece}}" />
-                      </Grid>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoPiecesSelected}}"
-                           Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
-                           HorizontalAlignment="Left" FontSize="12" Margin="26,2,0,0"
-                           Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
-              </StackPanel>
-            </StackPanel>
-            </Border>
+                          </TextBox.Style>
+                        </TextBox>
+                        <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
+                                   Margin="8,0,0,0" FontSize="11" Foreground="Gray"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
+                                 Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
+                                 Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Top">
+                      <Button Content="👁" Command="{Binding PreviewCommand}"
+                              Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                              Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                              ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" />
+                      <Button Content="⎘" Command="{Binding DuplicateCommand}"
+                              Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                              Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                              ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
+                      <Button Command="{Binding RemoveSelfCommand}"
+                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                              Width="28" Height="28" FontSize="14"
+                              ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemoveOutfit}}" />
+                    </StackPanel>
+                  </Grid>
+
+                  <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
+                    <ItemsControl ItemsSource="{Binding Pieces}" Margin="26,0,0,0">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid Margin="0,1,0,1">
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="70" />
+                              <ColumnDefinition Width="*" />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding SlotSummary}"
+                                       VerticalAlignment="Center" FontSize="11">
+                              <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                  <Setter Property="Foreground" Value="{DynamicResource Brush.TextTertiary}" />
+                                  <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                      <Setter Property="Foreground" Value="#C75050" />
+                                      <Setter Property="FontWeight" Value="SemiBold" />
+                                    </DataTrigger>
+                                  </Style.Triggers>
+                                </Style>
+                              </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" FontSize="11">
+                              <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                  <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                      <Setter Property="Foreground" Value="#C75050" />
+                                    </DataTrigger>
+                                  </Style.Triggers>
+                                </Style>
+                              </TextBlock.Style>
+                            </TextBlock>
+                            <Button Grid.Column="2"
+                                    Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                    Margin="4,0,0,0" FontSize="9"
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemovePiece}}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoPiecesSelected}}"
+                               Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+                               HorizontalAlignment="Left" FontSize="12" Margin="26,2,0,0"
+                               Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
             </Grid>
 
             <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"

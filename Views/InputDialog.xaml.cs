@@ -6,62 +6,62 @@ namespace Boutique.Views;
 
 public partial class InputDialog : Window
 {
-    public InputDialog(string prompt, string title, string defaultValue = "")
+  public InputDialog(string prompt, string title, string defaultValue = "")
+  {
+    InitializeComponent();
+
+    Title = title;
+    PromptText.Text = prompt;
+    InputTextBox.Text = defaultValue;
+
+    if (ThemeService.Current is { } themeService)
     {
-        InitializeComponent();
+      RootScaleTransform.ScaleX = themeService.CurrentFontScale;
+      RootScaleTransform.ScaleY = themeService.CurrentFontScale;
 
-        Title = title;
-        PromptText.Text = prompt;
-        InputTextBox.Text = defaultValue;
-
-        if (ThemeService.Current is { } themeService)
-        {
-            RootScaleTransform.ScaleX = themeService.CurrentFontScale;
-            RootScaleTransform.ScaleY = themeService.CurrentFontScale;
-
-            SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
-        }
-
-        Loaded += (_, _) =>
-        {
-            InputTextBox.Focus();
-            InputTextBox.SelectAll();
-        };
+      SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
     }
 
-    public string? Result { get; private set; }
-
-    public static string? Show(Window? owner, string prompt, string title, string defaultValue = "")
+    Loaded += (_, _) =>
     {
-        var dialog = new InputDialog(prompt, title, defaultValue);
-        if (owner != null)
-        {
-            dialog.Owner = owner;
-        }
+      InputTextBox.Focus();
+      InputTextBox.SelectAll();
+    };
+  }
 
-        dialog.ShowDialog();
-        return dialog.Result;
+  public string? Result { get; private set; }
+
+  public static string? Show(Window? owner, string prompt, string title, string defaultValue = "")
+  {
+    var dialog = new InputDialog(prompt, title, defaultValue);
+    if (owner != null)
+    {
+      dialog.Owner = owner;
     }
 
-    private void OkButton_Click(object sender, RoutedEventArgs e)
-    {
-        Result = InputTextBox.Text;
-        Close();
-    }
+    dialog.ShowDialog();
+    return dialog.Result;
+  }
 
-    private void CancelButton_Click(object sender, RoutedEventArgs e)
-    {
-        Result = null;
-        Close();
-    }
+  private void OkButton_Click(object sender, RoutedEventArgs e)
+  {
+    Result = InputTextBox.Text;
+    Close();
+  }
 
-    private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+  private void CancelButton_Click(object sender, RoutedEventArgs e)
+  {
+    Result = null;
+    Close();
+  }
+
+  private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+  {
+    if (e.Key == Key.Enter)
     {
-        if (e.Key == Key.Enter)
-        {
-            Result = InputTextBox.Text;
-            Close();
-            e.Handled = true;
-        }
+      Result = InputTextBox.Text;
+      Close();
+      e.Handled = true;
     }
+  }
 }

@@ -85,7 +85,8 @@
           <DataGridTextColumn Header="Merchant" Binding="{Binding MerchantFaction}" Width="Auto" CanUserSort="True" />
           <DataGridTextColumn Header="Cells" Binding="{Binding CellPlacementsDisplay}" Width="*" CanUserSort="True" />
           <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="Auto" CanUserSort="True" />
-          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="70" CanUserSort="True" IsReadOnly="True" />
+          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="70"
+                                  CanUserSort="True" IsReadOnly="True" />
         </DataGrid.Columns>
       </DataGrid>
 

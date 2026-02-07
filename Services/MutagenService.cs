@@ -9,22 +9,20 @@ using Mutagen.Bethesda.Plugins.Binary.Parameters;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Strings;
+using Mutagen.Bethesda.Strings.DI;
 using Noggog;
 using Serilog;
 
 namespace Boutique.Services;
 
 public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
-    : IDisposable
+  : IDisposable
 {
-  private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly GuiSettingsService _guiSettings = guiSettings;
+  private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
   private readonly PatcherSettings _settings = settings;
   private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
-
-  private bool IsBlacklisted(string pluginName) =>
-      _guiSettings.BlacklistedPlugins?.Contains(pluginName, StringComparer.OrdinalIgnoreCase) == true;
 
   public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
@@ -32,10 +30,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
   public BinaryReadParameters Utf8ReadParameters { get; } = new()
   {
-    StringsParam = new StringsReadParameters
-    {
-      NonLocalizedEncodingOverride = Mutagen.Bethesda.Strings.DI.MutagenEncoding._utf8
-    }
+    StringsParam = new StringsReadParameters { NonLocalizedEncodingOverride = MutagenEncoding._utf8 }
   };
 
   public bool IsInitialized => _environment != null;
@@ -43,6 +38,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   public SkyrimRelease SkyrimRelease => GetSkyrimRelease();
 
   public GameRelease GameRelease => GetGameRelease();
+
+  public void Dispose()
+  {
+    _environment?.Dispose();
+    _initLock.Dispose();
+    GC.SuppressFinalize(this);
+  }
+
+  private bool IsBlacklisted(string pluginName) =>
+    _guiSettings.BlacklistedPlugins?.Contains(pluginName, StringComparer.OrdinalIgnoreCase) == true;
 
   public event EventHandler? PluginsChanged;
 
@@ -57,7 +62,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   };
 
   private SkyrimRelease GetSkyrimRelease() =>
-      _settings.SelectedSkyrimRelease != default ? _settings.SelectedSkyrimRelease : SkyrimRelease.SkyrimSE;
+    _settings.SelectedSkyrimRelease != default ? _settings.SelectedSkyrimRelease : SkyrimRelease.SkyrimSE;
 
   public async Task InitializeAsync(string dataFolderPath)
   {
@@ -79,7 +84,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         DataFolderPath = dataFolderPath;
 
         var useExplicitPath = !string.IsNullOrWhiteSpace(dataFolderPath) &&
-                                    PathUtilities.HasPluginFiles(dataFolderPath);
+                              PathUtilities.HasPluginFiles(dataFolderPath);
 
         if (useExplicitPath)
         {
@@ -126,53 +131,53 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     {
       _logger.Error(autoDetectEx, "Auto-detection failed for data path {DataPath}", dataFolderPath);
       throw new InvalidOperationException(
-          $"Could not initialize Skyrim environment. Ensure Skyrim SE is installed and the data path is correct: {dataFolderPath}\n\n" +
-          $"Error: {autoDetectEx.Message}\n\n" +
-          "Try running SkyrimSELauncher.exe once to register the game path, then restart this application.",
-          autoDetectEx);
+        $"Could not initialize Skyrim environment. Ensure Skyrim SE is installed and the data path is correct: {dataFolderPath}\n\n" +
+        $"Error: {autoDetectEx.Message}\n\n" +
+        "Try running SkyrimSELauncher.exe once to register the game path, then restart this application.",
+        autoDetectEx);
     }
   }
 
   private void BuildEnvironment(string? explicitDataPath)
   {
     _environment = string.IsNullOrEmpty(explicitDataPath)
-        ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
-            .WithUtf8Encoding()
-            .Build()
-        : GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
-            .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
-            .WithUtf8Encoding()
-            .Build();
+      ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
+        .WithUtf8Encoding()
+        .Build()
+      : GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
+        .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
+        .WithUtf8Encoding()
+        .Build();
 
     LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
   }
 
   public async Task<IEnumerable<string>> GetAvailablePluginsAsync(bool excludeBlacklisted = true) =>
-      await Task.Run(() =>
+    await Task.Run(() =>
+    {
+      if (string.IsNullOrEmpty(DataFolderPath))
       {
-        if (string.IsNullOrEmpty(DataFolderPath))
-        {
-          return Enumerable.Empty<string>();
-        }
+        return Enumerable.Empty<string>();
+      }
 
-        return PathUtilities.EnumeratePluginFiles(DataFolderPath)
-              .Select(Path.GetFileName)
-              .Where(name => !string.IsNullOrEmpty(name))
-              .Cast<string>()
-              .Where(name => !excludeBlacklisted || !IsBlacklisted(name))
-              .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-              .ToList();
-      });
+      return PathUtilities.EnumeratePluginFiles(DataFolderPath)
+        .Select(Path.GetFileName)
+        .Where(name => !string.IsNullOrEmpty(name))
+        .Cast<string>()
+        .Where(name => !excludeBlacklisted || !IsBlacklisted(name))
+        .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+        .ToList();
+    });
 
   public Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName) =>
-      LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Armors);
+    LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Armors);
 
   public Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName) =>
-      LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Outfits);
+    LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Outfits);
 
   private async Task<IEnumerable<T>> LoadRecordsFromPluginAsync<T>(
-      string pluginFileName,
-      Func<ISkyrimModGetter, IEnumerable<T>> recordSelector)
+    string pluginFileName,
+    Func<ISkyrimModGetter, IEnumerable<T>> recordSelector)
   {
     if (string.IsNullOrEmpty(DataFolderPath) || IsBlacklisted(pluginFileName))
     {
@@ -266,10 +271,10 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     var diffText = diff > 0 ? $"+{diff}" : diff.ToString(CultureInfo.InvariantCulture);
 
     _logger.Information(
-        "LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
-        previousCount,
-        newCount,
-        diffText);
+      "LinkCache refreshed. Load order: {PreviousCount} → {NewCount} mod(s) ({Diff}).",
+      previousCount,
+      newCount,
+      diffText);
 
     if (!string.IsNullOrEmpty(expectedPlugin) && !string.IsNullOrEmpty(DataFolderPath))
     {
@@ -280,20 +285,20 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
       {
         var fileInfo = new FileInfo(pluginPath);
         _logger.Information(
-            "Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
-            expectedPlugin,
-            fileInfo.Length,
-            fileInfo.LastWriteTime);
+          "Confirmed {Plugin} exists on disk ({Size:N0} bytes, modified {Modified:HH:mm:ss}).",
+          expectedPlugin,
+          fileInfo.Length,
+          fileInfo.LastWriteTime);
 
         var inLoadOrder = _environment?.LoadOrder
-            .Any(entry =>
-                string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
+          .Any(entry =>
+            string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
 
         if (!inLoadOrder)
         {
           _logger.Debug(
-              "{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.",
-              expectedPlugin);
+            "{Plugin} is not in active load order (not enabled in plugins.txt) - this is normal for newly created patches.",
+            expectedPlugin);
         }
       }
       else
@@ -314,18 +319,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   }
 
   public HashSet<ModKey> GetLoadOrderModKeys() =>
-      _environment?.LoadOrder
-          .Select(entry => entry.Key)
-          .ToHashSet() ?? [];
+    _environment?.LoadOrder
+      .Select(entry => entry.Key)
+      .ToHashSet() ?? [];
 
   public bool IsPluginInLoadOrder(string pluginFileName) =>
-      _environment?.LoadOrder
-          .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ?? false;
-
-  public void Dispose()
-  {
-    _environment?.Dispose();
-    _initLock.Dispose();
-    GC.SuppressFinalize(this);
-  }
+    _environment?.LoadOrder
+      .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ?? false;
 }

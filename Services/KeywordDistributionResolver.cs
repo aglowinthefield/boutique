@@ -6,209 +6,210 @@ using Serilog;
 namespace Boutique.Services;
 
 /// <summary>
-///     Resolves SPID keyword distribution dependencies and simulates keyword assignment to NPCs.
+///   Resolves SPID keyword distribution dependencies and simulates keyword assignment to NPCs.
 /// </summary>
 public class KeywordDistributionResolver(ILogger logger)
 {
-    private readonly ILogger _logger = logger.ForContext<KeywordDistributionResolver>();
+  private readonly ILogger _logger = logger.ForContext<KeywordDistributionResolver>();
 
-    /// <summary>
-    ///     Parses all keyword distribution entries from a list of distribution files.
-    /// </summary>
-    public IReadOnlyList<KeywordDistributionEntry> ParseKeywordDistributions(IReadOnlyList<DistributionFile> files)
+  /// <summary>
+  ///   Parses all keyword distribution entries from a list of distribution files.
+  /// </summary>
+  public IReadOnlyList<KeywordDistributionEntry> ParseKeywordDistributions(IReadOnlyList<DistributionFile> files)
+  {
+    var entries = files
+      .Where(f => f.Type == DistributionFileType.Spid)
+      .SelectMany(f => f.Lines
+        .Where(line => line.IsKeywordDistribution)
+        .Select(line => (File: f, Line: line,
+          Parsed: SpidLineParser.TryParseKeyword(line.RawText, out var filter) ? filter : null))
+        .Where(x => x.Parsed != null)
+        .Select(x => KeywordDistributionEntry.FromFilter(x.Parsed!, x.File.FullPath, x.Line.LineNumber)))
+      .ToList();
+
+    _logger.Debug("Parsed {Count} keyword distribution entries from {FileCount} files", entries.Count, files.Count);
+    return entries;
+  }
+
+  /// <summary>
+  ///   Builds a dependency graph and returns keywords in topological order (dependencies first).
+  /// </summary>
+  public (IReadOnlyList<KeywordDistributionEntry> Sorted, IReadOnlyList<string> CyclicKeywords) TopologicalSort(
+    IReadOnlyList<KeywordDistributionEntry> entries)
+  {
+    var keywordToEntry = new Dictionary<string, KeywordDistributionEntry>(StringComparer.OrdinalIgnoreCase);
+    var graph = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+    var inDegree = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+    foreach (var entry in entries)
     {
-        var entries = files
-            .Where(f => f.Type == DistributionFileType.Spid)
-            .SelectMany(f => f.Lines
-                .Where(line => line.IsKeywordDistribution)
-                .Select(line => (File: f, Line: line, Parsed: SpidLineParser.TryParseKeyword(line.RawText, out var filter) ? filter : null))
-                .Where(x => x.Parsed != null)
-                .Select(x => KeywordDistributionEntry.FromFilter(x.Parsed!, x.File.FullPath, x.Line.LineNumber)))
-            .ToList();
-
-        _logger.Debug("Parsed {Count} keyword distribution entries from {FileCount} files", entries.Count, files.Count);
-        return entries;
+      var keyword = entry.KeywordIdentifier;
+      keywordToEntry[keyword] = entry;
+      graph.TryAdd(keyword, []);
+      inDegree.TryAdd(keyword, 0);
     }
 
-    /// <summary>
-    ///     Builds a dependency graph and returns keywords in topological order (dependencies first).
-    /// </summary>
-    public (IReadOnlyList<KeywordDistributionEntry> Sorted, IReadOnlyList<string> CyclicKeywords) TopologicalSort(
-        IReadOnlyList<KeywordDistributionEntry> entries)
+    foreach (var entry in entries)
     {
-        var keywordToEntry = new Dictionary<string, KeywordDistributionEntry>(StringComparer.OrdinalIgnoreCase);
-        var graph = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-        var inDegree = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+      var keyword = entry.KeywordIdentifier;
+      var dependencies = entry.GetReferencedKeywords();
 
-        foreach (var entry in entries)
+      foreach (var dep in dependencies)
+      {
+        if (!keywordToEntry.ContainsKey(dep))
         {
-            var keyword = entry.KeywordIdentifier;
-            keywordToEntry[keyword] = entry;
-            graph.TryAdd(keyword, []);
-            inDegree.TryAdd(keyword, 0);
+          continue;
         }
 
-        foreach (var entry in entries)
+        if (graph[dep].Add(keyword))
         {
-            var keyword = entry.KeywordIdentifier;
-            var dependencies = entry.GetReferencedKeywords();
-
-            foreach (var dep in dependencies)
-            {
-                if (!keywordToEntry.ContainsKey(dep))
-                {
-                    continue;
-                }
-
-                if (graph[dep].Add(keyword))
-                {
-                    inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
-                }
-            }
+          inDegree[keyword] = inDegree.GetValueOrDefault(keyword, 0) + 1;
         }
-
-        var queue = new Queue<string>(inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key));
-
-        var sorted = new List<KeywordDistributionEntry>();
-        var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            processed.Add(current);
-
-            if (keywordToEntry.TryGetValue(current, out var entry))
-            {
-                sorted.Add(entry);
-            }
-
-            if (!graph.TryGetValue(current, out var dependents))
-            {
-                continue;
-            }
-
-            foreach (var dependent in dependents)
-            {
-                inDegree[dependent]--;
-                if (inDegree[dependent] == 0)
-                {
-                    queue.Enqueue(dependent);
-                }
-            }
-        }
-
-        var cyclicKeywords = keywordToEntry.Keys
-            .Where(k => !processed.Contains(k))
-            .ToList();
-
-        if (cyclicKeywords.Count > 0)
-        {
-            _logger.Warning("Detected circular keyword dependencies: {Keywords}", string.Join(", ", cyclicKeywords));
-        }
-
-        _logger.Debug(
-            "Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
-            sorted.Count,
-            cyclicKeywords.Count);
-
-        return (sorted, cyclicKeywords);
+      }
     }
 
-    /// <summary>
-    ///     Simulates keyword distribution for all NPCs, returning a dictionary of NPC FormKey -> assigned keywords.
-    /// </summary>
-    public Dictionary<FormKey, HashSet<string>> SimulateKeywordDistribution(
-        IReadOnlyList<KeywordDistributionEntry> sortedKeywords,
-        IReadOnlyList<NpcFilterData> allNpcs)
+    var queue = new Queue<string>(inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key));
+
+    var sorted = new List<KeywordDistributionEntry>();
+    var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    while (queue.Count > 0)
     {
-        var npcKeywords = allNpcs.ToDictionary(
-            npc => npc.FormKey,
-            npc => new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase));
+      var current = queue.Dequeue();
+      processed.Add(current);
 
-        _logger.Debug(
-            "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
-            allNpcs.Count,
-            sortedKeywords.Count);
+      if (keywordToEntry.TryGetValue(current, out var entry))
+      {
+        sorted.Add(entry);
+      }
 
-        foreach (var entry in sortedKeywords)
+      if (!graph.TryGetValue(current, out var dependents))
+      {
+        continue;
+      }
+
+      foreach (var dependent in dependents)
+      {
+        inDegree[dependent]--;
+        if (inDegree[dependent] == 0)
         {
-            var matchingNpcs = GetMatchingNpcs(entry, allNpcs, npcKeywords);
-
-            foreach (var npc in matchingNpcs)
-            {
-                if (ShouldApplyChance(entry.Chance, npc.FormKey))
-                {
-                    npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
-                }
-            }
-
-            _logger.Debug(
-                "Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
-                entry.KeywordIdentifier,
-                matchingNpcs.Count,
-                entry.Chance);
+          queue.Enqueue(dependent);
         }
-
-        var totalAssignments = npcKeywords.Values.Sum(k => k.Count);
-        _logger.Information(
-            "Keyword simulation complete: {TotalAssignments} total keyword assignments",
-            totalAssignments);
-
-        return npcKeywords;
+      }
     }
 
-    /// <summary>
-    ///     Gets the set of virtual (SPID-distributed) keywords for a specific NPC.
-    /// </summary>
-    public static IReadOnlySet<string> GetVirtualKeywordsForNpc(
-        FormKey npcFormKey,
-        Dictionary<FormKey, HashSet<string>> simulatedKeywords,
-        NpcFilterData npc)
-    {
-        if (!simulatedKeywords.TryGetValue(npcFormKey, out var keywords))
-        {
-            return npc.Keywords;
-        }
+    var cyclicKeywords = keywordToEntry.Keys
+      .Where(k => !processed.Contains(k))
+      .ToList();
 
-        var combined = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
-        combined.UnionWith(keywords);
-        return combined;
+    if (cyclicKeywords.Count > 0)
+    {
+      _logger.Warning("Detected circular keyword dependencies: {Keywords}", string.Join(", ", cyclicKeywords));
     }
 
-    private static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
-        KeywordDistributionEntry entry,
-        IReadOnlyList<NpcFilterData> allNpcs,
-        Dictionary<FormKey, HashSet<string>> currentKeywords)
-    {
-        var filter = new SpidDistributionFilter
-        {
-            FormType = SpidFormType.Keyword,
-            FormIdentifier = entry.KeywordIdentifier,
-            StringFilters = entry.StringFilters,
-            FormFilters = entry.FormFilters,
-            LevelFilters = entry.LevelFilters,
-            TraitFilters = entry.TraitFilters,
-            Chance = entry.Chance,
-            RawLine = entry.RawLine
-        };
+    _logger.Debug(
+      "Topological sort complete: {SortedCount} keywords sorted, {CyclicCount} cyclic",
+      sorted.Count,
+      cyclicKeywords.Count);
 
-        return SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
+    return (sorted, cyclicKeywords);
+  }
+
+  /// <summary>
+  ///   Simulates keyword distribution for all NPCs, returning a dictionary of NPC FormKey -> assigned keywords.
+  /// </summary>
+  public Dictionary<FormKey, HashSet<string>> SimulateKeywordDistribution(
+    IReadOnlyList<KeywordDistributionEntry> sortedKeywords,
+    IReadOnlyList<NpcFilterData> allNpcs)
+  {
+    var npcKeywords = allNpcs.ToDictionary(
+      npc => npc.FormKey,
+      npc => new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase));
+
+    _logger.Debug(
+      "Starting keyword simulation for {NpcCount} NPCs with {KeywordCount} keyword distributions",
+      allNpcs.Count,
+      sortedKeywords.Count);
+
+    foreach (var entry in sortedKeywords)
+    {
+      var matchingNpcs = GetMatchingNpcs(entry, allNpcs, npcKeywords);
+
+      foreach (var npc in matchingNpcs)
+      {
+        if (ShouldApplyChance(entry.Chance, npc.FormKey))
+        {
+          npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
+        }
+      }
+
+      _logger.Debug(
+        "Keyword {Keyword}: matched {MatchCount} NPCs (chance: {Chance}%)",
+        entry.KeywordIdentifier,
+        matchingNpcs.Count,
+        entry.Chance);
     }
 
-    private static bool ShouldApplyChance(int chance, FormKey npcFormKey)
+    var totalAssignments = npcKeywords.Values.Sum(k => k.Count);
+    _logger.Information(
+      "Keyword simulation complete: {TotalAssignments} total keyword assignments",
+      totalAssignments);
+
+    return npcKeywords;
+  }
+
+  /// <summary>
+  ///   Gets the set of virtual (SPID-distributed) keywords for a specific NPC.
+  /// </summary>
+  public static IReadOnlySet<string> GetVirtualKeywordsForNpc(
+    FormKey npcFormKey,
+    Dictionary<FormKey, HashSet<string>> simulatedKeywords,
+    NpcFilterData npc)
+  {
+    if (!simulatedKeywords.TryGetValue(npcFormKey, out var keywords))
     {
-        if (chance >= 100)
-        {
-            return true;
-        }
-
-        if (chance <= 0)
-        {
-            return false;
-        }
-
-        var hash = npcFormKey.GetHashCode();
-        var randomValue = Math.Abs(hash) % 100;
-        return randomValue < chance;
+      return npc.Keywords;
     }
+
+    var combined = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
+    combined.UnionWith(keywords);
+    return combined;
+  }
+
+  private static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
+    KeywordDistributionEntry entry,
+    IReadOnlyList<NpcFilterData> allNpcs,
+    Dictionary<FormKey, HashSet<string>> currentKeywords)
+  {
+    var filter = new SpidDistributionFilter
+    {
+      FormType = SpidFormType.Keyword,
+      FormIdentifier = entry.KeywordIdentifier,
+      StringFilters = entry.StringFilters,
+      FormFilters = entry.FormFilters,
+      LevelFilters = entry.LevelFilters,
+      TraitFilters = entry.TraitFilters,
+      Chance = entry.Chance,
+      RawLine = entry.RawLine
+    };
+
+    return SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
+  }
+
+  private static bool ShouldApplyChance(int chance, FormKey npcFormKey)
+  {
+    if (chance >= 100)
+    {
+      return true;
+    }
+
+    if (chance <= 0)
+    {
+      return false;
+    }
+
+    var hash = npcFormKey.GetHashCode();
+    var randomValue = Math.Abs(hash) % 100;
+    return randomValue < chance;
+  }
 }

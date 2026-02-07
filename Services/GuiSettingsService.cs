@@ -57,7 +57,9 @@ public class GuiSettingsService
   private const string SettingsFileName = "gui-settings.json";
 
   private static readonly string ConfigPath = Path.Combine(
-      AppDomain.CurrentDomain.BaseDirectory, ".config", SettingsFileName);
+    AppDomain.CurrentDomain.BaseDirectory,
+    ".config",
+    SettingsFileName);
 
   private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
@@ -112,30 +114,7 @@ public class GuiSettingsService
   public List<string>? BlacklistedPlugins
   {
     get => Get<List<string>?>();
-    set => Set(value, skipEquality: true);
-  }
-
-  private T? Get<T>([CallerMemberName] string? name = null)
-  {
-    var prop = typeof(GuiSettings).GetProperty(name!);
-    return (T?)prop?.GetValue(_settings);
-  }
-
-  private void Set<T>(T value, bool skipEquality = false, [CallerMemberName] string? name = null)
-  {
-    var prop = typeof(GuiSettings).GetProperty(name!);
-    if (prop == null)
-    {
-      return;
-    }
-
-    if (!skipEquality && Equals(prop.GetValue(_settings), value))
-    {
-      return;
-    }
-
-    prop.SetValue(_settings, value);
-    SaveSettings();
+    set => Set(value, true);
   }
 
   public bool AutoUpdateEnabled
@@ -181,6 +160,29 @@ public class GuiSettingsService
       _settings.DebugLoggingEnabled = value;
       SaveSettings();
     }
+  }
+
+  private T? Get<T>([CallerMemberName] string? name = null)
+  {
+    var prop = typeof(GuiSettings).GetProperty(name!);
+    return (T?)prop?.GetValue(_settings);
+  }
+
+  private void Set<T>(T value, bool skipEquality = false, [CallerMemberName] string? name = null)
+  {
+    var prop = typeof(GuiSettings).GetProperty(name!);
+    if (prop == null)
+    {
+      return;
+    }
+
+    if (!skipEquality && Equals(prop.GetValue(_settings), value))
+    {
+      return;
+    }
+
+    prop.SetValue(_settings, value);
+    SaveSettings();
   }
 
   public void RestoreWindowGeometry(Window window)
@@ -264,10 +266,7 @@ public class GuiSettingsService
 
     var geometry = new SecondaryWindowGeometry
     {
-      Left = window.Left,
-      Top = window.Top,
-      Width = window.Width,
-      Height = window.Height
+      Left = window.Left, Top = window.Top, Width = window.Width, Height = window.Height
     };
 
     _settings.SecondaryWindowGeometries[windowKey] = geometry;
@@ -275,7 +274,7 @@ public class GuiSettingsService
   }
 
   public double? GetSplitterPosition(string key) =>
-      _settings.GridSplitterPositions?.TryGetValue(key, out var position) == true ? position : null;
+    _settings.GridSplitterPositions?.TryGetValue(key, out var position) == true ? position : null;
 
   public void SetSplitterPosition(string key, double position)
   {
@@ -292,9 +291,11 @@ public class GuiSettingsService
   }
 
   public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
-      _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
+    _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
 
-  public void SetOutfitDraftOrder(string patchName, IEnumerable<string> itemIds, IEnumerable<SeparatorState>? separators = null)
+  public void SetOutfitDraftOrder(string patchName,
+    IEnumerable<string> itemIds,
+    IEnumerable<SeparatorState>? separators = null)
   {
     _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
 
@@ -328,8 +329,8 @@ public class GuiSettingsService
     state.Collapsed ??= [];
 
     var changed = collapsed
-        ? state.Collapsed.Add(editorId)
-        : state.Collapsed.Remove(editorId);
+      ? state.Collapsed.Add(editorId)
+      : state.Collapsed.Remove(editorId);
 
     if (changed)
     {

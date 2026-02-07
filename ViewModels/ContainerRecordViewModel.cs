@@ -9,10 +9,10 @@ namespace Boutique.ViewModels;
 public sealed class ContainerRecordViewModel
 {
   public ContainerRecordViewModel(
-      IContainerGetter container,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-      string? merchantFaction = null,
-      IReadOnlyList<string>? cellPlacements = null)
+    IContainerGetter container,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    string? merchantFaction = null,
+    IReadOnlyList<string>? cellPlacements = null)
   {
     FormKey = container.FormKey;
     EditorId = container.EditorID ?? string.Empty;
@@ -36,13 +36,15 @@ public sealed class ContainerRecordViewModel
   public int ItemCount => Items.Count;
   public string DisplayName => string.IsNullOrEmpty(Name) ? EditorId : Name;
   public bool IsMerchantContainer => !string.IsNullOrEmpty(MerchantFaction);
+
   public string CellPlacementsDisplay => CellPlacements.Count > 0
-      ? string.Join(", ", CellPlacements.Take(3)) + (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : string.Empty)
-      : string.Empty;
+    ? string.Join(", ", CellPlacements.Take(3)) +
+      (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : string.Empty)
+    : string.Empty;
 
   private static List<ContainerContentItem> ResolveItems(
-      IContainerGetter container,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    IContainerGetter container,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     if (container.Items is null || container.Items.Count == 0)
     {
@@ -72,11 +74,11 @@ public sealed class ContainerRecordViewModel
       }
 
       items.Add(new ContainerContentItem(
-          formKey,
-          name,
-          editorId,
-          count,
-          formKey.ModKey.FileName));
+        formKey,
+        name,
+        editorId,
+        count,
+        formKey.ModKey.FileName));
     }
 
     return items;

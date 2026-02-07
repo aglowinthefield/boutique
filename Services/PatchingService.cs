@@ -46,13 +46,13 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     if (!mutagenService.IsInitialized)
     {
       throw new InvalidOperationException(
-          "Mutagen service is not initialized. Please set the Skyrim data path first.");
+        "Mutagen service is not initialized. Please set the Skyrim data path first.");
     }
   }
 
   private (SkyrimMod patchMod, HashSet<ModKey> requiredMasters) LoadOrCreatePatch(
-      string outputPath,
-      string operationName)
+    string outputPath,
+    string operationName)
   {
     var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
     SkyrimMod patchMod;
@@ -77,10 +77,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   private void FinalizePatch(
-      SkyrimMod patchMod,
-      HashSet<ModKey> requiredMasters,
-      string outputPath,
-      IProgress<(int current, int total, string message)>? progress)
+    SkyrimMod patchMod,
+    HashSet<ModKey> requiredMasters,
+    string outputPath,
+    IProgress<(int current, int total, string message)>? progress)
   {
     EnsureMasters(patchMod, requiredMasters);
 
@@ -96,8 +96,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   private async Task RefreshAfterWrite(
-      string outputPath,
-      IProgress<(int current, int total, string message)>? progress)
+    string outputPath,
+    IProgress<(int current, int total, string message)>? progress)
   {
     progress?.Report((1, 1, "Refreshing load order..."));
     var pluginName = Path.GetFileName(outputPath);
@@ -105,9 +105,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   public async Task<(bool success, string message)> CreatePatchAsync(
-      IEnumerable<ArmorMatch> matches,
-      string outputPath,
-      IProgress<(int current, int total, string message)>? progress = null)
+    IEnumerable<ArmorMatch> matches,
+    string outputPath,
+    IProgress<(int current, int total, string message)>? progress = null)
   {
     var result = await Task.Run(() =>
     {
@@ -118,9 +118,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         var validMatches = matches.Where(m => m.TargetArmor != null || m.IsGlamOnly).ToList();
 
         _logger.Information(
-                "Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}",
-                outputPath,
-                validMatches.Count);
+          "Beginning patch creation. Destination: {OutputPath}. Matches: {MatchCount}",
+          outputPath,
+          validMatches.Count);
 
         if (validMatches.Count == 0)
         {
@@ -187,10 +187,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   public async Task<(bool success, string message, IReadOnlyList<OutfitCreationResult> results)>
-      CreateOrUpdateOutfitsAsync(
-          IEnumerable<OutfitCreationRequest> outfits,
-          string outputPath,
-          IProgress<(int current, int total, string message)>? progress = null)
+    CreateOrUpdateOutfitsAsync(
+      IEnumerable<OutfitCreationRequest> outfits,
+      string outputPath,
+      IProgress<(int current, int total, string message)>? progress = null)
   {
     var result = await Task.Run(() =>
     {
@@ -205,9 +205,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         }
 
         _logger.Information(
-                "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
-                outputPath,
-                outfitList.Count);
+          "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
+          outputPath,
+          outfitList.Count);
 
         var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit creation");
 
@@ -223,12 +223,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           if (isOverride && existingFormKey.HasValue)
           {
             if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(
-                        existingFormKey.Value,
-                        out var sourceOutfit))
+                  existingFormKey.Value,
+                  out var sourceOutfit))
             {
               _logger.Warning(
-                      "Override outfit {FormKey} not found in LinkCache, skipping.",
-                      existingFormKey.Value);
+                "Override outfit {FormKey} not found in LinkCache, skipping.",
+                existingFormKey.Value);
               continue;
             }
 
@@ -240,9 +240,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             {
               requiredMasters.Add(overrideSourceMod.Value);
               _logger.Debug(
-                      "Adding override source mod {SourceMod} as master for outfit {FormKey}",
-                      overrideSourceMod.Value.FileName,
-                      existingFormKey.Value);
+                "Adding override source mod {SourceMod} as master for outfit {FormKey}",
+                overrideSourceMod.Value.FileName,
+                existingFormKey.Value);
             }
 
             var overrideItems = overrideOutfit.Items ??= [];
@@ -255,10 +255,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
             results.Add(new OutfitCreationResult(editorId, overrideOutfit.FormKey));
             _logger.Information(
-                    "Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
-                    editorId,
-                    existingFormKey.Value,
-                    pieces.Count);
+              "Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
+              editorId,
+              existingFormKey.Value,
+              pieces.Count);
             continue;
           }
 
@@ -266,12 +266,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           if (existingFormKey.HasValue)
           {
             existing = patchMod.Outfits
-                    .FirstOrDefault(o => o.FormKey == existingFormKey.Value);
+              .FirstOrDefault(o => o.FormKey == existingFormKey.Value);
           }
 
           existing ??= patchMod.Outfits
-                  .FirstOrDefault(o =>
-                      string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(o =>
+              string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
           if (pieces.Count == 0)
           {
@@ -296,25 +296,25 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             if (!string.Equals(outfit.EditorID, editorId, StringComparison.OrdinalIgnoreCase))
             {
               _logger.Information(
-                      "Renaming outfit {OldEditorId} to {NewEditorId}.",
-                      outfit.EditorID,
-                      editorId);
+                "Renaming outfit {OldEditorId} to {NewEditorId}.",
+                outfit.EditorID,
+                editorId);
               outfit.EditorID = editorId;
             }
 
             _logger.Information(
-                    "Updating existing outfit {EditorId} with {PieceCount} piece(s).",
-                    editorId,
-                    pieces.Count);
+              "Updating existing outfit {EditorId} with {PieceCount} piece(s).",
+              editorId,
+              pieces.Count);
           }
           else
           {
             outfit = patchMod.Outfits.AddNew();
             outfit.EditorID = editorId;
             _logger.Information(
-                    "Creating new outfit {EditorId} with {PieceCount} piece(s).",
-                    editorId,
-                    pieces.Count);
+              "Creating new outfit {EditorId} with {PieceCount} piece(s).",
+              editorId,
+              pieces.Count);
           }
 
           var items = outfit.Items ??= [];
@@ -358,10 +358,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   public async Task<(bool success, string message, IReadOnlyList<LeveledListCreationResult> results)>
-      CreateOrUpdateLeveledListsAsync(
-          IEnumerable<LeveledListCreationRequest> leveledLists,
-          string outputPath,
-          IProgress<(int current, int total, string message)>? progress = null)
+    CreateOrUpdateLeveledListsAsync(
+      IEnumerable<LeveledListCreationRequest> leveledLists,
+      string outputPath,
+      IProgress<(int current, int total, string message)>? progress = null)
   {
     var result = await Task.Run(() =>
     {
@@ -372,35 +372,35 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         var listRequests = leveledLists.ToList();
         if (listRequests.Count == 0)
         {
-          return (false, "No leveled lists to create.", (IReadOnlyList<LeveledListCreationResult>)[]);
+          return (false, "No leveled lists to create.", []);
         }
 
         _logger.Information(
-                "Beginning leveled list creation. Destination: {OutputPath}. Count={Count}",
-                outputPath,
-                listRequests.Count);
+          "Beginning leveled list creation. Destination: {OutputPath}. Count={Count}",
+          outputPath,
+          listRequests.Count);
 
         var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "leveled list creation");
 
         var results = listRequests
-                .Select((request, index) =>
-                {
-                  progress?.Report((index + 1, listRequests.Count, $"Writing leveled list {request.Name}..."));
-                  return ProcessLeveledListRequest(request, patchMod, requiredMasters);
-                })
-                .Where(r => r != null)
-                .Select(r => r!)
-                .ToList();
+          .Select((request, index) =>
+          {
+            progress?.Report((index + 1, listRequests.Count, $"Writing leveled list {request.Name}..."));
+            return ProcessLeveledListRequest(request, patchMod, requiredMasters);
+          })
+          .Where(r => r != null)
+          .Select(r => r!)
+          .ToList();
 
         FinalizePatch(patchMod, requiredMasters, outputPath, progress);
 
         _logger.Information("Leveled list creation completed successfully. File: {OutputPath}", outputPath);
 
-        return (true, $"Saved {results.Count} leveled list(s) to {outputPath}", (IReadOnlyList<LeveledListCreationResult>)results);
+        return (true, $"Saved {results.Count} leveled list(s) to {outputPath}", results);
       }
       catch (InvalidOperationException ex)
       {
-        return (false, ex.Message, (IReadOnlyList<LeveledListCreationResult>)[]);
+        return (false, ex.Message, []);
       }
       catch (Exception ex)
       {
@@ -422,9 +422,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   private LeveledListCreationResult? ProcessLeveledListRequest(
-      LeveledListCreationRequest request,
-      SkyrimMod patchMod,
-      HashSet<ModKey> requiredMasters)
+    LeveledListCreationRequest request,
+    SkyrimMod patchMod,
+    HashSet<ModKey> requiredMasters)
   {
     var existing = FindExistingLeveledItem(patchMod, request.ExistingFormKey, request.EditorId);
 
@@ -441,10 +441,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   private static LeveledItem? FindExistingLeveledItem(SkyrimMod patchMod, FormKey? existingFormKey, string editorId) =>
-      existingFormKey.HasValue
-          ? patchMod.LeveledItems.FirstOrDefault(l => l.FormKey == existingFormKey.Value)
-            ?? patchMod.LeveledItems.FirstOrDefault(l => string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase))
-          : patchMod.LeveledItems.FirstOrDefault(l => string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+    existingFormKey.HasValue
+      ? patchMod.LeveledItems.FirstOrDefault(l => l.FormKey == existingFormKey.Value)
+        ?? patchMod.LeveledItems.FirstOrDefault(l =>
+          string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase))
+      : patchMod.LeveledItems.FirstOrDefault(l =>
+        string.Equals(l.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
   private LeveledListCreationResult? HandleEmptyLeveledList(SkyrimMod patchMod, LeveledItem? existing, string editorId)
   {
@@ -458,23 +460,31 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     return new LeveledListCreationResult(editorId, existing.FormKey);
   }
 
-  private LeveledItem GetOrCreateLeveledItem(SkyrimMod patchMod, LeveledItem? existing, LeveledListCreationRequest request)
+  private LeveledItem GetOrCreateLeveledItem(SkyrimMod patchMod,
+    LeveledItem? existing,
+    LeveledListCreationRequest request)
   {
     if (existing != null)
     {
       if (!string.Equals(existing.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase))
       {
-        _logger.Information("Renaming leveled list {OldEditorId} to {NewEditorId}.", existing.EditorID, request.EditorId);
+        _logger.Information("Renaming leveled list {OldEditorId} to {NewEditorId}.",
+          existing.EditorID,
+          request.EditorId);
         existing.EditorID = request.EditorId;
       }
 
-      _logger.Information("Updating existing leveled list {EditorId} with {EntryCount} entries.", request.EditorId, request.Entries.Count);
+      _logger.Information("Updating existing leveled list {EditorId} with {EntryCount} entries.",
+        request.EditorId,
+        request.Entries.Count);
       return existing;
     }
 
     var leveledItem = patchMod.LeveledItems.AddNew();
     leveledItem.EditorID = request.EditorId;
-    _logger.Information("Creating new leveled list {EditorId} with {EntryCount} entries.", request.EditorId, request.Entries.Count);
+    _logger.Information("Creating new leveled list {EditorId} with {EntryCount} entries.",
+      request.EditorId,
+      request.Entries.Count);
     return leveledItem;
   }
 
@@ -488,9 +498,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   private static void PopulateLeveledItemEntries(
-      LeveledItem leveledItem,
-      IReadOnlyList<LeveledListEntryRequest> entryRequests,
-      HashSet<ModKey> requiredMasters)
+    LeveledItem leveledItem,
+    IReadOnlyList<LeveledListEntryRequest> entryRequests,
+    HashSet<ModKey> requiredMasters)
   {
     var entries = leveledItem.Entries ??= [];
     entries.Clear();
@@ -517,9 +527,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     {
       patchMod.ModHeader.Stats.NextFormID = MinimumFormId;
       _logger.Warning(
-          "NextFormID was {Current:X}, bumped to {Minimum:X} for ESL compatibility.",
-          current,
-          MinimumFormId);
+        "NextFormID was {Current:X}, bumped to {Minimum:X} for ESL compatibility.",
+        current,
+        MinimumFormId);
     }
   }
 
@@ -579,8 +589,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     }
 
     _logger.Information(
-        "Patch master list: {Masters}",
-        string.Join(", ", masterList.Select(m => m.Master.FileName)));
+      "Patch master list: {Masters}",
+      string.Join(", ", masterList.Select(m => m.Master.FileName)));
   }
 
   private static bool MasterExistsOnDisk(string dataFolder, ModKey master)
@@ -592,30 +602,33 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private void WritePatchWithRetry(SkyrimMod patchMod, string outputPath, HashSet<ModKey> extraMasters)
   {
     var tempPath = Path.Combine(
-        Path.GetDirectoryName(outputPath)!,
-        "_temp_" + Path.GetFileName(outputPath));
+      Path.GetDirectoryName(outputPath)!,
+      "_temp_" + Path.GetFileName(outputPath));
 
     try
     {
       _logger.Debug(
-          "Masters before write: {Masters}",
-          string.Join(", ", patchMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
+        "Masters before write: {Masters}",
+        string.Join(", ", patchMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
       _logger.Debug(
-          "Extra masters to include: {ExtraMasters}",
-          string.Join(", ", extraMasters.Select(m => m.FileName)));
+        "Extra masters to include: {ExtraMasters}",
+        string.Join(", ", extraMasters.Select(m => m.FileName)));
 
       patchMod.BeginWrite
-          .ToPath(tempPath)
-          .WithNoLoadOrder()
-          .WithExtraIncludedMasters(extraMasters)
-          .NoModKeySync()
-          .Write();
+        .ToPath(tempPath)
+        .WithNoLoadOrder()
+        .WithExtraIncludedMasters(extraMasters)
+        .NoModKeySync()
+        .Write();
 
-      using (var writtenMod = SkyrimMod.CreateFromBinaryOverlay(tempPath, mutagenService.SkyrimRelease, mutagenService.Utf8ReadParameters))
+      using (var writtenMod =
+             SkyrimMod.CreateFromBinaryOverlay(tempPath,
+               mutagenService.SkyrimRelease,
+               mutagenService.Utf8ReadParameters))
       {
         _logger.Information(
-            "Masters after write: {Masters}",
-            string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
+          "Masters after write: {Masters}",
+          string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
       }
 
       GC.Collect();
@@ -639,11 +652,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           {
             var delay = initialDelayMs * attempt;
             _logger.Debug(
-                "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
-                attempt,
-                maxRetries,
-                ex.GetType().Name,
-                delay);
+              "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
+              attempt,
+              maxRetries,
+              ex.GetType().Name,
+              delay);
             Thread.Sleep(delay);
           }
         }
@@ -653,12 +666,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       throw lastException switch
       {
         UnauthorizedAccessException => new InvalidOperationException(
-            $"Cannot write to '{fileName}'. " +
-            "The file may be locked by another program (Skyrim, xEdit, etc). " +
-            "Please close any programs that might have it open and try again."),
+          $"Cannot write to '{fileName}'. " +
+          "The file may be locked by another program (Skyrim, xEdit, etc). " +
+          "Please close any programs that might have it open and try again."),
         IOException ioEx => new InvalidOperationException(
-            $"Cannot write to '{fileName}': {ioEx.Message}. " +
-            "The file may be locked by another program."),
+          $"Cannot write to '{fileName}': {ioEx.Message}. " +
+          "The file may be locked by another program."),
         _ => new InvalidOperationException($"Cannot write to '{fileName}': Unknown error.")
       };
     }
@@ -690,24 +703,24 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     var totalRecordCount = patchMod.EnumerateMajorRecords().Count();
     var newRecordCount = patchMod.EnumerateMajorRecords()
-        .Count(r => r.FormKey.ModKey == patchMod.ModKey);
+      .Count(r => r.FormKey.ModKey == patchMod.ModKey);
 
     if (totalRecordCount < eslRecordLimit)
     {
       patchMod.ModHeader.Flags |= SkyrimModHeader.HeaderFlag.Small;
       _logger.Information(
-          "ESL flag applied. Total records: {Total} ({New} new, {Override} overrides), limit: {Limit}.",
-          totalRecordCount,
-          newRecordCount,
-          totalRecordCount - newRecordCount,
-          eslRecordLimit);
+        "ESL flag applied. Total records: {Total} ({New} new, {Override} overrides), limit: {Limit}.",
+        totalRecordCount,
+        newRecordCount,
+        totalRecordCount - newRecordCount,
+        eslRecordLimit);
     }
     else
     {
       _logger.Warning(
-          "ESL flag NOT applied. Total record count {Total} exceeds limit of {Limit}.",
-          totalRecordCount,
-          eslRecordLimit);
+        "ESL flag NOT applied. Total record count {Total} exceeds limit of {Limit}.",
+        totalRecordCount,
+        eslRecordLimit);
     }
   }
 
@@ -723,7 +736,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
       try
       {
-        using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath, mutagenService.SkyrimRelease, mutagenService.Utf8ReadParameters);
+        using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath,
+          mutagenService.SkyrimRelease,
+          mutagenService.Utf8ReadParameters);
         var dataFolder = mutagenService.DataFolderPath ?? string.Empty;
         var loadOrderModKeys = mutagenService.GetLoadOrderModKeys();
         var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
@@ -745,8 +760,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           if (!string.IsNullOrEmpty(dataFolder) && MasterExistsOnDisk(dataFolder, master))
           {
             _logger.Debug(
-                    "Master {Master} not in load order but exists on disk, treating as present.",
-                    master.FileName);
+              "Master {Master} not in load order but exists on disk, treating as present.",
+              master.FileName);
             continue;
           }
 
@@ -792,9 +807,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           if (orphanedFormKeys.Count > 0)
           {
             var affectedInfo = new AffectedOutfitInfo(
-                    outfit.FormKey,
-                    outfit.EditorID,
-                    orphanedFormKeys);
+              outfit.FormKey,
+              outfit.EditorID,
+              orphanedFormKeys);
 
             foreach (var master in affectingMasters)
             {
@@ -814,20 +829,20 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         }
 
         var missingMasterInfos = missingMasters
-                .Select(m => new MissingMasterInfo(
-                    m,
-                    affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
-                .ToList();
+          .Select(m => new MissingMasterInfo(
+            m,
+            affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
+          .ToList();
 
         var allAffectedOutfits = affectedOutfitsByMaster
-                .SelectMany(kvp => kvp.Value)
-                .DistinctBy(a => a.FormKey)
-                .ToList();
+          .SelectMany(kvp => kvp.Value)
+          .DistinctBy(a => a.FormKey)
+          .ToList();
 
         _logger.Information(
-                "Missing masters check complete: {MissingCount} missing master(s), {AffectedCount} affected outfit(s).",
-                missingMasters.Count,
-                allAffectedOutfits.Count);
+          "Missing masters check complete: {MissingCount} missing master(s), {AffectedCount} affected outfit(s).",
+          missingMasters.Count,
+          allAffectedOutfits.Count);
 
         return new MissingMastersResult(true, missingMasterInfos, allAffectedOutfits, validOutfitsList);
       }
@@ -840,8 +855,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   }
 
   public async Task<(bool success, string message)> CleanPatchMissingMastersAsync(
-      string patchPath,
-      IReadOnlyList<AffectedOutfitInfo> outfitsToRemove)
+    string patchPath,
+    IReadOnlyList<AffectedOutfitInfo> outfitsToRemove)
   {
     return await Task.Run(() =>
     {
@@ -853,30 +868,30 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         }
 
         _logger.Information(
-                "Cleaning patch {Path}: removing {Count} outfit(s) with missing masters.",
-                patchPath,
-                outfitsToRemove.Count);
+          "Cleaning patch {Path}: removing {Count} outfit(s) with missing masters.",
+          patchPath,
+          outfitsToRemove.Count);
 
         var patchMod = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
         var outfitsToRemoveSet = outfitsToRemove.Select(o => o.FormKey).ToHashSet();
 
         var removedCount = 0;
         var outfitsToKeep = patchMod.Outfits
-                .Where(o =>
-                {
-                  if (outfitsToRemoveSet.Contains(o.FormKey))
-                  {
-                    _logger.Debug(
-                            "Removing outfit {EditorId} ({FormKey}) due to missing masters.",
-                            o.EditorID,
-                            o.FormKey);
-                    removedCount++;
-                    return false;
-                  }
+          .Where(o =>
+          {
+            if (outfitsToRemoveSet.Contains(o.FormKey))
+            {
+              _logger.Debug(
+                "Removing outfit {EditorId} ({FormKey}) due to missing masters.",
+                o.EditorID,
+                o.FormKey);
+              removedCount++;
+              return false;
+            }
 
-                  return true;
-                })
-                .ToList();
+            return true;
+          })
+          .ToList();
 
         patchMod.Outfits.Clear();
         foreach (var outfit in outfitsToKeep)
@@ -965,8 +980,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   {
     var masterList = patchMod.ModHeader.MasterReferences;
     var mastersToRemove = masterList
-        .Where(m => !requiredMasters.Contains(m.Master) && m.Master != patchMod.ModKey)
-        .ToList();
+      .Where(m => !requiredMasters.Contains(m.Master) && m.Master != patchMod.ModKey)
+      .ToList();
 
     foreach (var master in mastersToRemove)
     {
@@ -975,7 +990,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     }
 
     _logger.Information(
-        "Cleaned master list: {Masters}",
-        string.Join(", ", masterList.Select(m => m.Master.FileName)));
+      "Cleaned master list: {Masters}",
+      string.Join(", ", masterList.Select(m => m.Master.FileName)));
   }
 }

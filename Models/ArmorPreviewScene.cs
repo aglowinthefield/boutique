@@ -4,70 +4,60 @@ namespace Boutique.Models;
 
 public enum GenderedModelVariant
 {
-    Female,
-    Male
+  Female,
+  Male
 }
 
 public sealed record PreviewMeshShape(
-    string Name,
-    string SourcePath,
-    GenderedModelVariant Variant,
-    IReadOnlyList<Vector3> Vertices,
-    IReadOnlyList<Vector3> Normals,
-    IReadOnlyList<Vector2>? TextureCoordinates,
-    IReadOnlyList<int> Indices,
-    Matrix4x4 Transform,
-    string? DiffuseTexturePath);
+  string Name,
+  string SourcePath,
+  GenderedModelVariant Variant,
+  IReadOnlyList<Vector3> Vertices,
+  IReadOnlyList<Vector3> Normals,
+  IReadOnlyList<Vector2>? TextureCoordinates,
+  IReadOnlyList<int> Indices,
+  Matrix4x4 Transform,
+  string? DiffuseTexturePath);
 
 public sealed record ArmorPreviewScene(
-    GenderedModelVariant Gender,
-    IReadOnlyList<PreviewMeshShape> Meshes,
-    IReadOnlyList<string> MissingAssets,
-    string? OutfitLabel = null,
-    string? SourceFile = null,
-    bool IsWinner = false);
+  GenderedModelVariant Gender,
+  IReadOnlyList<PreviewMeshShape> Meshes,
+  IReadOnlyList<string> MissingAssets,
+  string? OutfitLabel = null,
+  string? SourceFile = null,
+  bool IsWinner = false);
 
 public sealed record OutfitMetadata(
-    string? OutfitLabel,
-    string? SourceFile,
-    bool IsWinner,
-    bool ContainsLeveledItems = false);
+  string? OutfitLabel,
+  string? SourceFile,
+  bool IsWinner,
+  bool ContainsLeveledItems = false);
 
-public sealed class ArmorPreviewSceneCollection
+public sealed class ArmorPreviewSceneCollection(
+  int count,
+  int initialIndex,
+  IReadOnlyList<OutfitMetadata> metadata,
+  Func<int, GenderedModelVariant, Task<ArmorPreviewScene>> sceneBuilder,
+  GenderedModelVariant initialGender = GenderedModelVariant.Female)
 {
-    private readonly Func<int, GenderedModelVariant, Task<ArmorPreviewScene>> _sceneBuilder;
-    private readonly Dictionary<(int Index, GenderedModelVariant Gender), ArmorPreviewScene> _sceneCache = new();
+  private readonly Dictionary<(int Index, GenderedModelVariant Gender), ArmorPreviewScene> _sceneCache = new();
 
-    public ArmorPreviewSceneCollection(
-        int count,
-        int initialIndex,
-        IReadOnlyList<OutfitMetadata> metadata,
-        Func<int, GenderedModelVariant, Task<ArmorPreviewScene>> sceneBuilder,
-        GenderedModelVariant initialGender = GenderedModelVariant.Female)
+  public int Count { get; } = count;
+  public int InitialIndex { get; } = initialIndex;
+  public GenderedModelVariant InitialGender { get; } = initialGender;
+  public IReadOnlyList<OutfitMetadata> Metadata { get; } = metadata;
+
+  public async Task<ArmorPreviewScene> GetSceneAsync(int index, GenderedModelVariant gender)
+  {
+    if (_sceneCache.TryGetValue((index, gender), out var cached))
     {
-        Count = count;
-        InitialIndex = initialIndex;
-        InitialGender = initialGender;
-        Metadata = metadata;
-        _sceneBuilder = sceneBuilder;
+      return cached;
     }
 
-    public int Count { get; }
-    public int InitialIndex { get; }
-    public GenderedModelVariant InitialGender { get; }
-    public IReadOnlyList<OutfitMetadata> Metadata { get; }
+    var scene = await sceneBuilder(index, gender);
+    _sceneCache[(index, gender)] = scene;
+    return scene;
+  }
 
-    public async Task<ArmorPreviewScene> GetSceneAsync(int index, GenderedModelVariant gender)
-    {
-        if (_sceneCache.TryGetValue((index, gender), out var cached))
-        {
-            return cached;
-        }
-
-        var scene = await _sceneBuilder(index, gender);
-        _sceneCache[(index, gender)] = scene;
-        return scene;
-    }
-
-    public void ClearCache() => _sceneCache.Clear();
+  public void ClearCache() => _sceneCache.Clear();
 }

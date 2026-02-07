@@ -4,15 +4,15 @@ using Boutique.ViewModels;
 namespace Boutique.Utilities;
 
 /// <summary>
-///     Organizes distribution files into a grouped dropdown structure.
+///   Organizes distribution files into a grouped dropdown structure.
 /// </summary>
 public static class DistributionDropdownOrganizer
 {
   public const string NewFileActionId = "new-file";
 
   /// <summary>
-  ///     Organizes files into a dropdown structure with headers and items.
-  ///     Files with duplicate names get their unique path shown.
+  ///   Organizes files into a dropdown structure with headers and items.
+  ///   Files with duplicate names get their unique path shown.
   /// </summary>
   /// <returns>Tree-like structure for rendering.</returns>
   public static GroupedDropdownStructure<DistributionFileInfo> Organize(IEnumerable<DistributionFileViewModel> files)
@@ -22,23 +22,23 @@ public static class DistributionDropdownOrganizer
     if (fileList.Count == 0)
     {
       return new GroupedDropdownStructure<DistributionFileInfo>(
-          [newFileAction],
-          []);
+        [newFileAction],
+        []);
     }
 
     var duplicateFileNames = GetDuplicateFileNames(fileList);
 
     var grouped = fileList
-        .Select(f => new
-        {
-          File = f,
-          GroupName = f.ModName,
-          UniquePath = duplicateFileNames.Contains(f.FileName) ? f.UniquePath : f.FileName
-        })
-        .GroupBy(x => x.GroupName, StringComparer.OrdinalIgnoreCase)
-        .OrderBy(g => string.IsNullOrEmpty(g.Key) ? 0 : 1)
-        .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+      .Select(f => new
+      {
+        File = f,
+        GroupName = f.ModName,
+        UniquePath = duplicateFileNames.Contains(f.FileName) ? f.UniquePath : f.FileName
+      })
+      .GroupBy(x => x.GroupName, StringComparer.OrdinalIgnoreCase)
+      .OrderBy(g => string.IsNullOrEmpty(g.Key) ? 0 : 1)
+      .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+      .ToList();
 
     var items = new List<GroupedDropdownItem> { newFileAction };
     var groupNames = new List<string>();
@@ -54,16 +54,16 @@ public static class DistributionDropdownOrganizer
       }
 
       var sortedFiles = group
-          .OrderBy(x => x.UniquePath, StringComparer.OrdinalIgnoreCase)
-          .ToList();
+        .OrderBy(x => x.UniquePath, StringComparer.OrdinalIgnoreCase)
+        .ToList();
 
       foreach (var fileInfo in sortedFiles)
       {
         var displayPath = StripGroupPrefix(fileInfo.UniquePath, groupName);
         var payload = new DistributionFileInfo(
-            fileInfo.File.FileName,
-            displayPath,
-            fileInfo.File.FullPath);
+          fileInfo.File.FileName,
+          displayPath,
+          fileInfo.File.FullPath);
 
         var effectiveGroupName = string.IsNullOrEmpty(groupName) ? null : groupName;
         items.Add(new GroupedDropdownItem<DistributionFileInfo>(displayPath, payload, effectiveGroupName));
@@ -74,11 +74,11 @@ public static class DistributionDropdownOrganizer
   }
 
   private static HashSet<string> GetDuplicateFileNames(IEnumerable<DistributionFileViewModel> files) =>
-      files
-          .GroupBy(f => f.FileName, StringComparer.OrdinalIgnoreCase)
-          .Where(g => g.Count() > 1)
-          .Select(g => g.Key)
-          .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    files
+      .GroupBy(f => f.FileName, StringComparer.OrdinalIgnoreCase)
+      .Where(g => g.Count() > 1)
+      .Select(g => g.Key)
+      .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
   private static string StripGroupPrefix(string path, string groupName)
   {

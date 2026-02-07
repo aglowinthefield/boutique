@@ -7,6 +7,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
@@ -26,6 +28,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   public const string AllPluginsOption = "(All Plugins)";
 
   private readonly Subject<Unit> _autoSaveTrigger = new();
+
+  private readonly SourceList<string> _availablePluginsSource = new();
   private readonly IObservable<bool> _canCopyExistingOutfits;
   private readonly IObservable<bool> _canCreateOutfit;
   private readonly IObservable<bool> _canLoadOutfitPlugin;
@@ -46,14 +50,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   private readonly SourceList<ArmorRecordViewModel> _targetArmorsSource = new();
   private int _activeLoadingOperations;
 
-  private readonly SourceList<string> _availablePluginsSource = new();
-
-  [Reactive] private int _outfitArmorsTotalCount;
-
-  [Reactive] private int _sourceArmorsTotalCount;
-
-  [Reactive] private int _targetArmorsTotalCount;
-
   [Reactive] private bool _hasExistingPluginOutfits;
 
   [Reactive] private bool _hasOutfitDrafts;
@@ -73,13 +69,11 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   [ReactiveCollection] private ObservableCollection<ArmorMatchViewModel> _matches = [];
 
+  [Reactive] private int _outfitArmorsTotalCount;
+
   [Reactive] private string _outfitPluginSearchText = string.Empty;
 
   [Reactive] private string _outfitSearchText = string.Empty;
-
-  [Reactive] private string? _selectedOutfitArmorType;
-
-  [Reactive] private string? _selectedOutfitSlot;
 
   [Reactive] private int _progressCurrent;
 
@@ -88,9 +82,15 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   [Reactive] private int _selectedOutfitArmorCount;
 
   private IList _selectedOutfitArmors = new List<ArmorRecordViewModel>();
+
+  [Reactive] private string? _selectedOutfitArmorType;
+
+  [Reactive] private string? _selectedOutfitSlot;
   private IList _selectedSourceArmors = new List<ArmorRecordViewModel>();
 
   [Reactive] private ArmorRecordViewModel? _selectedTargetArmor;
+
+  [Reactive] private int _sourceArmorsTotalCount;
 
   [Reactive] private string _sourceSearchText = string.Empty;
 
@@ -98,21 +98,23 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   private bool _suppressPluginDeselection;
 
-  [Reactive] private string _targetSearchText = string.Empty;
+  [Reactive] private int _targetArmorsTotalCount;
 
-  [Reactive] private string _targetSortProperty = nameof(ArmorRecordViewModel.DisplayName);
+  [Reactive] private string _targetSearchText = string.Empty;
 
   [Reactive] private bool _targetSortAscending = true;
 
+  [Reactive] private string _targetSortProperty = nameof(ArmorRecordViewModel.DisplayName);
+
   public MainViewModel(
-      MutagenService mutagenService,
-      PatchingService patchingService,
-      ArmorPreviewService previewService,
-      SettingsViewModel settingsViewModel,
-      DistributionViewModel distributionViewModel,
-      GameDataCacheService gameDataCache,
-      OutfitDraftManager draftManager,
-      ILoggingService loggingService)
+    MutagenService mutagenService,
+    PatchingService patchingService,
+    ArmorPreviewService previewService,
+    SettingsViewModel settingsViewModel,
+    DistributionViewModel distributionViewModel,
+    GameDataCacheService gameDataCache,
+    OutfitDraftManager draftManager,
+    ILoggingService loggingService)
   {
     _mutagenService = mutagenService;
     _patchingService = patchingService;
@@ -136,17 +138,17 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     _draftManager.StatusChanged += message => StatusMessage = message;
     _draftManager.DraftModified += TriggerAutoSave;
     _draftManager.RequestNameAsync = async tuple =>
-        await RequestOutfitName.Handle(tuple).ToTask();
+      await RequestOutfitName.Handle(tuple).ToTask();
     _draftManager.PreviewDraftAsync = PreviewDraftAsync;
     _draftManager.ConfirmDeleteAsync = async message =>
-        await ConfirmDelete.Handle(message).ToTask();
+      await ConfirmDelete.Handle(message).ToTask();
 
     _draftManager.WhenAnyValue(m => m.HasDrafts)
-        .Subscribe(v => HasOutfitDrafts = v);
+      .Subscribe(v => HasOutfitDrafts = v);
     _draftManager.WhenAnyValue(m => m.HasPendingDeletions)
-        .Subscribe(v => HasPendingOutfitDeletions = v);
+      .Subscribe(v => HasPendingOutfitDeletions = v);
     _draftManager.WhenAnyValue(m => m.HasExistingOutfits)
-        .Subscribe(v => HasExistingPluginOutfits = v);
+      .Subscribe(v => HasExistingPluginOutfits = v);
 
     ConfigureArmorFiltering();
 
@@ -157,47 +159,47 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     HasPendingOutfitDeletions = _draftManager.HasPendingDeletions;
 
     _disposables.Add(_autoSaveTrigger
-        .Throttle(TimeSpan.FromMilliseconds(1500))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
-        .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
-        .Subscribe());
+      .Throttle(TimeSpan.FromMilliseconds(1500))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
+      .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
+      .Subscribe());
 
     this.WhenAnyValue(x => x.IsPatching, x => x.IsCreatingOutfits)
-        .Subscribe(_ => this.RaisePropertyChanged(nameof(IsProgressActive)));
+      .Subscribe(_ => this.RaisePropertyChanged(nameof(IsProgressActive)));
 
     ConfigureOutfitPluginsFiltering();
 
     _matchesCountGreaterThanZero = this.WhenAnyValue(x => x.Matches.Count, count => count > 0);
 
     _isMapSelected = this.WhenAnyValue(
-        x => x.SelectedSourceArmors,
-        x => x.SelectedTargetArmor,
-        (sources, target) => sources.OfType<ArmorRecordViewModel>().Any() && target is not null);
+      x => x.SelectedSourceArmors,
+      x => x.SelectedTargetArmor,
+      (sources, target) => sources.OfType<ArmorRecordViewModel>().Any() && target is not null);
 
     _isMapGlamOnly = this.WhenAnyValue(
-        x => x.SelectedSourceArmors,
-        sources => sources.OfType<ArmorRecordViewModel>().Any());
+      x => x.SelectedSourceArmors,
+      sources => sources.OfType<ArmorRecordViewModel>().Any());
 
     _canCreateOutfit = this.WhenAnyValue(x => x.SelectedOutfitArmorCount, count => count > 0);
     _canSaveOutfits = this.WhenAnyValue(
-        x => x.HasOutfitDrafts,
-        x => x.HasPendingOutfitDeletions,
-        x => x.IsCreatingOutfits,
-        (hasDrafts, hasDeletions, isBusy) => (hasDrafts || hasDeletions) && !isBusy);
+      x => x.HasOutfitDrafts,
+      x => x.HasPendingOutfitDeletions,
+      x => x.IsCreatingOutfits,
+      (hasDrafts, hasDeletions, isBusy) => (hasDrafts || hasDeletions) && !isBusy);
 
     _canLoadOutfitPlugin =
-        this.WhenAnyValue(x => x.SelectedOutfitPlugin, plugin => !string.IsNullOrWhiteSpace(plugin));
+      this.WhenAnyValue(x => x.SelectedOutfitPlugin, plugin => !string.IsNullOrWhiteSpace(plugin));
 
     _canCopyExistingOutfits = this.WhenAnyValue(x => x.HasExistingPluginOutfits);
 
     Settings.WhenAnyValue(x => x.PatchFileName)
-        .Skip(1)
-        .Where(_ => _availablePluginsSource.Count > 0)
-        .Throttle(TimeSpan.FromMilliseconds(500))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .SelectMany(_ => LoadOutfitsFromOutputPluginAsync().ToObservable())
-        .Subscribe();
+      .Skip(1)
+      .Where(_ => _availablePluginsSource.Count > 0)
+      .Throttle(TimeSpan.FromMilliseconds(500))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .SelectMany(_ => LoadOutfitsFromOutputPluginAsync().ToObservable())
+      .Subscribe();
   }
 
   public Interaction<string, Unit> PatchCreatedNotification { get; } = new();
@@ -225,8 +227,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   public List<string> OutfitSlotFilterOptions { get; } =
   [
-      "(All)", "Head", "Hair", "Body", "Hands", "Forearms", "Amulet", "Ring", "Feet", "Calves", "Shield",
-        "LongHair", "Circlet", "Ears"
+    "(All)", "Head", "Hair", "Body", "Hands", "Forearms", "Amulet", "Ring", "Feet", "Calves", "Shield",
+    "LongHair", "Circlet", "Ears"
   ];
 
   public IList SelectedOutfitArmors
@@ -310,7 +312,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       if (existing?.Target is not null)
       {
         SelectedTargetArmor =
-            _targetArmorsSource.Items.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
+          _targetArmorsSource.Items.FirstOrDefault(t => t.Armor.FormKey == existing.Target.Armor.FormKey);
       }
       else
       {
@@ -320,7 +322,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   }
 
   private ArmorRecordViewModel? SelectedSourceArmor =>
-      _selectedSourceArmors.OfType<ArmorRecordViewModel>().FirstOrDefault();
+    _selectedSourceArmors.OfType<ArmorRecordViewModel>().FirstOrDefault();
 
   public string? SelectedSourcePlugin
   {
@@ -381,12 +383,22 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   public bool IsProgressActive => IsPatching || IsCreatingOutfits;
 
+  public void Dispose()
+  {
+    _disposables.Dispose();
+    _sourceArmorsSource.Dispose();
+    _targetArmorsSource.Dispose();
+    _outfitArmorsSource.Dispose();
+    _availablePluginsSource.Dispose();
+    GC.SuppressFinalize(this);
+  }
+
   private Task<int> LoadExistingOutfitsAsync(string plugin) =>
-      _draftManager.LoadExistingOutfitsAsync(
-          plugin,
-          _mutagenService.LinkCache,
-          _mutagenService.LoadOutfitsFromPluginAsync,
-          p => string.Equals(SelectedOutfitPlugin, p, StringComparison.OrdinalIgnoreCase));
+    _draftManager.LoadExistingOutfitsAsync(
+      plugin,
+      _mutagenService.LinkCache,
+      _mutagenService.LoadOutfitsFromPluginAsync,
+      p => string.Equals(SelectedOutfitPlugin, p, StringComparison.OrdinalIgnoreCase));
 
   [ReactiveCommand(CanExecute = nameof(_canCopyExistingOutfits))]
   private void CopyExistingOutfits() => _draftManager.CopyExistingOutfits(_mutagenService.LinkCache);
@@ -415,15 +427,16 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     if (missingMastersResult.HasMissingMasters)
     {
       _logger.Warning(
-          "Missing masters detected in patch {Plugin}: {Masters}",
-          outputPlugin,
-          string.Join(", ", missingMastersResult.MissingMasters.Select(m => m.MissingMaster.FileName)));
+        "Missing masters detected in patch {Plugin}: {Masters}",
+        outputPlugin,
+        string.Join(", ", missingMastersResult.MissingMasters.Select(m => m.MissingMaster.FileName)));
 
       var shouldClean = await HandleMissingMasters.Handle(missingMastersResult);
       if (shouldClean)
       {
         var (success, message) = await _patchingService.CleanPatchMissingMastersAsync(
-            patchPath, missingMastersResult.AllAffectedOutfits);
+          patchPath,
+          missingMastersResult.AllAffectedOutfits);
 
         if (success)
         {
@@ -443,7 +456,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       else
       {
         StatusMessage =
-            "Missing masters detected. Add the master plugin(s) back to your load order and restart Boutique.";
+          "Missing masters detected. Add the master plugin(s) back to your load order and restart Boutique.";
         _logger.Information("User chose to add masters back instead of cleaning patch.");
         return;
       }
@@ -471,9 +484,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       {
         StatusMessage = $"Loaded {loadedCount} existing outfit(s) from {outputPlugin} for editing.";
         _logger.Information(
-            "Loaded {Count} existing outfit(s) from output plugin {Plugin} for editing.",
-            loadedCount,
-            outputPlugin);
+          "Loaded {Count} existing outfit(s) from output plugin {Plugin} for editing.",
+          loadedCount,
+          outputPlugin);
       }
     }
     finally
@@ -485,80 +498,81 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   private void ConfigureArmorFiltering()
   {
     var sourceArmorFilter = this.WhenAnyValue(vm => vm.SourceSearchText)
-        .Throttle(TimeSpan.FromMilliseconds(200))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor => armor.MatchesSearch(searchText)));
+      .Throttle(TimeSpan.FromMilliseconds(200))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor => armor.MatchesSearch(searchText)));
 
     _disposables.Add(_sourceArmorsSource.Connect()
-        .Filter(sourceArmorFilter)
-        .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredSourceArmors)
-        .Subscribe());
+      .Filter(sourceArmorFilter)
+      .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredSourceArmors)
+      .Subscribe());
     FilteredSourceArmors = filteredSourceArmors;
 
     var targetArmorFilter = this.WhenAnyValue(vm => vm.TargetSearchText)
-        .Throttle(TimeSpan.FromMilliseconds(200))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor =>
-            armor.MatchesSearch(searchText) && armor.IsSlotCompatible));
+      .Throttle(TimeSpan.FromMilliseconds(200))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Select(searchText => new Func<ArmorRecordViewModel, bool>(armor =>
+        armor.MatchesSearch(searchText) && armor.IsSlotCompatible));
 
     var targetSortComparer = this.WhenAnyValue(
-            vm => vm.TargetSortProperty,
-            vm => vm.TargetSortAscending)
-        .Select(tuple => BuildTargetSortComparer(tuple.Item1, tuple.Item2));
+        vm => vm.TargetSortProperty,
+        vm => vm.TargetSortAscending)
+      .Select(tuple => BuildTargetSortComparer(tuple.Item1, tuple.Item2));
 
     _disposables.Add(_targetArmorsSource.Connect()
-        .AutoRefresh(a => a.IsSlotCompatible)
-        .Filter(targetArmorFilter)
-        .Sort(targetSortComparer)
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredTargetArmors)
-        .Subscribe());
+      .AutoRefresh(a => a.IsSlotCompatible)
+      .Filter(targetArmorFilter)
+      .Sort(targetSortComparer)
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredTargetArmors)
+      .Subscribe());
     FilteredTargetArmors = filteredTargetArmors;
 
     var outfitArmorFilter = this.WhenAnyValue(
-            vm => vm.OutfitSearchText,
-            vm => vm.SelectedOutfitArmorType,
-            vm => vm.SelectedOutfitSlot)
-        .Throttle(TimeSpan.FromMilliseconds(200))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Select(tuple => new Func<ArmorRecordViewModel, bool>(armor =>
-        {
-          var (searchText, selectedType, selectedSlot) = tuple;
+        vm => vm.OutfitSearchText,
+        vm => vm.SelectedOutfitArmorType,
+        vm => vm.SelectedOutfitSlot)
+      .Throttle(TimeSpan.FromMilliseconds(200))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Select(tuple => new Func<ArmorRecordViewModel, bool>(armor =>
+      {
+        var (searchText, selectedType, selectedSlot) = tuple;
 
-          if (!armor.MatchesSearch(searchText))
+        if (!armor.MatchesSearch(searchText))
+        {
+          return false;
+        }
+
+        if (!string.IsNullOrEmpty(selectedType) && selectedType != "(All)")
+        {
+          var armorType = armor.ArmorType;
+          if (string.IsNullOrEmpty(armorType) ||
+              !string.Equals(armorType, selectedType, StringComparison.OrdinalIgnoreCase))
           {
             return false;
           }
+        }
 
-          if (!string.IsNullOrEmpty(selectedType) && selectedType != "(All)")
+        if (!string.IsNullOrEmpty(selectedSlot) && selectedSlot != "(All)")
+        {
+          var slotSummary = armor.SlotSummary;
+          if (!slotSummary.Contains(selectedSlot, StringComparison.OrdinalIgnoreCase))
           {
-            var armorType = armor.ArmorType;
-            if (string.IsNullOrEmpty(armorType) || !string.Equals(armorType, selectedType, StringComparison.OrdinalIgnoreCase))
-            {
-              return false;
-            }
+            return false;
           }
+        }
 
-          if (!string.IsNullOrEmpty(selectedSlot) && selectedSlot != "(All)")
-          {
-            var slotSummary = armor.SlotSummary;
-            if (!slotSummary.Contains(selectedSlot, StringComparison.OrdinalIgnoreCase))
-            {
-              return false;
-            }
-          }
-
-          return true;
-        }));
+        return true;
+      }));
 
     _disposables.Add(_outfitArmorsSource.Connect()
-        .Filter(outfitArmorFilter)
-        .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredOutfitArmors)
-        .Subscribe());
+      .Filter(outfitArmorFilter)
+      .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredOutfitArmors)
+      .Subscribe());
     FilteredOutfitArmors = filteredOutfitArmors;
   }
 
@@ -569,17 +583,17 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     return propertyName switch
     {
       nameof(ArmorRecordViewModel.DisplayName) => ascending
-          ? comparer.ThenByAscending(a => a.DisplayName)
-          : comparer.ThenByDescending(a => a.DisplayName),
+        ? comparer.ThenByAscending(a => a.DisplayName)
+        : comparer.ThenByDescending(a => a.DisplayName),
       nameof(ArmorRecordViewModel.SlotSummary) => ascending
-          ? comparer.ThenByAscending(a => a.SlotSummary)
-          : comparer.ThenByDescending(a => a.SlotSummary),
+        ? comparer.ThenByAscending(a => a.SlotSummary)
+        : comparer.ThenByDescending(a => a.SlotSummary),
       nameof(ArmorRecordViewModel.FormIdSortable) => ascending
-          ? comparer.ThenByAscending(a => a.FormIdSortable)
-          : comparer.ThenByDescending(a => a.FormIdSortable),
+        ? comparer.ThenByAscending(a => a.FormIdSortable)
+        : comparer.ThenByDescending(a => a.FormIdSortable),
       nameof(ArmorRecordViewModel.ModDisplayName) => ascending
-          ? comparer.ThenByAscending(a => a.ModDisplayName)
-          : comparer.ThenByDescending(a => a.ModDisplayName),
+        ? comparer.ThenByAscending(a => a.ModDisplayName)
+        : comparer.ThenByDescending(a => a.ModDisplayName),
       _ => comparer.ThenByAscending(a => a.DisplayName)
     };
   }
@@ -587,25 +601,25 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   private void ConfigureOutfitPluginsFiltering()
   {
     _disposables.Add(_availablePluginsSource.Connect()
-        .Sort(SortExpressionComparer<string>.Ascending(p => p))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var availablePlugins)
-        .Subscribe());
+      .Sort(SortExpressionComparer<string>.Ascending(p => p))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var availablePlugins)
+      .Subscribe());
     AvailablePlugins = availablePlugins;
 
     var pluginFilter = this.WhenAnyValue(vm => vm.OutfitPluginSearchText)
-        .Throttle(TimeSpan.FromMilliseconds(200))
-        .Select(searchText => new Func<string, bool>(plugin =>
-            plugin == AllPluginsOption ||
-            string.IsNullOrWhiteSpace(searchText) ||
-            plugin.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
+      .Throttle(TimeSpan.FromMilliseconds(200))
+      .Select(searchText => new Func<string, bool>(plugin =>
+        plugin == AllPluginsOption ||
+        string.IsNullOrWhiteSpace(searchText) ||
+        plugin.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
 
     _disposables.Add(_availablePluginsSource.Connect()
-        .Filter(pluginFilter)
-        .Sort(SortExpressionComparer<string>.Ascending(p => p == AllPluginsOption ? 0 : 1).ThenByAscending(p => p))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredPlugins)
-        .Subscribe());
+      .Filter(pluginFilter)
+      .Sort(SortExpressionComparer<string>.Ascending(p => p == AllPluginsOption ? 0 : 1).ThenByAscending(p => p))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredPlugins)
+      .Subscribe());
 
     FilteredOutfitPlugins = filteredPlugins;
   }
@@ -639,9 +653,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     if (sources.Count == 0 || target is null)
     {
       _logger.Debug(
-          "MapSelected invoked without valid selections. SourceCount={SourceCount}, HasTarget={HasTarget}",
-          sources.Count,
-          target is not null);
+        "MapSelected invoked without valid selections. SourceCount={SourceCount}, HasTarget={HasTarget}",
+        sources.Count,
+        target is not null);
       return;
     }
 
@@ -666,18 +680,18 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
       StatusMessage = $"Mapped {sources.Count} armors to {target.DisplayName}";
       _logger.Information(
-          "Mapped {SourceCount} armor(s) to target {TargetName} ({TargetFormKey})",
-          sources.Count,
-          target.DisplayName,
-          target.Armor.FormKey);
+        "Mapped {SourceCount} armor(s) to target {TargetName} ({TargetFormKey})",
+        sources.Count,
+        target.DisplayName,
+        target.Armor.FormKey);
     }
     catch (Exception ex)
     {
       _logger.Error(
-          ex,
-          "Failed to map {SourceCount} armor(s) to {TargetName}",
-          sources.Count,
-          target.DisplayName);
+        ex,
+        "Failed to map {SourceCount} armor(s) to {TargetName}",
+        sources.Count,
+        target.DisplayName);
       StatusMessage = $"Error mapping armors: {ex.Message}";
     }
   }
@@ -751,9 +765,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   }
 
   private async Task<int> LoadArmorsIntoSourceListAsync(
-      string plugin,
-      Func<string?> getSelectedPlugin,
-      SourceList<ArmorRecordViewModel> sourceList)
+    string plugin,
+    Func<string?> getSelectedPlugin,
+    SourceList<ArmorRecordViewModel> sourceList)
   {
     BeginLoading();
 
@@ -819,9 +833,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     mapping.Source.IsMapped = Matches.Any(m => m.Source.Armor.FormKey == mapping.Source.Armor.FormKey);
     StatusMessage = $"Removed mapping for {mapping.Source.DisplayName}";
     _logger.Information(
-        "Removed mapping for source {SourceName} ({SourceFormKey})",
-        mapping.Source.DisplayName,
-        mapping.Source.Armor.FormKey);
+      "Removed mapping for source {SourceName} ({SourceFormKey})",
+      mapping.Source.DisplayName,
+      mapping.Source.Armor.FormKey);
   }
 
   public async Task LoadTargetPluginAsync(bool forceOutfitReload = false)
@@ -901,9 +915,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
       StatusMessage = $"Loaded {pluginList.Count} plugins with armors/outfits";
       _logger.Information(
-          "Loaded {PluginCount} plugins with armors/outfits from {DataPath}",
-          pluginList.Count,
-          Settings.SkyrimDataPath);
+        "Loaded {PluginCount} plugins with armors/outfits from {DataPath}",
+        pluginList.Count,
+        Settings.SkyrimDataPath);
 
       await LoadOutfitsFromOutputPluginAsync();
     }
@@ -940,16 +954,16 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
       _logger.Information(
-          "Available plugins refreshed: {PreviousCount} → {NewCount} plugins with armors/outfits.",
-          previousCount,
-          pluginList.Count);
+        "Available plugins refreshed: {PreviousCount} → {NewCount} plugins with armors/outfits.",
+        previousCount,
+        pluginList.Count);
 
       if (!string.IsNullOrEmpty(previousOutfitPlugin) &&
           _availablePluginsSource.Items.Contains(previousOutfitPlugin, StringComparer.OrdinalIgnoreCase))
       {
-        await System.Windows.Application.Current.Dispatcher.InvokeAsync(
-            () => this.RaisePropertyChanged(nameof(SelectedOutfitPlugin)),
-            System.Windows.Threading.DispatcherPriority.Background);
+        await Application.Current.Dispatcher.InvokeAsync(
+          () => this.RaisePropertyChanged(nameof(SelectedOutfitPlugin)),
+          DispatcherPriority.Background);
       }
 
       _suppressPluginDeselection = false;
@@ -980,8 +994,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     var firstSource = FilteredSourceArmors.FirstOrDefault();
     SelectedSourceArmors = firstSource is not null
-        ? new List<ArmorRecordViewModel> { firstSource }
-        : Array.Empty<ArmorRecordViewModel>();
+      ? new List<ArmorRecordViewModel> { firstSource }
+      : Array.Empty<ArmorRecordViewModel>();
 
     StatusMessage = $"Loaded {count} armors from {plugin}";
     _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", count, plugin);
@@ -1006,8 +1020,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     var primary = SelectedSourceArmor;
     SelectedTargetArmor = primary is not null
-        ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
-        : FilteredTargetArmors.FirstOrDefault();
+      ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
+      : FilteredTargetArmors.FirstOrDefault();
 
     StatusMessage = $"Loaded {count} armors from {plugin}";
     _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", count, plugin);
@@ -1043,19 +1057,19 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     _lastLoadedOutfitPlugin = plugin;
 
     SelectedOutfitArmors = FilteredOutfitArmors.Any()
-        ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
-        : Array.Empty<ArmorRecordViewModel>();
+      ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
+      : Array.Empty<ArmorRecordViewModel>();
 
     var existingOutfitCount = await LoadExistingOutfitsAsync(plugin);
 
     StatusMessage = existingOutfitCount > 0
-        ? $"Loaded {count} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
-        : $"Loaded {count} armors from {plugin} for outfit creation.";
+      ? $"Loaded {count} armors from {plugin}. {existingOutfitCount} existing outfit(s) available to copy."
+      : $"Loaded {count} armors from {plugin} for outfit creation.";
     _logger.Information(
-        "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
-        count,
-        plugin,
-        existingOutfitCount);
+      "Loaded {ArmorCount} outfit armors from {Plugin}. Existing outfits available to copy: {ExistingCount}.",
+      count,
+      plugin,
+      existingOutfitCount);
   }
 
   private async Task LoadAllOutfitArmorsAsync()
@@ -1068,8 +1082,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
       var allArmors = new List<ArmorRecordViewModel>();
       var plugins = _availablePluginsSource.Items
-          .Where(p => p != AllPluginsOption)
-          .ToList();
+        .Where(p => p != AllPluginsOption)
+        .ToList();
 
       foreach (var plugin in plugins)
       {
@@ -1092,16 +1106,16 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       _lastLoadedOutfitPlugin = AllPluginsOption;
 
       SelectedOutfitArmors = FilteredOutfitArmors.Any()
-          ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
-          : Array.Empty<ArmorRecordViewModel>();
+        ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
+        : Array.Empty<ArmorRecordViewModel>();
 
       _draftManager.ClearExistingOutfits();
 
       StatusMessage = $"Loaded {allArmors.Count} armors from {plugins.Count} plugins.";
       _logger.Information(
-          "Loaded {ArmorCount} outfit armors from {PluginCount} plugins.",
-          allArmors.Count,
-          plugins.Count);
+        "Loaded {ArmorCount} outfit armors from {PluginCount} plugins.",
+        allArmors.Count,
+        plugins.Count);
     }
     catch (Exception ex)
     {
@@ -1188,19 +1202,19 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   private async Task CreateOutfitAsync()
   {
     var selectedPieces = SelectedOutfitArmors
-        .OfType<ArmorRecordViewModel>()
-        .ToList();
+      .OfType<ArmorRecordViewModel>()
+      .ToList();
 
     await CreateOutfitFromPiecesAsync(selectedPieces);
   }
 
   public Task CreateOutfitFromPiecesAsync(
-      IReadOnlyList<ArmorRecordViewModel> pieces,
-      string? defaultName = null) =>
-      _draftManager.CreateDraftAsync(pieces, defaultName);
+    IReadOnlyList<ArmorRecordViewModel> pieces,
+    string? defaultName = null) =>
+    _draftManager.CreateDraftAsync(pieces, defaultName);
 
   public Task DuplicateDraftAsync(OutfitDraftViewModel draft) =>
-      _draftManager.DuplicateDraftAsync(draft);
+    _draftManager.DuplicateDraftAsync(draft);
 
   public async Task PreviewDraftAsync(OutfitDraftViewModel draft)
   {
@@ -1217,14 +1231,14 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
       var metadata = new OutfitMetadata(draft.EditorId, null, false);
       var collection = new ArmorPreviewSceneCollection(
-          1,
-          0,
-          new[] { metadata },
-          async (_, gender) =>
-          {
-            var scene = await _previewService.BuildPreviewAsync(pieces, gender);
-            return scene with { OutfitLabel = draft.EditorId };
-          });
+        1,
+        0,
+        new[] { metadata },
+        async (_, gender) =>
+        {
+          var scene = await _previewService.BuildPreviewAsync(pieces, gender);
+          return scene with { OutfitLabel = draft.EditorId };
+        });
 
       await ShowPreview.Handle(collection);
       StatusMessage = $"Preview ready for '{draft.EditorId}'.";
@@ -1244,18 +1258,17 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
       var metadata = new OutfitMetadata(armor.DisplayName, armor.Armor.FormKey.ModKey.FileName.String, false);
       var collection = new ArmorPreviewSceneCollection(
-          1,
-          0,
-          new[] { metadata },
-          async (_, gender) =>
+        1,
+        0,
+        new[] { metadata },
+        async (_, gender) =>
+        {
+          var scene = await _previewService.BuildPreviewAsync([armor], gender);
+          return scene with
           {
-            var scene = await _previewService.BuildPreviewAsync([armor], gender);
-            return scene with
-            {
-              OutfitLabel = armor.DisplayName,
-              SourceFile = armor.Armor.FormKey.ModKey.FileName.String
-            };
-          });
+            OutfitLabel = armor.DisplayName, SourceFile = armor.Armor.FormKey.ModKey.FileName.String
+          };
+        });
 
       await ShowPreview.Handle(collection);
       StatusMessage = $"Preview ready for '{armor.DisplayName}'.";
@@ -1268,13 +1281,13 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   }
 
   public bool TryAddPiecesToDraft(OutfitDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces) =>
-      _draftManager.TryAddPieces(draft, pieces);
+    _draftManager.TryAddPieces(draft, pieces);
 
   public void MoveDraft(IOutfitQueueItem item, int targetIndex, bool insertBefore = true) =>
-      _draftManager.MoveItem(item, targetIndex, insertBefore);
+    _draftManager.MoveItem(item, targetIndex, insertBefore);
 
   public List<IOutfitQueueItem> GetGroupedItems(OutfitSeparatorViewModel separator) =>
-      _draftManager.GetGroupedItems(separator);
+    _draftManager.GetGroupedItems(separator);
 
   public void AddSeparator() => _draftManager.AddSeparator();
 
@@ -1309,9 +1322,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       _logger.Information("Saving {Count} outfit(s) to patch {OutputPath}.", requests.Count, outputPath);
 
       var (success, message, results) = await _patchingService.CreateOrUpdateOutfitsAsync(
-          requests,
-          outputPath,
-          progress);
+        requests,
+        outputPath,
+        progress);
 
       StatusMessage = message;
 
@@ -1351,8 +1364,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   }
 
   public void ApplyTargetSort(
-      string? propertyName = nameof(ArmorRecordViewModel.DisplayName),
-      ListSortDirection direction = ListSortDirection.Ascending)
+    string? propertyName = nameof(ArmorRecordViewModel.DisplayName),
+    ListSortDirection direction = ListSortDirection.Ascending)
   {
     TargetSortProperty = propertyName ?? nameof(ArmorRecordViewModel.DisplayName);
     TargetSortAscending = direction == ListSortDirection.Ascending;
@@ -1374,9 +1387,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       });
 
       var matchesToPatch = Matches
-          .Where(m => m.Match.TargetArmor is not null || m.Match.IsGlamOnly)
-          .Select(m => m.Match)
-          .ToList();
+        .Where(m => m.Match.TargetArmor is not null || m.Match.IsGlamOnly)
+        .Select(m => m.Match)
+        .ToList();
 
       if (matchesToPatch.Count == 0)
       {
@@ -1389,27 +1402,27 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       if (File.Exists(outputPath))
       {
         const string confirmationMessage =
-            "The selected patch file already exists. Adding new data will overwrite any records with matching FormIDs in that ESP.\n\nDo you want to continue?";
+          "The selected patch file already exists. Adding new data will overwrite any records with matching FormIDs in that ESP.\n\nDo you want to continue?";
         var confirmed = await ConfirmOverwritePatch.Handle(confirmationMessage).ToTask();
         if (!confirmed)
         {
           StatusMessage = "Patch creation canceled.";
           _logger.Information(
-              "Patch creation canceled by user to avoid overwriting existing patch at {OutputPath}",
-              outputPath);
+            "Patch creation canceled by user to avoid overwriting existing patch at {OutputPath}",
+            outputPath);
           return;
         }
       }
 
       _logger.Information(
-          "Starting patch creation for {MatchCount} matches to {OutputPath}",
-          matchesToPatch.Count,
-          Settings.FullOutputPath);
+        "Starting patch creation for {MatchCount} matches to {OutputPath}",
+        matchesToPatch.Count,
+        Settings.FullOutputPath);
 
       var (success, message) = await _patchingService.CreatePatchAsync(
-          matchesToPatch,
-          outputPath,
-          progress);
+        matchesToPatch,
+        outputPath,
+        progress);
 
       StatusMessage = message;
 
@@ -1436,16 +1449,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       IsPatching = false;
     }
   }
-
-  public void Dispose()
-  {
-    _disposables.Dispose();
-    _sourceArmorsSource.Dispose();
-    _targetArmorsSource.Dispose();
-    _outfitArmorsSource.Dispose();
-    _availablePluginsSource.Dispose();
-    GC.SuppressFinalize(this);
-  }
 }
 
 public partial class ArmorMatchViewModel : ReactiveObject
@@ -1453,9 +1456,9 @@ public partial class ArmorMatchViewModel : ReactiveObject
   [Reactive] private ArmorRecordViewModel? _target;
 
   public ArmorMatchViewModel(
-      ArmorMatch match,
-      ArmorRecordViewModel source,
-      ArmorRecordViewModel? target)
+    ArmorMatch match,
+    ArmorRecordViewModel source,
+    ArmorRecordViewModel? target)
   {
     Match = match;
     Source = source;

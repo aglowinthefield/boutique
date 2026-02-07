@@ -6,26 +6,26 @@ namespace Boutique.Views;
 
 public partial class DistributionFilterTabsView
 {
-    public DistributionFilterTabsView()
+  public DistributionFilterTabsView()
+  {
+    InitializeComponent();
+  }
+
+  private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+  {
+    if (e.Key != Key.Space || sender is not DataGrid dataGrid)
     {
-        InitializeComponent();
+      return;
     }
 
-    private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+    foreach (var item in dataGrid.SelectedItems)
     {
-        if (e.Key != Key.Space || sender is not DataGrid dataGrid)
-        {
-            return;
-        }
-
-        foreach (var item in dataGrid.SelectedItems)
-        {
-            if (item is ISelectableRecordViewModel selectable)
-            {
-                selectable.IsSelected = !selectable.IsSelected;
-            }
-        }
-
-        e.Handled = true;
+      if (item is ISelectableRecordViewModel selectable)
+      {
+        selectable.IsSelected = !selectable.IsSelected;
+      }
     }
+
+    e.Handled = true;
+  }
 }

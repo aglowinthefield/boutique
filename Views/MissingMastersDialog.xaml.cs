@@ -6,63 +6,63 @@ namespace Boutique.Views;
 
 public partial class MissingMastersDialog : Window
 {
-    public MissingMastersDialog(MissingMastersResult result)
+  public MissingMastersDialog(MissingMastersResult result)
+  {
+    InitializeComponent();
+
+    if (ThemeService.Current is { } themeService)
     {
-        InitializeComponent();
+      RootScaleTransform.ScaleX = themeService.CurrentFontScale;
+      RootScaleTransform.ScaleY = themeService.CurrentFontScale;
 
-        if (ThemeService.Current is { } themeService)
-        {
-            RootScaleTransform.ScaleX = themeService.CurrentFontScale;
-            RootScaleTransform.ScaleY = themeService.CurrentFontScale;
-
-            SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
-        }
-
-        var viewModels = result.MissingMasters
-            .Select(m => new MissingMasterViewModel(m))
-            .ToList();
-
-        MissingMastersItemsControl.ItemsSource = viewModels;
-
-        var totalOutfits = result.AllAffectedOutfits.Count;
-        var totalMasters = result.MissingMasters.Count;
-        SummaryText.Text = $"{totalOutfits} outfit(s) will be removed if you clean the patch. " +
-                           $"{totalMasters} missing master(s) need to be added back to keep them.";
+      SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
     }
 
-    public bool CleanPatch { get; private set; }
+    var viewModels = result.MissingMasters
+      .Select(m => new MissingMasterViewModel(m))
+      .ToList();
 
-    private void AddMastersButton_Click(object sender, RoutedEventArgs e)
-    {
-        CleanPatch = false;
-        DialogResult = false;
-        Close();
-    }
+    MissingMastersItemsControl.ItemsSource = viewModels;
 
-    private void CleanPatchButton_Click(object sender, RoutedEventArgs e)
-    {
-        CleanPatch = true;
-        DialogResult = true;
-        Close();
-    }
+    var totalOutfits = result.AllAffectedOutfits.Count;
+    var totalMasters = result.MissingMasters.Count;
+    SummaryText.Text = $"{totalOutfits} outfit(s) will be removed if you clean the patch. " +
+                       $"{totalMasters} missing master(s) need to be added back to keep them.";
+  }
+
+  public bool CleanPatch { get; private set; }
+
+  private void AddMastersButton_Click(object sender, RoutedEventArgs e)
+  {
+    CleanPatch = false;
+    DialogResult = false;
+    Close();
+  }
+
+  private void CleanPatchButton_Click(object sender, RoutedEventArgs e)
+  {
+    CleanPatch = true;
+    DialogResult = true;
+    Close();
+  }
 }
 
 public class MissingMasterViewModel
 {
-    public MissingMasterViewModel(MissingMasterInfo info)
-    {
-        MasterFileName = info.MissingMaster.FileName;
-        AffectedOutfits = [.. info.AffectedOutfits.Select(o => new AffectedOutfitViewModel(o))];
-    }
+  public MissingMasterViewModel(MissingMasterInfo info)
+  {
+    MasterFileName = info.MissingMaster.FileName;
+    AffectedOutfits = [.. info.AffectedOutfits.Select(o => new AffectedOutfitViewModel(o))];
+  }
 
-    public string MasterFileName { get; }
+  public string MasterFileName { get; }
 
-    public IReadOnlyList<AffectedOutfitViewModel> AffectedOutfits { get; }
+  public IReadOnlyList<AffectedOutfitViewModel> AffectedOutfits { get; }
 }
 
 public class AffectedOutfitViewModel(AffectedOutfitInfo info)
 {
-    public string DisplayName { get; } = info.EditorId ?? info.FormKey.ToString();
+  public string DisplayName { get; } = info.EditorId ?? info.FormKey.ToString();
 
-    public int OrphanedCount { get; } = info.OrphanedArmorFormKeys.Count;
+  public int OrphanedCount { get; } = info.OrphanedArmorFormKeys.Count;
 }

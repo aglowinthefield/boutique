@@ -2,73 +2,75 @@
 
 **Version 1.0** | Last Updated: February 2026
 
-Boutique is a desktop tool for Skyrim Special Edition modding that helps you create custom outfit records and distribute them to NPCs and containers at runtime. Whether you're building fashion-forward bandits or ensuring your followers wear matching gear, Boutique streamlines the process.
+Boutique is a desktop tool for Skyrim Special Edition modding that helps you create custom outfit records and distribute
+them to NPCs and containers at runtime. Whether you're building fashion-forward bandits or ensuring your followers wear
+matching gear, Boutique streamlines the process.
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
-   - [What is Boutique?](#what-is-boutique)
-   - [Who Should Use Boutique?](#who-should-use-boutique)
-   - [What You'll Need](#what-youll-need)
+  - [What is Boutique?](#what-is-boutique)
+  - [Who Should Use Boutique?](#who-should-use-boutique)
+  - [What You'll Need](#what-youll-need)
 2. [Installation & Setup](#installation--setup)
-   - [Downloading Boutique](#downloading-boutique)
-   - [First Launch](#first-launch)
-   - [Configuring Skyrim Data Path](#configuring-skyrim-data-path)
-   - [Mod Organizer 2 Integration](#mod-organizer-2-integration)
+  - [Downloading Boutique](#downloading-boutique)
+  - [First Launch](#first-launch)
+  - [Configuring Skyrim Data Path](#configuring-skyrim-data-path)
+  - [Mod Organizer 2 Integration](#mod-organizer-2-integration)
 3. [Quick Start: Creating Your First Outfit](#quick-start-creating-your-first-outfit)
-   - [What are Outfits?](#what-are-outfits)
-   - [Creating a Simple Bandit Outfit](#creating-a-simple-bandit-outfit)
-   - [Step-by-Step Walkthrough](#step-by-step-walkthrough)
+  - [What are Outfits?](#what-are-outfits)
+  - [Creating a Simple Bandit Outfit](#creating-a-simple-bandit-outfit)
+  - [Step-by-Step Walkthrough](#step-by-step-walkthrough)
 4. [Feature Guide: Outfit Creation](#feature-guide-outfit-creation)
-   - [What are Outfit Records (OTFT)?](#what-are-outfit-records-otft)
-   - [Creating a New Outfit](#creating-a-new-outfit)
-   - [Selecting Armor Pieces](#selecting-armor-pieces)
-   - [Biped Slot Conflicts](#biped-slot-conflicts)
-   - [Using the 3D Preview](#using-the-3d-preview)
-   - [Saving Outfits](#saving-outfits)
+  - [What are Outfit Records (OTFT)?](#what-are-outfit-records-otft)
+  - [Creating a New Outfit](#creating-a-new-outfit)
+  - [Selecting Armor Pieces](#selecting-armor-pieces)
+  - [Biped Slot Conflicts](#biped-slot-conflicts)
+  - [Using the 3D Preview](#using-the-3d-preview)
+  - [Saving Outfits](#saving-outfits)
 5. [Feature Guide: Distribution](#feature-guide-distribution)
-   - [What is Distribution?](#what-is-distribution)
-   - [SPID vs SkyPatcher vs CDF](#spid-vs-skypatcher-vs-cdf)
-   - [Distribution Tab Overview](#distribution-tab-overview)
+  - [What is Distribution?](#what-is-distribution)
+  - [SPID vs SkyPatcher vs CDF](#spid-vs-skypatcher-vs-cdf)
+  - [Distribution Tab Overview](#distribution-tab-overview)
 6. [Distribution: Create Tab](#distribution-create-tab)
-   - [Creating Distribution Entries](#creating-distribution-entries)
-   - [Selecting Target Outfits](#selecting-target-outfits)
-   - [Adding Filters](#adding-filters)
-   - [Understanding Filter Syntax](#understanding-filter-syntax)
-   - [Saving Distribution Files](#saving-distribution-files)
+  - [Creating Distribution Entries](#creating-distribution-entries)
+  - [Selecting Target Outfits](#selecting-target-outfits)
+  - [Adding Filters](#adding-filters)
+  - [Understanding Filter Syntax](#understanding-filter-syntax)
+  - [Saving Distribution Files](#saving-distribution-files)
 7. [Distribution: NPCs Tab](#distribution-npcs-tab)
-   - [Browsing All NPCs](#browsing-all-npcs)
-   - [Filtering NPCs](#filtering-npcs)
-   - [Finding Distribution Conflicts](#finding-distribution-conflicts)
-   - [Copying Filter Criteria](#copying-filter-criteria)
-   - [Live Syntax Preview](#live-syntax-preview)
+  - [Browsing All NPCs](#browsing-all-npcs)
+  - [Filtering NPCs](#filtering-npcs)
+  - [Finding Distribution Conflicts](#finding-distribution-conflicts)
+  - [Copying Filter Criteria](#copying-filter-criteria)
+  - [Live Syntax Preview](#live-syntax-preview)
 8. [Distribution: Outfits Tab](#distribution-outfits-tab)
-   - [Browsing All Outfit Records](#browsing-all-outfit-records)
-   - [Viewing NPC Assignments](#viewing-npc-assignments)
-   - [Distribution Impact Analysis](#distribution-impact-analysis)
-   - [3D Outfit Preview](#3d-outfit-preview)
+  - [Browsing All Outfit Records](#browsing-all-outfit-records)
+  - [Viewing NPC Assignments](#viewing-npc-assignments)
+  - [Distribution Impact Analysis](#distribution-impact-analysis)
+  - [3D Outfit Preview](#3d-outfit-preview)
 9. [Distribution: Containers Tab](#distribution-containers-tab)
-   - [Container Distribution Framework (CDF)](#container-distribution-framework-cdf)
-   - [Distributing Loot to Chests](#distributing-loot-to-chests)
-   - [CDF File Discovery](#cdf-file-discovery)
+  - [Container Distribution Framework (CDF)](#container-distribution-framework-cdf)
+  - [Distributing Loot to Chests](#distributing-loot-to-chests)
+  - [CDF File Discovery](#cdf-file-discovery)
 10. [Feature Guide: Armor Patching](#feature-guide-armor-patching)
-    - [Understanding Source vs Target](#understanding-source-vs-target)
-    - [Loading Plugins](#loading-plugins)
-    - [Matching Armors](#matching-armors)
-    - [Glam Mode](#glam-mode)
-    - [Creating the Patch](#creating-the-patch)
-    - [Load Order Placement](#load-order-placement)
+  - [Understanding Source vs Target](#understanding-source-vs-target)
+  - [Loading Plugins](#loading-plugins)
+  - [Matching Armors](#matching-armors)
+  - [Glam Mode](#glam-mode)
+  - [Creating the Patch](#creating-the-patch)
+  - [Load Order Placement](#load-order-placement)
 11. [Settings & Configuration](#settings--configuration)
-    - [Skyrim Data Path](#skyrim-data-path)
-    - [Output Patch Settings](#output-patch-settings)
-    - [Language Selection](#language-selection)
-    - [Theme (Light/Dark)](#theme-lightdark)
-    - [Plugin Blacklist](#plugin-blacklist)
+  - [Skyrim Data Path](#skyrim-data-path)
+  - [Output Patch Settings](#output-patch-settings)
+  - [Language Selection](#language-selection)
+  - [Theme (Light/Dark)](#theme-lightdark)
+  - [Plugin Blacklist](#plugin-blacklist)
 12. [Common Workflows](#common-workflows)
-    - [Workflow 1: Create Custom Bandit Outfit](#workflow-1-create-custom-bandit-outfit)
-    - [Workflow 2: Distribute Outfit to Faction](#workflow-2-distribute-outfit-to-faction)
-    - [Workflow 3: Resolve Distribution Conflicts](#workflow-3-resolve-distribution-conflicts)
-    - [Workflow 4: Patch Armor from Cosmetic Mod](#workflow-4-patch-armor-from-cosmetic-mod)
+  - [Workflow 1: Create Custom Bandit Outfit](#workflow-1-create-custom-bandit-outfit)
+  - [Workflow 2: Distribute Outfit to Faction](#workflow-2-distribute-outfit-to-faction)
+  - [Workflow 3: Resolve Distribution Conflicts](#workflow-3-resolve-distribution-conflicts)
+  - [Workflow 4: Patch Armor from Cosmetic Mod](#workflow-4-patch-armor-from-cosmetic-mod)
 13. [Troubleshooting](#troubleshooting)
 14. [FAQ](#faq)
 15. [Advanced Tips](#advanced-tips)
@@ -83,13 +85,15 @@ Boutique is a desktop tool for Skyrim Special Edition modding that helps you cre
 
 ### What is Boutique?
 
-Boutique is a Windows desktop application that helps you manage outfits and armor in Skyrim Special Edition. It handles three main tasks:
+Boutique is a Windows desktop application that helps you manage outfits and armor in Skyrim Special Edition. It handles
+three main tasks:
 
 1. **Create Outfit Records**: Build custom outfit sets (OTFT records) from any armor pieces in your load order
 2. **Distribute Outfits**: Assign outfits to NPCs and containers using SPID, SkyPatcher, or CDF
 3. **Patch Armor Stats**: Copy gameplay stats from one armor mod to another (advanced feature)
 
-The primary use case is outfit creation and distribution. If you've ever wanted to give all your bandits matching gear, or ensure faction members wear lore-appropriate clothing, Boutique makes it easy.
+The primary use case is outfit creation and distribution. If you've ever wanted to give all your bandits matching gear,
+or ensure faction members wear lore-appropriate clothing, Boutique makes it easy.
 
 ### Who Should Use Boutique?
 
@@ -105,12 +109,14 @@ You don't need coding experience. If you can use xEdit or Creation Kit, you can 
 ### What You'll Need
 
 **Requirements**:
+
 - Windows 10/11 (64-bit)
 - Skyrim Special Edition installed
 - Basic familiarity with Skyrim modding concepts (plugins, load order, FormIDs)
 - (Optional) Mod Organizer 2 for virtual filesystem support
 
 **Recommended Tools**:
+
 - xEdit (for verifying FormIDs and EditorIDs)
 - SPID, SkyPatcher, or CDF installed in your game for distribution features
 
@@ -148,8 +154,8 @@ You'll see a prompt to configure your Skyrim Data path.
 1. Click the **Settings** button (gear icon) in the top-right
 2. In the **Skyrim Data Path** field, click **Browse**
 3. Navigate to your Skyrim Special Edition Data folder:
-   - Steam: `C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data\`
-   - GOG: `C:\GOG Games\Skyrim Special Edition\Data\`
+  - Steam: `C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data\`
+  - GOG: `C:\GOG Games\Skyrim Special Edition\Data\`
 4. Click **Select Folder**
 5. Boutique will scan your load order and display a success message
 
@@ -159,6 +165,7 @@ You'll see a prompt to configure your Skyrim Data path.
 **Verification**:
 
 If configured correctly, you'll see:
+
 - Green checkmark or success message
 - Plugin list populates in Outfit Creator and Armor Patch tabs
 
@@ -191,6 +198,7 @@ In Skyrim, an **Outfit** (OTFT record) is a collection of armor pieces that NPCs
 - Distribution frameworks (SPID, SkyPatcher) to assign gear at runtime
 
 Creating custom outfits allows you to:
+
 - Give factions consistent appearances
 - Create themed armor sets for different NPC types
 - Control exactly what gear NPCs wear without manually editing each NPC
@@ -202,6 +210,7 @@ Let's create a custom bandit outfit using Boutique.
 **Goal**: Create an outfit called "Bandit Chief Heavy Armor" with full steel plate armor.
 
 **Prerequisites**:
+
 - Skyrim Data path configured
 - No additional mods required (we'll use vanilla armor)
 
@@ -228,10 +237,10 @@ Let's create a custom bandit outfit using Boutique.
 
 1. In the **Armor Pieces** panel, use the search box to filter for "Steel Plate"
 2. Hold `Ctrl` and click to select multiple items:
-   - Steel Plate Armor
-   - Steel Plate Helmet
-   - Steel Plate Gauntlets
-   - Steel Plate Boots
+  - Steel Plate Armor
+  - Steel Plate Helmet
+  - Steel Plate Gauntlets
+  - Steel Plate Boots
 3. Click the **Add to Draft** button (or drag selected items to the right panel)
 
 ![Placeholder: Armor piece selection with multiple items selected]()
@@ -260,8 +269,8 @@ Let's create a custom bandit outfit using Boutique.
 
 1. In the **Outfit Name** field, enter: `Bandit_Chief_Heavy`
 2. Select the output plugin:
-   - Create new ESP: Click **New Plugin**, enter `MyBanditOutfits.esp`
-   - Or select existing plugin from dropdown
+  - Create new ESP: Click **New Plugin**, enter `MyBanditOutfits.esp`
+  - Or select existing plugin from dropdown
 3. Click **Save Outfit**
 4. Success message appears: "Outfit 'Bandit_Chief_Heavy' saved to MyBanditOutfits.esp"
 
@@ -275,6 +284,7 @@ Let's create a custom bandit outfit using Boutique.
 **What's Next?**
 
 Now that you have a custom outfit, you can:
+
 - Distribute it to NPCs using the Distribution tab (see [Distribution: Create Tab](#distribution-create-tab))
 - Create more outfits for different situations
 - Build a complete outfit overhaul mod
@@ -294,6 +304,7 @@ Outfit records (type: OTFT) are Skyrim records that define a set of wearable ite
 - **Distribution Frameworks**: SPID and SkyPatcher assign outfits at runtime
 
 **Key Properties**:
+
 - **EditorID**: Internal name (e.g., `Bandit_Light_Outfit`)
 - **FormID**: Unique identifier (e.g., `0x12345`)
 - **Items List**: Array of armor/clothing FormIDs
@@ -301,6 +312,7 @@ Outfit records (type: OTFT) are Skyrim records that define a set of wearable ite
 **Why Use Outfits Instead of Direct Armor Assignment?**
 
 Outfits provide:
+
 - **Reusability**: One outfit assigned to many NPCs
 - **Maintainability**: Edit outfit once, affects all users
 - **Compatibility**: Distribution frameworks work best with outfits
@@ -319,12 +331,14 @@ Outfits provide:
 **Outfit Draft Panel**
 
 The outfit draft (right panel) is your workspace. It shows:
+
 - Selected armor pieces
 - Biped slots each piece occupies
 - Slot conflicts (if any)
 - Total piece count
 
 You can:
+
 - Drag items to reorder
 - Remove items by clicking the X button
 - Clear entire draft with **Clear All**
@@ -334,6 +348,7 @@ You can:
 **Plugin Selection**:
 
 The left panel lists all plugins in your load order. You can:
+
 - Click a plugin to view its armors
 - Search plugins by name
 - Select multiple plugins (Ctrl+Click) to view combined armor list
@@ -342,17 +357,18 @@ The left panel lists all plugins in your load order. You can:
 
 The middle panel shows a sortable, filterable table of armors:
 
-| Column | Description |
-|--------|-------------|
+| Column   | Description                              |
+|----------|------------------------------------------|
 | EditorID | Internal name (e.g., `ArmorIronCuirass`) |
-| Name | Display name (e.g., "Iron Armor") |
-| Slots | Biped slots (e.g., "Body, Hands") |
-| Type | Light, Heavy, Clothing |
-| FormID | Unique identifier |
+| Name     | Display name (e.g., "Iron Armor")        |
+| Slots    | Biped slots (e.g., "Body, Hands")        |
+| Type     | Light, Heavy, Clothing                   |
+| FormID   | Unique identifier                        |
 
 **Filtering**:
 
 Use the search box to filter by:
+
 - EditorID: `Iron`
 - Name: `Helmet`
 - Type: `Heavy`
@@ -371,6 +387,7 @@ Skyrim armor uses 32 biped slots (Head, Body, Hands, Feet, etc.). An NPC can onl
 **Conflict Detection**:
 
 Boutique highlights conflicts when:
+
 - Two pieces occupy the same slot
 - Example: Two helmets (both use Slot 0 - Head)
 
@@ -386,10 +403,10 @@ Boutique highlights conflicts when:
 
 **Common Conflicts**:
 
-| Conflict | Cause | Solution |
-|----------|-------|----------|
-| Two helmets | Both use Head slot | Keep only one |
-| Chest + Robe | Both use Body slot | Choose chest or robe |
+| Conflict         | Cause                   | Solution                        |
+|------------------|-------------------------|---------------------------------|
+| Two helmets      | Both use Head slot      | Keep only one                   |
+| Chest + Robe     | Both use Body slot      | Choose chest or robe            |
 | Gloves + Bracers | Both may use Hands slot | Check slot assignments in xEdit |
 
 ### Using the 3D Preview
@@ -418,6 +435,7 @@ The 3D preview lets you visualize the outfit before saving.
 **Troubleshooting Preview**:
 
 If preview doesn't load:
+
 - Verify armor meshes exist in Data/Meshes/
 - Check log file: `%localappdata%\Boutique\logs\Boutique-YYYYMMDD.log`
 - Some modded armors use custom skeletons and may not preview correctly
@@ -435,12 +453,12 @@ If preview doesn't load:
 You can save to:
 
 1. **New Plugin**: Creates a new ESP with your outfits
-   - Best for standalone outfit packs
-   - Example: `MyCustomOutfits.esp`
+  - Best for standalone outfit packs
+  - Example: `MyCustomOutfits.esp`
 
 2. **Existing Plugin**: Adds outfit to existing ESP
-   - Best for updating your own mod
-   - Boutique loads the plugin, adds the outfit, and saves
+  - Best for updating your own mod
+  - Boutique loads the plugin, adds the outfit, and saves
 
 **Save Process**:
 
@@ -470,7 +488,8 @@ If you saved "Bandit_Chief_Heavy" to `MyBanditOutfits.esp`:
 
 ### What is Distribution?
 
-Distribution is the process of assigning items, outfits, spells, or perks to NPCs and containers at runtime. Unlike ESP edits, distribution happens when the game loads, making it:
+Distribution is the process of assigning items, outfits, spells, or perks to NPCs and containers at runtime. Unlike ESP
+edits, distribution happens when the game loads, making it:
 
 - **Dynamic**: Reacts to your load order
 - **Compatible**: No conflicts with other mods editing NPCs
@@ -487,11 +506,11 @@ Distribution is the process of assigning items, outfits, spells, or perks to NPC
 
 Boutique supports three distribution frameworks:
 
-| Framework | Target | Syntax | File Format | Best For |
-|-----------|--------|--------|-------------|----------|
-| **SPID** | NPCs | Simple, line-based | `.ini` (`*_DISTR.ini`) | General NPC outfit distribution |
-| **SkyPatcher** | NPCs, Outfits | Modular filters | `.ini` | Complex filtering, outfit editing |
-| **CDF** | Containers | JSON rules | `.json` | Container loot distribution |
+| Framework      | Target        | Syntax             | File Format            | Best For                          |
+|----------------|---------------|--------------------|------------------------|-----------------------------------|
+| **SPID**       | NPCs          | Simple, line-based | `.ini` (`*_DISTR.ini`) | General NPC outfit distribution   |
+| **SkyPatcher** | NPCs, Outfits | Modular filters    | `.ini`                 | Complex filtering, outfit editing |
+| **CDF**        | Containers    | JSON rules         | `.json`                | Container loot distribution       |
 
 **SPID (Spell Perk Item Distributor)**:
 
@@ -612,6 +631,7 @@ You can combine filters:
 **Example**:
 
 Filters:
+
 - Gender: Female
 - Faction: BanditFaction
 - Race: NordRace
@@ -629,6 +649,7 @@ Outfit = Bandit_Chief_Heavy|ActorTypeNPC|BanditFaction+NordRace|NONE|F
 ```
 
 Breakdown:
+
 - `Outfit`: Distribution type
 - `Bandit_Chief_Heavy`: Target outfit EditorID
 - `ActorTypeNPC`: String filter (keyword)
@@ -643,6 +664,7 @@ filterByFactions=Skyrim.esm|000FDEAC:filterByRaces=Skyrim.esm|000131E8:filterByG
 ```
 
 Breakdown:
+
 - `filterByFactions`: Faction filter
 - `filterByRaces`: Race filter
 - `filterByGender`: Gender filter
@@ -676,9 +698,9 @@ The `Z-` prefix ensures your distribution loads last, overriding other mods.
 4. Click **Save File**
 5. Choose file name or use default
 6. Boutique writes the file to the correct location:
-   - SPID: `Data/`
-   - SkyPatcher: `Data/skse/plugins/SkyPatcher/npc/`
-   - CDF: `Data/SKSE/Plugins/ContainerDistributionFramework/`
+  - SPID: `Data/`
+  - SkyPatcher: `Data/skse/plugins/SkyPatcher/npc/`
+  - CDF: `Data/SKSE/Plugins/ContainerDistributionFramework/`
 
 **Editing Existing Files**:
 
@@ -708,19 +730,20 @@ The NPCs tab is a browser for all NPCs in your load order.
 
 The main panel shows a searchable table of NPCs:
 
-| Column | Description |
-|--------|-------------|
-| Name | NPC display name |
-| EditorID | Internal name |
-| Race | NPC race |
-| Gender | Male or Female |
-| Faction | Primary faction (if any) |
-| Default Outfit | Current outfit EditorID |
-| Source Plugin | Plugin defining the NPC |
+| Column         | Description              |
+|----------------|--------------------------|
+| Name           | NPC display name         |
+| EditorID       | Internal name            |
+| Race           | NPC race                 |
+| Gender         | Male or Female           |
+| Faction        | Primary faction (if any) |
+| Default Outfit | Current outfit EditorID  |
+| Source Plugin  | Plugin defining the NPC  |
 
 **Sorting**:
 
 Click column headers to sort:
+
 - Alphabetical: Name, EditorID
 - Grouped: Race, Gender, Faction
 
@@ -739,6 +762,7 @@ Boutique provides quick filters:
 **Search Box**:
 
 Type to filter the NPC list by:
+
 - Name
 - EditorID
 - Plugin name
@@ -748,6 +772,7 @@ Type to filter the NPC list by:
 All filters combine with AND logic:
 
 Example:
+
 - Gender: Female
 - Race: NordRace
 - Faction: GuardFaction
@@ -766,6 +791,7 @@ Boutique highlights NPCs with multiple outfit distributions:
 **Conflict Details Panel** (bottom):
 
 Click an NPC to see:
+
 - All distribution files targeting this NPC
 - Order of precedence
 - Which outfit will actually be applied
@@ -816,11 +842,13 @@ Shows how the current filters translate to SPID or SkyPatcher syntax.
 Selected NPC: Female Nord bandit
 
 Generated SPID:
+
 ```ini
 Outfit = YourOutfit|ActorTypeNPC|BanditFaction+NordRace|NONE|F
 ```
 
 Generated SkyPatcher:
+
 ```ini
 filterByFactions=Skyrim.esm|000FDEAC:filterByRaces=Skyrim.esm|000131E8:filterByGender=female:outfitDefault=YourMod.esp|00001234
 ```
@@ -835,13 +863,13 @@ The Outfits tab lets you browse outfit records and see their distribution impact
 
 **Outfit DataGrid**:
 
-| Column | Description |
-|--------|-------------|
-| EditorID | Outfit name |
-| FormID | Unique identifier |
-| Plugin | Source plugin |
+| Column    | Description            |
+|-----------|------------------------|
+| EditorID  | Outfit name            |
+| FormID    | Unique identifier      |
+| Plugin    | Source plugin          |
 | NPC Count | NPCs using this outfit |
-| Items | Number of armor pieces |
+| Items     | Number of armor pieces |
 
 **Sorting and Searching**:
 
@@ -879,6 +907,7 @@ Shows all distribution files affecting the selected outfit:
 **Impact Summary**:
 
 Boutique calculates:
+
 - Total NPCs potentially affected
 - Plugins depending on this outfit
 - Conflicts with other outfits
@@ -896,6 +925,7 @@ Boutique calculates:
 Click **Preview** to open a 3D view of the outfit.
 
 Same controls as Outfit Creator preview:
+
 - Rotate, pan, zoom
 - Visualize all armor pieces
 - Verify appearance
@@ -919,6 +949,7 @@ CDF adds, removes, or replaces items in containers at runtime based on JSON rule
 **File Location**:
 
 CDF files must be in:
+
 ```
 Data/SKSE/Plugins/ContainerDistributionFramework/*.json
 ```
@@ -929,14 +960,14 @@ Data/SKSE/Plugins/ContainerDistributionFramework/*.json
 
 1. Click **New Rule** in the Containers tab
 2. Select rule type:
-   - **Add**: Add items to containers
-   - **Remove**: Remove items
-   - **Replace**: Swap items
+  - **Add**: Add items to containers
+  - **Remove**: Remove items
+  - **Replace**: Swap items
 3. Configure conditions (which containers to target):
-   - Container base form
-   - Location
-   - Worldspace
-   - Globals (level checks, quest flags)
+  - Container base form
+  - Location
+  - Worldspace
+  - Globals (level checks, quest flags)
 4. Configure changes (what to add/remove/replace)
 5. Preview JSON
 6. Save file
@@ -998,7 +1029,8 @@ Armor patching is an advanced feature for copying stats between armor mods.
 
 **Use Case**:
 
-You have a cosmetic armor mod (looks great, but stats are unbalanced) and a gameplay overhaul mod (balanced stats). You want to wear the cosmetic armor with balanced stats.
+You have a cosmetic armor mod (looks great, but stats are unbalanced) and a gameplay overhaul mod (balanced stats). You
+want to wear the cosmetic armor with balanced stats.
 
 **Example**:
 
@@ -1022,6 +1054,7 @@ You have a cosmetic armor mod (looks great, but stats are unbalanced) and a game
 **Matching Interface**:
 
 The center panel shows side-by-side comparison:
+
 - Left: Source armors
 - Right: Target armors
 - Match button: Connect source to target
@@ -1038,6 +1071,7 @@ The center panel shows side-by-side comparison:
 **Auto-Match**:
 
 Boutique can auto-match based on:
+
 - Name similarity
 - Slot similarity
 - EditorID similarity
@@ -1048,9 +1082,9 @@ Click **Auto-Match** to attempt automatic matching. Review results before patchi
 
 The bottom panel shows all matches:
 
-| Source | Target | Slots | Stats to Copy |
-|--------|--------|-------|---------------|
-| FancyRobe | RequiemMageRobe | Body | Armor, Keywords, Enchantment |
+| Source    | Target          | Slots | Stats to Copy                |
+|-----------|-----------------|-------|------------------------------|
+| FancyRobe | RequiemMageRobe | Body  | Armor, Keywords, Enchantment |
 
 ### Glam Mode
 
@@ -1076,8 +1110,8 @@ You want armor appearance without affecting gameplay difficulty.
 
 1. Match all desired armors
 2. Configure patch settings:
-   - Output ESP name (e.g., `MyCosmeticPatch.esp`)
-   - Enable/disable Glam Mode
+  - Output ESP name (e.g., `MyCosmeticPatch.esp`)
+  - Enable/disable Glam Mode
 3. Click **Create Patch**
 4. Boutique generates the patch ESP in your Data folder
 
@@ -1128,6 +1162,7 @@ Your patch overrides the source armor, applying target stats. It must load after
 **Purpose**: Tells Boutique where your Skyrim installation is located.
 
 **Manual Configuration**:
+
 1. Click **Browse**
 2. Navigate to `Skyrim Special Edition\Data\`
 3. Select folder
@@ -1159,6 +1194,7 @@ If run from MO2, Boutique auto-detects the virtual filesystem. No manual configu
 Default: `Boutique_Patch.esp`
 
 Change to:
+
 - `MyArmorPatch.esp`
 - `CosmeticOverhaul.esp`
 
@@ -1188,6 +1224,7 @@ Boutique supports multiple languages:
 **Font Scaling**:
 
 Adjust UI font size:
+
 - Small (90%)
 - Medium (100%)
 - Large (110%)
@@ -1227,6 +1264,7 @@ This section provides complete, real-world examples.
 **Goal**: Create a "Bandit Mage" outfit with robes and a hood.
 
 **Prerequisites**:
+
 - Skyrim Data path configured
 
 **Steps**:
@@ -1234,36 +1272,36 @@ This section provides complete, real-world examples.
 1. **Open Outfit Creator tab**
 
 2. **Select Plugin**:
-   - Choose `Skyrim.esm`
+  - Choose `Skyrim.esm`
 
 3. **Select Armor Pieces**:
-   - Search "Mage"
-   - Select:
-     - Mage Robes (Unhooded)
-     - Mage Hood
-     - Mage Boots
+  - Search "Mage"
+  - Select:
+    - Mage Robes (Unhooded)
+    - Mage Hood
+    - Mage Boots
 
 4. **Add to Draft**:
-   - Click **Add to Draft**
+  - Click **Add to Draft**
 
 5. **Verify No Conflicts**:
-   - Check draft panel for red warnings
-   - All pieces should be green (no conflicts)
+  - Check draft panel for red warnings
+  - All pieces should be green (no conflicts)
 
 6. **Preview** (optional):
-   - Click **Preview**
-   - Inspect the outfit
+  - Click **Preview**
+  - Inspect the outfit
 
 7. **Save Outfit**:
-   - Outfit Name: `Bandit_Mage_Robes`
-   - Output Plugin: Create new → `MyBanditOutfits.esp`
-   - Click **Save Outfit**
+  - Outfit Name: `Bandit_Mage_Robes`
+  - Output Plugin: Create new → `MyBanditOutfits.esp`
+  - Click **Save Outfit**
 
 8. **Verify**:
-   - Open xEdit
-   - Load `MyBanditOutfits.esp`
-   - Find `Bandit_Mage_Robes` outfit
-   - Verify armor pieces are listed
+  - Open xEdit
+  - Load `MyBanditOutfits.esp`
+  - Find `Bandit_Mage_Robes` outfit
+  - Verify armor pieces are listed
 
 **Result**: You now have a custom bandit mage outfit ready for distribution.
 
@@ -1274,6 +1312,7 @@ This section provides complete, real-world examples.
 **Goal**: Give all female bandits the "Bandit_Mage_Robes" outfit.
 
 **Prerequisites**:
+
 - "Bandit_Mage_Robes" outfit created
 - SPID installed in your game
 
@@ -1282,34 +1321,34 @@ This section provides complete, real-world examples.
 1. **Open Distribution → Create tab**
 
 2. **Select Distribution Type**:
-   - Choose **SPID**
+  - Choose **SPID**
 
 3. **Select Outfit**:
-   - Dropdown: `Bandit_Mage_Robes`
+  - Dropdown: `Bandit_Mage_Robes`
 
 4. **Add Filters**:
-   - Click **Gender** tab → Select **Female**
-   - Click **Faction** tab → Search "Bandit" → Select `BanditFaction`
+  - Click **Gender** tab → Select **Female**
+  - Click **Faction** tab → Search "Bandit" → Select `BanditFaction`
 
 5. **Preview Syntax**:
-   - Check syntax panel (bottom-right):
-     ```ini
-     Outfit = Bandit_Mage_Robes|ActorTypeNPC|BanditFaction|NONE|F
-     ```
+  - Check syntax panel (bottom-right):
+    ```ini
+    Outfit = Bandit_Mage_Robes|ActorTypeNPC|BanditFaction|NONE|F
+    ```
 
 6. **Add Entry**:
-   - Click **Add Entry**
-   - Entry appears in list (top-left)
+  - Click **Add Entry**
+  - Entry appears in list (top-left)
 
 7. **Save File**:
-   - Click **Save File**
-   - File name: `Z-Boutique_Bandit_Mages_DISTR.ini`
-   - Saves to `Data\Z-Boutique_Bandit_Mages_DISTR.ini`
+  - Click **Save File**
+  - File name: `Z-Boutique_Bandit_Mages_DISTR.ini`
+  - Saves to `Data\Z-Boutique_Bandit_Mages_DISTR.ini`
 
 8. **Test In-Game**:
-   - Load Skyrim
-   - Find a female bandit
-   - Verify she's wearing mage robes
+  - Load Skyrim
+  - Find a female bandit
+  - Verify she's wearing mage robes
 
 **Result**: All female bandits now wear your custom mage robes.
 
@@ -1320,6 +1359,7 @@ This section provides complete, real-world examples.
 **Goal**: Two SPID files both target the same NPC. Resolve the conflict.
 
 **Prerequisites**:
+
 - Multiple distribution files installed
 
 **Steps**:
@@ -1327,29 +1367,29 @@ This section provides complete, real-world examples.
 1. **Open Distribution → NPCs tab**
 
 2. **Identify Conflicts**:
-   - Orange/red highlighted NPCs indicate conflicts
+  - Orange/red highlighted NPCs indicate conflicts
 
 3. **Select NPC**:
-   - Click the highlighted NPC (e.g., "Bandit Marauder")
+  - Click the highlighted NPC (e.g., "Bandit Marauder")
 
 4. **View Details** (bottom panel):
-   - Shows:
-     - Distribution file 1: `Z-Mod1_Bandits_DISTR.ini` → Outfit A
-     - Distribution file 2: `Z-Mod2_Bandits_DISTR.ini` → Outfit B
+  - Shows:
+    - Distribution file 1: `Z-Mod1_Bandits_DISTR.ini` → Outfit A
+    - Distribution file 2: `Z-Mod2_Bandits_DISTR.ini` → Outfit B
 
 5. **Determine Winner**:
-   - SPID uses file name order (alphabetically last wins)
-   - `Z-Mod2_Bandits_DISTR.ini` wins (later alphabetically)
+  - SPID uses file name order (alphabetically last wins)
+  - `Z-Mod2_Bandits_DISTR.ini` wins (later alphabetically)
 
 6. **Resolve**:
-   - **Option 1**: Delete one file
-   - **Option 2**: Rename files to control order:
-     - `Z-Mod1_Bandits_DISTR.ini` → `ZZ-Mod1_Bandits_DISTR.ini`
-   - **Option 3**: Edit one file to exclude conflicting NPCs
+  - **Option 1**: Delete one file
+  - **Option 2**: Rename files to control order:
+    - `Z-Mod1_Bandits_DISTR.ini` → `ZZ-Mod1_Bandits_DISTR.ini`
+  - **Option 3**: Edit one file to exclude conflicting NPCs
 
 7. **Reload Boutique**:
-   - Click **Refresh** in NPCs tab
-   - Conflict should disappear
+  - Click **Refresh** in NPCs tab
+  - Conflict should disappear
 
 **Result**: Conflict resolved, NPCs wear the intended outfit.
 
@@ -1360,6 +1400,7 @@ This section provides complete, real-world examples.
 **Goal**: Copy Requiem stats to a cosmetic armor mod.
 
 **Prerequisites**:
+
 - Requiem installed
 - Cosmetic armor mod installed
 - Basic understanding of armor stats
@@ -1369,47 +1410,47 @@ This section provides complete, real-world examples.
 1. **Open Armor Patch tab**
 
 2. **Select Source Plugin**:
-   - Left panel: Choose cosmetic armor mod (e.g., `FancyArmors.esp`)
+  - Left panel: Choose cosmetic armor mod (e.g., `FancyArmors.esp`)
 
 3. **Select Target Plugin**:
-   - Right panel: Choose `Requiem.esp`
+  - Right panel: Choose `Requiem.esp`
 
 4. **Match Armors**:
-   - Find cosmetic "Fancy Iron Armor" (left)
-   - Find Requiem "Iron Armor" (right)
-   - Click both, then click **Match**
+  - Find cosmetic "Fancy Iron Armor" (left)
+  - Find Requiem "Iron Armor" (right)
+  - Click both, then click **Match**
 
 5. **Repeat for All Armors**:
-   - Match each cosmetic piece to a Requiem equivalent
+  - Match each cosmetic piece to a Requiem equivalent
 
 6. **Review Matches** (bottom panel):
-   - Verify all matches are correct
+  - Verify all matches are correct
 
 7. **Configure Patch**:
-   - Output ESP: `MyRequiemCosmeticPatch.esp`
-   - Glam Mode: Unchecked (we want Requiem stats)
+  - Output ESP: `MyRequiemCosmeticPatch.esp`
+  - Glam Mode: Unchecked (we want Requiem stats)
 
 8. **Create Patch**:
-   - Click **Create Patch**
-   - Boutique generates `MyRequiemCosmeticPatch.esp`
+  - Click **Create Patch**
+  - Boutique generates `MyRequiemCosmeticPatch.esp`
 
 9. **Load Order**:
-   - Place patch after both source and target:
-     ```
-     FancyArmors.esp
-     Requiem.esp
-     MyRequiemCosmeticPatch.esp
-     ```
+  - Place patch after both source and target:
+    ```
+    FancyArmors.esp
+    Requiem.esp
+    MyRequiemCosmeticPatch.esp
+    ```
 
 10. **Verify in xEdit**:
-    - Open patch in xEdit
-    - Check "Fancy Iron Armor" record
-    - Verify armor rating matches Requiem
+  - Open patch in xEdit
+  - Check "Fancy Iron Armor" record
+  - Verify armor rating matches Requiem
 
 11. **Test In-Game**:
-    - Equip cosmetic armor
-    - Check stats in inventory
-    - Should match Requiem armor
+  - Equip cosmetic armor
+  - Check stats in inventory
+  - Should match Requiem armor
 
 **Result**: Cosmetic armor now has balanced Requiem stats.
 
@@ -1424,6 +1465,7 @@ This section provides complete, real-world examples.
 **Cause**: Plugin references FormIDs from missing master files.
 
 **Solution**:
+
 1. Open xEdit
 2. Load the plugin showing the error
 3. Check File Header → Master Files
@@ -1441,6 +1483,7 @@ This section provides complete, real-world examples.
 **Cause**: File is open in another program (xEdit, Creation Kit, or game).
 
 **Solution**:
+
 1. Close xEdit, Creation Kit, and Skyrim
 2. If using MO2, close MO2 instance
 3. Try saving again in Boutique
@@ -1456,6 +1499,7 @@ This section provides complete, real-world examples.
 **Cause**: FormID format is incorrect or record doesn't exist.
 
 **Solution**:
+
 1. Verify FormID in xEdit
 2. Copy full FormID (e.g., `[01] 0x00001234`)
 3. Ensure plugin is loaded in Boutique
@@ -1473,28 +1517,28 @@ This section provides complete, real-world examples.
 **Solution**:
 
 1. **Check SPID/SkyPatcher is installed**:
-   - SPID: `Data\SKSE\Plugins\po3_SpellPerkItemDistributor.dll`
-   - SkyPatcher: `Data\SKSE\Plugins\SkyPatcher.dll`
+  - SPID: `Data\SKSE\Plugins\po3_SpellPerkItemDistributor.dll`
+  - SkyPatcher: `Data\SKSE\Plugins\SkyPatcher.dll`
 
 2. **Verify distribution file location**:
-   - SPID: `Data\*_DISTR.ini`
-   - SkyPatcher: `Data\skse\plugins\SkyPatcher\npc\*.ini`
+  - SPID: `Data\*_DISTR.ini`
+  - SkyPatcher: `Data\skse\plugins\SkyPatcher\npc\*.ini`
 
 3. **Check filter syntax**:
-   - Open file in text editor
-   - Compare to syntax reference (see [Reference: SPID Syntax](#reference-spid-syntax))
+  - Open file in text editor
+  - Compare to syntax reference (see [Reference: SPID Syntax](#reference-spid-syntax))
 
 4. **Test with simple rule**:
-   - Create a test SPID line:
-     ```ini
-     Outfit = YourOutfit|NONE|NONE|NONE|NONE
-     ```
-   - This targets ALL NPCs (no filters)
-   - If this works, your filters are too restrictive
+  - Create a test SPID line:
+    ```ini
+    Outfit = YourOutfit|NONE|NONE|NONE|NONE
+    ```
+  - This targets ALL NPCs (no filters)
+  - If this works, your filters are too restrictive
 
 5. **Check SPID log**:
-   - Location: `%userprofile%\Documents\My Games\Skyrim Special Edition\SKSE\`
-   - Look for errors related to your file
+  - Location: `%userprofile%\Documents\My Games\Skyrim Special Edition\SKSE\`
+  - Look for errors related to your file
 
 **Prevention**: Test distribution in-game after creating entries.
 
@@ -1507,6 +1551,7 @@ This section provides complete, real-world examples.
 **Cause**: Missing mesh files or unsupported armor type.
 
 **Solution**:
+
 1. Verify armor meshes exist in `Data\Meshes\`
 2. Check log file: `%localappdata%\Boutique\logs\Boutique-YYYYMMDD.log`
 3. Look for mesh load errors
@@ -1524,6 +1569,7 @@ This section provides complete, real-world examples.
 **Cause**: Boutique not launched from MO2.
 
 **Solution**:
+
 1. Add Boutique to MO2 executables (see [Mod Organizer 2 Integration](#mod-organizer-2-integration))
 2. Run Boutique from MO2 executable dropdown
 3. Verify environment variable: `MODORGANIZER2_EXECUTABLE`
@@ -1539,6 +1585,7 @@ This section provides complete, real-world examples.
 **Cause**: Load order incorrect.
 
 **Solution**:
+
 1. Verify load order:
    ```
    Source.esp (cosmetic mod)
@@ -1558,7 +1605,8 @@ This section provides complete, real-world examples.
 
 **Q: Where should distribution files load in the load order?**
 
-A: Distribution files (SPID, SkyPatcher, CDF) are not plugins. They don't appear in load order. They load based on file name alphabetically. Prefix with `Z-` to ensure they load last.
+A: Distribution files (SPID, SkyPatcher, CDF) are not plugins. They don't appear in load order. They load based on file
+name alphabetically. Prefix with `Z-` to ensure they load last.
 
 ---
 
@@ -1572,19 +1620,22 @@ A: Yes. For armor patching, load order must be: Source → Target → Patch.
 
 **Q: Is Boutique compatible with [mod name]?**
 
-A: Boutique works with any mod that uses standard Skyrim records. It reads your load order and creates patches/distribution files. If you can load the mod in xEdit, Boutique can work with it.
+A: Boutique works with any mod that uses standard Skyrim records. It reads your load order and creates
+patches/distribution files. If you can load the mod in xEdit, Boutique can work with it.
 
 ---
 
 **Q: Can I use SPID and SkyPatcher at the same time?**
 
-A: Yes. SPID and SkyPatcher can coexist. If both target the same NPC, SkyPatcher typically wins (loads later). Test in-game to verify behavior.
+A: Yes. SPID and SkyPatcher can coexist. If both target the same NPC, SkyPatcher typically wins (loads later). Test
+in-game to verify behavior.
 
 ---
 
 **Q: Will Boutique conflict with other NPC overhauls?**
 
-A: No. Boutique uses runtime distribution, which doesn't edit NPC records. Your distribution files add outfits at runtime, leaving NPC records untouched.
+A: No. Boutique uses runtime distribution, which doesn't edit NPC records. Your distribution files add outfits at
+runtime, leaving NPC records untouched.
 
 ---
 
@@ -1592,13 +1643,15 @@ A: No. Boutique uses runtime distribution, which doesn't edit NPC records. Your 
 
 **Q: Does distribution impact game performance?**
 
-A: Minimal impact. SPID and SkyPatcher are optimized for runtime distribution. Large distribution files (1000+ entries) may add a second or two to load times.
+A: Minimal impact. SPID and SkyPatcher are optimized for runtime distribution. Large distribution files (1000+ entries)
+may add a second or two to load times.
 
 ---
 
 **Q: Can I distribute to thousands of NPCs?**
 
-A: Yes. Distribution frameworks handle large-scale distribution efficiently. Test in-game to verify performance is acceptable.
+A: Yes. Distribution frameworks handle large-scale distribution efficiently. Test in-game to verify performance is
+acceptable.
 
 ---
 
@@ -1606,13 +1659,15 @@ A: Yes. Distribution frameworks handle large-scale distribution efficiently. Tes
 
 **Q: Can Boutique edit existing outfits?**
 
-A: Yes. Load an outfit in the Outfit Creator, modify it, and save to the same plugin. Boutique updates the outfit record.
+A: Yes. Load an outfit in the Outfit Creator, modify it, and save to the same plugin. Boutique updates the outfit
+record.
 
 ---
 
 **Q: Can I distribute items other than outfits?**
 
-A: SPID and SkyPatcher support spells, perks, items, and more. CDF supports container loot. Boutique currently focuses on outfits, but you can manually edit distribution files for other item types.
+A: SPID and SkyPatcher support spells, perks, items, and more. CDF supports container loot. Boutique currently focuses
+on outfits, but you can manually edit distribution files for other item types.
 
 ---
 
@@ -1626,7 +1681,8 @@ A: No. Boutique is designed for Skyrim Special Edition only.
 
 **Q: Why doesn't my outfit show up in xEdit?**
 
-A: Verify the output plugin is in your Data folder and loaded in xEdit's master list. Check Boutique logs for save errors.
+A: Verify the output plugin is in your Data folder and loaded in xEdit's master list. Check Boutique logs for save
+errors.
 
 ---
 
@@ -1659,11 +1715,13 @@ Broad filters (e.g., "all NPCs") are less efficient than specific filters (e.g.,
 **Example**:
 
 Less efficient:
+
 ```ini
 Outfit = MyOutfit|NONE|NONE|NONE|NONE
 ```
 
 More efficient:
+
 ```ini
 Outfit = MyOutfit|ActorTypeNPC|BanditFaction|NONE|F
 ```
@@ -1677,12 +1735,14 @@ If multiple rules target the same NPCs, only one wins. Consolidate rules when po
 **Example**:
 
 Instead of:
+
 ```ini
 Outfit = Bandit_Light|NONE|BanditFaction|NONE|NONE
 Outfit = Bandit_Heavy|NONE|BanditFaction|NONE|NONE
 ```
 
 Use finer filters:
+
 ```ini
 Outfit = Bandit_Light|NONE|BanditFaction|NONE|NONE|NONE|50
 Outfit = Bandit_Heavy|NONE|BanditFaction|NONE|NONE|NONE|50
@@ -1800,26 +1860,31 @@ FormType = Form|StringFilters|FormFilters|LevelFilters|TraitFilters|Count|Chance
 ### String Filters
 
 **Exact Match**:
+
 ```
 Outfit = MyOutfit|ActorTypeNPC
 ```
 
 **Exclude**:
+
 ```
 Outfit = MyOutfit|-ActorTypeNPC
 ```
 
 **Partial Match**:
+
 ```
 Outfit = MyOutfit|*Guard
 ```
 
 **Multiple (OR)**:
+
 ```
 Outfit = MyOutfit|ActorTypeNPC,Bandit
 ```
 
 **Combined (AND)**:
+
 ```
 Outfit = MyOutfit|ActorTypeNPC+Bandit
 ```
@@ -1827,21 +1892,25 @@ Outfit = MyOutfit|ActorTypeNPC+Bandit
 ### Form Filters
 
 **Race**:
+
 ```
 Outfit = MyOutfit|NONE|NordRace
 ```
 
 **Faction**:
+
 ```
 Outfit = MyOutfit|NONE|BanditFaction
 ```
 
 **Combined (AND)**:
+
 ```
 Outfit = MyOutfit|NONE|NordRace+BanditFaction
 ```
 
 **Multiple (OR)**:
+
 ```
 Outfit = MyOutfit|NONE|NordRace,BretonRace
 ```
@@ -1849,34 +1918,38 @@ Outfit = MyOutfit|NONE|NordRace,BretonRace
 ### Level Filters
 
 **Min Level**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|10/
 ```
 
 **Level Range**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|10/20
 ```
 
 **Exact Level**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|15/15
 ```
 
 ### Trait Filters
 
-| Code | Meaning |
-|------|---------|
-| `F` | Female |
-| `M` | Male |
-| `U` | Unique |
-| `S` | Summonable |
-| `C` | Child |
-| `L` | Leveled |
-| `T` | Teammate |
-| `D` | Dead |
+| Code | Meaning    |
+|------|------------|
+| `F`  | Female     |
+| `M`  | Male       |
+| `U`  | Unique     |
+| `S`  | Summonable |
+| `C`  | Child      |
+| `L`  | Leveled    |
+| `T`  | Teammate   |
+| `D`  | Dead       |
 
 **Example**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|NONE|F
 ```
@@ -1884,6 +1957,7 @@ Outfit = MyOutfit|NONE|NONE|NONE|F
 (Female NPCs only)
 
 **Exclude**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|NONE|-U
 ```
@@ -1893,6 +1967,7 @@ Outfit = MyOutfit|NONE|NONE|NONE|-U
 ### Chance
 
 **50% Chance**:
+
 ```
 Outfit = MyOutfit|NONE|NONE|NONE|NONE|NONE|50
 ```
@@ -1900,16 +1975,19 @@ Outfit = MyOutfit|NONE|NONE|NONE|NONE|NONE|50
 ### Complete Examples
 
 **Example 1: Female Nord bandits**:
+
 ```
 Outfit = Bandit_Female_Light|ActorTypeNPC|NordRace+BanditFaction|NONE|F
 ```
 
 **Example 2: Level 10+ guards**:
+
 ```
 Outfit = Guard_Heavy|ActorTypeNPC|GuardFaction|10/|NONE
 ```
 
 **Example 3: 25% chance for all NPCs**:
+
 ```
 Outfit = Rare_Outfit|NONE|NONE|NONE|NONE|NONE|25
 ```
@@ -1927,22 +2005,26 @@ filterByXXX=value:filterByYYY=value:operation=value
 ```
 
 **Components**:
+
 - **Filters**: Target selection (which NPCs)
 - **Operations**: What to do (set outfit, add items)
 
 ### FormID Format
 
 **Full FormID** (recommended):
+
 ```
 Skyrim.esm|000FDEAC
 ```
 
 **Shortened** (works but less safe):
+
 ```
 Skyrim.esm|FDEAC
 ```
 
 **EditorID** (most filters):
+
 ```
 VigilantOfStendarrFaction
 ```
@@ -1950,16 +2032,19 @@ VigilantOfStendarrFaction
 ### Filter Logic
 
 **AND (all must match)**:
+
 ```
 filterByKeywords=Keyword1,Keyword2
 ```
 
 **OR (at least one must match)**:
+
 ```
 filterByKeywordsOr=Keyword1,Keyword2
 ```
 
 **Exclude**:
+
 ```
 filterByKeywordsExcluded=Keyword1
 ```
@@ -1967,31 +2052,37 @@ filterByKeywordsExcluded=Keyword1
 ### NPC Filters
 
 **By NPC**:
+
 ```
 filterByNpcs=Skyrim.esm|13BBF,Skyrim.esm|1B07A
 ```
 
 **By Faction**:
+
 ```
 filterByFactions=Skyrim.esm|000FDEAC
 ```
 
 **By Race**:
+
 ```
 filterByRaces=Skyrim.esm|000131E8
 ```
 
 **By Keywords**:
+
 ```
 filterByKeywords=Skyrim.esm|00013794
 ```
 
 **By Gender**:
+
 ```
 filterByGender=female
 ```
 
 **By EditorID**:
+
 ```
 filterByEditorIdContains=Bandit,Guard
 ```
@@ -1999,11 +2090,13 @@ filterByEditorIdContains=Bandit,Guard
 ### Operations
 
 **Set Default Outfit**:
+
 ```
 outfitDefault=MyMod.esp|FE000D65
 ```
 
 **Set Sleep Outfit**:
+
 ```
 outfitSleep=Skyrim.esm|D3E06
 ```
@@ -2011,16 +2104,19 @@ outfitSleep=Skyrim.esm|D3E06
 ### Complete Examples
 
 **Example 1: Female bandits**:
+
 ```
 filterByFactions=Skyrim.esm|000FDEAC:filterByGender=female:outfitDefault=MyMod.esp|00001234
 ```
 
 **Example 2: Multiple filters**:
+
 ```
 filterByFactions=Skyrim.esm|0001BCC0:filterByKeywords=Skyrim.esm|00013794:filterByGender=female:outfitDefault=MyMod.esp|00001234
 ```
 
 **Example 3: Specific NPCs**:
+
 ```
 filterByNpcs=Skyrim.esm|13BBF:outfitDefault=Skyrim.esm|D3E05
 ```
@@ -2049,13 +2145,13 @@ CDF (Container Distribution Framework) uses JSON for container loot distribution
 
 Determined by `changes` fields:
 
-| Fields | Rule Type | Behavior |
-|--------|-----------|----------|
-| `add` only | Add | Adds items |
-| `remove` only | Remove | Removes items |
-| `removeByKeywords` only | Remove By Keywords | Removes items with keywords |
-| `add` + `remove` | Replace | Replaces items 1:1 |
-| `add` + `removeByKeywords` | Replace By Keywords | Replaces keyword items |
+| Fields                     | Rule Type           | Behavior                    |
+|----------------------------|---------------------|-----------------------------|
+| `add` only                 | Add                 | Adds items                  |
+| `remove` only              | Remove              | Removes items               |
+| `removeByKeywords` only    | Remove By Keywords  | Removes items with keywords |
+| `add` + `remove`           | Replace             | Replaces items 1:1          |
+| `add` + `removeByKeywords` | Replace By Keywords | Replaces keyword items      |
 
 ### FormID Format
 
@@ -2064,6 +2160,7 @@ Determined by `changes` fields:
 ```
 
 Example:
+
 ```
 0xF|Skyrim.esm
 ```
@@ -2071,6 +2168,7 @@ Example:
 ### Changes Examples
 
 **Add 10 Gold**:
+
 ```json
 {
   "changes": [
@@ -2083,6 +2181,7 @@ Example:
 ```
 
 **Remove All Iron Ingots**:
+
 ```json
 {
   "changes": [
@@ -2094,6 +2193,7 @@ Example:
 ```
 
 **Remove Raw Food (by keyword)**:
+
 ```json
 {
   "changes": [
@@ -2105,6 +2205,7 @@ Example:
 ```
 
 **Replace Iron with Gold**:
+
 ```json
 {
   "changes": [
@@ -2119,6 +2220,7 @@ Example:
 ### Conditions
 
 **Target Specific Container**:
+
 ```json
 {
   "conditions": {
@@ -2128,6 +2230,7 @@ Example:
 ```
 
 **Target Location**:
+
 ```json
 {
   "conditions": {
@@ -2137,6 +2240,7 @@ Example:
 ```
 
 **Global Check**:
+
 ```json
 {
   "conditions": {
@@ -2146,6 +2250,7 @@ Example:
 ```
 
 **Player Skill**:
+
 ```json
 {
   "conditions": {
@@ -2204,15 +2309,18 @@ Example:
 ### Distribution Frameworks
 
 **SPID (Spell Perk Item Distributor)**:
+
 - Author: powerofthree
 - Nexus: [SPID Nexus Page]
 - Documentation: [SPID Nexus Article]
 
 **SkyPatcher**:
+
 - Author: [SkyPatcher Author]
 - Nexus: [SkyPatcher Nexus Page]
 
 **CDF (Container Distribution Framework)**:
+
 - Author: SeaSparrowOG
 - Nexus: [CDF Nexus Page]
 - GitHub: [CDF GitHub Wiki]
@@ -2220,22 +2328,27 @@ Example:
 ### Tools and Libraries
 
 **Mutagen**: Bethesda plugin manipulation library
+
 - GitHub: [Mutagen Repository]
 
 **NiflySharp**: NIF mesh file reader
+
 - GitHub: [NiflySharp Repository]
 
 **HelixToolkit**: 3D visualization
+
 - GitHub: [HelixToolkit Repository]
 
 ### Community Resources
 
 **Skyrim Modding Community**:
+
 - r/skyrimmods
 - Nexus Mods Forums
 - xEdit Discord
 
 **Tutorials and Guides**:
+
 - [SPID Syntax Guide on Nexus]
 - [SkyPatcher Documentation]
 - [CDF GitHub Wiki]

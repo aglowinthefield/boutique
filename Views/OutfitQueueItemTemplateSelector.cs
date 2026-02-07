@@ -6,14 +6,14 @@ namespace Boutique.Views;
 
 public class OutfitQueueItemTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate? DraftTemplate { get; set; }
-    public DataTemplate? SeparatorTemplate { get; set; }
+  public DataTemplate? DraftTemplate { get; set; }
+  public DataTemplate? SeparatorTemplate { get; set; }
 
-    public override DataTemplate? SelectTemplate(object? item, DependencyObject container) =>
-        item switch
-        {
-            OutfitDraftViewModel => DraftTemplate,
-            OutfitSeparatorViewModel => SeparatorTemplate,
-            _ => base.SelectTemplate(item, container)
-        };
+  public override DataTemplate? SelectTemplate(object? item, DependencyObject container) =>
+    item switch
+    {
+      OutfitDraftViewModel => DraftTemplate,
+      OutfitSeparatorViewModel => SeparatorTemplate,
+      _ => base.SelectTemplate(item, container)
+    };
 }

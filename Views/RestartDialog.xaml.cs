@@ -5,29 +5,29 @@ namespace Boutique.Views;
 
 public partial class RestartDialog : Window
 {
-    public RestartDialog()
+  public RestartDialog()
+  {
+    InitializeComponent();
+    if (ThemeService.Current is { } themeService)
     {
-        InitializeComponent();
-        if (ThemeService.Current is { } themeService)
-        {
-            RootScaleTransform.ScaleX = themeService.CurrentFontScale;
-            RootScaleTransform.ScaleY = themeService.CurrentFontScale;
+      RootScaleTransform.ScaleX = themeService.CurrentFontScale;
+      RootScaleTransform.ScaleY = themeService.CurrentFontScale;
 
-            SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
-        }
+      SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
     }
+  }
 
-    public bool QuitNow { get; private set; }
+  public bool QuitNow { get; private set; }
 
-    private void QuitButton_Click(object sender, RoutedEventArgs e)
-    {
-        QuitNow = true;
-        Close();
-    }
+  private void QuitButton_Click(object sender, RoutedEventArgs e)
+  {
+    QuitNow = true;
+    Close();
+  }
 
-    private void LaterButton_Click(object sender, RoutedEventArgs e)
-    {
-        QuitNow = false;
-        Close();
-    }
+  private void LaterButton_Click(object sender, RoutedEventArgs e)
+  {
+    QuitNow = false;
+    Close();
+  }
 }

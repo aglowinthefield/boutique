@@ -1,774 +1,774 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
-                id="root"
-                xmlns="">
-        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+              id="root"
+              xmlns="">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
             <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="metadata">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" use="required" type="xsd:string"/>
-                            <xsd:attribute name="type" type="xsd:string"/>
-                            <xsd:attribute name="mimetype" type="xsd:string"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="assembly">
-                        <xsd:complexType>
-                            <xsd:attribute name="alias" type="xsd:string"/>
-                            <xsd:attribute name="name" type="xsd:string"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
             </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>2.0</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
 
-    <!-- Application -->
-    <data name="AppTitle" xml:space="preserve">
+  <!-- Application -->
+  <data name="AppTitle" xml:space="preserve">
     <value>Boutique</value>
   </data>
 
-    <!-- Main Tabs -->
-    <data name="Tab_Distribution" xml:space="preserve">
+  <!-- Main Tabs -->
+  <data name="Tab_Distribution" xml:space="preserve">
     <value>Distribution</value>
   </data>
-    <data name="Tab_OutfitCreator" xml:space="preserve">
+  <data name="Tab_OutfitCreator" xml:space="preserve">
     <value>Créateur de tenues</value>
   </data>
-    <data name="Tab_ArmorPatch" xml:space="preserve">
+  <data name="Tab_ArmorPatch" xml:space="preserve">
     <value>Patch d'armure</value>
   </data>
-    <data name="Tab_Settings" xml:space="preserve">
+  <data name="Tab_Settings" xml:space="preserve">
     <value>Paramètres</value>
   </data>
 
-    <!-- Distribution Sub-Tabs -->
-    <data name="Tab_Create" xml:space="preserve">
+  <!-- Distribution Sub-Tabs -->
+  <data name="Tab_Create" xml:space="preserve">
     <value>Créer</value>
   </data>
-    <data name="Tab_NPCs" xml:space="preserve">
+  <data name="Tab_NPCs" xml:space="preserve">
     <value>PNJ</value>
   </data>
-    <data name="Tab_Outfits" xml:space="preserve">
+  <data name="Tab_Outfits" xml:space="preserve">
     <value>Tenues</value>
   </data>
-    <data name="Tab_Factions" xml:space="preserve">
+  <data name="Tab_Factions" xml:space="preserve">
     <value>Factions</value>
   </data>
-    <data name="Tab_Keywords" xml:space="preserve">
+  <data name="Tab_Keywords" xml:space="preserve">
     <value>Mots-clés</value>
   </data>
-    <data name="Tab_Races" xml:space="preserve">
+  <data name="Tab_Races" xml:space="preserve">
     <value>Races</value>
   </data>
-    <data name="Tab_Classes" xml:space="preserve">
+  <data name="Tab_Classes" xml:space="preserve">
     <value>Classes</value>
   </data>
 
-    <!-- Settings Panel -->
-    <data name="Settings_Title" xml:space="preserve">
+  <!-- Settings Panel -->
+  <data name="Settings_Title" xml:space="preserve">
     <value>Paramètres de l'application</value>
   </data>
-    <data name="Settings_SkyrimRelease" xml:space="preserve">
+  <data name="Settings_SkyrimRelease" xml:space="preserve">
     <value>Version de Skyrim :</value>
   </data>
-    <data name="Settings_SkyrimDataPath" xml:space="preserve">
+  <data name="Settings_SkyrimDataPath" xml:space="preserve">
     <value>Chemin des données Skyrim :</value>
   </data>
-    <data name="Settings_PatchFileName" xml:space="preserve">
+  <data name="Settings_PatchFileName" xml:space="preserve">
     <value>Nom du fichier patch :</value>
   </data>
-    <data name="Settings_OutputPath" xml:space="preserve">
+  <data name="Settings_OutputPath" xml:space="preserve">
     <value>Chemin de sortie :</value>
   </data>
-    <data name="Settings_OutputPathTooltip" xml:space="preserve">
+  <data name="Settings_OutputPathTooltip" xml:space="preserve">
     <value>Laisser vide pour utiliser le chemin des données Skyrim. Définir un chemin personnalisé pour les modlists Wabbajack ou le dossier overwrite de MO2.</value>
   </data>
-    <data name="Settings_Detection" xml:space="preserve">
+  <data name="Settings_Detection" xml:space="preserve">
     <value>Détection :</value>
   </data>
-    <data name="Settings_Theme" xml:space="preserve">
+  <data name="Settings_Theme" xml:space="preserve">
     <value>Thème :</value>
   </data>
-    <data name="Settings_FontSize" xml:space="preserve">
+  <data name="Settings_FontSize" xml:space="preserve">
     <value>Taille de police :</value>
   </data>
-    <data name="Settings_Language" xml:space="preserve">
+  <data name="Settings_Language" xml:space="preserve">
     <value>Langue :</value>
   </data>
-    <data name="Settings_Tutorial" xml:space="preserve">
+  <data name="Settings_Tutorial" xml:space="preserve">
     <value>Tutoriel :</value>
   </data>
-    <data name="Settings_Blacklist" xml:space="preserve">
+  <data name="Settings_Blacklist" xml:space="preserve">
     <value>Liste noire :</value>
   </data>
-    <data name="Settings_Group_GameConfiguration" xml:space="preserve">
+  <data name="Settings_Group_GameConfiguration" xml:space="preserve">
     <value>Configuration du jeu</value>
   </data>
-    <data name="Settings_Group_PatchSettings" xml:space="preserve">
+  <data name="Settings_Group_PatchSettings" xml:space="preserve">
     <value>Paramètres de patch</value>
   </data>
-    <data name="Settings_Group_Appearance" xml:space="preserve">
+  <data name="Settings_Group_Appearance" xml:space="preserve">
     <value>Apparence</value>
   </data>
-    <data name="Settings_Group_Advanced" xml:space="preserve">
+  <data name="Settings_Group_Advanced" xml:space="preserve">
     <value>Avancé</value>
   </data>
 
-    <!-- Common Buttons -->
-    <data name="Button_Browse" xml:space="preserve">
+  <!-- Common Buttons -->
+  <data name="Button_Browse" xml:space="preserve">
     <value>Parcourir...</value>
   </data>
-    <data name="Button_AutoDetect" xml:space="preserve">
+  <data name="Button_AutoDetect" xml:space="preserve">
     <value>Détection auto</value>
   </data>
-    <data name="Button_RestartTutorial" xml:space="preserve">
+  <data name="Button_RestartTutorial" xml:space="preserve">
     <value>Recommencer le tutoriel</value>
   </data>
-    <data name="Button_Refresh" xml:space="preserve">
+  <data name="Button_Refresh" xml:space="preserve">
     <value>↻ Actualiser</value>
   </data>
-    <data name="Button_Close" xml:space="preserve">
+  <data name="Button_Close" xml:space="preserve">
     <value>Fermer</value>
   </data>
-    <data name="Button_Save" xml:space="preserve">
+  <data name="Button_Save" xml:space="preserve">
     <value>Enregistrer</value>
   </data>
-    <data name="Button_Cancel" xml:space="preserve">
+  <data name="Button_Cancel" xml:space="preserve">
     <value>Annuler</value>
   </data>
-    <data name="Button_ClearAll" xml:space="preserve">
+  <data name="Button_ClearAll" xml:space="preserve">
     <value>Tout effacer</value>
   </data>
-    <data name="Button_ClearFilters" xml:space="preserve">
+  <data name="Button_ClearFilters" xml:space="preserve">
     <value>Effacer les filtres</value>
   </data>
-    <data name="Button_Preview" xml:space="preserve">
+  <data name="Button_Preview" xml:space="preserve">
     <value>Aperçu</value>
   </data>
-    <data name="Button_ResetView" xml:space="preserve">
+  <data name="Button_ResetView" xml:space="preserve">
     <value>Réinitialiser la vue</value>
   </data>
 
-    <!-- Status Bar -->
-    <data name="Status_Patch" xml:space="preserve">
+  <!-- Status Bar -->
+  <data name="Status_Patch" xml:space="preserve">
     <value>Patch :</value>
   </data>
-    <data name="Status_Ready" xml:space="preserve">
+  <data name="Status_Ready" xml:space="preserve">
     <value>Prêt</value>
   </data>
-    <data name="Status_Loading" xml:space="preserve">
+  <data name="Status_Loading" xml:space="preserve">
     <value>Chargement...</value>
   </data>
-    <data name="Status_Initializing" xml:space="preserve">
+  <data name="Status_Initializing" xml:space="preserve">
     <value>Initialisation...</value>
   </data>
-    <data name="Status_Saving" xml:space="preserve">
+  <data name="Status_Saving" xml:space="preserve">
     <value>Enregistrement...</value>
   </data>
 
-    <!-- Common Labels -->
-    <data name="Label_Search" xml:space="preserve">
+  <!-- Common Labels -->
+  <data name="Label_Search" xml:space="preserve">
     <value>Recherche :</value>
   </data>
-    <data name="Label_File" xml:space="preserve">
+  <data name="Label_File" xml:space="preserve">
     <value>Fichier :</value>
   </data>
-    <data name="Label_Format" xml:space="preserve">
+  <data name="Label_Format" xml:space="preserve">
     <value>Format :</value>
   </data>
-    <data name="Label_Filename" xml:space="preserve">
+  <data name="Label_Filename" xml:space="preserve">
     <value>Nom du fichier :</value>
   </data>
-    <data name="Label_SavesAs" xml:space="preserve">
+  <data name="Label_SavesAs" xml:space="preserve">
     <value>Enregistre sous :</value>
   </data>
-    <data name="Label_Suggested" xml:space="preserve">
+  <data name="Label_Suggested" xml:space="preserve">
     <value>Suggéré :</value>
   </data>
-    <data name="Label_FilterPlaceholder" xml:space="preserve">
+  <data name="Label_FilterPlaceholder" xml:space="preserve">
     <value>🔍 Filtrer...</value>
   </data>
 
-    <!-- DataGrid Headers -->
-    <data name="Header_Name" xml:space="preserve">
+  <!-- DataGrid Headers -->
+  <data name="Header_Name" xml:space="preserve">
     <value>Nom</value>
   </data>
-    <data name="Header_EditorID" xml:space="preserve">
+  <data name="Header_EditorID" xml:space="preserve">
     <value>EditorID</value>
   </data>
-    <data name="Header_FormKey" xml:space="preserve">
+  <data name="Header_FormKey" xml:space="preserve">
     <value>FormKey</value>
   </data>
-    <data name="Header_FormID" xml:space="preserve">
+  <data name="Header_FormID" xml:space="preserve">
     <value>Form ID</value>
   </data>
-    <data name="Header_Mod" xml:space="preserve">
+  <data name="Header_Mod" xml:space="preserve">
     <value>Mod</value>
   </data>
-    <data name="Header_Slots" xml:space="preserve">
+  <data name="Header_Slots" xml:space="preserve">
     <value>Emplacements</value>
   </data>
-    <data name="Header_Armor" xml:space="preserve">
+  <data name="Header_Armor" xml:space="preserve">
     <value>Armure</value>
   </data>
-    <data name="Header_NPCs" xml:space="preserve">
+  <data name="Header_NPCs" xml:space="preserve">
     <value>PNJ</value>
   </data>
-    <data name="Header_FinalOutfit" xml:space="preserve">
+  <data name="Header_FinalOutfit" xml:space="preserve">
     <value>Tenue finale</value>
   </data>
-    <data name="Header_Distributor" xml:space="preserve">
+  <data name="Header_Distributor" xml:space="preserve">
     <value>Distributeur</value>
   </data>
-    <data name="Header_Targeting" xml:space="preserve">
+  <data name="Header_Targeting" xml:space="preserve">
     <value>Ciblage</value>
   </data>
-    <data name="Header_Chance" xml:space="preserve">
+  <data name="Header_Chance" xml:space="preserve">
     <value>Chance</value>
   </data>
-    <data name="Header_Conflict" xml:space="preserve">
+  <data name="Header_Conflict" xml:space="preserve">
     <value>Conflit</value>
   </data>
-    <data name="Header_Preview" xml:space="preserve">
+  <data name="Header_Preview" xml:space="preserve">
     <value>Aperçu</value>
   </data>
-    <data name="Header_Copy" xml:space="preserve">
+  <data name="Header_Copy" xml:space="preserve">
     <value>Copier</value>
   </data>
-    <data name="Header_Override" xml:space="preserve">
+  <data name="Header_Override" xml:space="preserve">
     <value>Remplacer</value>
   </data>
 
-    <!-- Armor Patch View -->
-    <data name="ArmorPatch_PluginSelection" xml:space="preserve">
+  <!-- Armor Patch View -->
+  <data name="ArmorPatch_PluginSelection" xml:space="preserve">
     <value>Sélection du plugin</value>
   </data>
-    <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
+  <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
     <value>Plugin source</value>
   </data>
-    <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
+  <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
     <value>Plugin cible</value>
   </data>
-    <data name="ArmorPatch_SourceArmors" xml:space="preserve">
+  <data name="ArmorPatch_SourceArmors" xml:space="preserve">
     <value>Armures sources</value>
   </data>
-    <data name="ArmorPatch_TargetArmors" xml:space="preserve">
+  <data name="ArmorPatch_TargetArmors" xml:space="preserve">
     <value>Armures cibles</value>
   </data>
-    <data name="ArmorPatch_MappingPreview" xml:space="preserve">
+  <data name="ArmorPatch_MappingPreview" xml:space="preserve">
     <value>Aperçu des correspondances</value>
   </data>
-    <data name="ArmorPatch_MapSelection" xml:space="preserve">
+  <data name="ArmorPatch_MapSelection" xml:space="preserve">
     <value>Mapper la sélection</value>
   </data>
-    <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
+  <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
     <value>Marquer Glam uniquement</value>
   </data>
-    <data name="ArmorPatch_CreatePatch" xml:space="preserve">
+  <data name="ArmorPatch_CreatePatch" xml:space="preserve">
     <value>Créer le patch</value>
   </data>
-    <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
+  <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
     <value>Glam uniquement (stats à zéro)</value>
   </data>
-    <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
+  <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
     <value>{0} armures</value>
   </data>
-    <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
+  <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
     <value>{0} candidats</value>
   </data>
-    <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
     <value>{0} correspondances</value>
   </data>
-    <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
     <value>{0} correspondances au total</value>
   </data>
-    <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
     <value>{0} correspondance(s) en attente</value>
   </data>
-    <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
+  <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
     <value>Supprimer la correspondance</value>
   </data>
-    <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
+  <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
     <value>Tapez pour rechercher</value>
   </data>
 
-    <!-- Outfit Creator View -->
-    <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
+  <!-- Outfit Creator View -->
+  <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
     <value>Plugins sources</value>
   </data>
-    <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
+  <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
     <value>Armures disponibles</value>
   </data>
-    <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
+  <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
     <value>Tenues Boutique</value>
   </data>
-    <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
     <value>Créer une tenue à partir de la sélection</value>
   </data>
-    <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
+  <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
     <value>Déposez les armures ici pour créer une nouvelle tenue (double-cliquez sur une armure pour l'ajouter rapidement).</value>
   </data>
-    <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
+  <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
     <value>Aucune tenue créée. Sélectionnez des armures et cliquez sur Créer une tenue.</value>
   </data>
-    <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
+  <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
     <value>Aucune pièce sélectionnée.</value>
   </data>
-    <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
+  <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
     <value>Ce plugin définit déjà {0} tenue(s).</value>
   </data>
-    <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
+  <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
     <value>Copier les tenues existantes</value>
   </data>
-    <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
+  <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
     <value>Enregistrer les tenues</value>
   </data>
-    <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
+  <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
     <value>{0} tenue(s)</value>
   </data>
-    <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
+  <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
     <value>Aperçu de l'armure</value>
   </data>
-    <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
     <value>Aperçu de la tenue</value>
   </data>
-    <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
+  <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
     <value>Dupliquer la tenue</value>
   </data>
-    <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
+  <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
     <value>Supprimer la tenue</value>
   </data>
-    <data name="OutfitCreator_RemovePiece" xml:space="preserve">
+  <data name="OutfitCreator_RemovePiece" xml:space="preserve">
     <value>Supprimer la pièce</value>
   </data>
-    <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
+  <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
     <value>Filtrer les plugins par nom</value>
   </data>
 
-    <!-- Distribution Create Tab -->
-    <data name="Distribution_DistributionEntries" xml:space="preserve">
+  <!-- Distribution Create Tab -->
+  <data name="Distribution_DistributionEntries" xml:space="preserve">
     <value>Entrées de distribution</value>
   </data>
-    <data name="Distribution_DistributionFilters" xml:space="preserve">
+  <data name="Distribution_DistributionFilters" xml:space="preserve">
     <value>Filtres de distribution</value>
   </data>
-    <data name="Distribution_AddEntry" xml:space="preserve">
+  <data name="Distribution_AddEntry" xml:space="preserve">
     <value>Ajouter une entrée</value>
   </data>
-    <data name="Distribution_SaveFile" xml:space="preserve">
+  <data name="Distribution_SaveFile" xml:space="preserve">
     <value>Enregistrer le fichier</value>
   </data>
-    <data name="Distribution_PasteFilter" xml:space="preserve">
+  <data name="Distribution_PasteFilter" xml:space="preserve">
     <value>📋 Coller le filtre</value>
   </data>
-    <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
+  <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
     <value>Coller le filtre copié depuis l'onglet PNJ</value>
   </data>
-    <data name="Distribution_PasteFilterFormat" xml:space="preserve">
+  <data name="Distribution_PasteFilterFormat" xml:space="preserve">
     <value>Coller le filtre : {0}</value>
   </data>
-    <data name="Distribution_Assign" xml:space="preserve">
+  <data name="Distribution_Assign" xml:space="preserve">
     <value>Assigner</value>
   </data>
-    <data name="Distribution_Outfit" xml:space="preserve">
+  <data name="Distribution_Outfit" xml:space="preserve">
     <value>Tenue :</value>
   </data>
-    <data name="Distribution_Keyword" xml:space="preserve">
+  <data name="Distribution_Keyword" xml:space="preserve">
     <value>Mot-clé :</value>
   </data>
-    <data name="Distribution_UseChance" xml:space="preserve">
+  <data name="Distribution_UseChance" xml:space="preserve">
     <value>Utiliser la chance</value>
   </data>
-    <data name="Distribution_ChanceTooltip" xml:space="preserve">
+  <data name="Distribution_ChanceTooltip" xml:space="preserve">
     <value>Chance (0-100)</value>
   </data>
-    <data name="Distribution_RemoveEntry" xml:space="preserve">
+  <data name="Distribution_RemoveEntry" xml:space="preserve">
     <value>Supprimer l'entrée</value>
   </data>
-    <data name="Distribution_NPCs" xml:space="preserve">
+  <data name="Distribution_NPCs" xml:space="preserve">
     <value>PNJ :</value>
   </data>
-    <data name="Distribution_Factions" xml:space="preserve">
+  <data name="Distribution_Factions" xml:space="preserve">
     <value>Factions :</value>
   </data>
-    <data name="Distribution_Keywords" xml:space="preserve">
+  <data name="Distribution_Keywords" xml:space="preserve">
     <value>Mots-clés :</value>
   </data>
-    <data name="Distribution_Races" xml:space="preserve">
+  <data name="Distribution_Races" xml:space="preserve">
     <value>Races :</value>
   </data>
-    <data name="Distribution_Classes" xml:space="preserve">
+  <data name="Distribution_Classes" xml:space="preserve">
     <value>Classes :</value>
   </data>
-    <data name="Distribution_Traits" xml:space="preserve">
+  <data name="Distribution_Traits" xml:space="preserve">
     <value>Traits :</value>
   </data>
-    <data name="Distribution_Gender" xml:space="preserve">
+  <data name="Distribution_Gender" xml:space="preserve">
     <value>Genre :</value>
   </data>
-    <data name="Distribution_Unique" xml:space="preserve">
+  <data name="Distribution_Unique" xml:space="preserve">
     <value>Unique :</value>
   </data>
-    <data name="Distribution_LevelSkill" xml:space="preserve">
+  <data name="Distribution_LevelSkill" xml:space="preserve">
     <value>Niveau/Compétence :</value>
   </data>
-    <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
+  <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
     <value>Filtres de niveau/compétence SPID. Exemples : 5/20 (plage de niveau), 12(85/999) (compétence Altération 85+)</value>
   </data>
-    <data name="Distribution_FilePreview" xml:space="preserve">
+  <data name="Distribution_FilePreview" xml:space="preserve">
     <value>Aperçu du fichier</value>
   </data>
-    <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
+  <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
     <value>{0} erreur(s) d'analyse - ces lignes seront conservées lors de l'enregistrement</value>
   </data>
-    <data name="Distribution_TargetEntryFormat" xml:space="preserve">
+  <data name="Distribution_TargetEntryFormat" xml:space="preserve">
     <value>Entrée cible : {0}</value>
   </data>
-    <data name="Distribution_TargetEntryNone" xml:space="preserve">
+  <data name="Distribution_TargetEntryNone" xml:space="preserve">
     <value>Entrée cible : (Aucune sélection)</value>
   </data>
-    <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
+  <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
     <value>Ajouter les PNJ sélectionnés</value>
   </data>
-    <data name="Distribution_AddSelectedFactions" xml:space="preserve">
+  <data name="Distribution_AddSelectedFactions" xml:space="preserve">
     <value>Ajouter les factions sélectionnées</value>
   </data>
-    <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
+  <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
     <value>Ajouter les mots-clés sélectionnés</value>
   </data>
-    <data name="Distribution_AddSelectedRaces" xml:space="preserve">
+  <data name="Distribution_AddSelectedRaces" xml:space="preserve">
     <value>Ajouter les races sélectionnées</value>
   </data>
-    <data name="Distribution_AddSelectedClasses" xml:space="preserve">
+  <data name="Distribution_AddSelectedClasses" xml:space="preserve">
     <value>Ajouter les classes sélectionnées</value>
   </data>
-    <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
+  <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
     <value>Sélectionner un mot-clé existant ou saisir un nouvel EditorID pour les mots-clés virtuels</value>
   </data>
 
-    <!-- Distribution NPCs Tab -->
-    <data name="NPCs_RefreshTooltip" xml:space="preserve">
+  <!-- Distribution NPCs Tab -->
+  <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Rescanner les fichiers de distribution pour les assignations de tenues PNJ</value>
   </data>
-    <data name="NPCs_HideVanilla" xml:space="preserve">
+  <data name="NPCs_HideVanilla" xml:space="preserve">
     <value>Masquer les distributions vanilla</value>
   </data>
-    <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
+  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
     <value>Masque les PNJ dont la tenue par défaut est l'assignation gagnante</value>
   </data>
-    <data name="NPCs_SearchTooltip" xml:space="preserve">
+  <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Rechercher des PNJ par nom, EditorID, tenue ou mod</value>
   </data>
-    <data name="NPCs_SpidFilters" xml:space="preserve">
+  <data name="NPCs_SpidFilters" xml:space="preserve">
     <value>Filtres style SPID</value>
   </data>
-    <data name="NPCs_Templated" xml:space="preserve">
+  <data name="NPCs_Templated" xml:space="preserve">
     <value>Modèle :</value>
   </data>
-    <data name="NPCs_Age" xml:space="preserve">
+  <data name="NPCs_Age" xml:space="preserve">
     <value>Âge :</value>
   </data>
-    <data name="NPCs_Faction" xml:space="preserve">
+  <data name="NPCs_Faction" xml:space="preserve">
     <value>Faction :</value>
   </data>
-    <data name="NPCs_Race" xml:space="preserve">
+  <data name="NPCs_Race" xml:space="preserve">
     <value>Race :</value>
   </data>
-    <data name="NPCs_Class" xml:space="preserve">
+  <data name="NPCs_Class" xml:space="preserve">
     <value>Classe :</value>
   </data>
-    <data name="NPCs_CopyFilter" xml:space="preserve">
+  <data name="NPCs_CopyFilter" xml:space="preserve">
     <value>📋 Copier le filtre</value>
   </data>
-    <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
+  <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
     <value>Copier le filtre actuel pour le coller dans l'onglet Créer</value>
   </data>
-    <data name="NPCs_ShowingFormat" xml:space="preserve">
+  <data name="NPCs_ShowingFormat" xml:space="preserve">
     <value>Affichage de {0} sur {1} PNJ</value>
   </data>
-    <data name="NPCs_DistributionFiles" xml:space="preserve">
+  <data name="NPCs_DistributionFiles" xml:space="preserve">
     <value>Fichiers de distribution</value>
   </data>
-    <data name="NPCs_Winner" xml:space="preserve">
+  <data name="NPCs_Winner" xml:space="preserve">
     <value>[GAGNANT]</value>
   </data>
-    <data name="NPCs_ChanceFormat" xml:space="preserve">
+  <data name="NPCs_ChanceFormat" xml:space="preserve">
     <value>({0}% de chance)</value>
   </data>
-    <data name="NPCs_OutfitFormat" xml:space="preserve">
+  <data name="NPCs_OutfitFormat" xml:space="preserve">
     <value>Tenue : {0}</value>
   </data>
-    <data name="NPCs_OutfitContents" xml:space="preserve">
+  <data name="NPCs_OutfitContents" xml:space="preserve">
     <value>Contenu de la tenue</value>
   </data>
-    <data name="NPCs_PreviewOutfit" xml:space="preserve">
+  <data name="NPCs_PreviewOutfit" xml:space="preserve">
     <value>Aperçu de la tenue</value>
   </data>
-    <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
+  <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
     <value>Aperçu de la syntaxe du filtre</value>
   </data>
-    <data name="NPCs_SpidFormat" xml:space="preserve">
+  <data name="NPCs_SpidFormat" xml:space="preserve">
     <value>Format SPID :</value>
   </data>
-    <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
+  <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
     <value>Format SkyPatcher :</value>
   </data>
-    <data name="NPCs_CopySyntaxHint" xml:space="preserve">
+  <data name="NPCs_CopySyntaxHint" xml:space="preserve">
     <value>Copier la syntaxe pour l'utiliser dans vos fichiers INI de distribution</value>
   </data>
-    <data name="NPCs_NpcDetails" xml:space="preserve">
+  <data name="NPCs_NpcDetails" xml:space="preserve">
     <value>Détails du PNJ</value>
   </data>
-    <data name="NPCs_Level" xml:space="preserve">
+  <data name="NPCs_Level" xml:space="preserve">
     <value>Niveau :</value>
   </data>
-    <data name="NPCs_Voice" xml:space="preserve">
+  <data name="NPCs_Voice" xml:space="preserve">
     <value>Voix :</value>
   </data>
-    <data name="NPCs_Combat" xml:space="preserve">
+  <data name="NPCs_Combat" xml:space="preserve">
     <value>Combat :</value>
   </data>
-    <data name="NPCs_Template" xml:space="preserve">
+  <data name="NPCs_Template" xml:space="preserve">
     <value>Modèle :</value>
   </data>
-    <data name="NPCs_TemplateNone" xml:space="preserve">
+  <data name="NPCs_TemplateNone" xml:space="preserve">
     <value>(Aucun)</value>
   </data>
-    <data name="NPCs_Male" xml:space="preserve">
+  <data name="NPCs_Male" xml:space="preserve">
     <value>Masculin</value>
   </data>
-    <data name="NPCs_Female" xml:space="preserve">
+  <data name="NPCs_Female" xml:space="preserve">
     <value>Féminin</value>
   </data>
-    <data name="NPCs_Trait_Unique" xml:space="preserve">
+  <data name="NPCs_Trait_Unique" xml:space="preserve">
     <value>Unique</value>
   </data>
-    <data name="NPCs_Trait_Summonable" xml:space="preserve">
+  <data name="NPCs_Trait_Summonable" xml:space="preserve">
     <value>Invocable</value>
   </data>
-    <data name="NPCs_Trait_Child" xml:space="preserve">
+  <data name="NPCs_Trait_Child" xml:space="preserve">
     <value>Enfant</value>
   </data>
-    <data name="NPCs_Trait_Leveled" xml:space="preserve">
+  <data name="NPCs_Trait_Leveled" xml:space="preserve">
     <value>Nivelé</value>
   </data>
-    <data name="NPCs_RankFormat" xml:space="preserve">
+  <data name="NPCs_RankFormat" xml:space="preserve">
     <value>(Rang {0})</value>
   </data>
 
-    <!-- Distribution Outfits Tab -->
-    <data name="Outfits_LoadOutfits" xml:space="preserve">
+  <!-- Distribution Outfits Tab -->
+  <data name="Outfits_LoadOutfits" xml:space="preserve">
     <value>↻ Charger les tenues</value>
   </data>
-    <data name="Outfits_LoadTooltip" xml:space="preserve">
+  <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Charger toutes les tenues depuis l'ordre de chargement</value>
   </data>
-    <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
+  <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Masque les tenues dont la tenue par défaut est l'assignation gagnante</value>
   </data>
-    <data name="Outfits_SearchTooltip" xml:space="preserve">
+  <data name="Outfits_SearchTooltip" xml:space="preserve">
     <value>Rechercher des tenues par EditorID, FormKey ou mod</value>
   </data>
-    <data name="Outfits_CopyToPatch" xml:space="preserve">
+  <data name="Outfits_CopyToPatch" xml:space="preserve">
     <value>Copier vers le patch</value>
   </data>
-    <data name="Outfits_CopyAsOverride" xml:space="preserve">
+  <data name="Outfits_CopyAsOverride" xml:space="preserve">
     <value>Copier en remplacement</value>
   </data>
-    <data name="Outfits_DistributedToNpcs" xml:space="preserve">
+  <data name="Outfits_DistributedToNpcs" xml:space="preserve">
     <value>Distribué aux PNJ</value>
   </data>
 
-    <!-- Restart Dialog -->
-    <data name="Restart_Title" xml:space="preserve">
+  <!-- Restart Dialog -->
+  <data name="Restart_Title" xml:space="preserve">
     <value>Redémarrage requis</value>
   </data>
-    <data name="Restart_Message" xml:space="preserve">
+  <data name="Restart_Message" xml:space="preserve">
     <value>Pour appliquer le changement de thème, vous devez quitter et rouvrir Boutique.</value>
   </data>
-    <data name="Restart_Later" xml:space="preserve">
+  <data name="Restart_Later" xml:space="preserve">
     <value>Je le ferai plus tard !</value>
   </data>
-    <data name="Restart_QuitNow" xml:space="preserve">
+  <data name="Restart_QuitNow" xml:space="preserve">
     <value>Quitter maintenant</value>
   </data>
 
-    <!-- Missing Masters Dialog -->
-    <data name="MissingMasters_Title" xml:space="preserve">
+  <!-- Missing Masters Dialog -->
+  <data name="MissingMasters_Title" xml:space="preserve">
     <value>Masters manquants détectés</value>
   </data>
-    <data name="MissingMasters_Header" xml:space="preserve">
+  <data name="MissingMasters_Header" xml:space="preserve">
     <value>⚠️ Plugins masters manquants détectés</value>
   </data>
-    <data name="MissingMasters_Description" xml:space="preserve">
+  <data name="MissingMasters_Description" xml:space="preserve">
     <value>Votre BoutiquePatch référence des plugins qui ne sont plus dans votre ordre de chargement. Les tenues ci-dessous contiennent des armures de ces masters manquants et ne peuvent pas être chargées.</value>
   </data>
-    <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
+  <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
     <value>({0} armure(s) orpheline(s))</value>
   </data>
-    <data name="MissingMasters_AddBack" xml:space="preserve">
+  <data name="MissingMasters_AddBack" xml:space="preserve">
     <value>Je vais rajouter le(s) master(s)</value>
   </data>
-    <data name="MissingMasters_CleanPatch" xml:space="preserve">
+  <data name="MissingMasters_CleanPatch" xml:space="preserve">
     <value>Nettoyer le patch (supprimer les tenues)</value>
   </data>
 
-    <!-- Outfit Preview Window -->
-    <data name="Preview_Title" xml:space="preserve">
+  <!-- Outfit Preview Window -->
+  <data name="Preview_Title" xml:space="preserve">
     <value>Aperçu de la tenue</value>
   </data>
-    <data name="Preview_MissingAssetsWarning" xml:space="preserve">
+  <data name="Preview_MissingAssetsWarning" xml:space="preserve">
     <value>Certains assets étaient manquants lors de l'aperçu de cette tenue.</value>
   </data>
-    <data name="Preview_BodySlideHint" xml:space="preserve">
+  <data name="Preview_BodySlideHint" xml:space="preserve">
     <value>Certains créateurs comme [ELLE] conçoivent leurs tenues de sorte que vous devez exécuter BodySlide avec la tenue avant qu'elle soit pleinement utilisable. Si cela pourrait être le cas, quittez Boutique et effectuez toutes les étapes BodySlide requises, puis revenez et réessayez !</value>
   </data>
-    <data name="Preview_MissingAssets" xml:space="preserve">
+  <data name="Preview_MissingAssets" xml:space="preserve">
     <value>Assets manquants :</value>
   </data>
-    <data name="Preview_LightingDebug" xml:space="preserve">
+  <data name="Preview_LightingDebug" xml:space="preserve">
     <value>Multiplicateurs d'éclairage (Debug)</value>
   </data>
-    <data name="Preview_Ambient" xml:space="preserve">
+  <data name="Preview_Ambient" xml:space="preserve">
     <value>Ambiant</value>
   </data>
-    <data name="Preview_KeyFill" xml:space="preserve">
+  <data name="Preview_KeyFill" xml:space="preserve">
     <value>Principal/Remplissage</value>
   </data>
-    <data name="Preview_Rim" xml:space="preserve">
+  <data name="Preview_Rim" xml:space="preserve">
     <value>Contour</value>
   </data>
-    <data name="Preview_Frontal" xml:space="preserve">
+  <data name="Preview_Frontal" xml:space="preserve">
     <value>Frontal</value>
   </data>
 
-    <!-- Filter Tooltips -->
-    <data name="Filter_GenderTooltip" xml:space="preserve">
+  <!-- Filter Tooltips -->
+  <data name="Filter_GenderTooltip" xml:space="preserve">
     <value>Filtrer par genre du PNJ (trait SPID : F/M)</value>
   </data>
-    <data name="Filter_UniqueTooltip" xml:space="preserve">
+  <data name="Filter_UniqueTooltip" xml:space="preserve">
     <value>Filtrer par indicateur de PNJ unique (trait SPID : U/-U)</value>
   </data>
-    <data name="Filter_TemplatedTooltip" xml:space="preserve">
+  <data name="Filter_TemplatedTooltip" xml:space="preserve">
     <value>Filtrer selon si le PNJ utilise un modèle</value>
   </data>
-    <data name="Filter_ChildTooltip" xml:space="preserve">
+  <data name="Filter_ChildTooltip" xml:space="preserve">
     <value>Filtrer par statut enfant/adulte (trait SPID : C/-C)</value>
   </data>
-    <data name="Filter_FactionTooltip" xml:space="preserve">
+  <data name="Filter_FactionTooltip" xml:space="preserve">
     <value>Filtrer par appartenance à une faction (FormFilter SPID)</value>
   </data>
-    <data name="Filter_RaceTooltip" xml:space="preserve">
+  <data name="Filter_RaceTooltip" xml:space="preserve">
     <value>Filtrer par race (FormFilter SPID)</value>
   </data>
-    <data name="Filter_ClassTooltip" xml:space="preserve">
+  <data name="Filter_ClassTooltip" xml:space="preserve">
     <value>Filtrer par classe de PNJ (FormFilter SPID)</value>
   </data>
-    <data name="Filter_KeywordTooltip" xml:space="preserve">
+  <data name="Filter_KeywordTooltip" xml:space="preserve">
     <value>Filtrer par mot-clé (StringFilter SPID)</value>
   </data>
-    <data name="Filter_ResetTooltip" xml:space="preserve">
+  <data name="Filter_ResetTooltip" xml:space="preserve">
     <value>Réinitialiser tous les filtres par défaut</value>
   </data>
 
-    <!-- Theme Options -->
-    <data name="Theme_System" xml:space="preserve">
+  <!-- Theme Options -->
+  <data name="Theme_System" xml:space="preserve">
     <value>Système</value>
   </data>
-    <data name="Theme_Light" xml:space="preserve">
+  <data name="Theme_Light" xml:space="preserve">
     <value>Clair</value>
   </data>
-    <data name="Theme_Dark" xml:space="preserve">
+  <data name="Theme_Dark" xml:space="preserve">
     <value>Sombre</value>
   </data>
 
-    <!-- Detection Messages -->
-    <data name="Detection_MO2DataPath" xml:space="preserve">
+  <!-- Detection Messages -->
+  <data name="Detection_MO2DataPath" xml:space="preserve">
     <value>Détecté depuis Mod Organizer 2 (MO_DATAPATH)</value>
   </data>
-    <data name="Detection_MO2GamePath" xml:space="preserve">
+  <data name="Detection_MO2GamePath" xml:space="preserve">
     <value>Détecté depuis Mod Organizer 2 (MO_GAMEPATH)</value>
   </data>
-    <data name="Detection_MO2VirtualStore" xml:space="preserve">
+  <data name="Detection_MO2VirtualStore" xml:space="preserve">
     <value>Détecté depuis Mod Organizer 2 (VIRTUAL_STORE)</value>
   </data>
-    <data name="Detection_MO2USVFS" xml:space="preserve">
+  <data name="Detection_MO2USVFS" xml:space="preserve">
     <value>Exécution sous Mod Organizer 2 USVFS (chemin des données non défini explicitement)</value>
   </data>
-    <data name="Detection_Mutagen" xml:space="preserve">
+  <data name="Detection_Mutagen" xml:space="preserve">
     <value>{0} détecté avec Mutagen</value>
   </data>
-    <data name="Detection_Failed" xml:space="preserve">
+  <data name="Detection_Failed" xml:space="preserve">
     <value>Échec de la détection automatique pour {0} - veuillez définir manuellement</value>
   </data>
 
-    <!-- Skyrim Releases -->
-    <data name="SkyrimRelease_SE" xml:space="preserve">
+  <!-- Skyrim Releases -->
+  <data name="SkyrimRelease_SE" xml:space="preserve">
     <value>Skyrim SE</value>
   </data>
-    <data name="SkyrimRelease_VR" xml:space="preserve">
+  <data name="SkyrimRelease_VR" xml:space="preserve">
     <value>Skyrim VR</value>
   </data>
-    <data name="SkyrimRelease_GOG" xml:space="preserve">
+  <data name="SkyrimRelease_GOG" xml:space="preserve">
     <value>Skyrim SE (GOG)</value>
   </data>
 
-    <!-- Dialogs -->
-    <data name="Dialog_SelectDataFolder" xml:space="preserve">
+  <!-- Dialogs -->
+  <data name="Dialog_SelectDataFolder" xml:space="preserve">
     <value>Sélectionner le dossier Data de Skyrim</value>
   </data>
-    <data name="Dialog_SelectOutputFolder" xml:space="preserve">
+  <data name="Dialog_SelectOutputFolder" xml:space="preserve">
     <value>Sélectionner le dossier de sortie pour le patch</value>
   </data>
-    <data name="Dialog_SelectDistributionFile" xml:space="preserve">
+  <data name="Dialog_SelectDistributionFile" xml:space="preserve">
     <value>Sélectionner l'emplacement du fichier de distribution</value>
   </data>
 
-    <!-- Refresh Tooltip -->
-    <data name="Refresh_Tooltip" xml:space="preserve">
+  <!-- Refresh Tooltip -->
+  <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Actualiser toutes les données (y compris le patch de sortie)</value>
   </data>
 

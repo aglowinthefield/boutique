@@ -42,7 +42,8 @@
                           <Setter Property="Text" Value="{Binding DisplayText}" />
                           <Setter Property="FontWeight" Value="SemiBold" />
                           <Setter Property="FontSize" Value="11" />
-                          <Setter Property="Foreground" Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
+                          <Setter Property="Foreground"
+                                  Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
                           <Setter Property="Padding" Value="0,4,0,2" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Action}">
@@ -152,9 +153,11 @@
         <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasIntraFileConflicts, Converter={StaticResource BoolToVisConverter}}">
           <StackPanel>
-            <TextBlock Text="Intra-file Conflicts" FontWeight="Bold" Foreground="#CC6600" FontSize="11" Margin="0,0,0,4" />
+            <TextBlock Text="Intra-file Conflicts" FontWeight="Bold" Foreground="#CC6600" FontSize="11"
+                       Margin="0,0,0,4" />
             <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
-              <TextBlock Text="{Binding IntraFileConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
+              <TextBlock Text="{Binding IntraFileConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600"
+                         FontSize="11" />
             </ScrollViewer>
           </StackPanel>
         </Border>

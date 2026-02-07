@@ -1,774 +1,774 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
-                id="root"
-                xmlns="">
-        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+              id="root"
+              xmlns="">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
             <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="metadata">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" use="required" type="xsd:string"/>
-                            <xsd:attribute name="type" type="xsd:string"/>
-                            <xsd:attribute name="mimetype" type="xsd:string"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="assembly">
-                        <xsd:complexType>
-                            <xsd:attribute name="alias" type="xsd:string"/>
-                            <xsd:attribute name="name" type="xsd:string"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
             </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>2.0</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
 
-    <!-- Application -->
-    <data name="AppTitle" xml:space="preserve">
+  <!-- Application -->
+  <data name="AppTitle" xml:space="preserve">
     <value>Boutique</value>
   </data>
 
-    <!-- Main Tabs -->
-    <data name="Tab_Distribution" xml:space="preserve">
+  <!-- Main Tabs -->
+  <data name="Tab_Distribution" xml:space="preserve">
     <value>配布</value>
   </data>
-    <data name="Tab_OutfitCreator" xml:space="preserve">
+  <data name="Tab_OutfitCreator" xml:space="preserve">
     <value>衣装作成</value>
   </data>
-    <data name="Tab_ArmorPatch" xml:space="preserve">
+  <data name="Tab_ArmorPatch" xml:space="preserve">
     <value>防具パッチ</value>
   </data>
-    <data name="Tab_Settings" xml:space="preserve">
+  <data name="Tab_Settings" xml:space="preserve">
     <value>設定</value>
   </data>
 
-    <!-- Distribution Sub-Tabs -->
-    <data name="Tab_Create" xml:space="preserve">
+  <!-- Distribution Sub-Tabs -->
+  <data name="Tab_Create" xml:space="preserve">
     <value>作成</value>
   </data>
-    <data name="Tab_NPCs" xml:space="preserve">
+  <data name="Tab_NPCs" xml:space="preserve">
     <value>NPC</value>
   </data>
-    <data name="Tab_Outfits" xml:space="preserve">
+  <data name="Tab_Outfits" xml:space="preserve">
     <value>衣装</value>
   </data>
-    <data name="Tab_Factions" xml:space="preserve">
+  <data name="Tab_Factions" xml:space="preserve">
     <value>派閥</value>
   </data>
-    <data name="Tab_Keywords" xml:space="preserve">
+  <data name="Tab_Keywords" xml:space="preserve">
     <value>キーワード</value>
   </data>
-    <data name="Tab_Races" xml:space="preserve">
+  <data name="Tab_Races" xml:space="preserve">
     <value>種族</value>
   </data>
-    <data name="Tab_Classes" xml:space="preserve">
+  <data name="Tab_Classes" xml:space="preserve">
     <value>クラス</value>
   </data>
 
-    <!-- Settings Panel -->
-    <data name="Settings_Title" xml:space="preserve">
+  <!-- Settings Panel -->
+  <data name="Settings_Title" xml:space="preserve">
     <value>アプリケーション設定</value>
   </data>
-    <data name="Settings_SkyrimRelease" xml:space="preserve">
+  <data name="Settings_SkyrimRelease" xml:space="preserve">
     <value>Skyrim バージョン：</value>
   </data>
-    <data name="Settings_SkyrimDataPath" xml:space="preserve">
+  <data name="Settings_SkyrimDataPath" xml:space="preserve">
     <value>Skyrim データパス：</value>
   </data>
-    <data name="Settings_PatchFileName" xml:space="preserve">
+  <data name="Settings_PatchFileName" xml:space="preserve">
     <value>パッチファイル名：</value>
   </data>
-    <data name="Settings_OutputPath" xml:space="preserve">
+  <data name="Settings_OutputPath" xml:space="preserve">
     <value>出力パス：</value>
   </data>
-    <data name="Settings_OutputPathTooltip" xml:space="preserve">
+  <data name="Settings_OutputPathTooltip" xml:space="preserve">
     <value>空白にするとSkyrimデータパスを使用します。Wabbajackモッドリストまたは MO2 の overwrite フォルダ用にカスタムパスを設定します。</value>
   </data>
-    <data name="Settings_Detection" xml:space="preserve">
+  <data name="Settings_Detection" xml:space="preserve">
     <value>検出：</value>
   </data>
-    <data name="Settings_Theme" xml:space="preserve">
+  <data name="Settings_Theme" xml:space="preserve">
     <value>テーマ：</value>
   </data>
-    <data name="Settings_FontSize" xml:space="preserve">
+  <data name="Settings_FontSize" xml:space="preserve">
     <value>フォントサイズ：</value>
   </data>
-    <data name="Settings_Language" xml:space="preserve">
+  <data name="Settings_Language" xml:space="preserve">
     <value>言語：</value>
   </data>
-    <data name="Settings_Tutorial" xml:space="preserve">
+  <data name="Settings_Tutorial" xml:space="preserve">
     <value>チュートリアル：</value>
   </data>
-    <data name="Settings_Blacklist" xml:space="preserve">
+  <data name="Settings_Blacklist" xml:space="preserve">
     <value>ブラックリスト：</value>
   </data>
-    <data name="Settings_Group_GameConfiguration" xml:space="preserve">
+  <data name="Settings_Group_GameConfiguration" xml:space="preserve">
     <value>ゲーム設定</value>
   </data>
-    <data name="Settings_Group_PatchSettings" xml:space="preserve">
+  <data name="Settings_Group_PatchSettings" xml:space="preserve">
     <value>パッチ設定</value>
   </data>
-    <data name="Settings_Group_Appearance" xml:space="preserve">
+  <data name="Settings_Group_Appearance" xml:space="preserve">
     <value>外観</value>
   </data>
-    <data name="Settings_Group_Advanced" xml:space="preserve">
+  <data name="Settings_Group_Advanced" xml:space="preserve">
     <value>詳細設定</value>
   </data>
 
-    <!-- Common Buttons -->
-    <data name="Button_Browse" xml:space="preserve">
+  <!-- Common Buttons -->
+  <data name="Button_Browse" xml:space="preserve">
     <value>参照...</value>
   </data>
-    <data name="Button_AutoDetect" xml:space="preserve">
+  <data name="Button_AutoDetect" xml:space="preserve">
     <value>自動検出</value>
   </data>
-    <data name="Button_RestartTutorial" xml:space="preserve">
+  <data name="Button_RestartTutorial" xml:space="preserve">
     <value>チュートリアルを再開</value>
   </data>
-    <data name="Button_Refresh" xml:space="preserve">
+  <data name="Button_Refresh" xml:space="preserve">
     <value>↻ 更新</value>
   </data>
-    <data name="Button_Close" xml:space="preserve">
+  <data name="Button_Close" xml:space="preserve">
     <value>閉じる</value>
   </data>
-    <data name="Button_Save" xml:space="preserve">
+  <data name="Button_Save" xml:space="preserve">
     <value>保存</value>
   </data>
-    <data name="Button_Cancel" xml:space="preserve">
+  <data name="Button_Cancel" xml:space="preserve">
     <value>キャンセル</value>
   </data>
-    <data name="Button_ClearAll" xml:space="preserve">
+  <data name="Button_ClearAll" xml:space="preserve">
     <value>すべてクリア</value>
   </data>
-    <data name="Button_ClearFilters" xml:space="preserve">
+  <data name="Button_ClearFilters" xml:space="preserve">
     <value>フィルターをクリア</value>
   </data>
-    <data name="Button_Preview" xml:space="preserve">
+  <data name="Button_Preview" xml:space="preserve">
     <value>プレビュー</value>
   </data>
-    <data name="Button_ResetView" xml:space="preserve">
+  <data name="Button_ResetView" xml:space="preserve">
     <value>ビューをリセット</value>
   </data>
 
-    <!-- Status Bar -->
-    <data name="Status_Patch" xml:space="preserve">
+  <!-- Status Bar -->
+  <data name="Status_Patch" xml:space="preserve">
     <value>パッチ：</value>
   </data>
-    <data name="Status_Ready" xml:space="preserve">
+  <data name="Status_Ready" xml:space="preserve">
     <value>準備完了</value>
   </data>
-    <data name="Status_Loading" xml:space="preserve">
+  <data name="Status_Loading" xml:space="preserve">
     <value>読み込み中...</value>
   </data>
-    <data name="Status_Initializing" xml:space="preserve">
+  <data name="Status_Initializing" xml:space="preserve">
     <value>初期化中...</value>
   </data>
-    <data name="Status_Saving" xml:space="preserve">
+  <data name="Status_Saving" xml:space="preserve">
     <value>保存中...</value>
   </data>
 
-    <!-- Common Labels -->
-    <data name="Label_Search" xml:space="preserve">
+  <!-- Common Labels -->
+  <data name="Label_Search" xml:space="preserve">
     <value>検索：</value>
   </data>
-    <data name="Label_File" xml:space="preserve">
+  <data name="Label_File" xml:space="preserve">
     <value>ファイル：</value>
   </data>
-    <data name="Label_Format" xml:space="preserve">
+  <data name="Label_Format" xml:space="preserve">
     <value>形式：</value>
   </data>
-    <data name="Label_Filename" xml:space="preserve">
+  <data name="Label_Filename" xml:space="preserve">
     <value>ファイル名：</value>
   </data>
-    <data name="Label_SavesAs" xml:space="preserve">
+  <data name="Label_SavesAs" xml:space="preserve">
     <value>名前を付けて保存：</value>
   </data>
-    <data name="Label_Suggested" xml:space="preserve">
+  <data name="Label_Suggested" xml:space="preserve">
     <value>推奨：</value>
   </data>
-    <data name="Label_FilterPlaceholder" xml:space="preserve">
+  <data name="Label_FilterPlaceholder" xml:space="preserve">
     <value>🔍 フィルター...</value>
   </data>
 
-    <!-- DataGrid Headers -->
-    <data name="Header_Name" xml:space="preserve">
+  <!-- DataGrid Headers -->
+  <data name="Header_Name" xml:space="preserve">
     <value>名前</value>
   </data>
-    <data name="Header_EditorID" xml:space="preserve">
+  <data name="Header_EditorID" xml:space="preserve">
     <value>EditorID</value>
   </data>
-    <data name="Header_FormKey" xml:space="preserve">
+  <data name="Header_FormKey" xml:space="preserve">
     <value>FormKey</value>
   </data>
-    <data name="Header_FormID" xml:space="preserve">
+  <data name="Header_FormID" xml:space="preserve">
     <value>Form ID</value>
   </data>
-    <data name="Header_Mod" xml:space="preserve">
+  <data name="Header_Mod" xml:space="preserve">
     <value>MOD</value>
   </data>
-    <data name="Header_Slots" xml:space="preserve">
+  <data name="Header_Slots" xml:space="preserve">
     <value>スロット</value>
   </data>
-    <data name="Header_Armor" xml:space="preserve">
+  <data name="Header_Armor" xml:space="preserve">
     <value>防具</value>
   </data>
-    <data name="Header_NPCs" xml:space="preserve">
+  <data name="Header_NPCs" xml:space="preserve">
     <value>NPC</value>
   </data>
-    <data name="Header_FinalOutfit" xml:space="preserve">
+  <data name="Header_FinalOutfit" xml:space="preserve">
     <value>最終衣装</value>
   </data>
-    <data name="Header_Distributor" xml:space="preserve">
+  <data name="Header_Distributor" xml:space="preserve">
     <value>配布者</value>
   </data>
-    <data name="Header_Targeting" xml:space="preserve">
+  <data name="Header_Targeting" xml:space="preserve">
     <value>ターゲット</value>
   </data>
-    <data name="Header_Chance" xml:space="preserve">
+  <data name="Header_Chance" xml:space="preserve">
     <value>確率</value>
   </data>
-    <data name="Header_Conflict" xml:space="preserve">
+  <data name="Header_Conflict" xml:space="preserve">
     <value>競合</value>
   </data>
-    <data name="Header_Preview" xml:space="preserve">
+  <data name="Header_Preview" xml:space="preserve">
     <value>プレビュー</value>
   </data>
-    <data name="Header_Copy" xml:space="preserve">
+  <data name="Header_Copy" xml:space="preserve">
     <value>コピー</value>
   </data>
-    <data name="Header_Override" xml:space="preserve">
+  <data name="Header_Override" xml:space="preserve">
     <value>オーバーライド</value>
   </data>
 
-    <!-- Armor Patch View -->
-    <data name="ArmorPatch_PluginSelection" xml:space="preserve">
+  <!-- Armor Patch View -->
+  <data name="ArmorPatch_PluginSelection" xml:space="preserve">
     <value>プラグイン選択</value>
   </data>
-    <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
+  <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
     <value>ソースプラグイン</value>
   </data>
-    <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
+  <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
     <value>ターゲットプラグイン</value>
   </data>
-    <data name="ArmorPatch_SourceArmors" xml:space="preserve">
+  <data name="ArmorPatch_SourceArmors" xml:space="preserve">
     <value>ソース防具</value>
   </data>
-    <data name="ArmorPatch_TargetArmors" xml:space="preserve">
+  <data name="ArmorPatch_TargetArmors" xml:space="preserve">
     <value>ターゲット防具</value>
   </data>
-    <data name="ArmorPatch_MappingPreview" xml:space="preserve">
+  <data name="ArmorPatch_MappingPreview" xml:space="preserve">
     <value>マッピングプレビュー</value>
   </data>
-    <data name="ArmorPatch_MapSelection" xml:space="preserve">
+  <data name="ArmorPatch_MapSelection" xml:space="preserve">
     <value>選択をマップ</value>
   </data>
-    <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
+  <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
     <value>外観のみマーク</value>
   </data>
-    <data name="ArmorPatch_CreatePatch" xml:space="preserve">
+  <data name="ArmorPatch_CreatePatch" xml:space="preserve">
     <value>パッチを作成</value>
   </data>
-    <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
+  <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
     <value>外観のみ（ステータスなし）</value>
   </data>
-    <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
+  <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
     <value>{0} 件の防具</value>
   </data>
-    <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
+  <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
     <value>{0} 件の候補</value>
   </data>
-    <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
     <value>{0} 件のマッピング</value>
   </data>
-    <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
     <value>合計 {0} 件のマッピング</value>
   </data>
-    <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
     <value>{0} 件のマッピングがキューに追加</value>
   </data>
-    <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
+  <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
     <value>マッピングを削除</value>
   </data>
-    <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
+  <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
     <value>入力して検索</value>
   </data>
 
-    <!-- Outfit Creator View -->
-    <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
+  <!-- Outfit Creator View -->
+  <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
     <value>ソースプラグイン</value>
   </data>
-    <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
+  <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
     <value>利用可能な防具</value>
   </data>
-    <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
+  <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
     <value>Boutique 衣装</value>
   </data>
-    <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
     <value>選択から衣装を作成</value>
   </data>
-    <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
+  <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
     <value>ここに防具をドロップして新しい衣装を作成します（ダブルクリックで素早く追加）。</value>
   </data>
-    <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
+  <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
     <value>まだ衣装が作成されていません。防具を選択して「衣装を作成」をクリックしてください。</value>
   </data>
-    <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
+  <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
     <value>パーツが選択されていません。</value>
   </data>
-    <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
+  <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
     <value>このプラグインは既に {0} 件の衣装を定義しています。</value>
   </data>
-    <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
+  <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
     <value>既存の衣装をコピー</value>
   </data>
-    <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
+  <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
     <value>衣装を保存</value>
   </data>
-    <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
+  <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
     <value>{0} 件の衣装</value>
   </data>
-    <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
+  <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
     <value>防具をプレビュー</value>
   </data>
-    <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
     <value>衣装をプレビュー</value>
   </data>
-    <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
+  <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
     <value>衣装を複製</value>
   </data>
-    <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
+  <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
     <value>衣装を削除</value>
   </data>
-    <data name="OutfitCreator_RemovePiece" xml:space="preserve">
+  <data name="OutfitCreator_RemovePiece" xml:space="preserve">
     <value>パーツを削除</value>
   </data>
-    <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
+  <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
     <value>名前でプラグインをフィルター</value>
   </data>
 
-    <!-- Distribution Create Tab -->
-    <data name="Distribution_DistributionEntries" xml:space="preserve">
+  <!-- Distribution Create Tab -->
+  <data name="Distribution_DistributionEntries" xml:space="preserve">
     <value>配布エントリー</value>
   </data>
-    <data name="Distribution_DistributionFilters" xml:space="preserve">
+  <data name="Distribution_DistributionFilters" xml:space="preserve">
     <value>配布フィルター</value>
   </data>
-    <data name="Distribution_AddEntry" xml:space="preserve">
+  <data name="Distribution_AddEntry" xml:space="preserve">
     <value>エントリーを追加</value>
   </data>
-    <data name="Distribution_SaveFile" xml:space="preserve">
+  <data name="Distribution_SaveFile" xml:space="preserve">
     <value>ファイルを保存</value>
   </data>
-    <data name="Distribution_PasteFilter" xml:space="preserve">
+  <data name="Distribution_PasteFilter" xml:space="preserve">
     <value>📋 フィルターを貼り付け</value>
   </data>
-    <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
+  <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
     <value>NPCタブからコピーしたフィルターを貼り付け</value>
   </data>
-    <data name="Distribution_PasteFilterFormat" xml:space="preserve">
+  <data name="Distribution_PasteFilterFormat" xml:space="preserve">
     <value>フィルターを貼り付け：{0}</value>
   </data>
-    <data name="Distribution_Assign" xml:space="preserve">
+  <data name="Distribution_Assign" xml:space="preserve">
     <value>割り当て</value>
   </data>
-    <data name="Distribution_Outfit" xml:space="preserve">
+  <data name="Distribution_Outfit" xml:space="preserve">
     <value>衣装：</value>
   </data>
-    <data name="Distribution_Keyword" xml:space="preserve">
+  <data name="Distribution_Keyword" xml:space="preserve">
     <value>キーワード：</value>
   </data>
-    <data name="Distribution_UseChance" xml:space="preserve">
+  <data name="Distribution_UseChance" xml:space="preserve">
     <value>確率を使用</value>
   </data>
-    <data name="Distribution_ChanceTooltip" xml:space="preserve">
+  <data name="Distribution_ChanceTooltip" xml:space="preserve">
     <value>確率 (0-100)</value>
   </data>
-    <data name="Distribution_RemoveEntry" xml:space="preserve">
+  <data name="Distribution_RemoveEntry" xml:space="preserve">
     <value>エントリーを削除</value>
   </data>
-    <data name="Distribution_NPCs" xml:space="preserve">
+  <data name="Distribution_NPCs" xml:space="preserve">
     <value>NPC：</value>
   </data>
-    <data name="Distribution_Factions" xml:space="preserve">
+  <data name="Distribution_Factions" xml:space="preserve">
     <value>派閥：</value>
   </data>
-    <data name="Distribution_Keywords" xml:space="preserve">
+  <data name="Distribution_Keywords" xml:space="preserve">
     <value>キーワード：</value>
   </data>
-    <data name="Distribution_Races" xml:space="preserve">
+  <data name="Distribution_Races" xml:space="preserve">
     <value>種族：</value>
   </data>
-    <data name="Distribution_Classes" xml:space="preserve">
+  <data name="Distribution_Classes" xml:space="preserve">
     <value>クラス：</value>
   </data>
-    <data name="Distribution_Traits" xml:space="preserve">
+  <data name="Distribution_Traits" xml:space="preserve">
     <value>特性：</value>
   </data>
-    <data name="Distribution_Gender" xml:space="preserve">
+  <data name="Distribution_Gender" xml:space="preserve">
     <value>性別：</value>
   </data>
-    <data name="Distribution_Unique" xml:space="preserve">
+  <data name="Distribution_Unique" xml:space="preserve">
     <value>ユニーク：</value>
   </data>
-    <data name="Distribution_LevelSkill" xml:space="preserve">
+  <data name="Distribution_LevelSkill" xml:space="preserve">
     <value>レベル/スキル：</value>
   </data>
-    <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
+  <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
     <value>SPID レベル/スキルフィルター。例：5/20（レベル範囲）、12(85/999)（変性スキル 85+）</value>
   </data>
-    <data name="Distribution_FilePreview" xml:space="preserve">
+  <data name="Distribution_FilePreview" xml:space="preserve">
     <value>ファイルプレビュー</value>
   </data>
-    <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
+  <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
     <value>{0} 件の解析エラー - これらの行は保存時に保持されます</value>
   </data>
-    <data name="Distribution_TargetEntryFormat" xml:space="preserve">
+  <data name="Distribution_TargetEntryFormat" xml:space="preserve">
     <value>ターゲットエントリー：{0}</value>
   </data>
-    <data name="Distribution_TargetEntryNone" xml:space="preserve">
+  <data name="Distribution_TargetEntryNone" xml:space="preserve">
     <value>ターゲットエントリー：（未選択）</value>
   </data>
-    <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
+  <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
     <value>選択したNPCを追加</value>
   </data>
-    <data name="Distribution_AddSelectedFactions" xml:space="preserve">
+  <data name="Distribution_AddSelectedFactions" xml:space="preserve">
     <value>選択した派閥を追加</value>
   </data>
-    <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
+  <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
     <value>選択したキーワードを追加</value>
   </data>
-    <data name="Distribution_AddSelectedRaces" xml:space="preserve">
+  <data name="Distribution_AddSelectedRaces" xml:space="preserve">
     <value>選択した種族を追加</value>
   </data>
-    <data name="Distribution_AddSelectedClasses" xml:space="preserve">
+  <data name="Distribution_AddSelectedClasses" xml:space="preserve">
     <value>選択したクラスを追加</value>
   </data>
-    <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
+  <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
     <value>既存のキーワードを選択するか、仮想キーワード用の新しいEditorIDを入力</value>
   </data>
 
-    <!-- Distribution NPCs Tab -->
-    <data name="NPCs_RefreshTooltip" xml:space="preserve">
+  <!-- Distribution NPCs Tab -->
+  <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>NPC衣装割り当ての配布ファイルを再スキャン</value>
   </data>
-    <data name="NPCs_HideVanilla" xml:space="preserve">
+  <data name="NPCs_HideVanilla" xml:space="preserve">
     <value>バニラ配布を非表示</value>
   </data>
-    <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
+  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
     <value>デフォルト衣装が勝利割り当てであるNPCを非表示にします</value>
   </data>
-    <data name="NPCs_SearchTooltip" xml:space="preserve">
+  <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>名前、EditorID、衣装、またはMODでNPCを検索</value>
   </data>
-    <data name="NPCs_SpidFilters" xml:space="preserve">
+  <data name="NPCs_SpidFilters" xml:space="preserve">
     <value>SPIDスタイルフィルター</value>
   </data>
-    <data name="NPCs_Templated" xml:space="preserve">
+  <data name="NPCs_Templated" xml:space="preserve">
     <value>テンプレート：</value>
   </data>
-    <data name="NPCs_Age" xml:space="preserve">
+  <data name="NPCs_Age" xml:space="preserve">
     <value>年齢：</value>
   </data>
-    <data name="NPCs_Faction" xml:space="preserve">
+  <data name="NPCs_Faction" xml:space="preserve">
     <value>派閥：</value>
   </data>
-    <data name="NPCs_Race" xml:space="preserve">
+  <data name="NPCs_Race" xml:space="preserve">
     <value>種族：</value>
   </data>
-    <data name="NPCs_Class" xml:space="preserve">
+  <data name="NPCs_Class" xml:space="preserve">
     <value>クラス：</value>
   </data>
-    <data name="NPCs_CopyFilter" xml:space="preserve">
+  <data name="NPCs_CopyFilter" xml:space="preserve">
     <value>📋 フィルターをコピー</value>
   </data>
-    <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
+  <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
     <value>現在のフィルターをコピーして作成タブに貼り付け</value>
   </data>
-    <data name="NPCs_ShowingFormat" xml:space="preserve">
+  <data name="NPCs_ShowingFormat" xml:space="preserve">
     <value>{1} 件中 {0} 件のNPCを表示</value>
   </data>
-    <data name="NPCs_DistributionFiles" xml:space="preserve">
+  <data name="NPCs_DistributionFiles" xml:space="preserve">
     <value>配布ファイル</value>
   </data>
-    <data name="NPCs_Winner" xml:space="preserve">
+  <data name="NPCs_Winner" xml:space="preserve">
     <value>[勝者]</value>
   </data>
-    <data name="NPCs_ChanceFormat" xml:space="preserve">
+  <data name="NPCs_ChanceFormat" xml:space="preserve">
     <value>({0}% の確率)</value>
   </data>
-    <data name="NPCs_OutfitFormat" xml:space="preserve">
+  <data name="NPCs_OutfitFormat" xml:space="preserve">
     <value>衣装：{0}</value>
   </data>
-    <data name="NPCs_OutfitContents" xml:space="preserve">
+  <data name="NPCs_OutfitContents" xml:space="preserve">
     <value>衣装の内容</value>
   </data>
-    <data name="NPCs_PreviewOutfit" xml:space="preserve">
+  <data name="NPCs_PreviewOutfit" xml:space="preserve">
     <value>衣装をプレビュー</value>
   </data>
-    <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
+  <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
     <value>フィルター構文プレビュー</value>
   </data>
-    <data name="NPCs_SpidFormat" xml:space="preserve">
+  <data name="NPCs_SpidFormat" xml:space="preserve">
     <value>SPID形式：</value>
   </data>
-    <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
+  <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
     <value>SkyPatcher形式：</value>
   </data>
-    <data name="NPCs_CopySyntaxHint" xml:space="preserve">
+  <data name="NPCs_CopySyntaxHint" xml:space="preserve">
     <value>配布INIファイルで使用する構文をコピー</value>
   </data>
-    <data name="NPCs_NpcDetails" xml:space="preserve">
+  <data name="NPCs_NpcDetails" xml:space="preserve">
     <value>NPC詳細</value>
   </data>
-    <data name="NPCs_Level" xml:space="preserve">
+  <data name="NPCs_Level" xml:space="preserve">
     <value>レベル：</value>
   </data>
-    <data name="NPCs_Voice" xml:space="preserve">
+  <data name="NPCs_Voice" xml:space="preserve">
     <value>声：</value>
   </data>
-    <data name="NPCs_Combat" xml:space="preserve">
+  <data name="NPCs_Combat" xml:space="preserve">
     <value>戦闘：</value>
   </data>
-    <data name="NPCs_Template" xml:space="preserve">
+  <data name="NPCs_Template" xml:space="preserve">
     <value>テンプレート：</value>
   </data>
-    <data name="NPCs_TemplateNone" xml:space="preserve">
+  <data name="NPCs_TemplateNone" xml:space="preserve">
     <value>（なし）</value>
   </data>
-    <data name="NPCs_Male" xml:space="preserve">
+  <data name="NPCs_Male" xml:space="preserve">
     <value>男性</value>
   </data>
-    <data name="NPCs_Female" xml:space="preserve">
+  <data name="NPCs_Female" xml:space="preserve">
     <value>女性</value>
   </data>
-    <data name="NPCs_Trait_Unique" xml:space="preserve">
+  <data name="NPCs_Trait_Unique" xml:space="preserve">
     <value>ユニーク</value>
   </data>
-    <data name="NPCs_Trait_Summonable" xml:space="preserve">
+  <data name="NPCs_Trait_Summonable" xml:space="preserve">
     <value>召喚可能</value>
   </data>
-    <data name="NPCs_Trait_Child" xml:space="preserve">
+  <data name="NPCs_Trait_Child" xml:space="preserve">
     <value>子供</value>
   </data>
-    <data name="NPCs_Trait_Leveled" xml:space="preserve">
+  <data name="NPCs_Trait_Leveled" xml:space="preserve">
     <value>レベル化</value>
   </data>
-    <data name="NPCs_RankFormat" xml:space="preserve">
+  <data name="NPCs_RankFormat" xml:space="preserve">
     <value>（ランク {0}）</value>
   </data>
 
-    <!-- Distribution Outfits Tab -->
-    <data name="Outfits_LoadOutfits" xml:space="preserve">
+  <!-- Distribution Outfits Tab -->
+  <data name="Outfits_LoadOutfits" xml:space="preserve">
     <value>↻ 衣装を読み込み</value>
   </data>
-    <data name="Outfits_LoadTooltip" xml:space="preserve">
+  <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>ロードオーダーからすべての衣装を読み込み</value>
   </data>
-    <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
+  <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>デフォルト衣装が勝利割り当てである衣装を非表示にします</value>
   </data>
-    <data name="Outfits_SearchTooltip" xml:space="preserve">
+  <data name="Outfits_SearchTooltip" xml:space="preserve">
     <value>EditorID、FormKey、またはMODで衣装を検索</value>
   </data>
-    <data name="Outfits_CopyToPatch" xml:space="preserve">
+  <data name="Outfits_CopyToPatch" xml:space="preserve">
     <value>パッチにコピー</value>
   </data>
-    <data name="Outfits_CopyAsOverride" xml:space="preserve">
+  <data name="Outfits_CopyAsOverride" xml:space="preserve">
     <value>オーバーライドとしてコピー</value>
   </data>
-    <data name="Outfits_DistributedToNpcs" xml:space="preserve">
+  <data name="Outfits_DistributedToNpcs" xml:space="preserve">
     <value>NPCに配布済み</value>
   </data>
 
-    <!-- Restart Dialog -->
-    <data name="Restart_Title" xml:space="preserve">
+  <!-- Restart Dialog -->
+  <data name="Restart_Title" xml:space="preserve">
     <value>再起動が必要です</value>
   </data>
-    <data name="Restart_Message" xml:space="preserve">
+  <data name="Restart_Message" xml:space="preserve">
     <value>テーマの変更を適用するには、Boutiqueを終了して再度開く必要があります。</value>
   </data>
-    <data name="Restart_Later" xml:space="preserve">
+  <data name="Restart_Later" xml:space="preserve">
     <value>後でやります！</value>
   </data>
-    <data name="Restart_QuitNow" xml:space="preserve">
+  <data name="Restart_QuitNow" xml:space="preserve">
     <value>今すぐ終了</value>
   </data>
 
-    <!-- Missing Masters Dialog -->
-    <data name="MissingMasters_Title" xml:space="preserve">
+  <!-- Missing Masters Dialog -->
+  <data name="MissingMasters_Title" xml:space="preserve">
     <value>不足しているマスターが検出されました</value>
   </data>
-    <data name="MissingMasters_Header" xml:space="preserve">
+  <data name="MissingMasters_Header" xml:space="preserve">
     <value>⚠️ 不足しているマスタープラグインが検出されました</value>
   </data>
-    <data name="MissingMasters_Description" xml:space="preserve">
+  <data name="MissingMasters_Description" xml:space="preserve">
     <value>BoutiquePatchがロードオーダーに存在しなくなったプラグインを参照しています。以下の衣装には、これらの不足しているマスターからの防具が含まれており、読み込めません。</value>
   </data>
-    <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
+  <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
     <value>（{0} 件の孤立した防具）</value>
   </data>
-    <data name="MissingMasters_AddBack" xml:space="preserve">
+  <data name="MissingMasters_AddBack" xml:space="preserve">
     <value>マスターを追加し直します</value>
   </data>
-    <data name="MissingMasters_CleanPatch" xml:space="preserve">
+  <data name="MissingMasters_CleanPatch" xml:space="preserve">
     <value>パッチをクリーン（衣装を削除）</value>
   </data>
 
-    <!-- Outfit Preview Window -->
-    <data name="Preview_Title" xml:space="preserve">
+  <!-- Outfit Preview Window -->
+  <data name="Preview_Title" xml:space="preserve">
     <value>衣装プレビュー</value>
   </data>
-    <data name="Preview_MissingAssetsWarning" xml:space="preserve">
+  <data name="Preview_MissingAssetsWarning" xml:space="preserve">
     <value>この衣装のプレビュー時に一部のアセットが見つかりませんでした。</value>
   </data>
-    <data name="Preview_BodySlideHint" xml:space="preserve">
+  <data name="Preview_BodySlideHint" xml:space="preserve">
     <value>[ELLE]のような一部のクリエイターは、衣装を完全に使用可能にする前にBodySlideを実行する必要があるように作成しています。もしそうであれば、Boutiqueを終了してすべての必要なBodySlideステップを実行し、戻ってきて再試行してください！</value>
   </data>
-    <data name="Preview_MissingAssets" xml:space="preserve">
+  <data name="Preview_MissingAssets" xml:space="preserve">
     <value>不足しているアセット：</value>
   </data>
-    <data name="Preview_LightingDebug" xml:space="preserve">
+  <data name="Preview_LightingDebug" xml:space="preserve">
     <value>ライティング乗数（デバッグ）</value>
   </data>
-    <data name="Preview_Ambient" xml:space="preserve">
+  <data name="Preview_Ambient" xml:space="preserve">
     <value>環境光</value>
   </data>
-    <data name="Preview_KeyFill" xml:space="preserve">
+  <data name="Preview_KeyFill" xml:space="preserve">
     <value>キー/フィル</value>
   </data>
-    <data name="Preview_Rim" xml:space="preserve">
+  <data name="Preview_Rim" xml:space="preserve">
     <value>リム</value>
   </data>
-    <data name="Preview_Frontal" xml:space="preserve">
+  <data name="Preview_Frontal" xml:space="preserve">
     <value>フロンタル</value>
   </data>
 
-    <!-- Filter Tooltips -->
-    <data name="Filter_GenderTooltip" xml:space="preserve">
+  <!-- Filter Tooltips -->
+  <data name="Filter_GenderTooltip" xml:space="preserve">
     <value>NPC性別でフィルター（SPID特性：F/M）</value>
   </data>
-    <data name="Filter_UniqueTooltip" xml:space="preserve">
+  <data name="Filter_UniqueTooltip" xml:space="preserve">
     <value>ユニークNPCフラグでフィルター（SPID特性：U/-U）</value>
   </data>
-    <data name="Filter_TemplatedTooltip" xml:space="preserve">
+  <data name="Filter_TemplatedTooltip" xml:space="preserve">
     <value>NPCがテンプレートを使用しているかでフィルター</value>
   </data>
-    <data name="Filter_ChildTooltip" xml:space="preserve">
+  <data name="Filter_ChildTooltip" xml:space="preserve">
     <value>子供/大人ステータスでフィルター（SPID特性：C/-C）</value>
   </data>
-    <data name="Filter_FactionTooltip" xml:space="preserve">
+  <data name="Filter_FactionTooltip" xml:space="preserve">
     <value>派閥メンバーシップでフィルター（SPID FormFilter）</value>
   </data>
-    <data name="Filter_RaceTooltip" xml:space="preserve">
+  <data name="Filter_RaceTooltip" xml:space="preserve">
     <value>種族でフィルター（SPID FormFilter）</value>
   </data>
-    <data name="Filter_ClassTooltip" xml:space="preserve">
+  <data name="Filter_ClassTooltip" xml:space="preserve">
     <value>NPCクラスでフィルター（SPID FormFilter）</value>
   </data>
-    <data name="Filter_KeywordTooltip" xml:space="preserve">
+  <data name="Filter_KeywordTooltip" xml:space="preserve">
     <value>キーワードでフィルター（SPID StringFilter）</value>
   </data>
-    <data name="Filter_ResetTooltip" xml:space="preserve">
+  <data name="Filter_ResetTooltip" xml:space="preserve">
     <value>すべてのフィルターをデフォルトにリセット</value>
   </data>
 
-    <!-- Theme Options -->
-    <data name="Theme_System" xml:space="preserve">
+  <!-- Theme Options -->
+  <data name="Theme_System" xml:space="preserve">
     <value>システム</value>
   </data>
-    <data name="Theme_Light" xml:space="preserve">
+  <data name="Theme_Light" xml:space="preserve">
     <value>ライト</value>
   </data>
-    <data name="Theme_Dark" xml:space="preserve">
+  <data name="Theme_Dark" xml:space="preserve">
     <value>ダーク</value>
   </data>
 
-    <!-- Detection Messages -->
-    <data name="Detection_MO2DataPath" xml:space="preserve">
+  <!-- Detection Messages -->
+  <data name="Detection_MO2DataPath" xml:space="preserve">
     <value>Mod Organizer 2から検出（MO_DATAPATH）</value>
   </data>
-    <data name="Detection_MO2GamePath" xml:space="preserve">
+  <data name="Detection_MO2GamePath" xml:space="preserve">
     <value>Mod Organizer 2から検出（MO_GAMEPATH）</value>
   </data>
-    <data name="Detection_MO2VirtualStore" xml:space="preserve">
+  <data name="Detection_MO2VirtualStore" xml:space="preserve">
     <value>Mod Organizer 2から検出（VIRTUAL_STORE）</value>
   </data>
-    <data name="Detection_MO2USVFS" xml:space="preserve">
+  <data name="Detection_MO2USVFS" xml:space="preserve">
     <value>Mod Organizer 2 USVFSで実行中（データパスが明示的に設定されていません）</value>
   </data>
-    <data name="Detection_Mutagen" xml:space="preserve">
+  <data name="Detection_Mutagen" xml:space="preserve">
     <value>Mutagenを使用して{0}を検出しました</value>
   </data>
-    <data name="Detection_Failed" xml:space="preserve">
+  <data name="Detection_Failed" xml:space="preserve">
     <value>{0}の自動検出に失敗しました - 手動で設定してください</value>
   </data>
 
-    <!-- Skyrim Releases -->
-    <data name="SkyrimRelease_SE" xml:space="preserve">
+  <!-- Skyrim Releases -->
+  <data name="SkyrimRelease_SE" xml:space="preserve">
     <value>Skyrim SE</value>
   </data>
-    <data name="SkyrimRelease_VR" xml:space="preserve">
+  <data name="SkyrimRelease_VR" xml:space="preserve">
     <value>Skyrim VR</value>
   </data>
-    <data name="SkyrimRelease_GOG" xml:space="preserve">
+  <data name="SkyrimRelease_GOG" xml:space="preserve">
     <value>Skyrim SE (GOG)</value>
   </data>
 
-    <!-- Dialogs -->
-    <data name="Dialog_SelectDataFolder" xml:space="preserve">
+  <!-- Dialogs -->
+  <data name="Dialog_SelectDataFolder" xml:space="preserve">
     <value>SkyrimのDataフォルダを選択</value>
   </data>
-    <data name="Dialog_SelectOutputFolder" xml:space="preserve">
+  <data name="Dialog_SelectOutputFolder" xml:space="preserve">
     <value>パッチの出力フォルダを選択</value>
   </data>
-    <data name="Dialog_SelectDistributionFile" xml:space="preserve">
+  <data name="Dialog_SelectDistributionFile" xml:space="preserve">
     <value>配布ファイルの場所を選択</value>
   </data>
 
-    <!-- Refresh Tooltip -->
-    <data name="Refresh_Tooltip" xml:space="preserve">
+  <!-- Refresh Tooltip -->
+  <data name="Refresh_Tooltip" xml:space="preserve">
     <value>すべてのデータを更新（出力パッチを含む）</value>
   </data>
 

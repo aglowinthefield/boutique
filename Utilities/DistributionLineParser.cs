@@ -9,11 +9,11 @@ namespace Boutique.Utilities;
 public static class DistributionLineParser
 {
   public static List<FormKey> ExtractNpcFormKeysFromLine(
-      DistributionFileViewModel file,
-      DistributionLine line,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-      Dictionary<string, INpcGetter>? npcByEditorId = null,
-      Dictionary<string, INpcGetter>? npcByName = null)
+    DistributionFileViewModel file,
+    DistributionLine line,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    Dictionary<string, INpcGetter>? npcByEditorId = null,
+    Dictionary<string, INpcGetter>? npcByName = null)
   {
     return file.TypeDisplay switch
     {
@@ -24,13 +24,13 @@ public static class DistributionLineParser
   }
 
   private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText) =>
-      SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
+    SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
 
   private static List<FormKey> ExtractNpcFormKeysFromSpidLine(
-      string rawText,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-      Dictionary<string, INpcGetter>? npcByEditorId,
-      Dictionary<string, INpcGetter>? npcByName)
+    string rawText,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    Dictionary<string, INpcGetter>? npcByEditorId,
+    Dictionary<string, INpcGetter>? npcByName)
   {
     var results = new List<FormKey>();
 
@@ -51,13 +51,13 @@ public static class DistributionLineParser
     {
       var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
       npcByEditorId ??= allNpcs
-          .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-          .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-          .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+        .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
       npcByName ??= allNpcs
-          .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-          .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-          .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
+        .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 
     // Resolve each NPC identifier to a FormKey
@@ -112,22 +112,22 @@ public static class DistributionLineParser
     }
 
     var hasAnyNpcFilter =
-        SkyPatcherSyntax.HasFilter(rawText, "filterByNpcs") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByNpcsExcluded") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByFactions") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByRaces") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByKeywords") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByEditorIdContains") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByGender") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByDefaultOutfits") ||
-        SkyPatcherSyntax.HasFilter(rawText, "filterByModNames");
+      SkyPatcherSyntax.HasFilter(rawText, "filterByNpcs") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByNpcsExcluded") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByFactions") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByRaces") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByKeywords") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByEditorIdContains") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByGender") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByDefaultOutfits") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByModNames");
 
     return !hasAnyNpcFilter;
   }
 
   public static string? ExtractOutfitNameFromLine(
-      DistributionLine line,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    DistributionLine line,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     foreach (var formKeyString in line.OutfitFormKeys)
     {
@@ -142,5 +142,5 @@ public static class DistributionLineParser
   }
 
   private static FormKey? TryParseFormKey(string text) =>
-      FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
+    FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
 }

@@ -9,128 +9,128 @@ namespace Boutique.Services;
 
 public class TutorialService
 {
-    private static readonly string SettingsDirectory = PathUtilities.GetBoutiqueAppDataPath();
-    private static readonly string TutorialCompletedFile = Path.Combine(SettingsDirectory, ".tutorial_completed");
+  private static readonly string SettingsDirectory = PathUtilities.GetBoutiqueAppDataPath();
+  private static readonly string TutorialCompletedFile = Path.Combine(SettingsDirectory, ".tutorial_completed");
 
-    private readonly ILogger _logger;
+  private readonly ILogger _logger;
 
-    private GuideLineManager? _currentManager;
-    private GuideLine_View? _guidelineView;
+  private GuideLineManager? _currentManager;
+  private GuideLine_View? _guidelineView;
 
-    public TutorialService(ILogger logger)
+  public TutorialService(ILogger logger)
+  {
+    _logger = logger.ForContext<TutorialService>();
+  }
+
+  public bool HasCompletedTutorial
+  {
+    get => File.Exists(TutorialCompletedFile);
+    private set
     {
-        _logger = logger.ForContext<TutorialService>();
-    }
-
-    public bool HasCompletedTutorial
-    {
-        get => File.Exists(TutorialCompletedFile);
-        private set
+      try
+      {
+        Directory.CreateDirectory(SettingsDirectory);
+        if (value)
         {
-            try
-            {
-                Directory.CreateDirectory(SettingsDirectory);
-                if (value)
-                {
-                    File.WriteAllText(TutorialCompletedFile, DateTime.UtcNow.ToString("O"));
-                }
-                else if (File.Exists(TutorialCompletedFile))
-                {
-                    File.Delete(TutorialCompletedFile);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning(ex, "Failed to persist tutorial completion state");
-            }
+          File.WriteAllText(TutorialCompletedFile, DateTime.UtcNow.ToString("O"));
         }
-    }
-
-    public void Initialize(GuideLine_View guidelineView) => _guidelineView = guidelineView;
-
-    public void StartTutorial()
-    {
-        if (_guidelineView == null)
+        else if (File.Exists(TutorialCompletedFile))
         {
-            _logger.Warning("Cannot start tutorial: GuideLine_View not initialized");
-            return;
+          File.Delete(TutorialCompletedFile);
         }
-
-        _logger.Information("Starting application tutorial");
-
-        var manager = new GuideLineManager();
-        manager.OnGuideLineListCompleted += OnTutorialCompleted;
-        manager.AddGuideLine(CreateMainTutorial());
-        _guidelineView.DataContext = manager;
-        _currentManager = manager;
-        manager.StartGuideLine(_guidelineView.Name);
+      }
+      catch (Exception ex)
+      {
+        _logger.Warning(ex, "Failed to persist tutorial completion state");
+      }
     }
+  }
 
-    private void OnTutorialCompleted()
+  public void Initialize(GuideLine_View guidelineView) => _guidelineView = guidelineView;
+
+  public void StartTutorial()
+  {
+    if (_guidelineView == null)
     {
-        CompleteTutorial();
-        if (_currentManager is null)
-        {
-            return;
-        }
-
-        _currentManager.OnGuideLineListCompleted -= OnTutorialCompleted;
-        _currentManager = null;
+      _logger.Warning("Cannot start tutorial: GuideLine_View not initialized");
+      return;
     }
 
-    public void CompleteTutorial()
+    _logger.Information("Starting application tutorial");
+
+    var manager = new GuideLineManager();
+    manager.OnGuideLineListCompleted += OnTutorialCompleted;
+    manager.AddGuideLine(CreateMainTutorial());
+    _guidelineView.DataContext = manager;
+    _currentManager = manager;
+    manager.StartGuideLine(_guidelineView.Name);
+  }
+
+  private void OnTutorialCompleted()
+  {
+    CompleteTutorial();
+    if (_currentManager is null)
     {
-        HasCompletedTutorial = true;
-        _logger.Information("Tutorial marked as completed");
+      return;
     }
 
-    public void ResetTutorial()
-    {
-        HasCompletedTutorial = false;
-        _logger.Information("Tutorial progress reset");
-    }
+    _currentManager.OnGuideLineListCompleted -= OnTutorialCompleted;
+    _currentManager = null;
+  }
 
-    private static GuideLineItem CreateMainTutorial() =>
-        new(
-        [
-            new GuideLineStep(
-                "Welcome to Boutique!",
-                "This quick tour will show you the main features. Use the arrow buttons or keyboard arrows to navigate.",
-                "MainTabControl"),
+  public void CompleteTutorial()
+  {
+    HasCompletedTutorial = true;
+    _logger.Information("Tutorial marked as completed");
+  }
 
-            new GuideLineStep(
-                "Distribution Tab",
-                "Create and manage outfit distributions for NPCs using SPID or SkyPatcher. This is the main workflow for assigning outfits to NPCs.",
-                "DistributionTab"),
+  public void ResetTutorial()
+  {
+    HasCompletedTutorial = false;
+    _logger.Information("Tutorial progress reset");
+  }
 
-            new GuideLineStep(
-                "Outfit Creator Tab",
-                "Create new outfit records (OTFT) from armor pieces. Useful when you need custom outfit combinations.",
-                "OutfitCreatorTab"),
+  private static GuideLineItem CreateMainTutorial() =>
+    new(
+    [
+      new GuideLineStep(
+        "Welcome to Boutique!",
+        "This quick tour will show you the main features. Use the arrow buttons or keyboard arrows to navigate.",
+        "MainTabControl"),
 
-            new GuideLineStep(
-                "Armor Patch Tab",
-                "Sync armor stats, keywords, and enchantments from master mods (like Requiem) to cosmetic armor mods.",
-                "ArmorPatchTab"),
+      new GuideLineStep(
+        "Distribution Tab",
+        "Create and manage outfit distributions for NPCs using SPID or SkyPatcher. This is the main workflow for assigning outfits to NPCs.",
+        "DistributionTab"),
 
-            new GuideLineStep(
-                "Settings Tab",
-                "Configure your Skyrim Data path, output location, and application preferences.",
-                "SettingsTab"),
+      new GuideLineStep(
+        "Outfit Creator Tab",
+        "Create new outfit records (OTFT) from armor pieces. Useful when you need custom outfit combinations.",
+        "OutfitCreatorTab"),
 
-            new GuideLineStep(
-                "Refresh Button",
-                "Click here to reload game data after making changes to your load order or mod files.",
-                "RefreshButton"),
+      new GuideLineStep(
+        "Armor Patch Tab",
+        "Sync armor stats, keywords, and enchantments from master mods (like Requiem) to cosmetic armor mods.",
+        "ArmorPatchTab"),
 
-            new GuideLineStep(
-                "Patch File Name",
-                "Set the name of the ESP file that Boutique will create. All changes are written to this file.",
-                "PatchFileNamePanel"),
+      new GuideLineStep(
+        "Settings Tab",
+        "Configure your Skyrim Data path, output location, and application preferences.",
+        "SettingsTab"),
 
-            new GuideLineStep(
-                "You're Ready!",
-                "That's it! Start by configuring your Skyrim Data path in Settings, then explore the Distribution tab to assign outfits to NPCs.\n\nYou can restart this tutorial anytime from the Help menu.",
-                "MainTabControl")
-        ]);
+      new GuideLineStep(
+        "Refresh Button",
+        "Click here to reload game data after making changes to your load order or mod files.",
+        "RefreshButton"),
+
+      new GuideLineStep(
+        "Patch File Name",
+        "Set the name of the ESP file that Boutique will create. All changes are written to this file.",
+        "PatchFileNamePanel"),
+
+      new GuideLineStep(
+        "You're Ready!",
+        "That's it! Start by configuring your Skyrim Data path in Settings, then explore the Distribution tab to assign outfits to NPCs.\n\nYou can restart this tutorial anytime from the Help menu.",
+        "MainTabControl")
+    ]);
 }

@@ -1,9 +1,9 @@
 namespace Boutique.ViewModels;
 
 public class DistributionFileSelectionItem(
-    bool isNewFile,
-    DistributionFileViewModel? file,
-    bool hasDuplicateFileName = false)
+  bool isNewFile,
+  DistributionFileViewModel? file,
+  bool hasDuplicateFileName = false)
 {
   public bool IsNewFile { get; } = isNewFile;
   public DistributionFileViewModel? File { get; } = file;

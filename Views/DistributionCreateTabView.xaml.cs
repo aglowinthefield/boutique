@@ -2,8 +2,8 @@ namespace Boutique.Views;
 
 public partial class DistributionCreateTabView
 {
-    public DistributionCreateTabView()
-    {
-        InitializeComponent();
-    }
+  public DistributionCreateTabView()
+  {
+    InitializeComponent();
+  }
 }

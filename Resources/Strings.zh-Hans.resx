@@ -1,774 +1,774 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
-                id="root"
-                xmlns="">
-        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+              id="root"
+              xmlns="">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
             <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="metadata">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" use="required" type="xsd:string"/>
-                            <xsd:attribute name="type" type="xsd:string"/>
-                            <xsd:attribute name="mimetype" type="xsd:string"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="assembly">
-                        <xsd:complexType>
-                            <xsd:attribute name="alias" type="xsd:string"/>
-                            <xsd:attribute name="name" type="xsd:string"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
             </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>2.0</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-    </resheader>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
 
-    <!-- Application -->
-    <data name="AppTitle" xml:space="preserve">
+  <!-- Application -->
+  <data name="AppTitle" xml:space="preserve">
     <value>Boutique</value>
   </data>
 
-    <!-- Main Tabs -->
-    <data name="Tab_Distribution" xml:space="preserve">
+  <!-- Main Tabs -->
+  <data name="Tab_Distribution" xml:space="preserve">
     <value>分配</value>
   </data>
-    <data name="Tab_OutfitCreator" xml:space="preserve">
+  <data name="Tab_OutfitCreator" xml:space="preserve">
     <value>服装创建器</value>
   </data>
-    <data name="Tab_ArmorPatch" xml:space="preserve">
+  <data name="Tab_ArmorPatch" xml:space="preserve">
     <value>护甲补丁</value>
   </data>
-    <data name="Tab_Settings" xml:space="preserve">
+  <data name="Tab_Settings" xml:space="preserve">
     <value>设置</value>
   </data>
 
-    <!-- Distribution Sub-Tabs -->
-    <data name="Tab_Create" xml:space="preserve">
+  <!-- Distribution Sub-Tabs -->
+  <data name="Tab_Create" xml:space="preserve">
     <value>创建</value>
   </data>
-    <data name="Tab_NPCs" xml:space="preserve">
+  <data name="Tab_NPCs" xml:space="preserve">
     <value>NPC</value>
   </data>
-    <data name="Tab_Outfits" xml:space="preserve">
+  <data name="Tab_Outfits" xml:space="preserve">
     <value>服装</value>
   </data>
-    <data name="Tab_Factions" xml:space="preserve">
+  <data name="Tab_Factions" xml:space="preserve">
     <value>派系</value>
   </data>
-    <data name="Tab_Keywords" xml:space="preserve">
+  <data name="Tab_Keywords" xml:space="preserve">
     <value>关键词</value>
   </data>
-    <data name="Tab_Races" xml:space="preserve">
+  <data name="Tab_Races" xml:space="preserve">
     <value>种族</value>
   </data>
-    <data name="Tab_Classes" xml:space="preserve">
+  <data name="Tab_Classes" xml:space="preserve">
     <value>职业</value>
   </data>
 
-    <!-- Settings Panel -->
-    <data name="Settings_Title" xml:space="preserve">
+  <!-- Settings Panel -->
+  <data name="Settings_Title" xml:space="preserve">
     <value>应用程序设置</value>
   </data>
-    <data name="Settings_SkyrimRelease" xml:space="preserve">
+  <data name="Settings_SkyrimRelease" xml:space="preserve">
     <value>Skyrim 版本：</value>
   </data>
-    <data name="Settings_SkyrimDataPath" xml:space="preserve">
+  <data name="Settings_SkyrimDataPath" xml:space="preserve">
     <value>Skyrim 数据路径：</value>
   </data>
-    <data name="Settings_PatchFileName" xml:space="preserve">
+  <data name="Settings_PatchFileName" xml:space="preserve">
     <value>补丁文件名：</value>
   </data>
-    <data name="Settings_OutputPath" xml:space="preserve">
+  <data name="Settings_OutputPath" xml:space="preserve">
     <value>输出路径：</value>
   </data>
-    <data name="Settings_OutputPathTooltip" xml:space="preserve">
+  <data name="Settings_OutputPathTooltip" xml:space="preserve">
     <value>留空以使用 Skyrim 数据路径。为 Wabbajack 模组列表或 MO2 覆盖文件夹设置自定义路径。</value>
   </data>
-    <data name="Settings_Detection" xml:space="preserve">
+  <data name="Settings_Detection" xml:space="preserve">
     <value>检测：</value>
   </data>
-    <data name="Settings_Theme" xml:space="preserve">
+  <data name="Settings_Theme" xml:space="preserve">
     <value>主题：</value>
   </data>
-    <data name="Settings_FontSize" xml:space="preserve">
+  <data name="Settings_FontSize" xml:space="preserve">
     <value>字体大小：</value>
   </data>
-    <data name="Settings_Language" xml:space="preserve">
+  <data name="Settings_Language" xml:space="preserve">
     <value>语言：</value>
   </data>
-    <data name="Settings_Tutorial" xml:space="preserve">
+  <data name="Settings_Tutorial" xml:space="preserve">
     <value>教程：</value>
   </data>
-    <data name="Settings_Blacklist" xml:space="preserve">
+  <data name="Settings_Blacklist" xml:space="preserve">
     <value>黑名单：</value>
   </data>
-    <data name="Settings_Group_GameConfiguration" xml:space="preserve">
+  <data name="Settings_Group_GameConfiguration" xml:space="preserve">
     <value>游戏配置</value>
   </data>
-    <data name="Settings_Group_PatchSettings" xml:space="preserve">
+  <data name="Settings_Group_PatchSettings" xml:space="preserve">
     <value>补丁设置</value>
   </data>
-    <data name="Settings_Group_Appearance" xml:space="preserve">
+  <data name="Settings_Group_Appearance" xml:space="preserve">
     <value>外观</value>
   </data>
-    <data name="Settings_Group_Advanced" xml:space="preserve">
+  <data name="Settings_Group_Advanced" xml:space="preserve">
     <value>高级</value>
   </data>
 
-    <!-- Common Buttons -->
-    <data name="Button_Browse" xml:space="preserve">
+  <!-- Common Buttons -->
+  <data name="Button_Browse" xml:space="preserve">
     <value>浏览...</value>
   </data>
-    <data name="Button_AutoDetect" xml:space="preserve">
+  <data name="Button_AutoDetect" xml:space="preserve">
     <value>自动检测</value>
   </data>
-    <data name="Button_RestartTutorial" xml:space="preserve">
+  <data name="Button_RestartTutorial" xml:space="preserve">
     <value>重新开始教程</value>
   </data>
-    <data name="Button_Refresh" xml:space="preserve">
+  <data name="Button_Refresh" xml:space="preserve">
     <value>↻ 刷新</value>
   </data>
-    <data name="Button_Close" xml:space="preserve">
+  <data name="Button_Close" xml:space="preserve">
     <value>关闭</value>
   </data>
-    <data name="Button_Save" xml:space="preserve">
+  <data name="Button_Save" xml:space="preserve">
     <value>保存</value>
   </data>
-    <data name="Button_Cancel" xml:space="preserve">
+  <data name="Button_Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
-    <data name="Button_ClearAll" xml:space="preserve">
+  <data name="Button_ClearAll" xml:space="preserve">
     <value>清除全部</value>
   </data>
-    <data name="Button_ClearFilters" xml:space="preserve">
+  <data name="Button_ClearFilters" xml:space="preserve">
     <value>清除筛选</value>
   </data>
-    <data name="Button_Preview" xml:space="preserve">
+  <data name="Button_Preview" xml:space="preserve">
     <value>预览</value>
   </data>
-    <data name="Button_ResetView" xml:space="preserve">
+  <data name="Button_ResetView" xml:space="preserve">
     <value>重置视图</value>
   </data>
 
-    <!-- Status Bar -->
-    <data name="Status_Patch" xml:space="preserve">
+  <!-- Status Bar -->
+  <data name="Status_Patch" xml:space="preserve">
     <value>补丁：</value>
   </data>
-    <data name="Status_Ready" xml:space="preserve">
+  <data name="Status_Ready" xml:space="preserve">
     <value>就绪</value>
   </data>
-    <data name="Status_Loading" xml:space="preserve">
+  <data name="Status_Loading" xml:space="preserve">
     <value>加载中...</value>
   </data>
-    <data name="Status_Initializing" xml:space="preserve">
+  <data name="Status_Initializing" xml:space="preserve">
     <value>初始化中...</value>
   </data>
-    <data name="Status_Saving" xml:space="preserve">
+  <data name="Status_Saving" xml:space="preserve">
     <value>保存中...</value>
   </data>
 
-    <!-- Common Labels -->
-    <data name="Label_Search" xml:space="preserve">
+  <!-- Common Labels -->
+  <data name="Label_Search" xml:space="preserve">
     <value>搜索：</value>
   </data>
-    <data name="Label_File" xml:space="preserve">
+  <data name="Label_File" xml:space="preserve">
     <value>文件：</value>
   </data>
-    <data name="Label_Format" xml:space="preserve">
+  <data name="Label_Format" xml:space="preserve">
     <value>格式：</value>
   </data>
-    <data name="Label_Filename" xml:space="preserve">
+  <data name="Label_Filename" xml:space="preserve">
     <value>文件名：</value>
   </data>
-    <data name="Label_SavesAs" xml:space="preserve">
+  <data name="Label_SavesAs" xml:space="preserve">
     <value>另存为：</value>
   </data>
-    <data name="Label_Suggested" xml:space="preserve">
+  <data name="Label_Suggested" xml:space="preserve">
     <value>建议：</value>
   </data>
-    <data name="Label_FilterPlaceholder" xml:space="preserve">
+  <data name="Label_FilterPlaceholder" xml:space="preserve">
     <value>🔍 筛选...</value>
   </data>
 
-    <!-- DataGrid Headers -->
-    <data name="Header_Name" xml:space="preserve">
+  <!-- DataGrid Headers -->
+  <data name="Header_Name" xml:space="preserve">
     <value>名称</value>
   </data>
-    <data name="Header_EditorID" xml:space="preserve">
+  <data name="Header_EditorID" xml:space="preserve">
     <value>EditorID</value>
   </data>
-    <data name="Header_FormKey" xml:space="preserve">
+  <data name="Header_FormKey" xml:space="preserve">
     <value>FormKey</value>
   </data>
-    <data name="Header_FormID" xml:space="preserve">
+  <data name="Header_FormID" xml:space="preserve">
     <value>Form ID</value>
   </data>
-    <data name="Header_Mod" xml:space="preserve">
+  <data name="Header_Mod" xml:space="preserve">
     <value>模组</value>
   </data>
-    <data name="Header_Slots" xml:space="preserve">
+  <data name="Header_Slots" xml:space="preserve">
     <value>槽位</value>
   </data>
-    <data name="Header_Armor" xml:space="preserve">
+  <data name="Header_Armor" xml:space="preserve">
     <value>护甲</value>
   </data>
-    <data name="Header_NPCs" xml:space="preserve">
+  <data name="Header_NPCs" xml:space="preserve">
     <value>NPC</value>
   </data>
-    <data name="Header_FinalOutfit" xml:space="preserve">
+  <data name="Header_FinalOutfit" xml:space="preserve">
     <value>最终服装</value>
   </data>
-    <data name="Header_Distributor" xml:space="preserve">
+  <data name="Header_Distributor" xml:space="preserve">
     <value>分配器</value>
   </data>
-    <data name="Header_Targeting" xml:space="preserve">
+  <data name="Header_Targeting" xml:space="preserve">
     <value>目标</value>
   </data>
-    <data name="Header_Chance" xml:space="preserve">
+  <data name="Header_Chance" xml:space="preserve">
     <value>概率</value>
   </data>
-    <data name="Header_Conflict" xml:space="preserve">
+  <data name="Header_Conflict" xml:space="preserve">
     <value>冲突</value>
   </data>
-    <data name="Header_Preview" xml:space="preserve">
+  <data name="Header_Preview" xml:space="preserve">
     <value>预览</value>
   </data>
-    <data name="Header_Copy" xml:space="preserve">
+  <data name="Header_Copy" xml:space="preserve">
     <value>复制</value>
   </data>
-    <data name="Header_Override" xml:space="preserve">
+  <data name="Header_Override" xml:space="preserve">
     <value>覆盖</value>
   </data>
 
-    <!-- Armor Patch View -->
-    <data name="ArmorPatch_PluginSelection" xml:space="preserve">
+  <!-- Armor Patch View -->
+  <data name="ArmorPatch_PluginSelection" xml:space="preserve">
     <value>插件选择</value>
   </data>
-    <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
+  <data name="ArmorPatch_SourcePlugin" xml:space="preserve">
     <value>源插件</value>
   </data>
-    <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
+  <data name="ArmorPatch_TargetPlugin" xml:space="preserve">
     <value>目标插件</value>
   </data>
-    <data name="ArmorPatch_SourceArmors" xml:space="preserve">
+  <data name="ArmorPatch_SourceArmors" xml:space="preserve">
     <value>源护甲</value>
   </data>
-    <data name="ArmorPatch_TargetArmors" xml:space="preserve">
+  <data name="ArmorPatch_TargetArmors" xml:space="preserve">
     <value>目标护甲</value>
   </data>
-    <data name="ArmorPatch_MappingPreview" xml:space="preserve">
+  <data name="ArmorPatch_MappingPreview" xml:space="preserve">
     <value>映射预览</value>
   </data>
-    <data name="ArmorPatch_MapSelection" xml:space="preserve">
+  <data name="ArmorPatch_MapSelection" xml:space="preserve">
     <value>映射选择</value>
   </data>
-    <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
+  <data name="ArmorPatch_MarkGlamOnly" xml:space="preserve">
     <value>仅标记外观</value>
   </data>
-    <data name="ArmorPatch_CreatePatch" xml:space="preserve">
+  <data name="ArmorPatch_CreatePatch" xml:space="preserve">
     <value>创建补丁</value>
   </data>
-    <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
+  <data name="ArmorPatch_GlamOnlyZeroStats" xml:space="preserve">
     <value>仅外观（零属性）</value>
   </data>
-    <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
+  <data name="ArmorPatch_ArmorsFormat" xml:space="preserve">
     <value>{0} 件护甲</value>
   </data>
-    <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
+  <data name="ArmorPatch_CandidatesFormat" xml:space="preserve">
     <value>{0} 个候选</value>
   </data>
-    <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsFormat" xml:space="preserve">
     <value>{0} 个映射</value>
   </data>
-    <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
+  <data name="ArmorPatch_TotalMappingsFormat" xml:space="preserve">
     <value>共 {0} 个映射</value>
   </data>
-    <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
+  <data name="ArmorPatch_MappingsQueuedFormat" xml:space="preserve">
     <value>{0} 个映射已排队</value>
   </data>
-    <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
+  <data name="ArmorPatch_RemoveMapping" xml:space="preserve">
     <value>移除映射</value>
   </data>
-    <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
+  <data name="ArmorPatch_TypeToSearch" xml:space="preserve">
     <value>输入以搜索</value>
   </data>
 
-    <!-- Outfit Creator View -->
-    <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
+  <!-- Outfit Creator View -->
+  <data name="OutfitCreator_SourcePlugins" xml:space="preserve">
     <value>源插件</value>
   </data>
-    <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
+  <data name="OutfitCreator_AvailableArmors" xml:space="preserve">
     <value>可用护甲</value>
   </data>
-    <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
+  <data name="OutfitCreator_OutfitQueue" xml:space="preserve">
     <value>Boutique 服装</value>
   </data>
-    <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_CreateNewOutfit" xml:space="preserve">
     <value>从选择创建服装</value>
   </data>
-    <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
+  <data name="OutfitCreator_DropArmorsHere" xml:space="preserve">
     <value>将护甲拖放到此处以创建新服装（双击护甲可快速添加）。</value>
   </data>
-    <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
+  <data name="OutfitCreator_NoOutfitsQueued" xml:space="preserve">
     <value>尚未创建服装。选择护甲并点击"创建服装"。</value>
   </data>
-    <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
+  <data name="OutfitCreator_NoPiecesSelected" xml:space="preserve">
     <value>未选择部件。</value>
   </data>
-    <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
+  <data name="OutfitCreator_ExistingOutfitsFormat" xml:space="preserve">
     <value>此插件已定义 {0} 套服装。</value>
   </data>
-    <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
+  <data name="OutfitCreator_CopyExistingOutfits" xml:space="preserve">
     <value>复制现有服装</value>
   </data>
-    <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
+  <data name="OutfitCreator_SaveOutfits" xml:space="preserve">
     <value>保存服装</value>
   </data>
-    <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
+  <data name="OutfitCreator_OutfitsQueuedFormat" xml:space="preserve">
     <value>{0} 套服装</value>
   </data>
-    <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
+  <data name="OutfitCreator_PreviewArmor" xml:space="preserve">
     <value>预览护甲</value>
   </data>
-    <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
+  <data name="OutfitCreator_PreviewOutfit" xml:space="preserve">
     <value>预览服装</value>
   </data>
-    <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
+  <data name="OutfitCreator_DuplicateOutfit" xml:space="preserve">
     <value>复制服装</value>
   </data>
-    <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
+  <data name="OutfitCreator_RemoveOutfit" xml:space="preserve">
     <value>移除服装</value>
   </data>
-    <data name="OutfitCreator_RemovePiece" xml:space="preserve">
+  <data name="OutfitCreator_RemovePiece" xml:space="preserve">
     <value>移除部件</value>
   </data>
-    <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
+  <data name="OutfitCreator_FilterPlugins" xml:space="preserve">
     <value>按名称筛选插件</value>
   </data>
 
-    <!-- Distribution Create Tab -->
-    <data name="Distribution_DistributionEntries" xml:space="preserve">
+  <!-- Distribution Create Tab -->
+  <data name="Distribution_DistributionEntries" xml:space="preserve">
     <value>分配条目</value>
   </data>
-    <data name="Distribution_DistributionFilters" xml:space="preserve">
+  <data name="Distribution_DistributionFilters" xml:space="preserve">
     <value>分配筛选</value>
   </data>
-    <data name="Distribution_AddEntry" xml:space="preserve">
+  <data name="Distribution_AddEntry" xml:space="preserve">
     <value>添加条目</value>
   </data>
-    <data name="Distribution_SaveFile" xml:space="preserve">
+  <data name="Distribution_SaveFile" xml:space="preserve">
     <value>保存文件</value>
   </data>
-    <data name="Distribution_PasteFilter" xml:space="preserve">
+  <data name="Distribution_PasteFilter" xml:space="preserve">
     <value>📋 粘贴筛选</value>
   </data>
-    <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
+  <data name="Distribution_PasteFilterTooltip" xml:space="preserve">
     <value>粘贴从 NPC 选项卡复制的筛选</value>
   </data>
-    <data name="Distribution_PasteFilterFormat" xml:space="preserve">
+  <data name="Distribution_PasteFilterFormat" xml:space="preserve">
     <value>粘贴筛选：{0}</value>
   </data>
-    <data name="Distribution_Assign" xml:space="preserve">
+  <data name="Distribution_Assign" xml:space="preserve">
     <value>分配</value>
   </data>
-    <data name="Distribution_Outfit" xml:space="preserve">
+  <data name="Distribution_Outfit" xml:space="preserve">
     <value>服装：</value>
   </data>
-    <data name="Distribution_Keyword" xml:space="preserve">
+  <data name="Distribution_Keyword" xml:space="preserve">
     <value>关键词：</value>
   </data>
-    <data name="Distribution_UseChance" xml:space="preserve">
+  <data name="Distribution_UseChance" xml:space="preserve">
     <value>使用概率</value>
   </data>
-    <data name="Distribution_ChanceTooltip" xml:space="preserve">
+  <data name="Distribution_ChanceTooltip" xml:space="preserve">
     <value>概率 (0-100)</value>
   </data>
-    <data name="Distribution_RemoveEntry" xml:space="preserve">
+  <data name="Distribution_RemoveEntry" xml:space="preserve">
     <value>移除条目</value>
   </data>
-    <data name="Distribution_NPCs" xml:space="preserve">
+  <data name="Distribution_NPCs" xml:space="preserve">
     <value>NPC：</value>
   </data>
-    <data name="Distribution_Factions" xml:space="preserve">
+  <data name="Distribution_Factions" xml:space="preserve">
     <value>派系：</value>
   </data>
-    <data name="Distribution_Keywords" xml:space="preserve">
+  <data name="Distribution_Keywords" xml:space="preserve">
     <value>关键词：</value>
   </data>
-    <data name="Distribution_Races" xml:space="preserve">
+  <data name="Distribution_Races" xml:space="preserve">
     <value>种族：</value>
   </data>
-    <data name="Distribution_Classes" xml:space="preserve">
+  <data name="Distribution_Classes" xml:space="preserve">
     <value>职业：</value>
   </data>
-    <data name="Distribution_Traits" xml:space="preserve">
+  <data name="Distribution_Traits" xml:space="preserve">
     <value>特性：</value>
   </data>
-    <data name="Distribution_Gender" xml:space="preserve">
+  <data name="Distribution_Gender" xml:space="preserve">
     <value>性别：</value>
   </data>
-    <data name="Distribution_Unique" xml:space="preserve">
+  <data name="Distribution_Unique" xml:space="preserve">
     <value>唯一：</value>
   </data>
-    <data name="Distribution_LevelSkill" xml:space="preserve">
+  <data name="Distribution_LevelSkill" xml:space="preserve">
     <value>等级/技能：</value>
   </data>
-    <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
+  <data name="Distribution_LevelSkillTooltip" xml:space="preserve">
     <value>SPID 等级/技能筛选。示例：5/20（等级范围），12(85/999)（变化技能 85+）</value>
   </data>
-    <data name="Distribution_FilePreview" xml:space="preserve">
+  <data name="Distribution_FilePreview" xml:space="preserve">
     <value>文件预览</value>
   </data>
-    <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
+  <data name="Distribution_ParseErrorsFormat" xml:space="preserve">
     <value>{0} 个解析错误 - 这些行将在保存时保留</value>
   </data>
-    <data name="Distribution_TargetEntryFormat" xml:space="preserve">
+  <data name="Distribution_TargetEntryFormat" xml:space="preserve">
     <value>目标条目：{0}</value>
   </data>
-    <data name="Distribution_TargetEntryNone" xml:space="preserve">
+  <data name="Distribution_TargetEntryNone" xml:space="preserve">
     <value>目标条目：（未选择）</value>
   </data>
-    <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
+  <data name="Distribution_AddSelectedNpcs" xml:space="preserve">
     <value>添加选中的 NPC</value>
   </data>
-    <data name="Distribution_AddSelectedFactions" xml:space="preserve">
+  <data name="Distribution_AddSelectedFactions" xml:space="preserve">
     <value>添加选中的派系</value>
   </data>
-    <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
+  <data name="Distribution_AddSelectedKeywords" xml:space="preserve">
     <value>添加选中的关键词</value>
   </data>
-    <data name="Distribution_AddSelectedRaces" xml:space="preserve">
+  <data name="Distribution_AddSelectedRaces" xml:space="preserve">
     <value>添加选中的种族</value>
   </data>
-    <data name="Distribution_AddSelectedClasses" xml:space="preserve">
+  <data name="Distribution_AddSelectedClasses" xml:space="preserve">
     <value>添加选中的职业</value>
   </data>
-    <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
+  <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
     <value>选择现有关键词或输入新的 EditorID 用于虚拟关键词</value>
   </data>
 
-    <!-- Distribution NPCs Tab -->
-    <data name="NPCs_RefreshTooltip" xml:space="preserve">
+  <!-- Distribution NPCs Tab -->
+  <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>重新扫描分配文件以获取 NPC 服装分配</value>
   </data>
-    <data name="NPCs_HideVanilla" xml:space="preserve">
+  <data name="NPCs_HideVanilla" xml:space="preserve">
     <value>隐藏原版分配</value>
   </data>
-    <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
+  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
     <value>隐藏其默认服装为获胜分配的 NPC</value>
   </data>
-    <data name="NPCs_SearchTooltip" xml:space="preserve">
+  <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>按名称、EditorID、服装或模组搜索 NPC</value>
   </data>
-    <data name="NPCs_SpidFilters" xml:space="preserve">
+  <data name="NPCs_SpidFilters" xml:space="preserve">
     <value>SPID 样式筛选</value>
   </data>
-    <data name="NPCs_Templated" xml:space="preserve">
+  <data name="NPCs_Templated" xml:space="preserve">
     <value>模板化：</value>
   </data>
-    <data name="NPCs_Age" xml:space="preserve">
+  <data name="NPCs_Age" xml:space="preserve">
     <value>年龄：</value>
   </data>
-    <data name="NPCs_Faction" xml:space="preserve">
+  <data name="NPCs_Faction" xml:space="preserve">
     <value>派系：</value>
   </data>
-    <data name="NPCs_Race" xml:space="preserve">
+  <data name="NPCs_Race" xml:space="preserve">
     <value>种族：</value>
   </data>
-    <data name="NPCs_Class" xml:space="preserve">
+  <data name="NPCs_Class" xml:space="preserve">
     <value>职业：</value>
   </data>
-    <data name="NPCs_CopyFilter" xml:space="preserve">
+  <data name="NPCs_CopyFilter" xml:space="preserve">
     <value>📋 复制筛选</value>
   </data>
-    <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
+  <data name="NPCs_CopyFilterTooltip" xml:space="preserve">
     <value>复制当前筛选以粘贴到创建选项卡</value>
   </data>
-    <data name="NPCs_ShowingFormat" xml:space="preserve">
+  <data name="NPCs_ShowingFormat" xml:space="preserve">
     <value>显示 {0}/{1} 个 NPC</value>
   </data>
-    <data name="NPCs_DistributionFiles" xml:space="preserve">
+  <data name="NPCs_DistributionFiles" xml:space="preserve">
     <value>分配文件</value>
   </data>
-    <data name="NPCs_Winner" xml:space="preserve">
+  <data name="NPCs_Winner" xml:space="preserve">
     <value>[获胜者]</value>
   </data>
-    <data name="NPCs_ChanceFormat" xml:space="preserve">
+  <data name="NPCs_ChanceFormat" xml:space="preserve">
     <value>({0}% 概率)</value>
   </data>
-    <data name="NPCs_OutfitFormat" xml:space="preserve">
+  <data name="NPCs_OutfitFormat" xml:space="preserve">
     <value>服装：{0}</value>
   </data>
-    <data name="NPCs_OutfitContents" xml:space="preserve">
+  <data name="NPCs_OutfitContents" xml:space="preserve">
     <value>服装内容</value>
   </data>
-    <data name="NPCs_PreviewOutfit" xml:space="preserve">
+  <data name="NPCs_PreviewOutfit" xml:space="preserve">
     <value>预览服装</value>
   </data>
-    <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
+  <data name="NPCs_FilterSyntaxPreview" xml:space="preserve">
     <value>筛选语法预览</value>
   </data>
-    <data name="NPCs_SpidFormat" xml:space="preserve">
+  <data name="NPCs_SpidFormat" xml:space="preserve">
     <value>SPID 格式：</value>
   </data>
-    <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
+  <data name="NPCs_SkyPatcherFormat" xml:space="preserve">
     <value>SkyPatcher 格式：</value>
   </data>
-    <data name="NPCs_CopySyntaxHint" xml:space="preserve">
+  <data name="NPCs_CopySyntaxHint" xml:space="preserve">
     <value>复制语法以在您的分配 INI 文件中使用</value>
   </data>
-    <data name="NPCs_NpcDetails" xml:space="preserve">
+  <data name="NPCs_NpcDetails" xml:space="preserve">
     <value>NPC 详情</value>
   </data>
-    <data name="NPCs_Level" xml:space="preserve">
+  <data name="NPCs_Level" xml:space="preserve">
     <value>等级：</value>
   </data>
-    <data name="NPCs_Voice" xml:space="preserve">
+  <data name="NPCs_Voice" xml:space="preserve">
     <value>声音：</value>
   </data>
-    <data name="NPCs_Combat" xml:space="preserve">
+  <data name="NPCs_Combat" xml:space="preserve">
     <value>战斗：</value>
   </data>
-    <data name="NPCs_Template" xml:space="preserve">
+  <data name="NPCs_Template" xml:space="preserve">
     <value>模板：</value>
   </data>
-    <data name="NPCs_TemplateNone" xml:space="preserve">
+  <data name="NPCs_TemplateNone" xml:space="preserve">
     <value>（无）</value>
   </data>
-    <data name="NPCs_Male" xml:space="preserve">
+  <data name="NPCs_Male" xml:space="preserve">
     <value>男性</value>
   </data>
-    <data name="NPCs_Female" xml:space="preserve">
+  <data name="NPCs_Female" xml:space="preserve">
     <value>女性</value>
   </data>
-    <data name="NPCs_Trait_Unique" xml:space="preserve">
+  <data name="NPCs_Trait_Unique" xml:space="preserve">
     <value>唯一</value>
   </data>
-    <data name="NPCs_Trait_Summonable" xml:space="preserve">
+  <data name="NPCs_Trait_Summonable" xml:space="preserve">
     <value>可召唤</value>
   </data>
-    <data name="NPCs_Trait_Child" xml:space="preserve">
+  <data name="NPCs_Trait_Child" xml:space="preserve">
     <value>儿童</value>
   </data>
-    <data name="NPCs_Trait_Leveled" xml:space="preserve">
+  <data name="NPCs_Trait_Leveled" xml:space="preserve">
     <value>等级化</value>
   </data>
-    <data name="NPCs_RankFormat" xml:space="preserve">
+  <data name="NPCs_RankFormat" xml:space="preserve">
     <value>（等级 {0}）</value>
   </data>
 
-    <!-- Distribution Outfits Tab -->
-    <data name="Outfits_LoadOutfits" xml:space="preserve">
+  <!-- Distribution Outfits Tab -->
+  <data name="Outfits_LoadOutfits" xml:space="preserve">
     <value>↻ 加载服装</value>
   </data>
-    <data name="Outfits_LoadTooltip" xml:space="preserve">
+  <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>从加载顺序加载所有服装</value>
   </data>
-    <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
+  <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>隐藏其默认服装为获胜分配的服装</value>
   </data>
-    <data name="Outfits_SearchTooltip" xml:space="preserve">
+  <data name="Outfits_SearchTooltip" xml:space="preserve">
     <value>按 EditorID、FormKey 或模组搜索服装</value>
   </data>
-    <data name="Outfits_CopyToPatch" xml:space="preserve">
+  <data name="Outfits_CopyToPatch" xml:space="preserve">
     <value>复制到补丁</value>
   </data>
-    <data name="Outfits_CopyAsOverride" xml:space="preserve">
+  <data name="Outfits_CopyAsOverride" xml:space="preserve">
     <value>作为覆盖复制</value>
   </data>
-    <data name="Outfits_DistributedToNpcs" xml:space="preserve">
+  <data name="Outfits_DistributedToNpcs" xml:space="preserve">
     <value>已分配给 NPC</value>
   </data>
 
-    <!-- Restart Dialog -->
-    <data name="Restart_Title" xml:space="preserve">
+  <!-- Restart Dialog -->
+  <data name="Restart_Title" xml:space="preserve">
     <value>需要重启</value>
   </data>
-    <data name="Restart_Message" xml:space="preserve">
+  <data name="Restart_Message" xml:space="preserve">
     <value>要应用主题更改，您需要退出并重新打开 Boutique。</value>
   </data>
-    <data name="Restart_Later" xml:space="preserve">
+  <data name="Restart_Later" xml:space="preserve">
     <value>稍后再说！</value>
   </data>
-    <data name="Restart_QuitNow" xml:space="preserve">
+  <data name="Restart_QuitNow" xml:space="preserve">
     <value>立即退出</value>
   </data>
 
-    <!-- Missing Masters Dialog -->
-    <data name="MissingMasters_Title" xml:space="preserve">
+  <!-- Missing Masters Dialog -->
+  <data name="MissingMasters_Title" xml:space="preserve">
     <value>检测到缺失的主文件</value>
   </data>
-    <data name="MissingMasters_Header" xml:space="preserve">
+  <data name="MissingMasters_Header" xml:space="preserve">
     <value>⚠️ 检测到缺失的主插件</value>
   </data>
-    <data name="MissingMasters_Description" xml:space="preserve">
+  <data name="MissingMasters_Description" xml:space="preserve">
     <value>您的 BoutiquePatch 引用了不再在加载顺序中的插件。以下服装包含来自这些缺失主文件的护甲，无法加载。</value>
   </data>
-    <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
+  <data name="MissingMasters_OrphanedFormat" xml:space="preserve">
     <value>（{0} 件孤立护甲）</value>
   </data>
-    <data name="MissingMasters_AddBack" xml:space="preserve">
+  <data name="MissingMasters_AddBack" xml:space="preserve">
     <value>我会添加回主文件</value>
   </data>
-    <data name="MissingMasters_CleanPatch" xml:space="preserve">
+  <data name="MissingMasters_CleanPatch" xml:space="preserve">
     <value>清理补丁（移除服装）</value>
   </data>
 
-    <!-- Outfit Preview Window -->
-    <data name="Preview_Title" xml:space="preserve">
+  <!-- Outfit Preview Window -->
+  <data name="Preview_Title" xml:space="preserve">
     <value>服装预览</value>
   </data>
-    <data name="Preview_MissingAssetsWarning" xml:space="preserve">
+  <data name="Preview_MissingAssetsWarning" xml:space="preserve">
     <value>预览此服装时缺少一些资源。</value>
   </data>
-    <data name="Preview_BodySlideHint" xml:space="preserve">
+  <data name="Preview_BodySlideHint" xml:space="preserve">
     <value>像 [ELLE] 这样的一些创作者制作的服装需要您在使用前运行 BodySlide。如果可能是这种情况，请退出 Boutique 并完成所有必要的 BodySlide 步骤，然后回来重试！</value>
   </data>
-    <data name="Preview_MissingAssets" xml:space="preserve">
+  <data name="Preview_MissingAssets" xml:space="preserve">
     <value>缺失的资源：</value>
   </data>
-    <data name="Preview_LightingDebug" xml:space="preserve">
+  <data name="Preview_LightingDebug" xml:space="preserve">
     <value>光照乘数（调试）</value>
   </data>
-    <data name="Preview_Ambient" xml:space="preserve">
+  <data name="Preview_Ambient" xml:space="preserve">
     <value>环境光</value>
   </data>
-    <data name="Preview_KeyFill" xml:space="preserve">
+  <data name="Preview_KeyFill" xml:space="preserve">
     <value>主光/补光</value>
   </data>
-    <data name="Preview_Rim" xml:space="preserve">
+  <data name="Preview_Rim" xml:space="preserve">
     <value>轮廓光</value>
   </data>
-    <data name="Preview_Frontal" xml:space="preserve">
+  <data name="Preview_Frontal" xml:space="preserve">
     <value>前光</value>
   </data>
 
-    <!-- Filter Tooltips -->
-    <data name="Filter_GenderTooltip" xml:space="preserve">
+  <!-- Filter Tooltips -->
+  <data name="Filter_GenderTooltip" xml:space="preserve">
     <value>按 NPC 性别筛选（SPID 特性：F/M）</value>
   </data>
-    <data name="Filter_UniqueTooltip" xml:space="preserve">
+  <data name="Filter_UniqueTooltip" xml:space="preserve">
     <value>按唯一 NPC 标志筛选（SPID 特性：U/-U）</value>
   </data>
-    <data name="Filter_TemplatedTooltip" xml:space="preserve">
+  <data name="Filter_TemplatedTooltip" xml:space="preserve">
     <value>按 NPC 是否使用模板筛选</value>
   </data>
-    <data name="Filter_ChildTooltip" xml:space="preserve">
+  <data name="Filter_ChildTooltip" xml:space="preserve">
     <value>按儿童/成人状态筛选（SPID 特性：C/-C）</value>
   </data>
-    <data name="Filter_FactionTooltip" xml:space="preserve">
+  <data name="Filter_FactionTooltip" xml:space="preserve">
     <value>按派系成员资格筛选（SPID FormFilter）</value>
   </data>
-    <data name="Filter_RaceTooltip" xml:space="preserve">
+  <data name="Filter_RaceTooltip" xml:space="preserve">
     <value>按种族筛选（SPID FormFilter）</value>
   </data>
-    <data name="Filter_ClassTooltip" xml:space="preserve">
+  <data name="Filter_ClassTooltip" xml:space="preserve">
     <value>按 NPC 职业筛选（SPID FormFilter）</value>
   </data>
-    <data name="Filter_KeywordTooltip" xml:space="preserve">
+  <data name="Filter_KeywordTooltip" xml:space="preserve">
     <value>按关键词筛选（SPID StringFilter）</value>
   </data>
-    <data name="Filter_ResetTooltip" xml:space="preserve">
+  <data name="Filter_ResetTooltip" xml:space="preserve">
     <value>重置所有筛选为默认值</value>
   </data>
 
-    <!-- Theme Options -->
-    <data name="Theme_System" xml:space="preserve">
+  <!-- Theme Options -->
+  <data name="Theme_System" xml:space="preserve">
     <value>系统</value>
   </data>
-    <data name="Theme_Light" xml:space="preserve">
+  <data name="Theme_Light" xml:space="preserve">
     <value>浅色</value>
   </data>
-    <data name="Theme_Dark" xml:space="preserve">
+  <data name="Theme_Dark" xml:space="preserve">
     <value>深色</value>
   </data>
 
-    <!-- Detection Messages -->
-    <data name="Detection_MO2DataPath" xml:space="preserve">
+  <!-- Detection Messages -->
+  <data name="Detection_MO2DataPath" xml:space="preserve">
     <value>从 Mod Organizer 2 检测（MO_DATAPATH）</value>
   </data>
-    <data name="Detection_MO2GamePath" xml:space="preserve">
+  <data name="Detection_MO2GamePath" xml:space="preserve">
     <value>从 Mod Organizer 2 检测（MO_GAMEPATH）</value>
   </data>
-    <data name="Detection_MO2VirtualStore" xml:space="preserve">
+  <data name="Detection_MO2VirtualStore" xml:space="preserve">
     <value>从 Mod Organizer 2 检测（VIRTUAL_STORE）</value>
   </data>
-    <data name="Detection_MO2USVFS" xml:space="preserve">
+  <data name="Detection_MO2USVFS" xml:space="preserve">
     <value>在 Mod Organizer 2 USVFS 下运行（数据路径未明确设置）</value>
   </data>
-    <data name="Detection_Mutagen" xml:space="preserve">
+  <data name="Detection_Mutagen" xml:space="preserve">
     <value>使用 Mutagen 检测到 {0}</value>
   </data>
-    <data name="Detection_Failed" xml:space="preserve">
+  <data name="Detection_Failed" xml:space="preserve">
     <value>{0} 自动检测失败 - 请手动设置</value>
   </data>
 
-    <!-- Skyrim Releases -->
-    <data name="SkyrimRelease_SE" xml:space="preserve">
+  <!-- Skyrim Releases -->
+  <data name="SkyrimRelease_SE" xml:space="preserve">
     <value>Skyrim SE</value>
   </data>
-    <data name="SkyrimRelease_VR" xml:space="preserve">
+  <data name="SkyrimRelease_VR" xml:space="preserve">
     <value>Skyrim VR</value>
   </data>
-    <data name="SkyrimRelease_GOG" xml:space="preserve">
+  <data name="SkyrimRelease_GOG" xml:space="preserve">
     <value>Skyrim SE (GOG)</value>
   </data>
 
-    <!-- Dialogs -->
-    <data name="Dialog_SelectDataFolder" xml:space="preserve">
+  <!-- Dialogs -->
+  <data name="Dialog_SelectDataFolder" xml:space="preserve">
     <value>选择 Skyrim 数据文件夹</value>
   </data>
-    <data name="Dialog_SelectOutputFolder" xml:space="preserve">
+  <data name="Dialog_SelectOutputFolder" xml:space="preserve">
     <value>选择补丁输出文件夹</value>
   </data>
-    <data name="Dialog_SelectDistributionFile" xml:space="preserve">
+  <data name="Dialog_SelectDistributionFile" xml:space="preserve">
     <value>选择分配文件位置</value>
   </data>
 
-    <!-- Refresh Tooltip -->
-    <data name="Refresh_Tooltip" xml:space="preserve">
+  <!-- Refresh Tooltip -->
+  <data name="Refresh_Tooltip" xml:space="preserve">
     <value>刷新所有数据（包括输出补丁）</value>
   </data>
 

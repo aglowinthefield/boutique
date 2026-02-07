@@ -7,61 +7,61 @@ namespace Boutique.Services;
 
 public sealed class LoggingService : ILoggingService
 {
-    private readonly Logger _logger;
-    private readonly LoggingLevelSwitch _levelSwitch;
-    private bool _disposed;
+  private readonly LoggingLevelSwitch _levelSwitch;
+  private readonly Logger _logger;
+  private bool _disposed;
 
-    public LoggingService()
-    {
-        LogDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Boutique",
-            "Logs");
+  public LoggingService()
+  {
+    LogDirectory = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+      "Boutique",
+      "Logs");
 
-        Directory.CreateDirectory(LogDirectory);
+    Directory.CreateDirectory(LogDirectory);
 
-        LogFilePattern = Path.Combine(LogDirectory, "Boutique-.log");
+    LogFilePattern = Path.Combine(LogDirectory, "Boutique-.log");
 
-        _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
+    _levelSwitch = new LoggingLevelSwitch();
 
-        _logger = new LoggerConfiguration()
-            .MinimumLevel.ControlledBy(_levelSwitch)
-            .Enrich.FromLogContext()
-            .WriteTo.Async(configuration =>
+    _logger = new LoggerConfiguration()
+      .MinimumLevel.ControlledBy(_levelSwitch)
+      .Enrich.FromLogContext()
+      .WriteTo.Async(configuration =>
 #pragma warning disable CA1305 // File sink configuration doesn't involve locale-sensitive formatting
-                configuration.File(
-                    LogFilePattern,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 14,
-                    shared: true))
+        configuration.File(
+          LogFilePattern,
+          rollingInterval: RollingInterval.Day,
+          retainedFileCountLimit: 14,
+          shared: true))
 #pragma warning restore CA1305
-            .CreateLogger();
+      .CreateLogger();
 
-        Log.Logger = _logger;
-    }
+    Log.Logger = _logger;
+  }
 
-    public ILogger Logger => _logger;
-    public string LogDirectory { get; }
-    public string LogFilePattern { get; }
+  public ILogger Logger => _logger;
+  public string LogDirectory { get; }
+  public string LogFilePattern { get; }
 
-    public bool IsDebugEnabled
+  public bool IsDebugEnabled
+  {
+    get => _levelSwitch.MinimumLevel == LogEventLevel.Debug;
+    set => _levelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
+  }
+
+  public ILogger ForContext<T>() => _logger.ForContext<T>();
+
+  public void Flush()
+  {
+    if (_disposed)
     {
-        get => _levelSwitch.MinimumLevel == LogEventLevel.Debug;
-        set => _levelSwitch.MinimumLevel = value ? LogEventLevel.Debug : LogEventLevel.Information;
+      return;
     }
 
-    public ILogger ForContext<T>() => _logger.ForContext<T>();
+    Log.CloseAndFlush();
+    _disposed = true;
+  }
 
-    public void Flush()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        Log.CloseAndFlush();
-        _disposed = true;
-    }
-
-    public void Dispose() => Flush();
+  public void Dispose() => Flush();
 }

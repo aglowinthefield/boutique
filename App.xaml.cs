@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -18,10 +19,11 @@ namespace Boutique;
 public partial class App
 #pragma warning restore CA1001
 {
-  private IContainer? _container;
+  private static string _pendingReleaseNotes = string.Empty;
+  private static bool _forceShowUpdate;
   private LoggingService? _loggingService;
 
-  public IContainer? Container => _container;
+  public IContainer? Container { get; private set; }
 
   protected override void OnStartup(StartupEventArgs e)
   {
@@ -66,17 +68,17 @@ public partial class App
 
     builder.RegisterType<MainWindow>().AsSelf();
 
-    _container = builder.Build();
+    Container = builder.Build();
 
-    var themeService = _container.Resolve<ThemeService>();
+    var themeService = Container.Resolve<ThemeService>();
     themeService.Initialize();
 
     try
     {
-      var localizationService = _container.Resolve<LocalizationService>();
+      var localizationService = Container.Resolve<LocalizationService>();
       localizationService.Initialize();
 
-      var mainWindow = _container.Resolve<MainWindow>();
+      var mainWindow = Container.Resolve<MainWindow>();
       mainWindow.Show();
 
       Log.Information("Main window displayed.");
@@ -87,18 +89,15 @@ public partial class App
       throw;
     }
 
-    if (FeatureFlags.AutoUpdateEnabled && Services.GuiSettingsService.Current?.AutoUpdateEnabled == true)
+    if (FeatureFlags.AutoUpdateEnabled && GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {
       _ = Task.Run(async () =>
       {
         await Task.Delay(1500);
-        Current.Dispatcher.Invoke(() => CheckForUpdates(forceShow: false));
+        Current.Dispatcher.Invoke(() => CheckForUpdates(false));
       });
     }
   }
-
-  private static string _pendingReleaseNotes = string.Empty;
-  private static bool _forceShowUpdate;
 
   public static void CheckForUpdates(bool forceShow = false)
   {
@@ -107,7 +106,7 @@ public partial class App
       return;
     }
 
-    if (!forceShow && Services.GuiSettingsService.Current?.AutoUpdateEnabled != true)
+    if (!forceShow && GuiSettingsService.Current?.AutoUpdateEnabled != true)
     {
       return;
     }
@@ -147,7 +146,7 @@ public partial class App
   {
     if (args.IsUpdateAvailable)
     {
-      var dialog = new Views.UpdateDialog
+      var dialog = new UpdateDialog
       {
         CurrentVersion = (AutoUpdater.InstalledVersion ?? new Version(0, 0, 0)).ToString(),
         LatestVersion = args.CurrentVersion,
@@ -158,7 +157,7 @@ public partial class App
       };
       dialog.DataContext = dialog;
 
-      if (dialog.ShowDialog() == true && dialog.Result == Views.UpdateResult.Update)
+      if (dialog.ShowDialog() == true && dialog.Result == UpdateResult.Update)
       {
         try
         {
@@ -171,37 +170,32 @@ public partial class App
         {
           Log.Error(ex, "Failed to download update.");
           MessageBox.Show(
-              $"Failed to download update: {ex.Message}",
-              "Update Error",
-              MessageBoxButton.OK,
-              MessageBoxImage.Error);
+            $"Failed to download update: {ex.Message}",
+            "Update Error",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
         }
       }
     }
     else if (_forceShowUpdate)
     {
       MessageBox.Show(
-          "You are running the latest version.",
-          "No Update Available",
-          MessageBoxButton.OK,
-          MessageBoxImage.Information);
+        "You are running the latest version.",
+        "No Update Available",
+        MessageBoxButton.OK,
+        MessageBoxImage.Information);
     }
   }
 
   private static Version? GetInstalledVersion()
   {
-    var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+    var assembly = Assembly.GetExecutingAssembly();
     var infoVersion = assembly
-        .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
-        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
-        .FirstOrDefault()?.InformationalVersion;
+      .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+      .OfType<AssemblyInformationalVersionAttribute>()
+      .FirstOrDefault()?.InformationalVersion;
 
-    if (string.IsNullOrEmpty(infoVersion))
-    {
-      return assembly.GetName().Version;
-    }
-
-    return ParseSemanticVersion(infoVersion);
+    return string.IsNullOrEmpty(infoVersion) ? assembly.GetName().Version : ParseSemanticVersion(infoVersion);
   }
 
   private static void ParseGitHubReleases(ParseUpdateInfoEventArgs args)
@@ -230,8 +224,8 @@ public partial class App
         }
 
         var body = release.TryGetProperty("body", out var bodyProp)
-            ? bodyProp.GetString() ?? string.Empty
-            : string.Empty;
+          ? bodyProp.GetString() ?? string.Empty
+          : string.Empty;
 
         string? downloadUrl = null;
         if (release.TryGetProperty("assets", out var assets))
@@ -273,6 +267,7 @@ public partial class App
         sb.AppendLine(string.IsNullOrWhiteSpace(body) ? "(No release notes)" : body.Trim());
         sb.AppendLine();
       }
+
       _pendingReleaseNotes = sb.ToString().TrimEnd();
 
       args.UpdateInfo = new UpdateInfoEventArgs
@@ -283,16 +278,15 @@ public partial class App
       };
 
       Log.Information(
-          "Found {Count} newer release(s). Latest: {Version}",
-          newerReleases.Count,
-          latest.Version);
+        "Found {Count} newer release(s). Latest: {Version}",
+        newerReleases.Count,
+        latest.Version);
     }
     catch (Exception ex)
     {
       Log.Warning(ex, "Failed to parse GitHub releases info.");
     }
   }
-
 
   private static Version? ParseSemanticVersion(string versionString)
   {
@@ -314,20 +308,19 @@ public partial class App
   {
     var mo2Vars = new[]
     {
-            "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR", "MO_MODSDIR", "USVFS_LOGFILE",
-            "VIRTUAL_STORE"
-        };
+      "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR", "MO_MODSDIR", "USVFS_LOGFILE", "VIRTUAL_STORE"
+    };
 
     var detected = mo2Vars
-        .Select(v => (Name: v, Value: Environment.GetEnvironmentVariable(v)))
-        .Where(x => !string.IsNullOrEmpty(x.Value))
-        .ToList();
+      .Select(v => (Name: v, Value: Environment.GetEnvironmentVariable(v)))
+      .Where(x => !string.IsNullOrEmpty(x.Value))
+      .ToList();
 
     if (detected.Count > 0)
     {
       Log.Information(
-          "MO2 environment detected: {Variables}",
-          string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
+        "MO2 environment detected: {Variables}",
+        string.Join(", ", detected.Select(x => $"{x.Name}={x.Value}")));
     }
     else
     {
@@ -338,7 +331,7 @@ public partial class App
   protected override void OnExit(ExitEventArgs e)
   {
     Log.Information("Application exit.");
-    _container?.Dispose();
+    Container?.Dispose();
     _loggingService?.Dispose();
     base.OnExit(e);
   }
@@ -346,7 +339,7 @@ public partial class App
   private void ConfigureExceptionLogging()
   {
     AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-        Log.Fatal(args.ExceptionObject as Exception, "AppDomain unhandled exception.");
+      Log.Fatal(args.ExceptionObject as Exception, "AppDomain unhandled exception.");
 
     DispatcherUnhandledException += (_, args) =>
     {

@@ -16,11 +16,11 @@ public class GameAssetLocator
 {
   private static readonly ModKey[] FallbackModKeys =
   [
-      ModKey.FromNameAndExtension("Skyrim.esm"),
-        ModKey.FromNameAndExtension("Update.esm"),
-        ModKey.FromNameAndExtension("Dawnguard.esm"),
-        ModKey.FromNameAndExtension("HearthFires.esm"),
-        ModKey.FromNameAndExtension("Dragonborn.esm")
+    ModKey.FromNameAndExtension("Skyrim.esm"),
+    ModKey.FromNameAndExtension("Update.esm"),
+    ModKey.FromNameAndExtension("Dawnguard.esm"),
+    ModKey.FromNameAndExtension("HearthFires.esm"),
+    ModKey.FromNameAndExtension("Dragonborn.esm")
   ];
 
   private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = [];
@@ -63,8 +63,8 @@ public class GameAssetLocator
     if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
     {
       _logger.Debug(
-          "ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}",
-          normalized);
+        "ResolveAssetPath skipped because data path is unavailable. Requested asset: {Asset}",
+        normalized);
       return null;
     }
 
@@ -188,10 +188,10 @@ public class GameAssetLocator
     var results = new List<CachedArchive>();
 
     foreach (var filePath in Archive.GetApplicableArchivePaths(
-                 _mutagenService.GameRelease,
-                 directoryPath,
-                 modKey,
-                 _fileSystem))
+               _mutagenService.GameRelease,
+               directoryPath,
+               modKey,
+               _fileSystem))
     {
       TryAddArchive(results, filePath);
     }
@@ -219,11 +219,13 @@ public class GameAssetLocator
     {
       try
       {
-        using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, _mutagenService.SkyrimRelease, _mutagenService.Utf8ReadParameters);
+        using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath,
+          _mutagenService.SkyrimRelease,
+          _mutagenService.Utf8ReadParameters);
         masters = mod.ModHeader.MasterReferences
-            .Select(m => m.Master)
-            .Distinct()
-            .ToList();
+          .Select(m => m.Master)
+          .Distinct()
+          .ToList();
       }
       catch (Exception ex)
       {
@@ -343,8 +345,8 @@ public class GameAssetLocator
       _reader = reader;
       _logger = logger;
       _files = new Lazy<Dictionary<string, IArchiveFile>>(
-          BuildLookup,
-          LazyThreadSafetyMode.ExecutionAndPublication);
+        BuildLookup,
+        LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     public string ArchivePath { get; }

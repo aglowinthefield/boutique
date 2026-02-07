@@ -31,7 +31,8 @@
     </Grid>
 
     <Border Grid.Row="1" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="2">
-      <ScrollViewer x:Name="IconScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer x:Name="IconScrollViewer" VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
         <ItemsControl x:Name="IconsItemsControl">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

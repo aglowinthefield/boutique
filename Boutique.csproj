@@ -1,119 +1,119 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-        <LangVersion>preview</LangVersion>
-        <Nullable>enable</Nullable>
-        <UseWPF>true</UseWPF>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <AssemblyName>Boutique</AssemblyName>
-        <RootNamespace>Boutique</RootNamespace>
-        <ApplicationIcon>Assets\App.ico</ApplicationIcon>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <NoWarn>$(NoWarn);CS0436;CS1591;CS1570;CS1587</NoWarn>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Boutique</AssemblyName>
+    <RootNamespace>Boutique</RootNamespace>
+    <ApplicationIcon>Assets\App.ico</ApplicationIcon>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <NoWarn>$(NoWarn);CS0436;CS1591;CS1570;CS1587</NoWarn>
 
-        <!-- Versioning - automatically derived from git tags via MinVer -->
-        <!-- Tag format: v1.2.3 → Version 1.2.3 -->
-        <MinVerTagPrefix>v</MinVerTagPrefix>
+    <!-- Versioning - automatically derived from git tags via MinVer -->
+    <!-- Tag format: v1.2.3 → Version 1.2.3 -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
 
-        <!-- Code analysis -->
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <AnalysisLevel>latest-recommended</AnalysisLevel>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Code analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-        <!-- Feature flags (set to true to enable) -->
-        <EnableAutoUpdate>true</EnableAutoUpdate>
-        <EnableTutorial>false</EnableTutorial>
-    </PropertyGroup>
+    <!-- Feature flags (set to true to enable) -->
+    <EnableAutoUpdate>true</EnableAutoUpdate>
+    <EnableTutorial>false</EnableTutorial>
+  </PropertyGroup>
 
-    <!-- Generate feature flags as compile-time constants -->
-    <PropertyGroup Condition="'$(EnableAutoUpdate)' == 'true'">
-        <DefineConstants>$(DefineConstants);FEATURE_AUTO_UPDATE</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(EnableTutorial)' == 'true'">
-        <DefineConstants>$(DefineConstants);FEATURE_TUTORIAL</DefineConstants>
-    </PropertyGroup>
+  <!-- Generate feature flags as compile-time constants -->
+  <PropertyGroup Condition="'$(EnableAutoUpdate)' == 'true'">
+    <DefineConstants>$(DefineConstants);FEATURE_AUTO_UPDATE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableTutorial)' == 'true'">
+    <DefineConstants>$(DefineConstants);FEATURE_TUTORIAL</DefineConstants>
+  </PropertyGroup>
 
-    <!-- Allow test project to access internal members -->
-    <ItemGroup>
-        <InternalsVisibleTo Include="Boutique.Tests" />
-    </ItemGroup>
+  <!-- Allow test project to access internal members -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boutique.Tests"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="DynamicData" Version="9.4.1" />
-        <PackageReference Include="GuideLine.WPF" Version="1.0.3" />
-        <PackageReference Include="Loqui" Version="3.2.0" />
-        <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.53.1" />
-        <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.5" />
-        <PackageReference Include="Pfim" Version="0.11.4" />
-        <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="ReactiveUI.WPF" Version="22.3.1" />
-        <PackageReference Include="Autofac" Version="9.0.0" />
-        <PackageReference Include="System.Reactive" Version="6.1.0" />
-        <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Nifly" Version="1.0.0" />
-        <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.27.3">
-            <NoWarn>NU1701</NoWarn>
-        </PackageReference>
-        <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
-            <NoWarn>NU1701</NoWarn>
-        </PackageReference>
-        <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2" />
-        <PackageReference Include="MessagePack" Version="3.1.4" />
-        <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
+  <ItemGroup>
+    <PackageReference Include="DynamicData" Version="9.4.1"/>
+    <PackageReference Include="GuideLine.WPF" Version="1.0.3"/>
+    <PackageReference Include="Loqui" Version="3.2.0"/>
+    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.53.1"/>
+    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.5"/>
+    <PackageReference Include="Pfim" Version="0.11.4"/>
+    <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="ReactiveUI.WPF" Version="22.3.1"/>
+    <PackageReference Include="Autofac" Version="9.0.0"/>
+    <PackageReference Include="System.Reactive" Version="6.1.0"/>
+    <PackageReference Include="Serilog" Version="4.3.0"/>
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0"/>
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+    <PackageReference Include="Nifly" Version="1.0.0"/>
+    <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.27.3">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2"/>
+    <PackageReference Include="MessagePack" Version="3.1.4"/>
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all"/>
 
-        <!-- Code analyzers -->
-        <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" />
-    </ItemGroup>
+    <!-- Code analyzers -->
+    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="WPFLocalizeExtension" Version="3.10.0"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <Resource Include="Assets\eye.png" />
-        <Resource Include="Assets\sprites\*.png" />
-    </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\eye.png"/>
+    <Resource Include="Assets\sprites\*.png"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <EmbeddedResource Update="Resources\Strings.resx">
-            <Generator>PublicResXFileCodeGenerator</Generator>
-            <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-        <Compile Update="Resources\Strings.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Strings.resx</DependentUpon>
-        </Compile>
-    </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
-    <ItemGroup>
-        <AdditionalFiles Include="stylecop.json" />
-    </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json"/>
+  </ItemGroup>
 
-    <!-- Exclude test project directory from main project -->
-    <ItemGroup>
-        <Compile Remove="Boutique.Tests\**" />
-        <EmbeddedResource Remove="Boutique.Tests\**" />
-        <None Remove="Boutique.Tests\**" />
-        <Content Remove="Boutique.Tests\**" />
-    </ItemGroup>
+  <!-- Exclude test project directory from main project -->
+  <ItemGroup>
+    <Compile Remove="Boutique.Tests\**"/>
+    <EmbeddedResource Remove="Boutique.Tests\**"/>
+    <None Remove="Boutique.Tests\**"/>
+    <Content Remove="Boutique.Tests\**"/>
+  </ItemGroup>
 
   <Target Name="HuskyInstall" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != '0'">
-      <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High" />
-      <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" />
+    <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High"/>
+    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High"/>
   </Target>
 
 </Project>

@@ -9,11 +9,11 @@ namespace Boutique.ViewModels;
 public partial class ArmorRecordViewModel : ReactiveObject
 {
   private readonly ILinkCache? _linkCache;
-  private string? _searchCache;
+  [Reactive] private bool _isConflicting;
 
   [Reactive] private bool _isMapped;
   [Reactive] private bool _isSlotCompatible = true;
-  [Reactive] private bool _isConflicting;
+  private string? _searchCache;
 
   public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
   {
@@ -24,7 +24,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
     ArmorType = ResolveArmorType();
 
     this.WhenAnyValue(x => x.IsSlotCompatible)
-        .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
+      .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
   }
 
   public IArmorGetter Armor { get; }
@@ -58,16 +58,16 @@ public partial class ArmorRecordViewModel : ReactiveObject
       }
 
       var keywordNames = Armor.Keywords
-          .Select(k =>
+        .Select(k =>
+        {
+          if (_linkCache.TryResolve<IKeywordGetter>(k.FormKey, out var keyword))
           {
-            if (_linkCache.TryResolve<IKeywordGetter>(k.FormKey, out var keyword))
-            {
-              return keyword.EditorID ?? "Unknown";
-            }
+            return keyword.EditorID ?? "Unknown";
+          }
 
-            return "Unresolved";
-          })
-          .Take(5); // Limit display to first 5
+          return "Unresolved";
+        })
+        .Take(5); // Limit display to first 5
 
       var result = string.Join(", ", keywordNames);
       if (Armor.Keywords.Count > 5)
@@ -134,7 +134,8 @@ public partial class ArmorRecordViewModel : ReactiveObject
       return true;
     }
 
-    _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary} {ArmorType}".ToLowerInvariant();
+    _searchCache ??= $"{DisplayName} {EditorID} {ModDisplayName} {FormIdDisplay} {SlotSummary} {ArmorType}"
+      .ToLowerInvariant();
     return _searchCache.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase);
   }
 

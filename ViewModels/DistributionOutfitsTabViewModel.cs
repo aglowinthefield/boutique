@@ -25,8 +25,6 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
   private readonly MutagenService _mutagenService;
 
   private readonly IObservable<bool> _notLoading;
-  private readonly NpcOutfitResolutionService _npcOutfitResolutionService;
-  private readonly NpcScanningService _npcScanningService;
   private readonly SourceList<OutfitRecordViewModel> _outfitsSource = new();
   private readonly SettingsViewModel _settings;
 
@@ -34,28 +32,23 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
   [Reactive] private bool _isLoading;
 
-  [Reactive] private bool _showOnlyLeveledOutfits;
-
-  [Reactive] private string _selectedOutfitContents = string.Empty;
-
   private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
 
   [Reactive] private string _outfitSearchText = string.Empty;
 
+  [Reactive] private string _selectedOutfitContents = string.Empty;
+
+  [Reactive] private bool _showOnlyLeveledOutfits;
+
   [Reactive] private string _statusMessage = string.Empty;
 
-
   public DistributionOutfitsTabViewModel(
-      NpcScanningService npcScanningService,
-      NpcOutfitResolutionService npcOutfitResolutionService,
-      ArmorPreviewService armorPreviewService,
-      MutagenService mutagenService,
-      GameDataCacheService cache,
-      SettingsViewModel settings,
-      ILogger logger)
+    ArmorPreviewService armorPreviewService,
+    MutagenService mutagenService,
+    GameDataCacheService cache,
+    SettingsViewModel settings,
+    ILogger logger)
   {
-    _npcScanningService = npcScanningService;
-    _npcOutfitResolutionService = npcOutfitResolutionService;
     _armorPreviewService = armorPreviewService;
     _mutagenService = mutagenService;
     _cache = cache;
@@ -65,25 +58,25 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
 
     var filterPredicate = this.WhenAnyValue(
-            vm => vm.OutfitSearchText,
-            vm => vm.HideVanillaOutfits,
-            vm => vm.ShowOnlyLeveledOutfits)
-        .Throttle(TimeSpan.FromMilliseconds(200))
-        .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2, tuple.Item3));
+        vm => vm.OutfitSearchText,
+        vm => vm.HideVanillaOutfits,
+        vm => vm.ShowOnlyLeveledOutfits)
+      .Throttle(TimeSpan.FromMilliseconds(200))
+      .Select(tuple => CreateOutfitFilter(tuple.Item1, tuple.Item2, tuple.Item3));
 
     _disposables.Add(_outfitsSource.Connect()
-        .Filter(filterPredicate)
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredOutfits)
-        .Subscribe());
+      .Filter(filterPredicate)
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredOutfits)
+      .Subscribe());
     FilteredOutfits = filteredOutfits;
 
     this.WhenAnyValue(vm => vm.SelectedOutfit)
-        .Subscribe(async _ =>
-        {
-          UpdateSelectedOutfitContents();
-          await UpdateSelectedOutfitNpcAssignmentsAsync();
-        });
+      .Subscribe(async _ =>
+      {
+        UpdateSelectedOutfitContents();
+        await UpdateSelectedOutfitNpcAssignmentsAsync();
+      });
   }
 
   public IObservableList<OutfitRecordViewModel> Outfits => _outfitsSource;
@@ -113,8 +106,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
   public bool IsInitialized => _mutagenService.IsInitialized;
 
+  public void Dispose()
+  {
+    _disposables.Dispose();
+    _outfitsSource.Dispose();
+    GC.SuppressFinalize(this);
+  }
+
   /// <summary>
-  ///     Event raised when an outfit is copied to create a distribution entry.
+  ///   Event raised when an outfit is copied to create a distribution entry.
   /// </summary>
   public event EventHandler<CopiedOutfit>? OutfitCopied;
 
@@ -165,15 +165,15 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
       StatusMessage = "Loading outfits from load order...";
       _logger.Debug("Loading outfits from load order...");
       var outfits = await Task.Run(() =>
-          linkCache.WinningOverrides<IOutfitGetter>().ToList());
+        linkCache.WinningOverrides<IOutfitGetter>().ToList());
       _logger.Debug("Loaded {Count} outfits from load order", outfits.Count);
 
       // Use cached NPC assignments from startup (already calculated correctly)
       if (_cache.AllNpcOutfitAssignments.Count > 0)
       {
         _npcAssignments = _cache.AllNpcOutfitAssignments
-            .Select(vm => vm.Assignment)
-            .ToList();
+          .Select(vm => vm.Assignment)
+          .ToList();
         _logger.Debug("Using {Count} cached NPC outfit assignments", _npcAssignments.Count);
 
         // Update counts now that we have both outfits and assignments
@@ -240,17 +240,20 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     {
       StatusMessage = $"Building preview for {label}...";
 
-      var metadata = new OutfitMetadata(label, outfit.FormKey.ModKey.FileName.String, false, initialResult.ContainsLeveledItems);
+      var metadata = new OutfitMetadata(label,
+        outfit.FormKey.ModKey.FileName.String,
+        false,
+        initialResult.ContainsLeveledItems);
       var collection = new ArmorPreviewSceneCollection(
-          1,
-          0,
-          new[] { metadata },
-          async (_, gender) =>
-          {
-            var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-            var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-            return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
-          });
+        1,
+        0,
+        new[] { metadata },
+        async (_, gender) =>
+        {
+          var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+          var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+          return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
+        });
 
       await ShowPreview.Handle(collection);
       StatusMessage = $"Preview ready for {label}.";
@@ -295,37 +298,37 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     }
 
     var owningNpc = SelectedOutfitNpcAssignments
-        .FirstOrDefault(npc => npc.Distributions.Contains(clickedDistribution));
+      .FirstOrDefault(npc => npc.Distributions.Contains(clickedDistribution));
     var initialGender = owningNpc != null
-        ? GetNpcGender(owningNpc.NpcFormKey, linkCache)
-        : GenderedModelVariant.Female;
+      ? GetNpcGender(owningNpc.NpcFormKey, linkCache)
+      : GenderedModelVariant.Female;
 
     try
     {
       StatusMessage = $"Building preview for {label}...";
 
       var metadata = new OutfitMetadata(
-          clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
-          clickedDistribution.FileName,
-          clickedDistribution.IsWinner,
-          initialResult.ContainsLeveledItems);
+        clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
+        clickedDistribution.FileName,
+        clickedDistribution.IsWinner,
+        initialResult.ContainsLeveledItems);
       var collection = new ArmorPreviewSceneCollection(
-          1,
-          0,
-          new[] { metadata },
-          async (_, gender) =>
+        1,
+        0,
+        new[] { metadata },
+        async (_, gender) =>
+        {
+          var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+          var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+          return scene with
           {
-            var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-            var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-            return scene with
-            {
-              OutfitLabel =
-                      clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
-              SourceFile = clickedDistribution.FileName,
-              IsWinner = clickedDistribution.IsWinner
-            };
-          },
-          initialGender);
+            OutfitLabel =
+            clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
+            SourceFile = clickedDistribution.FileName,
+            IsWinner = clickedDistribution.IsWinner
+          };
+        },
+        initialGender);
 
       await ShowPreview.Handle(collection);
       StatusMessage = $"Preview ready for {label}.";
@@ -350,10 +353,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
     var copiedOutfit = new CopiedOutfit
     {
-      OutfitFormKey = outfit.FormKey,
-      OutfitEditorId = editorId,
-      Description = editorId,
-      IsOverride = isOverride
+      OutfitFormKey = outfit.FormKey, OutfitEditorId = editorId, Description = editorId, IsOverride = isOverride
     };
 
     OutfitCopied?.Invoke(this, copiedOutfit);
@@ -362,7 +362,9 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     return Task.CompletedTask;
   }
 
-  private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText, bool hideVanilla, bool showOnlyLeveled)
+  private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText,
+    bool hideVanilla,
+    bool showOnlyLeveled)
   {
     var term = searchText?.Trim().ToLowerInvariant() ?? string.Empty;
     return vm =>
@@ -387,8 +389,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
   }
 
   /// <summary>
-  ///     Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
-  ///     An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
+  ///   Returns true if this outfit is only used as default outfits (no distribution changed any NPC to use it).
+  ///   An outfit is a "vanilla distribution" if all NPCs whose final outfit is this one also have it as their default.
   /// </summary>
   private bool IsVanillaDistribution(FormKey outfitFormKey)
   {
@@ -399,8 +401,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
     // Find all NPCs whose final outfit is this one
     var npcsWithThisOutfit = _npcAssignments
-        .Where(a => a.FinalOutfitFormKey == outfitFormKey)
-        .ToList();
+      .Where(a => a.FinalOutfitFormKey == outfitFormKey)
+      .ToList();
 
     if (npcsWithThisOutfit.Count == 0)
     {
@@ -444,31 +446,31 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     {
       // Find all NPCs that have this outfit as their final resolved outfit
       var assignments = _npcAssignments
-              .Where(assignment => assignment.FinalOutfitFormKey == outfitFormKey)
-              .Select(assignment => new NpcOutfitAssignmentViewModel(assignment))
-              .ToList();
+        .Where(assignment => assignment.FinalOutfitFormKey == outfitFormKey)
+        .Select(assignment => new NpcOutfitAssignmentViewModel(assignment))
+        .ToList();
 
       // Extract unique distribution files with NPC counts
       var distributions = assignments
-              .SelectMany(a => a.Distributions.Select(d => (Npc: a, Dist: d)))
-              .GroupBy(x => x.Dist.FileName)
-              .Select(g =>
-              {
-              var first = g.First().Dist;
-              return new OutfitDistributionSummary
-              {
-                FileName = first.FileName,
-                FileType = first.FileType,
-                OutfitEditorId = first.OutfitEditorId,
-                OutfitFormKey = first.OutfitFormKey,
-                IsWinner = g.Any(x => x.Dist.IsWinner),
-                NpcCount = g.Select(x => x.Npc.NpcFormKey).Distinct().Count(),
-                TargetingDescription = first.TargetingDescription
-              };
-            })
-              .OrderByDescending(d => d.IsWinner)
-              .ThenByDescending(d => d.NpcCount)
-              .ToList();
+        .SelectMany(a => a.Distributions.Select(d => (Npc: a, Dist: d)))
+        .GroupBy(x => x.Dist.FileName)
+        .Select(g =>
+        {
+          var first = g.First().Dist;
+          return new OutfitDistributionSummary
+          {
+            FileName = first.FileName,
+            FileType = first.FileType,
+            OutfitEditorId = first.OutfitEditorId,
+            OutfitFormKey = first.OutfitFormKey,
+            IsWinner = g.Any(x => x.Dist.IsWinner),
+            NpcCount = g.Select(x => x.Npc.NpcFormKey).Distinct().Count(),
+            TargetingDescription = first.TargetingDescription
+          };
+        })
+        .OrderByDescending(d => d.IsWinner)
+        .ThenByDescending(d => d.NpcCount)
+        .ToList();
 
       return (assignments, distributions);
     });
@@ -490,10 +492,10 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     }
 
     _logger.Debug(
-        "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}, {DistCount} distribution files",
-        matchingAssignments.Count,
-        selectedOutfitRef.EditorID,
-        distributionSummaries.Count);
+      "UpdateSelectedOutfitNpcAssignmentsAsync: Found {Count} NPCs with outfit {EditorID}, {DistCount} distribution files",
+      matchingAssignments.Count,
+      selectedOutfitRef.EditorID,
+      distributionSummaries.Count);
   }
 
   private void UpdateSelectedOutfitContents()
@@ -559,24 +561,17 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
   }
 
   private static GenderedModelVariant GetNpcGender(
-      FormKey npcFormKey,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    FormKey npcFormKey,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
     {
       return npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female)
-          ? GenderedModelVariant.Female
-          : GenderedModelVariant.Male;
+        ? GenderedModelVariant.Female
+        : GenderedModelVariant.Male;
     }
 
     return GenderedModelVariant.Female;
-  }
-
-  public void Dispose()
-  {
-    _disposables.Dispose();
-    _outfitsSource.Dispose();
-    GC.SuppressFinalize(this);
   }
 }
 

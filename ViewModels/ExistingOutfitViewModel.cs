@@ -7,10 +7,10 @@ namespace Boutique.ViewModels;
 public class ExistingOutfitViewModel
 {
   public ExistingOutfitViewModel(
-      string displayName,
-      string editorId,
-      FormKey formKey,
-      IEnumerable<IArmorGetter>? pieces)
+    string displayName,
+    string editorId,
+    FormKey formKey,
+    IEnumerable<IArmorGetter>? pieces)
   {
     DisplayName = displayName;
     EditorId = editorId;
@@ -30,12 +30,12 @@ public class ExistingOutfitViewModel
   public string FormIdDisplay { get; }
 
   public string Summary =>
-      $"{FormatName()} — {PieceCount} piece(s) — FormID {FormIdDisplay}";
+    $"{FormatName()} — {PieceCount} piece(s) — FormID {FormIdDisplay}";
 
   private string FormatName()
   {
     return string.Equals(DisplayName, EditorId, StringComparison.Ordinal)
-        ? DisplayName
-        : $"{DisplayName} ({EditorId})";
+      ? DisplayName
+      : $"{DisplayName} ({EditorId})";
   }
 }

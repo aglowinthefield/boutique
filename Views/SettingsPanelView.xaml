@@ -55,9 +55,11 @@
             <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
                      Text="{Binding Settings.SkyrimDataPath, UpdateSourceTrigger=PropertyChanged}" />
             <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,12">
-              <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}" Margin="0,0,6,0"
+              <Button Content="{lex:Loc Button_Browse}" Command="{Binding Settings.BrowseDataPathCommand}"
+                      Margin="0,0,6,0"
                       MinWidth="80" />
-              <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}" MinWidth="90" />
+              <Button Content="{lex:Loc Button_AutoDetect}" Command="{Binding Settings.AutoDetectPathCommand}"
+                      MinWidth="90" />
             </StackPanel>
 
             <!-- Row 2: Detection -->

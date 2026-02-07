@@ -924,6 +924,15 @@ namespace Boutique.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        public static string Header_Type {
+            get {
+                return ResourceManager.GetString("Header_Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File:.
         /// </summary>
         public static string Label_File {
@@ -1581,6 +1590,51 @@ namespace Boutique.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ⚠️ This name conflicts with an existing plugin.
+        /// </summary>
+        public static string PatchNameCollision_Header {
+            get {
+                return ResourceManager.GetString("PatchNameCollision_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep This Name.
+        /// </summary>
+        public static string PatchNameCollision_KeepName {
+            get {
+                return ResourceManager.GetString("PatchNameCollision_KeepName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot; already exists in your load order. Using this name may overwrite existing data when you create a patch. Consider choosing a unique name..
+        /// </summary>
+        public static string PatchNameCollision_Message {
+            get {
+                return ResourceManager.GetString("PatchNameCollision_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose Different Name.
+        /// </summary>
+        public static string PatchNameCollision_Revert {
+            get {
+                return ResourceManager.GetString("PatchNameCollision_Revert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plugin Name Conflict.
+        /// </summary>
+        public static string PatchNameCollision_Title {
+            get {
+                return ResourceManager.GetString("PatchNameCollision_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ambient.
         /// </summary>
         public static string Preview_Ambient {
@@ -1707,6 +1761,15 @@ namespace Boutique.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blacklist:.
+        /// </summary>
+        public static string Settings_Blacklist {
+            get {
+                return ResourceManager.GetString("Settings_Blacklist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Detection:.
         /// </summary>
         public static string Settings_Detection {
@@ -1721,6 +1784,42 @@ namespace Boutique.Resources {
         public static string Settings_FontSize {
             get {
                 return ResourceManager.GetString("Settings_FontSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Advanced.
+        /// </summary>
+        public static string Settings_Group_Advanced {
+            get {
+                return ResourceManager.GetString("Settings_Group_Advanced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Appearance.
+        /// </summary>
+        public static string Settings_Group_Appearance {
+            get {
+                return ResourceManager.GetString("Settings_Group_Appearance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Game Configuration.
+        /// </summary>
+        public static string Settings_Group_GameConfiguration {
+            get {
+                return ResourceManager.GetString("Settings_Group_GameConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Patch Settings.
+        /// </summary>
+        public static string Settings_Group_PatchSettings {
+            get {
+                return ResourceManager.GetString("Settings_Group_PatchSettings", resourceCulture);
             }
         }
         
@@ -1892,6 +1991,15 @@ namespace Boutique.Resources {
         public static string Tab_Classes {
             get {
                 return ResourceManager.GetString("Tab_Classes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Containers.
+        /// </summary>
+        public static string Tab_Containers {
+            get {
+                return ResourceManager.GetString("Tab_Containers", resourceCulture);
             }
         }
         

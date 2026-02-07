@@ -15,23 +15,23 @@ public partial class IconPickerViewModel : ReactiveObject
     _selectedIcon = currentIcon;
 
     FilteredIcons = this.WhenAnyValue(x => x.SearchText)
-        .Throttle(TimeSpan.FromMilliseconds(150))
-        .Select(filter =>
+      .Throttle(TimeSpan.FromMilliseconds(150))
+      .Select(filter =>
+      {
+        if (string.IsNullOrWhiteSpace(filter))
         {
-          if (string.IsNullOrWhiteSpace(filter))
-          {
-            return IconCacheService.Icons;
-          }
+          return IconCacheService.Icons;
+        }
 
-          return IconCacheService.Icons
-                  .Where(icon => icon.Contains(filter, StringComparison.OrdinalIgnoreCase))
-                  .ToList();
-        })
-        .ObserveOn(RxApp.MainThreadScheduler);
+        return IconCacheService.Icons
+          .Where(icon => icon.Contains(filter, StringComparison.OrdinalIgnoreCase))
+          .ToList();
+      })
+      .ObserveOn(RxApp.MainThreadScheduler);
   }
 
   public IObservable<IReadOnlyList<string>> FilteredIcons { get; }
 
   public static Uri GetIconUri(string iconName) =>
-      new($"pack://application:,,,/Assets/sprites/{iconName}", UriKind.Absolute);
+    new($"pack://application:,,,/Assets/sprites/{iconName}", UriKind.Absolute);
 }

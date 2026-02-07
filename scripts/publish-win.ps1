@@ -1,8 +1,8 @@
 param(
-    [string]$Configuration = "Release",
-    [string]$Runtime = "win-x64",
-    [switch]$SelfContained,
-    [string]$Version = ""
+  [string]$Configuration = "Release",
+  [string]$Runtime = "win-x64",
+  [switch]$SelfContained,
+  [string]$Version = ""
 )
 
 Set-StrictMode -Version Latest
@@ -14,47 +14,47 @@ $publishPath = Join-Path $outputRoot $Runtime
 
 if (-not (Test-Path $projectPath))
 {
-    throw "Could not locate project file at '$projectPath'. Run the script from within the repository."
+  throw "Could not locate project file at '$projectPath'. Run the script from within the repository."
 }
 
 if (-not (Test-Path $outputRoot))
 {
-    New-Item -ItemType Directory -Path $outputRoot | Out-Null
+  New-Item -ItemType Directory -Path $outputRoot | Out-Null
 }
 
 if (-not (Test-Path $publishPath))
 {
-    New-Item -ItemType Directory -Path $publishPath | Out-Null
+  New-Item -ItemType Directory -Path $publishPath | Out-Null
 }
 
 # Kill any existing Boutique processes
 $boutiqueProcesses = Get-Process -Name "Boutique" -ErrorAction SilentlyContinue
 if ($boutiqueProcesses)
 {
-    Write-Host "Stopping existing Boutique processes..." -ForegroundColor Yellow
-    $boutiqueProcesses | Stop-Process -Force
-    Start-Sleep -Seconds 1
-    Write-Host "Boutique processes stopped." -ForegroundColor Green
+  Write-Host "Stopping existing Boutique processes..." -ForegroundColor Yellow
+  $boutiqueProcesses | Stop-Process -Force
+  Start-Sleep -Seconds 1
+  Write-Host "Boutique processes stopped." -ForegroundColor Green
 }
 
 $selfContainedValue = $SelfContained.ToString().ToLower()
 
 $arguments = @(
-    "publish", $projectPath,
-    "-c", $Configuration,
-    "-r", $Runtime,
-    "--self-contained", $selfContainedValue,
-    "-p:PublishSingleFile=true",
-    "-p:IncludeNativeLibrariesForSelfExtract=true",
-    "--output", $publishPath
+  "publish", $projectPath,
+  "-c", $Configuration,
+  "-r", $Runtime,
+  "--self-contained", $selfContainedValue,
+  "-p:PublishSingleFile=true",
+  "-p:IncludeNativeLibrariesForSelfExtract=true",
+  "--output", $publishPath
 )
 
 # Version is auto-detected from git tags via MinVer
 # Use -Version parameter to override if needed (e.g., for testing)
 if ($Version -ne "")
 {
-    Write-Host "Overriding MinVer version to $Version..." -ForegroundColor Cyan
-    $arguments += "-p:MinVerVersionOverride=$Version"
+  Write-Host "Overriding MinVer version to $Version..." -ForegroundColor Cyan
+  $arguments += "-p:MinVerVersionOverride=$Version"
 }
 
 Write-Host "Publishing Boutique ($Configuration | $Runtime | SelfContained=$selfContainedValue)..." -ForegroundColor Cyan
@@ -64,7 +64,7 @@ dotnet @arguments
 
 if ($LASTEXITCODE -ne 0)
 {
-    throw "dotnet publish failed with exit code $LASTEXITCODE"
+  throw "dotnet publish failed with exit code $LASTEXITCODE"
 }
 
 Write-Host "Publish complete." -ForegroundColor Green
@@ -75,7 +75,7 @@ $zipPath = Join-Path $outputRoot "Boutique.zip"
 # Remove old zip if exists
 if (Test-Path $zipPath)
 {
-    Remove-Item $zipPath -Force
+  Remove-Item $zipPath -Force
 }
 
 Write-Host "Creating distribution zip..." -ForegroundColor Cyan
@@ -84,14 +84,14 @@ Write-Host "Creating distribution zip..." -ForegroundColor Cyan
 $exePath = Join-Path $publishPath "Boutique.exe"
 if (-not (Test-Path $exePath))
 {
-    throw "Boutique.exe not found at $exePath"
+  throw "Boutique.exe not found at $exePath"
 }
 
 # Create a temp directory for the zip contents
 $tempZipDir = Join-Path $outputRoot "temp_zip"
 if (Test-Path $tempZipDir)
 {
-    Remove-Item $tempZipDir -Recurse -Force
+  Remove-Item $tempZipDir -Recurse -Force
 }
 New-Item -ItemType Directory -Path $tempZipDir | Out-Null
 
@@ -103,24 +103,24 @@ Copy-Item $exePath $tempZipDir
 $buildOutputPath = Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows10.0.19041\$Runtime"
 if (-not (Test-Path $buildOutputPath))
 {
-    $buildOutputPath = Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows10.0.19041"
+  $buildOutputPath = Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows10.0.19041"
 }
 
 $cultureFolders = @(Get-ChildItem -Path $buildOutputPath -Directory -ErrorAction SilentlyContinue | Where-Object {
-    $_.Name -match "^[a-z]{2}(-[A-Za-z]{2,})?$" -and (Test-Path (Join-Path $_.FullName "Boutique.resources.dll"))
+  $_.Name -match "^[a-z]{2}(-[A-Za-z]{2,})?$" -and (Test-Path (Join-Path $_.FullName "Boutique.resources.dll"))
 })
 
 foreach ($folder in $cultureFolders)
 {
-    $destFolder = Join-Path $tempZipDir $folder.Name
-    New-Item -ItemType Directory -Path $destFolder -Force | Out-Null
-    Copy-Item (Join-Path $folder.FullName "Boutique.resources.dll") $destFolder
-    Write-Host "  Including translation: $( $folder.Name )" -ForegroundColor DarkGray
+  $destFolder = Join-Path $tempZipDir $folder.Name
+  New-Item -ItemType Directory -Path $destFolder -Force | Out-Null
+  Copy-Item (Join-Path $folder.FullName "Boutique.resources.dll") $destFolder
+  Write-Host "  Including translation: $( $folder.Name )" -ForegroundColor DarkGray
 }
 
 if ($cultureFolders.Count -gt 0)
 {
-    Write-Host "Included $( $cultureFolders.Count ) translation(s)" -ForegroundColor Green
+  Write-Host "Included $( $cultureFolders.Count ) translation(s)" -ForegroundColor Green
 }
 
 # Create the zip

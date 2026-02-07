@@ -12,50 +12,50 @@ namespace Boutique.ViewModels;
 public partial class DistributionContainersTabViewModel : ReactiveObject
 {
   private readonly GameDataCacheService _cacheService;
+  [Reactive] private bool _hideEmptyContainers = true;
 
   [Reactive] private bool _isLoading;
-  [Reactive] private string _statusMessage = string.Empty;
   [Reactive] private string _searchText = string.Empty;
-  [Reactive] private ContainerRecordViewModel? _selectedContainer;
-  [Reactive] private bool _hideEmptyContainers = true;
   [Reactive] private string? _selectedCell;
+  [Reactive] private ContainerRecordViewModel? _selectedContainer;
   [Reactive] private string _selectedRespawnsFilter = "Any";
+  [Reactive] private string _statusMessage = string.Empty;
 
   public DistributionContainersTabViewModel(GameDataCacheService cacheService)
   {
     _cacheService = cacheService;
 
     var filterPredicate = this.WhenAnyValue(
-            x => x.SearchText,
-            x => x.HideEmptyContainers,
-            x => x.SelectedCell,
-            x => x.SelectedRespawnsFilter)
-        .Throttle(TimeSpan.FromMilliseconds(150))
-        .Select(CreateFilter);
+        x => x.SearchText,
+        x => x.HideEmptyContainers,
+        x => x.SelectedCell,
+        x => x.SelectedRespawnsFilter)
+      .Throttle(TimeSpan.FromMilliseconds(150))
+      .Select(CreateFilter);
 
     _cacheService.AllContainers
-        .ToObservableChangeSet()
-        .Filter(filterPredicate)
-        .Sort(SortExpressionComparer<ContainerRecordViewModel>.Ascending(c => c.DisplayName))
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Bind(out var filteredContainers)
-        .Subscribe(_ => UpdateStatusMessage());
+      .ToObservableChangeSet()
+      .Filter(filterPredicate)
+      .Sort(SortExpressionComparer<ContainerRecordViewModel>.Ascending(c => c.DisplayName))
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Bind(out var filteredContainers)
+      .Subscribe(_ => UpdateStatusMessage());
 
     FilteredContainers = filteredContainers;
 
     this.WhenAnyValue(x => x.SelectedContainer)
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Subscribe(container =>
+      .ObserveOn(RxApp.MainThreadScheduler)
+      .Subscribe(container =>
+      {
+        SelectedContainerItems.Clear();
+        if (container?.Items != null)
         {
-          SelectedContainerItems.Clear();
-          if (container?.Items != null)
+          foreach (var item in container.Items)
           {
-            foreach (var item in container.Items)
-            {
-              SelectedContainerItems.Add(item);
-            }
+            SelectedContainerItems.Add(item);
           }
-        });
+        }
+      });
 
     UpdateStatusMessage();
     _cacheService.CacheLoaded += OnCacheLoaded;
@@ -83,10 +83,10 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
     AvailableCells.Add(string.Empty);
 
     var cells = _cacheService.AllContainers
-        .SelectMany(c => c.CellPlacements)
-        .Distinct()
-        .OrderBy(c => c)
-        .ToList();
+      .SelectMany(c => c.CellPlacements)
+      .Distinct()
+      .OrderBy(c => c)
+      .ToList();
 
     foreach (var cell in cells)
     {
@@ -95,7 +95,7 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
   }
 
   private static Func<ContainerRecordViewModel, bool> CreateFilter(
-      (string search, bool hideEmpty, string? cell, string respawns) args)
+    (string search, bool hideEmpty, string? cell, string respawns) args)
   {
     var (search, hideEmpty, cell, respawns) = args;
     var searchLower = search?.Trim().ToLowerInvariant() ?? string.Empty;
@@ -128,8 +128,8 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
       }
 
       return container.DisplayName.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
-                 container.EditorId.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
-                 container.ModName.Contains(searchLower, StringComparison.OrdinalIgnoreCase);
+             container.EditorId.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
+             container.ModName.Contains(searchLower, StringComparison.OrdinalIgnoreCase);
     };
   }
 
@@ -138,7 +138,7 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
     var total = _cacheService.AllContainers.Count;
     var filtered = FilteredContainers.Count;
     StatusMessage = total == 0
-        ? "No containers loaded"
-        : $"{filtered:N0} of {total:N0} containers";
+      ? "No containers loaded"
+      : $"{filtered:N0} of {total:N0} containers";
   }
 }

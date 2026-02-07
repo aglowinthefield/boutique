@@ -11,10 +11,10 @@ public class DistributionFilePathService(SettingsViewModel settings, ILogger log
   private readonly ILogger _logger = logger.ForContext<DistributionFilePathService>();
 
   public string? UpdatePathForFormat(
-      string? currentPath,
-      bool isCreatingNewFile,
-      string? newFileName,
-      DistributionFileType format)
+    string? currentPath,
+    bool isCreatingNewFile,
+    string? newFileName,
+    DistributionFileType format)
   {
     if (isCreatingNewFile)
     {
@@ -48,9 +48,9 @@ public class DistributionFilePathService(SettingsViewModel settings, ILogger log
     var result = GetDistributionFilePath(baseDirectory, baseName, format);
 
     _logger.Debug(
-        "Updated distribution file path for format {Format}: {Path}",
-        format,
-        result);
+      "Updated distribution file path for format {Format}: {Path}",
+      format,
+      result);
 
     return result;
   }
@@ -103,9 +103,9 @@ public class DistributionFilePathService(SettingsViewModel settings, ILogger log
   }
 
   private string GetBaseDirectory(string dataPath) =>
-      !string.IsNullOrWhiteSpace(settings.OutputPatchPath)
-          ? settings.OutputPatchPath
-          : dataPath;
+    !string.IsNullOrWhiteSpace(settings.OutputPatchPath)
+      ? settings.OutputPatchPath
+      : dataPath;
 
   private string? GetTargetDirectory()
   {

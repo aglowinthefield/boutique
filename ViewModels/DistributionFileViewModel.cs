@@ -52,7 +52,7 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
       }
 
       var skypatcherIndex =
-          Array.FindIndex(parts, p => p.Equals("SkyPatcher", StringComparison.OrdinalIgnoreCase));
+        Array.FindIndex(parts, p => p.Equals("SkyPatcher", StringComparison.OrdinalIgnoreCase));
       if (skypatcherIndex >= 0 && skypatcherIndex < parts.Length - 1)
       {
         return string.Join("/", parts.Skip(skypatcherIndex + 1));

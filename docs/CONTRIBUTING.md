@@ -39,18 +39,21 @@ For direct contributions:
 ### Writing Principles
 
 **Be Clear and Concise**
+
 - Use simple language
 - Avoid jargon without explanation
 - Short paragraphs (2-4 sentences)
 - Active voice preferred
 
 **Be Beginner-Friendly**
+
 - Assume no coding knowledge
 - Explain acronyms on first use (e.g., "SPID (Spell Perk Item Distributor)")
 - Provide context for technical terms
 - Use examples to illustrate concepts
 
 **Be Helpful**
+
 - Anticipate common questions
 - Provide step-by-step instructions
 - Include troubleshooting tips
@@ -59,6 +62,7 @@ For direct contributions:
 ### Formatting Standards
 
 **Headers**
+
 ```markdown
 # Main Title (only one per document)
 ## Section Header
@@ -69,6 +73,7 @@ For direct contributions:
 **Lists**
 
 Numbered lists for sequential steps:
+
 ```markdown
 1. First, do this
 2. Then, do that
@@ -76,6 +81,7 @@ Numbered lists for sequential steps:
 ```
 
 Bulleted lists for options or features:
+
 ```markdown
 - Option one
 - Option two
@@ -101,11 +107,13 @@ Outfit = MyOutfit|ActorTypeNPC|NONE|NONE|F
 **Links**
 
 Use descriptive link text:
+
 ```markdown
 See the [Distribution Overview](#distribution-overview) section.
 ```
 
 Not:
+
 ```markdown
 Click [here](#distribution-overview) for more info.
 ```
@@ -113,6 +121,7 @@ Click [here](#distribution-overview) for more info.
 **Images**
 
 Include alt text and captions:
+
 ```markdown
 ![Settings panel showing data path configuration](https://nexus-url.com/image.png)
 *The Settings panel with Skyrim Data path configured*
@@ -146,6 +155,7 @@ Maintain the existing structure:
 ### Common Patterns
 
 **Introducing a Feature**
+
 ```markdown
 ## Feature Name
 
@@ -165,6 +175,7 @@ Step-by-step explanation.
 ```
 
 **Troubleshooting Entry**
+
 ```markdown
 ### Problem Description
 
@@ -181,6 +192,7 @@ Step-by-step explanation.
 ```
 
 **Workflow Example**
+
 ```markdown
 ### Workflow: Descriptive Name
 
