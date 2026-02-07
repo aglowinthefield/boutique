@@ -128,8 +128,42 @@
               <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkill}}"
                            VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox SelectedValue="{Binding LevelFilterMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
+                          Width="120" Height="26" VerticalContentAlignment="Center"
+                          Margin="0,0,6,0"
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}">
+                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="None" />
+                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="Level" />
+                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillLevel}" Content="Skill Level" />
+                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillWeight}" Content="Skill Weight" />
+                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Raw}" Content="Raw" />
+                </ComboBox>
+                <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.SkillFilterOptions}"
+                          SelectedItem="{Binding SelectedLevelSkill, Mode=TwoWay}"
+                          DisplayMemberPath="DisplayText"
+                          Width="150" Height="26" VerticalContentAlignment="Center"
+                          Margin="0,0,6,0"
+                          Visibility="{Binding IsSkillLevelMode, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBlock Text="Min"
+                           VerticalAlignment="Center"
+                           Margin="0,0,4,0"
+                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBox Text="{Binding LevelFilterMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="48" Height="26" VerticalContentAlignment="Center"
+                         Margin="0,0,6,0"
+                         Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBlock Text="Max"
+                           VerticalAlignment="Center"
+                           Margin="0,0,4,0"
+                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                <TextBox Text="{Binding LevelFilterMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="48" Height="26" VerticalContentAlignment="Center"
+                         Margin="0,0,6,0"
+                         Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
                 <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Width="100" Height="26" VerticalContentAlignment="Center"
+                         Width="210" Height="26" VerticalContentAlignment="Center"
+                         Visibility="{Binding IsRawLevelFilterMode, Converter={StaticResource BoolToVisConverter}}"
                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}" />
               </StackPanel>
             </WrapPanel>

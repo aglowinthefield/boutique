@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
@@ -23,6 +24,20 @@ public enum UniqueFilter
   NonUniqueOnly
 }
 
+public enum LevelFilterMode
+{
+  None,
+  Level,
+  SkillLevel,
+  SkillWeight,
+  Raw
+}
+
+public sealed record SkillFilterOption(int Index, string Name)
+{
+  public string DisplayText => $"{Index}. {Name}";
+}
+
 public partial class DistributionEntryViewModel : ReactiveObject
 {
   [Reactive] private int _chance = 100;
@@ -38,6 +53,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
   [Reactive] private string _exclusiveGroupName = string.Empty;
 
   [Reactive] private string _keywordToDistribute = string.Empty;
+
+  [Reactive] private string _levelFilterMax = string.Empty;
+
+  [Reactive] private string _levelFilterMin = string.Empty;
+
+  [Reactive] private LevelFilterMode _levelFilterMode = LevelFilterMode.None;
+
+  [Reactive] private SkillFilterOption? _selectedLevelSkill;
 
   [Reactive] private string _levelFilters = string.Empty;
 
@@ -61,6 +84,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private bool _useChance;
 
+  private bool _isSynchronizingLevelFilter;
+
   public DistributionEntryViewModel(
       DistributionEntry entry,
       Action<DistributionEntryViewModel>? removeAction = null,
@@ -77,6 +102,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
     UseChance = entry.Chance.HasValue;
     Chance = entry.Chance ?? 100;
     LevelFilters = entry.LevelFilters ?? string.Empty;
+    SelectedLevelSkill = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
+    ParseLevelFiltersToUi(LevelFilters);
     RawStringFilters = entry.RawStringFilters ?? string.Empty;
     RawFormFilters = entry.RawFormFilters ?? string.Empty;
 
@@ -240,7 +267,26 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Subscribe(levelFilters =>
         {
           Entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
+          RaiseFilterSummaryChanged();
           RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(
+            x => x.LevelFilterMode,
+            x => x.SelectedLevelSkill,
+            x => x.LevelFilterMin,
+            x => x.LevelFilterMax)
+        .Skip(1)
+        .Subscribe(_ => RebuildLevelFiltersFromUi());
+
+    this.WhenAnyValue(x => x.LevelFilterMode)
+        .Skip(1)
+        .Subscribe(_ =>
+        {
+          this.RaisePropertyChanged(nameof(IsSkillLevelMode));
+          this.RaisePropertyChanged(nameof(IsRawLevelFilterMode));
+          this.RaisePropertyChanged(nameof(IsStructuredLevelFilterMode));
+          this.RaisePropertyChanged(nameof(HasRangeLevelFilterMode));
         });
 
     this.WhenAnyValue(x => x.RawStringFilters)
@@ -269,6 +315,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
   public bool IsOutfitDistribution => Type == DistributionType.Outfit;
   public bool IsKeywordDistribution => Type == DistributionType.Keyword;
   public bool IsExclusiveGroupDistribution => Type == DistributionType.ExclusiveGroup;
+  public bool IsSkillLevelMode => LevelFilterMode == LevelFilterMode.SkillLevel || LevelFilterMode == LevelFilterMode.SkillWeight;
+  public bool IsRawLevelFilterMode => LevelFilterMode == LevelFilterMode.Raw;
+  public bool IsStructuredLevelFilterMode => !IsRawLevelFilterMode;
+  public bool HasRangeLevelFilterMode => LevelFilterMode == LevelFilterMode.Level || IsSkillLevelMode;
 
   public static DistributionType[] TypeOptions { get; } =
       [DistributionType.Outfit, DistributionType.Keyword, DistributionType.ExclusiveGroup];
@@ -276,6 +326,31 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   public static UniqueFilter[] UniqueOptions { get; } =
       [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
+
+  public static LevelFilterMode[] LevelFilterModeOptions { get; } =
+      [LevelFilterMode.None, LevelFilterMode.Level, LevelFilterMode.SkillLevel, LevelFilterMode.SkillWeight, LevelFilterMode.Raw];
+
+  public static IReadOnlyList<SkillFilterOption> SkillFilterOptions { get; } =
+  [
+      new(0, "One-Handed"),
+      new(1, "Two-Handed"),
+      new(2, "Archery"),
+      new(3, "Block"),
+      new(4, "Smithing"),
+      new(5, "Heavy Armor"),
+      new(6, "Light Armor"),
+      new(7, "Pickpocket"),
+      new(8, "Lockpicking"),
+      new(9, "Sneak"),
+      new(10, "Alchemy"),
+      new(11, "Speech"),
+      new(12, "Alteration"),
+      new(13, "Conjuration"),
+      new(14, "Destruction"),
+      new(15, "Illusion"),
+      new(16, "Restoration"),
+      new(17, "Enchanting")
+  ];
 
   public bool HasTraitFilters => Gender != GenderFilter.Any || Unique != UniqueFilter.Any || IsChild.HasValue;
 
@@ -364,6 +439,212 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
 
+  private void ParseLevelFiltersToUi(string? levelFiltersText)
+  {
+    _isSynchronizingLevelFilter = true;
+    try
+    {
+      var text = levelFiltersText?.Trim();
+      if (string.IsNullOrWhiteSpace(text) || text.Equals("NONE", StringComparison.OrdinalIgnoreCase))
+      {
+        LevelFilterMode = LevelFilterMode.None;
+        LevelFilterMin = string.Empty;
+        LevelFilterMax = string.Empty;
+        return;
+      }
+
+      if (text.Contains(','))
+      {
+        LevelFilterMode = LevelFilterMode.Raw;
+        return;
+      }
+
+      if (TryParseSkillLevelFilter(text, out var isWeight, out var skillIndex, out var minValue, out var maxValue))
+      {
+        LevelFilterMode = isWeight ? LevelFilterMode.SkillWeight : LevelFilterMode.SkillLevel;
+        SelectedLevelSkill = GetSkillFilterOption(skillIndex);
+        LevelFilterMin = minValue.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax = maxValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        return;
+      }
+
+      if (TryParseRange(text, out var minLevel, out var maxLevel))
+      {
+        LevelFilterMode = LevelFilterMode.Level;
+        LevelFilterMin = minLevel.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax = maxLevel?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        return;
+      }
+
+      LevelFilterMode = LevelFilterMode.Raw;
+    }
+    finally
+    {
+      _isSynchronizingLevelFilter = false;
+    }
+  }
+
+  private void RebuildLevelFiltersFromUi()
+  {
+    if (_isSynchronizingLevelFilter)
+    {
+      return;
+    }
+
+    string? rebuilt = LevelFilterMode switch
+    {
+      LevelFilterMode.None => null,
+      LevelFilterMode.Level => BuildRangeSyntax(LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.SkillLevel => BuildSkillSyntax(false, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.SkillWeight => BuildSkillSyntax(true, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.Raw => null,
+      _ => null
+    };
+
+    if (LevelFilterMode == LevelFilterMode.Raw)
+    {
+      return;
+    }
+
+    var newText = rebuilt ?? string.Empty;
+    if (!string.Equals(LevelFilters, newText, StringComparison.Ordinal))
+    {
+      _isSynchronizingLevelFilter = true;
+      try
+      {
+        LevelFilters = newText;
+      }
+      finally
+      {
+        _isSynchronizingLevelFilter = false;
+      }
+    }
+  }
+
+  private static string? BuildSkillSyntax(
+      bool isWeight,
+      SkillFilterOption? skill,
+      string minText,
+      string maxText)
+  {
+    if (skill == null)
+    {
+      return null;
+    }
+
+    var range = BuildRangeSyntax(minText, maxText);
+    if (string.IsNullOrWhiteSpace(range))
+    {
+      return null;
+    }
+
+    var prefix = isWeight ? "w" : string.Empty;
+    return $"{prefix}{skill.Index}({range})";
+  }
+
+  private static string? BuildRangeSyntax(string minText, string maxText)
+  {
+    var hasMin = int.TryParse(minText, out var minValue);
+    var hasMax = int.TryParse(maxText, out var maxValue);
+
+    if (!hasMin)
+    {
+      return null;
+    }
+
+    if (!hasMax)
+    {
+      return $"{minValue}/";
+    }
+
+    return $"{minValue}/{maxValue}";
+  }
+
+  private static bool TryParseSkillLevelFilter(
+      string text,
+      out bool isWeight,
+      out int skillIndex,
+      out int minValue,
+      out int? maxValue)
+  {
+    isWeight = false;
+    skillIndex = 0;
+    minValue = 0;
+    maxValue = null;
+
+    var openParen = text.IndexOf('(');
+    var closeParen = text.LastIndexOf(')');
+    if (openParen < 0 || closeParen <= openParen || closeParen != text.Length - 1)
+    {
+      return false;
+    }
+
+    var prefix = text[..openParen].Trim();
+    if (string.IsNullOrWhiteSpace(prefix))
+    {
+      return false;
+    }
+
+    if (prefix.StartsWith('w') || prefix.StartsWith('W'))
+    {
+      isWeight = true;
+      prefix = prefix[1..];
+    }
+
+    if (!int.TryParse(prefix, out skillIndex) || skillIndex < 0 || skillIndex > 17)
+    {
+      return false;
+    }
+
+    var rangePart = text[(openParen + 1)..closeParen].Trim();
+    return TryParseRange(rangePart, out minValue, out maxValue);
+  }
+
+  private static SkillFilterOption? GetSkillFilterOption(int index)
+  {
+    for (var i = 0; i < SkillFilterOptions.Count; i++)
+    {
+      var option = SkillFilterOptions[i];
+      if (option.Index == index)
+      {
+        return option;
+      }
+    }
+
+    return SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
+  }
+
+  private static bool TryParseRange(string text, out int minValue, out int? maxValue)
+  {
+    maxValue = null;
+
+    var slashIndex = text.IndexOf('/');
+    if (slashIndex < 0)
+    {
+      return int.TryParse(text, out minValue);
+    }
+
+    var minPart = text[..slashIndex].Trim();
+    var maxPart = slashIndex < text.Length - 1 ? text[(slashIndex + 1)..].Trim() : string.Empty;
+
+    if (!int.TryParse(minPart, out minValue))
+    {
+      return false;
+    }
+
+    if (!string.IsNullOrWhiteSpace(maxPart))
+    {
+      if (!int.TryParse(maxPart, out var parsedMax))
+      {
+        return false;
+      }
+
+      maxValue = parsedMax;
+    }
+
+    return true;
+  }
+
   private string BuildFilterSummary()
   {
     if (Type == DistributionType.ExclusiveGroup)
@@ -418,6 +699,11 @@ public partial class DistributionEntryViewModel : ReactiveObject
     if (UseChance && Chance < 100)
     {
       parts.Add($"{Chance}%");
+    }
+
+    if (!string.IsNullOrWhiteSpace(LevelFilters))
+    {
+      parts.Add("Level/Skill");
     }
 
     if (!string.IsNullOrWhiteSpace(_rawStringFilters))

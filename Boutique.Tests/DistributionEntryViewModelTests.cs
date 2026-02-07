@@ -108,4 +108,43 @@ public class DistributionEntryViewModelTests
 
         vm.Gender.Should().Be(GenderFilter.Any);
     }
+
+    [Fact]
+    public void LevelFilters_InitializesStructuredSkillMode_FromSpidSkillSyntax()
+    {
+        var entry = new DistributionEntry { LevelFilters = "14(50/50)" };
+
+        var vm = new DistributionEntryViewModel(entry);
+
+        vm.LevelFilterMode.Should().Be(LevelFilterMode.SkillLevel);
+        vm.SelectedLevelSkill!.Index.Should().Be(14);
+        vm.LevelFilterMin.Should().Be("50");
+        vm.LevelFilterMax.Should().Be("50");
+    }
+
+    [Fact]
+    public void LevelFilters_WhenUsingSkillWeightUi_RebuildsSpidSyntax()
+    {
+        var entry = new DistributionEntry();
+        var vm = new DistributionEntryViewModel(entry);
+
+        vm.LevelFilterMode = LevelFilterMode.SkillWeight;
+        vm.SelectedLevelSkill = DistributionEntryViewModel.SkillFilterOptions.First(s => s.Index == 2);
+        vm.LevelFilterMin = "2";
+        vm.LevelFilterMax = "3";
+
+        vm.LevelFilters.Should().Be("w2(2/3)");
+        entry.LevelFilters.Should().Be("w2(2/3)");
+    }
+
+    [Fact]
+    public void LevelFilters_UnsupportedSyntax_FallsBackToRawMode()
+    {
+        var entry = new DistributionEntry { LevelFilters = "14(50/50),5/10" };
+
+        var vm = new DistributionEntryViewModel(entry);
+
+        vm.LevelFilterMode.Should().Be(LevelFilterMode.Raw);
+        vm.LevelFilters.Should().Be("14(50/50),5/10");
+    }
 }
