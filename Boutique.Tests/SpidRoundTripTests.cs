@@ -115,6 +115,7 @@ public class SpidRoundTripTests
     [Theory]
     [InlineData("Outfit = TestOutfit")]
     [InlineData("Keyword = TestKeyword")]
+    [InlineData("ExclusiveGroup = GroupName|A,B,-C")]
     [InlineData("Spell = TestSpell")]
     [InlineData("Perk = TestPerk")]
     [InlineData("Item = TestItem")]

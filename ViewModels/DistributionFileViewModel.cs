@@ -28,7 +28,9 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
   public int CommentCount => file.Lines.Count(l => l.Kind == DistributionLineKind.Comment);
   public int OutfitCount => file.OutfitDistributionCount;
   public int KeywordCount => file.KeywordDistributionCount;
+  public int ExclusiveGroupCount => file.ExclusiveGroupDistributionCount;
   public bool HasKeywordDistributions => file.KeywordDistributionCount > 0;
+  public bool HasExclusiveGroupDistributions => file.ExclusiveGroupDistributionCount > 0;
 
   private string ExtractUniquePath()
   {

@@ -11,7 +11,8 @@ public interface IExcludable
 public enum DistributionType
 {
     Outfit,
-    Keyword
+    Keyword,
+    ExclusiveGroup
 }
 
 public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false) : IExcludable;
@@ -23,6 +24,8 @@ public sealed class DistributionEntry
     public DistributionType Type { get; set; } = DistributionType.Outfit;
     public IOutfitGetter? Outfit { get; set; }
     public string? KeywordToDistribute { get; set; }
+    public string? ExclusiveGroupName { get; set; }
+    public List<string> ExclusiveGroupForms { get; set; } = [];
 
     /// <summary>
     ///     NPC filters with negation support. Allows targeting or excluding specific NPCs.

@@ -30,7 +30,10 @@ public sealed record DistributionLine(
     bool IsOutfitDistribution,
     IReadOnlyList<string> OutfitFormKeys,
     bool IsKeywordDistribution = false,
-    string? KeywordIdentifier = null);
+    string? KeywordIdentifier = null,
+    bool IsExclusiveGroupDistribution = false,
+    string? ExclusiveGroupIdentifier = null,
+    IReadOnlyList<string>? ExclusiveGroupForms = null);
 
 public sealed record DistributionFile(
     string FileName,
@@ -39,4 +42,5 @@ public sealed record DistributionFile(
     DistributionFileType Type,
     IReadOnlyList<DistributionLine> Lines,
     int OutfitDistributionCount,
-    int KeywordDistributionCount = 0);
+    int KeywordDistributionCount = 0,
+    int ExclusiveGroupDistributionCount = 0);

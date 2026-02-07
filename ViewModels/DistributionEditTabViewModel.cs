@@ -109,6 +109,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// </summary>
   [Reactive] private bool _hasKeywordDistributions;
 
+  /// <summary>
+  ///     True if any distribution entry is an exclusive-group distribution.
+  ///     When true, SkyPatcher format is not available (it doesn't support SPID ExclusiveGroup syntax).
+  /// </summary>
+  [Reactive] private bool _hasExclusiveGroupDistributions;
+
   private bool _isBulkLoading;
 
   [Reactive] private bool _isCreatingNewFile;
@@ -252,7 +258,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   private void UpdateIntraFileConflicts()
   {
-    if (_isBulkLoading || DistributionEntries.Count < 2)
+    var outfitEntries = DistributionEntries
+        .Where(e => e.Type == DistributionType.Outfit && e.SelectedOutfit != null)
+        .ToList();
+
+    if (_isBulkLoading || outfitEntries.Count < 2)
     {
       HasIntraFileConflicts = false;
       IntraFileConflictSummary = string.Empty;
@@ -266,7 +276,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     {
       var npcToEntries = new Dictionary<FormKey, List<(DistributionEntryViewModel Entry, string OutfitName)>>();
 
-      foreach (var entry in DistributionEntries)
+      foreach (var entry in outfitEntries)
       {
         if (entry.Entry.HasUnresolvedFilters)
         {
@@ -303,7 +313,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
     else
     {
-      conflicts = DistributionEntries
+      conflicts = outfitEntries
           .SelectMany(entry => entry.SelectedNpcs
               .Where(npc => !npc.IsExcluded)
               .Select(npc => (Entry: entry, Npc: npc)))
@@ -528,6 +538,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             UpdateFileContent();
             UpdateHasChanceBasedEntries();
             UpdateHasKeywordDistributions();
+            UpdateHasExclusiveGroupDistributions();
           }
 
           if (string.IsNullOrWhiteSpace(NewFileName))
@@ -651,6 +662,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     UpdateFileContent();
     UpdateHasChanceBasedEntries();
     UpdateHasKeywordDistributions();
+    UpdateHasExclusiveGroupDistributions();
 
     _logger.Debug("OnDistributionEntriesChanged completed");
   }
@@ -669,7 +681,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     _useChanceSubscriptions[entry] = useChanceSub;
 
     var typeSub = entry.WhenAnyValue(e => e.Type)
-        .Subscribe(_ => UpdateHasKeywordDistributions());
+        .Subscribe(_ =>
+        {
+          UpdateHasKeywordDistributions();
+          UpdateHasExclusiveGroupDistributions();
+        });
     _typeSubscriptions[entry] = typeSub;
   }
 
@@ -697,8 +713,26 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void UpdateHasChanceBasedEntries() =>
       HasChanceBasedEntries = DistributionEntries.Any(e => e.UseChance);
 
-  private void UpdateHasKeywordDistributions() =>
-      HasKeywordDistributions = DistributionEntries.Any(e => e.Type == DistributionType.Keyword);
+  private void UpdateHasKeywordDistributions()
+  {
+    HasKeywordDistributions = DistributionEntries.Any(e => e.Type == DistributionType.Keyword);
+    EnsureSpidFormatForSpidOnlyEntries();
+  }
+
+  private void UpdateHasExclusiveGroupDistributions()
+  {
+    HasExclusiveGroupDistributions = DistributionEntries.Any(e => e.Type == DistributionType.ExclusiveGroup);
+    EnsureSpidFormatForSpidOnlyEntries();
+  }
+
+  private void EnsureSpidFormatForSpidOnlyEntries()
+  {
+    if ((HasKeywordDistributions || HasExclusiveGroupDistributions) &&
+        DistributionFormat == DistributionFileType.SkyPatcher)
+    {
+      DistributionFormat = DistributionFileType.Spid;
+    }
+  }
 
   [ReactiveCommand]
   private void AddDistributionEntry()
@@ -1148,6 +1182,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       UpdateFileContent();
       UpdateHasChanceBasedEntries();
       UpdateHasKeywordDistributions();
+      UpdateHasExclusiveGroupDistributions();
 
       var statusMsg =
           $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
@@ -1385,14 +1420,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   {
     try
     {
-      var anyEntryUsesChance = DistributionEntries.Any(e => e.UseChance);
-      var effectiveFormat = anyEntryUsesChance ? DistributionFileType.Spid : DistributionFormat;
+      var hasSpidOnlyEntries = DistributionEntries.Any(e =>
+          e.UseChance ||
+          e.Type == DistributionType.Keyword ||
+          e.Type == DistributionType.ExclusiveGroup);
+      var effectiveFormat = hasSpidOnlyEntries ? DistributionFileType.Spid : DistributionFormat;
 
       _logger.Debug(
-          "UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, anyEntryUsesChance={UsesChance}",
+          "UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, hasSpidOnlyEntries={SpidOnly}",
           DistributionEntries.Count,
           effectiveFormat,
-          anyEntryUsesChance);
+          hasSpidOnlyEntries);
 
       DistributionFileContent =
           DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat, ParseErrors);
@@ -1438,9 +1476,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     foreach (var entry in DistributionEntries)
     {
-      var producesLine = entry.Type == DistributionType.Keyword
-          ? !string.IsNullOrWhiteSpace(entry.KeywordToDistribute)
-          : entry.SelectedOutfit != null;
+      var producesLine = EntryProducesLine(entry);
 
       if (entry == targetEntry)
       {
@@ -1467,9 +1503,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     var currentLine = headerLineCount;
     foreach (var entry in DistributionEntries)
     {
-      var producesLine = entry.Type == DistributionType.Keyword
-          ? !string.IsNullOrWhiteSpace(entry.KeywordToDistribute)
-          : entry.SelectedOutfit != null;
+      var producesLine = EntryProducesLine(entry);
 
       if (!producesLine)
       {
@@ -1485,6 +1519,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       currentLine++;
     }
   }
+
+  private static bool EntryProducesLine(DistributionEntryViewModel entry) =>
+      entry.Type switch
+      {
+        DistributionType.Keyword => !string.IsNullOrWhiteSpace(entry.KeywordToDistribute),
+        DistributionType.ExclusiveGroup => !string.IsNullOrWhiteSpace(entry.ExclusiveGroupName) &&
+                                           !string.IsNullOrWhiteSpace(entry.ExclusiveGroupFormsText),
+        _ => entry.SelectedOutfit != null
+      };
 
   private void RaiseHighlightForEntry(DistributionEntryViewModel entry)
   {

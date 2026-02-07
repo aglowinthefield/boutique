@@ -131,6 +131,7 @@ public class PreviewIntegrationTests
         public Serilog.ILogger Logger { get; } = Serilog.Log.Logger;
         public string LogDirectory { get; } = Path.GetTempPath();
         public string LogFilePattern { get; } = "test-*.log";
+        public bool IsDebugEnabled { get; set; }
 
         public Serilog.ILogger ForContext<T>() => Logger;
         public void Flush() { }

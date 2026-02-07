@@ -171,6 +171,7 @@ public class DistributionDiscoveryService(ILogger logger)
 
             var outfitCount = 0;
             var keywordCount = 0;
+            var exclusiveGroupCount = 0;
             var totalLines = 0;
 
             foreach (var raw in File.ReadLines(filePath, Encoding.UTF8))
@@ -214,8 +215,11 @@ public class DistributionDiscoveryService(ILogger logger)
 
                 var isOutfitDistribution = IsOutfitDistributionLine(type, kind, trimmed);
                 var isKeywordDistribution = IsKeywordDistributionLine(type, kind, trimmed);
+                var isExclusiveGroupDistribution = IsExclusiveGroupDistributionLine(type, kind, trimmed);
                 IReadOnlyList<string> outfitFormKeys = [];
                 string? keywordIdentifier = null;
+                string? exclusiveGroupIdentifier = null;
+                IReadOnlyList<string> exclusiveGroupForms = [];
 
                 if (isOutfitDistribution)
                 {
@@ -229,6 +233,13 @@ public class DistributionDiscoveryService(ILogger logger)
                     keywordIdentifier = ExtractKeywordIdentifier(trimmed);
                 }
 
+                if (isExclusiveGroupDistribution)
+                {
+                    exclusiveGroupCount++;
+                    exclusiveGroupIdentifier = ExtractExclusiveGroupIdentifier(trimmed);
+                    exclusiveGroupForms = ExtractExclusiveGroupForms(trimmed);
+                }
+
                 lines.Add(new DistributionLine(
                     lineNumber,
                     raw,
@@ -239,25 +250,29 @@ public class DistributionDiscoveryService(ILogger logger)
                     isOutfitDistribution,
                     outfitFormKeys,
                     isKeywordDistribution,
-                    keywordIdentifier));
+                    keywordIdentifier,
+                    isExclusiveGroupDistribution,
+                    exclusiveGroupIdentifier,
+                    exclusiveGroupForms));
             }
 
             var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
 
-            if (outfitCount == 0 && keywordCount == 0)
+            if (outfitCount == 0 && keywordCount == 0 && exclusiveGroupCount == 0)
             {
                 _logger.Debug(
-                    "Skipping {FilePath}: no outfit or keyword distributions found (total lines: {TotalLines})",
+                    "Skipping {FilePath}: no outfit, keyword, or exclusive-group distributions found (total lines: {TotalLines})",
                     Path.GetFileName(filePath),
                     totalLines);
                 return null;
             }
 
             _logger.Debug(
-                "Parsed {FilePath}: {OutfitCount} outfit distributions, {KeywordCount} keyword distributions",
+                "Parsed {FilePath}: {OutfitCount} outfit distributions, {KeywordCount} keyword distributions, {ExclusiveGroupCount} exclusive-group distributions",
                 Path.GetFileName(filePath),
                 outfitCount,
-                keywordCount);
+                keywordCount,
+                exclusiveGroupCount);
 
             return new DistributionFile(
                 Path.GetFileName(filePath),
@@ -266,7 +281,8 @@ public class DistributionDiscoveryService(ILogger logger)
                 type,
                 lines,
                 outfitCount,
-                keywordCount);
+                keywordCount,
+                exclusiveGroupCount);
         }
         catch (Exception ex)
         {
@@ -300,6 +316,16 @@ public class DistributionDiscoveryService(ILogger logger)
         return type == DistributionFileType.Spid && IsSpidKeywordLine(trimmed);
     }
 
+    private static bool IsExclusiveGroupDistributionLine(DistributionFileType type, DistributionLineKind kind, string trimmed)
+    {
+        if (kind is DistributionLineKind.Comment or DistributionLineKind.Blank)
+        {
+            return false;
+        }
+
+        return type == DistributionFileType.Spid && IsSpidExclusiveGroupLine(trimmed);
+    }
+
     private static bool IsSpidOutfitLine(string trimmed)
     {
         if (!trimmed.StartsWith("Outfit", StringComparison.OrdinalIgnoreCase) || trimmed.Length <= 6)
@@ -322,6 +348,19 @@ public class DistributionDiscoveryService(ILogger logger)
         return remainder.Length > 0 && remainder[0] == '=';
     }
 
+    private static bool IsSpidExclusiveGroupLine(string trimmed)
+    {
+        const string key = "ExclusiveGroup";
+
+        if (!trimmed.StartsWith(key, StringComparison.OrdinalIgnoreCase) || trimmed.Length <= key.Length)
+        {
+            return false;
+        }
+
+        var remainder = trimmed[key.Length..].TrimStart();
+        return remainder.Length > 0 && remainder[0] == '=';
+    }
+
     private static string? ExtractKeywordIdentifier(string trimmed)
     {
         if (!SpidLineParser.TryParseKeyword(trimmed, out var filter) || filter == null)
@@ -330,6 +369,26 @@ public class DistributionDiscoveryService(ILogger logger)
         }
 
         return filter.FormIdentifier;
+    }
+
+    private static string? ExtractExclusiveGroupIdentifier(string trimmed)
+    {
+        if (!SpidLineParser.TryParseExclusiveGroup(trimmed, out var filter) || filter == null)
+        {
+            return null;
+        }
+
+        return filter.FormIdentifier;
+    }
+
+    private static IReadOnlyList<string> ExtractExclusiveGroupForms(string trimmed)
+    {
+        if (!SpidLineParser.TryParseExclusiveGroup(trimmed, out var filter) || filter == null)
+        {
+            return [];
+        }
+
+        return filter.ExclusiveGroupForms;
     }
 
     private static bool IsSkyPatcherOutfitLine(string trimmed)

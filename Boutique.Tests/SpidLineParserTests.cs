@@ -63,6 +63,28 @@ public class SpidLineParserTests
     }
 
     [Fact]
+    public void TryParse_ExclusiveGroupLine_ParsesCorrectly()
+    {
+        var result = SpidLineParser.TryParse(
+            "ExclusiveGroup = Only One Sword|IronSword,SteelSword,DaedricSword",
+            out var filter);
+
+        result.Should().BeTrue();
+        filter!.FormType.Should().Be(SpidFormType.ExclusiveGroup);
+        filter.FormIdentifier.Should().Be("Only One Sword");
+        filter.ExclusiveGroupForms.Should().ContainInOrder("IronSword", "SteelSword", "DaedricSword");
+    }
+
+    [Fact]
+    public void TryParseExclusiveGroup_MissingForms_ReturnsFalse()
+    {
+        var result = SpidLineParser.TryParseExclusiveGroup("ExclusiveGroup = EmptyGroup", out var filter);
+
+        result.Should().BeFalse();
+        filter.Should().BeNull();
+    }
+
+    [Fact]
     public void TryParse_EmptyLine_ReturnsFalse()
     {
         var result = SpidLineParser.TryParse("", out var filter);

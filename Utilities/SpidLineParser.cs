@@ -10,6 +10,7 @@ public static class SpidLineParser
     {
         ["Outfit"] = SpidFormType.Outfit,
         ["Keyword"] = SpidFormType.Keyword,
+        ["ExclusiveGroup"] = SpidFormType.ExclusiveGroup,
         ["Spell"] = SpidFormType.Spell,
         ["Perk"] = SpidFormType.Perk,
         ["Item"] = SpidFormType.Item,
@@ -28,6 +29,9 @@ public static class SpidLineParser
 
     public static bool TryParseKeyword(string line, out SpidDistributionFilter? result) =>
         TryParse(line, out result, SpidFormType.Keyword);
+
+    public static bool TryParseExclusiveGroup(string line, out SpidDistributionFilter? result) =>
+        TryParse(line, out result, SpidFormType.ExclusiveGroup);
 
     public static bool TryParse(string line, out SpidDistributionFilter? result, SpidFormType? formTypeFilter)
     {
@@ -81,6 +85,11 @@ public static class SpidLineParser
 
     private static SpidDistributionFilter? ParseValuePart(string valuePart, string rawLine, SpidFormType formType)
     {
+        if (formType == SpidFormType.ExclusiveGroup)
+        {
+            return ParseExclusiveGroupValuePart(valuePart, rawLine);
+        }
+
         var (formIdentifier, remainder) = ExtractFormIdentifier(valuePart);
 
         if (string.IsNullOrWhiteSpace(formIdentifier))
@@ -109,6 +118,34 @@ public static class SpidLineParser
             TraitFilters = traitFilters,
             CountOrPackageIdx = IsNone(countOrPackageIdx) ? null : countOrPackageIdx,
             Chance = chance,
+            RawLine = rawLine
+        };
+    }
+
+    private static SpidDistributionFilter? ParseExclusiveGroupValuePart(string valuePart, string rawLine)
+    {
+        var (groupName, remainder) = ExtractFormIdentifier(valuePart);
+        if (string.IsNullOrWhiteSpace(groupName) || string.IsNullOrWhiteSpace(remainder))
+        {
+            return null;
+        }
+
+        var forms = remainder.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(f => f.Trim())
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .ToList();
+
+        if (forms.Count == 0)
+        {
+            return null;
+        }
+
+        return new SpidDistributionFilter
+        {
+            FormType = SpidFormType.ExclusiveGroup,
+            FormIdentifier = groupName,
+            FormFilters = ParseFilterSection(remainder),
+            ExclusiveGroupForms = forms,
             RawLine = rawLine
         };
     }
@@ -470,6 +507,9 @@ public static class SpidLineParser
 
     public static bool IsKeywordLine(string line) =>
         TryParse(line, out _, SpidFormType.Keyword);
+
+    public static bool IsExclusiveGroupLine(string line) =>
+        TryParse(line, out _, SpidFormType.ExclusiveGroup);
 
     public static SpidFormType? GetFormType(string line)
     {

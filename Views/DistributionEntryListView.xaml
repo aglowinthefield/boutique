@@ -104,6 +104,17 @@
                     <Setter Property="ToolTip"
                             Value="SkyPatcher does not support keyword distribution. Change all entries to Outfit type to use this format." />
                   </MultiDataTrigger>
+                  <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                      <Condition Binding="{Binding}" Value="SkyPatcher" />
+                      <Condition
+                        Binding="{Binding DataContext.HasExclusiveGroupDistributions, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                        Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="IsEnabled" Value="False" />
+                    <Setter Property="ToolTip"
+                            Value="SkyPatcher does not support SPID ExclusiveGroup lines. Change all entries away from ExclusiveGroup to use this format." />
+                  </MultiDataTrigger>
                 </Style.Triggers>
               </Style>
             </ComboBox.ItemContainerStyle>

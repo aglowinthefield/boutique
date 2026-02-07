@@ -33,6 +33,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private bool _isSelected;
 
+  [Reactive] private string _exclusiveGroupFormsText = string.Empty;
+
+  [Reactive] private string _exclusiveGroupName = string.Empty;
+
   [Reactive] private string _keywordToDistribute = string.Empty;
 
   [Reactive] private string _levelFilters = string.Empty;
@@ -66,6 +70,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
     Type = entry.Type;
     SelectedOutfit = entry.Outfit;
     KeywordToDistribute = entry.KeywordToDistribute ?? string.Empty;
+    ExclusiveGroupName = entry.ExclusiveGroupName ?? string.Empty;
+    ExclusiveGroupFormsText = entry.ExclusiveGroupForms.Count > 0
+        ? string.Join(",", entry.ExclusiveGroupForms)
+        : string.Empty;
     UseChance = entry.Chance.HasValue;
     Chance = entry.Chance ?? 100;
     LevelFilters = entry.LevelFilters ?? string.Empty;
@@ -93,6 +101,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
           Entry.Type = type;
           this.RaisePropertyChanged(nameof(IsOutfitDistribution));
           this.RaisePropertyChanged(nameof(IsKeywordDistribution));
+          this.RaisePropertyChanged(nameof(IsExclusiveGroupDistribution));
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -111,6 +120,28 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Subscribe(keyword =>
         {
           Entry.KeywordToDistribute = keyword;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.ExclusiveGroupName)
+        .Skip(1)
+        .Subscribe(groupName =>
+        {
+          Entry.ExclusiveGroupName = groupName;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.ExclusiveGroupFormsText)
+        .Skip(1)
+        .Subscribe(formsText =>
+        {
+          Entry.ExclusiveGroupForms = formsText
+              .Split(',', StringSplitOptions.RemoveEmptyEntries)
+              .Select(f => f.Trim())
+              .Where(f => !string.IsNullOrWhiteSpace(f))
+              .ToList();
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -237,8 +268,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   public bool IsOutfitDistribution => Type == DistributionType.Outfit;
   public bool IsKeywordDistribution => Type == DistributionType.Keyword;
+  public bool IsExclusiveGroupDistribution => Type == DistributionType.ExclusiveGroup;
 
-  public static DistributionType[] TypeOptions { get; } = [DistributionType.Outfit, DistributionType.Keyword];
+  public static DistributionType[] TypeOptions { get; } =
+      [DistributionType.Outfit, DistributionType.Keyword, DistributionType.ExclusiveGroup];
   public static GenderFilter[] GenderOptions { get; } = [GenderFilter.Any, GenderFilter.Female, GenderFilter.Male];
 
   public static UniqueFilter[] UniqueOptions { get; } =
@@ -255,9 +288,13 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   public string TargetDisplayName => Type == DistributionType.Outfit
       ? SelectedOutfit?.EditorID ?? "(No outfit)"
-      : !string.IsNullOrWhiteSpace(KeywordToDistribute)
-          ? KeywordToDistribute
-          : "(No keyword)";
+      : Type == DistributionType.Keyword
+          ? !string.IsNullOrWhiteSpace(KeywordToDistribute)
+              ? KeywordToDistribute
+              : "(No keyword)"
+          : !string.IsNullOrWhiteSpace(ExclusiveGroupName)
+              ? ExclusiveGroupName
+              : "(No group)";
 
   public string FilterSummary => BuildFilterSummary();
 
@@ -329,6 +366,13 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   private string BuildFilterSummary()
   {
+    if (Type == DistributionType.ExclusiveGroup)
+    {
+      return Entry.ExclusiveGroupForms.Count > 0
+          ? $"{Entry.ExclusiveGroupForms.Count} form(s)"
+          : "No forms";
+    }
+
     var parts = new List<string>();
 
     if (_selectedNpcs.Count > 0)

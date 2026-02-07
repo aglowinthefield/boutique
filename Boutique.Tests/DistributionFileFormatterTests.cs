@@ -37,6 +37,22 @@ public class DistributionFileFormatterTests
         act.Should().Throw<ArgumentException>();
     }
 
+    [Fact]
+    public void FormatSpidExclusiveGroupLine_FormatsCorrectly()
+    {
+        var entry = new DistributionEntry
+        {
+            Type = DistributionType.ExclusiveGroup,
+            ExclusiveGroupName = "Primary Weapon",
+            ExclusiveGroupForms = ["CoolSword", "DecentAxe", "OPBow"]
+        };
+        var vm = new DistributionEntryViewModel(entry);
+
+        var line = DistributionFileFormatter.FormatSpidExclusiveGroupLine(vm);
+
+        line.Should().Be("ExclusiveGroup = Primary Weapon|CoolSword,DecentAxe,OPBow");
+    }
+
     #endregion
 
     #region FormatTraitFilters Tests

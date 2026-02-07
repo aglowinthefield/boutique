@@ -69,6 +69,14 @@ public static class DistributionFileFormatter
           line = FormatSpidKeywordLine(entry);
         }
       }
+      else if (entry.Type == DistributionType.ExclusiveGroup)
+      {
+        if (!string.IsNullOrWhiteSpace(entry.ExclusiveGroupName) &&
+            !string.IsNullOrWhiteSpace(entry.ExclusiveGroupFormsText))
+        {
+          line = FormatSpidExclusiveGroupLine(entry);
+        }
+      }
       else if (entry.SelectedOutfit != null)
       {
         line = format == DistributionFileType.Spid
@@ -148,6 +156,25 @@ public static class DistributionFileFormatter
     }
 
     return BuildSpidLine("Keyword", entry.KeywordToDistribute, entry);
+  }
+
+  /// <summary>
+  ///     Formats a single entry as a SPID exclusive-group line.
+  ///     Format: ExclusiveGroup = GroupName|FormsList
+  /// </summary>
+  public static string FormatSpidExclusiveGroupLine(DistributionEntryViewModel entry)
+  {
+    if (string.IsNullOrWhiteSpace(entry.ExclusiveGroupName))
+    {
+      throw new ArgumentException("Entry must have an exclusive-group name", nameof(entry));
+    }
+
+    if (string.IsNullOrWhiteSpace(entry.ExclusiveGroupFormsText))
+    {
+      throw new ArgumentException("Entry must have exclusive-group forms", nameof(entry));
+    }
+
+    return $"ExclusiveGroup = {entry.ExclusiveGroupName}|{entry.ExclusiveGroupFormsText}";
   }
 
   private static string BuildSpidLine(string formType, string identifier, DistributionEntryViewModel entry)
@@ -356,10 +383,20 @@ public static class DistributionFileFormatter
   /// </summary>
   public static string FormatSpidDistributionFilter(SpidDistributionFilter filter)
   {
+    if (filter.FormType == SpidFormType.ExclusiveGroup)
+    {
+      var forms = filter.ExclusiveGroupForms.Count > 0
+          ? string.Join(",", filter.ExclusiveGroupForms)
+          : FormatFilterSection(filter.FormFilters);
+
+      return $"ExclusiveGroup = {filter.FormIdentifier}|{forms}";
+    }
+
     var formTypeKeyword = filter.FormType switch
     {
       SpidFormType.Outfit => "Outfit",
       SpidFormType.Keyword => "Keyword",
+      SpidFormType.ExclusiveGroup => "ExclusiveGroup",
       SpidFormType.Spell => "Spell",
       SpidFormType.Perk => "Perk",
       SpidFormType.Item => "Item",

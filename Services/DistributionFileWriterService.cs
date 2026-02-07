@@ -301,6 +301,15 @@ public class DistributionFileWriterService
                                         "Could not resolve keyword distribution filters from SPID syntax";
                                 }
                             }
+                            else if (spidFilter.FormType == SpidFormType.ExclusiveGroup)
+                            {
+                                entry = new DistributionEntry
+                                {
+                                    Type = DistributionType.ExclusiveGroup,
+                                    ExclusiveGroupName = spidFilter.FormIdentifier,
+                                    ExclusiveGroupForms = spidFilter.ExclusiveGroupForms.ToList()
+                                };
+                            }
                             else
                             {
                                 parseErrors.Add(new DistributionParseError(

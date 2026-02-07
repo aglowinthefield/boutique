@@ -78,6 +78,19 @@
                         MinWidth="200" Height="26" VerticalContentAlignment="Center"
                         ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SelectKeywordTooltip}}" />
             </StackPanel>
+
+            <!-- Exclusive group selector -->
+            <StackPanel Orientation="Horizontal"
+                        Visibility="{Binding IsExclusiveGroupDistribution, Converter={StaticResource BoolToVisConverter}}">
+              <TextBlock Text="Group" VerticalAlignment="Center" Margin="0,0,6,0" />
+              <TextBox Text="{Binding ExclusiveGroupName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       MinWidth="140" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0"
+                       ToolTip="ExclusiveGroup name." />
+              <TextBlock Text="Forms" VerticalAlignment="Center" Margin="0,0,6,0" />
+              <TextBox Text="{Binding ExclusiveGroupFormsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       MinWidth="220" Height="26" VerticalContentAlignment="Center"
+                       ToolTip="Comma-separated forms list. Prefix with '-' to remove a form from an existing group." />
+            </StackPanel>
           </StackPanel>
 
           <!-- Chance -->

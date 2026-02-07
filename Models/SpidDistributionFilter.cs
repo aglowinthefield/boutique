@@ -6,6 +6,7 @@ public enum SpidFormType
 {
     Outfit,
     Keyword,
+    ExclusiveGroup,
     Spell,
     Perk,
     Item,
@@ -37,6 +38,11 @@ public sealed class SpidDistributionFilter
     ///     Alias for FormIdentifier for backward compatibility with outfit-specific code.
     /// </summary>
     public string OutfitIdentifier => FormIdentifier;
+
+    /// <summary>
+    ///     ExclusiveGroup forms list (syntax: ExclusiveGroup = GroupName|FormsList).
+    /// </summary>
+    public IReadOnlyList<string> ExclusiveGroupForms { get; init; } = [];
 
     /// <summary>
     ///     String filters (position 2): NPC name, EditorID, or keyword filters.
