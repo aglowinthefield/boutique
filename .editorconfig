@@ -365,3 +365,4 @@ dotnet_diagnostic.SA1611.severity = none
 dotnet_diagnostic.SA1615.severity = none
 
 dotnet_diagnostic.RCS1181.severity = none
+dotnet_diagnostic.SA1316.severity = none

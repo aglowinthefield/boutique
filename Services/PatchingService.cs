@@ -70,7 +70,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     EnsureMinimumFormId(patchMod);
 
     var requiredMasters = new HashSet<ModKey>();
-    var existingMasters = patchMod.ModHeader.MasterReferences?.Select(m => m.Master) ?? [];
+    var existingMasters = patchMod.ModHeader.MasterReferences.Select(m => m.Master);
     requiredMasters.UnionWith(existingMasters);
 
     return (patchMod, requiredMasters);
@@ -460,7 +460,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     return new LeveledListCreationResult(editorId, existing.FormKey);
   }
 
-  private LeveledItem GetOrCreateLeveledItem(SkyrimMod patchMod,
+  private LeveledItem GetOrCreateLeveledItem(
+    SkyrimMod patchMod,
     LeveledItem? existing,
     LeveledListCreationRequest request)
   {
@@ -468,13 +469,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     {
       if (!string.Equals(existing.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase))
       {
-        _logger.Information("Renaming leveled list {OldEditorId} to {NewEditorId}.",
+        _logger.Information(
+          "Renaming leveled list {OldEditorId} to {NewEditorId}.",
           existing.EditorID,
           request.EditorId);
         existing.EditorID = request.EditorId;
       }
 
-      _logger.Information("Updating existing leveled list {EditorId} with {EntryCount} entries.",
+      _logger.Information(
+        "Updating existing leveled list {EditorId} with {EntryCount} entries.",
         request.EditorId,
         request.Entries.Count);
       return existing;
@@ -482,7 +485,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     var leveledItem = patchMod.LeveledItems.AddNew();
     leveledItem.EditorID = request.EditorId;
-    _logger.Information("Creating new leveled list {EditorId} with {EntryCount} entries.",
+    _logger.Information(
+      "Creating new leveled list {EditorId} with {EntryCount} entries.",
       request.EditorId,
       request.Entries.Count);
     return leveledItem;
@@ -622,7 +626,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         .Write();
 
       using (var writtenMod =
-             SkyrimMod.CreateFromBinaryOverlay(tempPath,
+             SkyrimMod.CreateFromBinaryOverlay(
+               tempPath,
                mutagenService.SkyrimRelease,
                mutagenService.Utf8ReadParameters))
       {
@@ -736,7 +741,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
       try
       {
-        using var patchMod = SkyrimMod.CreateFromBinaryOverlay(patchPath,
+        using var patchMod = SkyrimMod.CreateFromBinaryOverlay(
+          patchPath,
           mutagenService.SkyrimRelease,
           mutagenService.Utf8ReadParameters);
         var dataFolder = mutagenService.DataFolderPath ?? string.Empty;
@@ -789,18 +795,21 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           {
             foreach (var itemLink in outfit.Items)
             {
-              var formKeyNullable = itemLink?.FormKeyNullable;
+              var formKeyNullable = itemLink.FormKeyNullable;
+
               if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
               {
                 continue;
               }
 
               var itemModKey = formKeyNullable.Value.ModKey;
-              if (missingMasterSet.Contains(itemModKey))
+              if (!missingMasterSet.Contains(itemModKey))
               {
-                orphanedFormKeys.Add(formKeyNullable.Value);
-                affectingMasters.Add(itemModKey);
+                continue;
               }
+
+              orphanedFormKeys.Add(formKeyNullable.Value);
+              affectingMasters.Add(itemModKey);
             }
           }
 
@@ -829,10 +838,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         }
 
         var missingMasterInfos = missingMasters
-          .Select(m => new MissingMasterInfo(
-            m,
-            affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
-          .ToList();
+            .ConvertAll(m => new MissingMasterInfo(
+              m,
+              affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
+          ;
 
         var allAffectedOutfits = affectedOutfitsByMaster
           .SelectMany(kvp => kvp.Value)
@@ -941,34 +950,42 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
       AddMaster(record.FormKey.ModKey);
 
-      if (record is IOutfitGetter outfitRecord && outfitRecord.Items != null)
+      switch (record)
       {
-        foreach (var item in outfitRecord.Items)
+        case IOutfitGetter { Items: not null } outfitRecord:
         {
-          var formKey = item?.FormKeyNullable;
-          if (formKey.HasValue && formKey.Value != FormKey.Null)
+          foreach (var item in outfitRecord.Items)
           {
-            AddMaster(formKey.Value.ModKey);
-          }
-        }
-      }
+            var formKey = item.FormKeyNullable;
 
-      if (record is IArmorGetter armor)
-      {
-        if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
-        {
-          AddMaster(enchantKey.ModKey);
-        }
-
-        if (armor.Keywords != null)
-        {
-          foreach (var keyword in armor.Keywords)
-          {
-            if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+            if (formKey.HasValue && formKey.Value != FormKey.Null)
             {
-              AddMaster(keywordKey.ModKey);
+              AddMaster(formKey.Value.ModKey);
             }
           }
+
+          break;
+        }
+
+        case IArmorGetter armor:
+        {
+          if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
+          {
+            AddMaster(enchantKey.ModKey);
+          }
+
+          if (armor.Keywords != null)
+          {
+            foreach (var keyword in armor.Keywords)
+            {
+              if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+              {
+                AddMaster(keywordKey.ModKey);
+              }
+            }
+          }
+
+          break;
         }
       }
     }
