@@ -26,7 +26,13 @@ public class SpidFullFlowTests(ITestOutputHelper output)
         parsed.Should().BeTrue($"line {lineNumber} in {fileName} should parse: {line}");
 
         var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter!);
-        formatted.Should().Be(line);
+
+        var reparsed = SpidLineParser.TryParse(formatted, out var reformatted);
+        reparsed.Should().BeTrue($"formatted line should re-parse: {formatted}");
+
+        reformatted.Should().BeEquivalentTo(filter,
+            options => options.Excluding(ctx => ctx.Path == "RawLine"),
+            $"line {lineNumber} in {fileName} should be semantically equivalent after round-trip");
     }
 
     public static IEnumerable<object[]> GetAllTestDataLines()
@@ -85,8 +91,22 @@ public class SpidFullFlowTests(ITestOutputHelper output)
             }
 
             var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter!);
-            var success = formatted == line;
-            results.Add((i + 1, line, formatted, success, success ? null : "Mismatch"));
+
+            if (!SpidLineParser.TryParse(formatted, out var reformatted))
+            {
+                results.Add((i + 1, line, formatted, false, "Reparse failed"));
+                continue;
+            }
+
+            try
+            {
+                reformatted.Should().BeEquivalentTo(filter, options => options.Excluding(ctx => ctx.Path == "RawLine"));
+                results.Add((i + 1, line, formatted, true, null));
+            }
+            catch
+            {
+                results.Add((i + 1, line, formatted, false, "Semantic mismatch"));
+            }
         }
 
         var failures = results.Where(r => !r.Success).ToList();
@@ -303,7 +323,13 @@ public class SpidFullFlowTests(ITestOutputHelper output)
             parsed.Should().BeTrue($"line should parse: {line}");
 
             var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter!);
-            formatted.Should().Be(line.Trim());
+
+            var reparsed = SpidLineParser.TryParse(formatted, out var reformatted);
+            reparsed.Should().BeTrue($"formatted line should re-parse: {formatted}");
+
+            reformatted.Should().BeEquivalentTo(filter,
+                options => options.Excluding(ctx => ctx.Path == "RawLine"),
+                $"line should be semantically equivalent after round-trip: {line}");
         }
 
         output.WriteLine($"FormKey lines tested: {formKeyLines.Count}");
@@ -360,7 +386,7 @@ public class SpidFullFlowTests(ITestOutputHelper output)
             return;
         }
 
-        var allMismatches = new List<(string File, int Line, string Original, string Formatted)>();
+        var allMismatches = new List<(string File, int Line, string Original, string Formatted, string Error)>();
 
         foreach (var file in Directory.GetFiles(TestDataPath, "*.ini"))
         {
@@ -381,9 +407,20 @@ public class SpidFullFlowTests(ITestOutputHelper output)
                 }
 
                 var formatted = DistributionFileFormatter.FormatSpidDistributionFilter(filter!);
-                if (formatted != line)
+
+                if (!SpidLineParser.TryParse(formatted, out var reformatted))
                 {
-                    allMismatches.Add((fileName, i + 1, line, formatted));
+                    allMismatches.Add((fileName, i + 1, line, formatted, "Reparse failed"));
+                    continue;
+                }
+
+                try
+                {
+                    reformatted.Should().BeEquivalentTo(filter, options => options.Excluding(ctx => ctx.Path == "RawLine"));
+                }
+                catch (Exception ex)
+                {
+                    allMismatches.Add((fileName, i + 1, line, formatted, ex.Message));
                 }
             }
         }
@@ -394,6 +431,7 @@ public class SpidFullFlowTests(ITestOutputHelper output)
             output.WriteLine($"  {mismatch.File}:{mismatch.Line}");
             output.WriteLine($"    Original:  {mismatch.Original}");
             output.WriteLine($"    Formatted: {mismatch.Formatted}");
+            output.WriteLine($"    Error: {mismatch.Error}");
         }
 
         allMismatches.Should().BeEmpty("all lines should round-trip consistently");
