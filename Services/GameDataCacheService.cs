@@ -30,8 +30,7 @@ public class GameDataCacheService : IDisposable
   private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
   private readonly GuiSettingsService _guiSettings;
 
-  private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource =
-    new(x => x.EditorID ?? x.FormKey.ToString());
+  private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource = new(x => x.EditorID);
 
   private readonly ILogger _logger;
   private readonly MutagenService _mutagenService;
@@ -176,6 +175,47 @@ public class GameDataCacheService : IDisposable
 
   public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
 
+  private T? TryProcessRecord<T>(
+    ISkyrimMajorRecordGetter record,
+    Func<T> processor,
+    string recordType) where T : class
+  {
+    try
+    {
+      return processor();
+    }
+    catch (Exception ex)
+    {
+      _logger.Warning(
+        ex,
+        "Failed to process {RecordType} {EditorID} from {Plugin}",
+        recordType,
+        record.EditorID ?? "Unknown",
+        record.FormKey.ModKey.FileName);
+      return null;
+    }
+  }
+
+  private void TryProcessRecord(
+    ISkyrimMajorRecordGetter record,
+    Action processor,
+    string recordType)
+  {
+    try
+    {
+      processor();
+    }
+    catch (Exception ex)
+    {
+      _logger.Warning(
+        ex,
+        "Failed to process {RecordType} {EditorID} from {Plugin}",
+        recordType,
+        record.EditorID ?? "Unknown",
+        record.FormKey.ModKey.FileName);
+    }
+  }
+
   public event EventHandler? CacheLoaded;
 
   private async void OnMutagenInitialized(object? sender, EventArgs e)
@@ -218,8 +258,6 @@ public class GameDataCacheService : IDisposable
         }
       }
 
-      List<NpcFilterData> npcFilterDataList;
-      List<NpcRecordViewModel> npcRecordsList;
       List<FactionRecordViewModel> factionsList;
       List<RaceRecordViewModel> racesList;
       List<KeywordRecordViewModel> keywordsList;
@@ -238,26 +276,26 @@ public class GameDataCacheService : IDisposable
         var containersTask = Task.Run(() => LoadContainers(linkCache));
         await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask)
           .ContinueWith(_ => { });
-        factionsList = await SafeAwait(factionsTask, "Factions");
-        racesList = await SafeAwait(racesTask, "Races");
-        keywordsList = await SafeAwait(keywordsTask, "Keywords");
-        classesList = await SafeAwait(classesTask, "Classes");
-        outfitsList = await SafeAwait(outfitsTask, "Outfits");
-        containersList = await SafeAwait(containersTask, "Containers");
+        factionsList = await SafeAwaitAsync(factionsTask, "Factions");
+        racesList = await SafeAwaitAsync(racesTask, "Races");
+        keywordsList = await SafeAwaitAsync(keywordsTask, "Keywords");
+        classesList = await SafeAwaitAsync(classesTask, "Classes");
+        outfitsList = await SafeAwaitAsync(outfitsTask, "Outfits");
+        containersList = await SafeAwaitAsync(containersTask, "Containers");
       }
       else
       {
         await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask)
           .ContinueWith(_ => { });
-        factionsList = await SafeAwait(factionsTask, "Factions");
-        racesList = await SafeAwait(racesTask, "Races");
-        keywordsList = await SafeAwait(keywordsTask, "Keywords");
-        classesList = await SafeAwait(classesTask, "Classes");
-        outfitsList = await SafeAwait(outfitsTask, "Outfits");
+        factionsList = await SafeAwaitAsync(factionsTask, "Factions");
+        racesList = await SafeAwaitAsync(racesTask, "Races");
+        keywordsList = await SafeAwaitAsync(keywordsTask, "Keywords");
+        classesList = await SafeAwaitAsync(classesTask, "Classes");
+        outfitsList = await SafeAwaitAsync(outfitsTask, "Outfits");
         containersList = [];
       }
 
-      var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID ?? string.Empty);
+      var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID);
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
       var raceLookup = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
       var classLookup = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
@@ -266,62 +304,52 @@ public class GameDataCacheService : IDisposable
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
       {
-        try
+        var keywords = TryProcessRecord(race, () =>
         {
           if (race.Keywords == null)
           {
-            continue;
+            return null;
           }
 
-          var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+          var keywordSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
           foreach (var kw in race.Keywords)
           {
             if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
             {
-              keywords.Add(editorId);
+              keywordSet.Add(editorId);
             }
           }
 
-          raceKeywordLookup.TryAdd(race.FormKey, keywords);
-        }
-        catch (Exception ex)
+          return keywordSet;
+        }, "race");
+
+        if (keywords != null)
         {
-          _logger.Warning(ex,
-            "Failed to process race {EditorID} from {Plugin}",
-            race.EditorID ?? "Unknown",
-            race.FormKey.ModKey.FileName);
+          raceKeywordLookup.TryAdd(race.FormKey, keywords);
         }
       }
 
       var templateLookup = new Dictionary<FormKey, string>();
       foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
       {
-        try
+        TryProcessRecord(npc, () =>
         {
           if (!string.IsNullOrWhiteSpace(npc.EditorID))
           {
             templateLookup.TryAdd(npc.FormKey, npc.EditorID);
           }
-        }
-        catch (Exception ex)
-        {
-          _logger.Warning(ex, "Failed to process NPC from {Plugin}", npc.FormKey.ModKey.FileName);
-        }
+        }, "NPC");
       }
 
       foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
       {
-        try
+        TryProcessRecord(lvln, () =>
         {
           if (!string.IsNullOrWhiteSpace(lvln.EditorID))
           {
             templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
           }
-        }
-        catch (Exception ex)
-        {
-          _logger.Warning(ex, "Failed to process leveled NPC from {Plugin}", lvln.FormKey.ModKey.FileName);
-        }
+        }, "leveled NPC");
       }
 
       var combatStyleLookup = new Dictionary<FormKey, string>();
@@ -353,7 +381,7 @@ public class GameDataCacheService : IDisposable
         combatStyleLookup,
         voiceTypeLookup,
         raceKeywordLookup));
-      (npcFilterDataList, npcRecordsList) = npcsResult;
+      var (npcFilterDataList, npcRecordsList) = npcsResult;
 
       _npcsSource.Edit(cache =>
       {
@@ -518,7 +546,8 @@ public class GameDataCacheService : IDisposable
     await LoadAsync();
   }
 
-  private async Task<T> SafeAwait<T>(Task<T> task, string taskName) where T : new()
+  private async Task<T> SafeAwaitAsync<T>(Task<T> task, string taskName)
+      where T : new()
   {
     try
     {
@@ -668,7 +697,8 @@ public class GameDataCacheService : IDisposable
     var filterDataBag = new ConcurrentBag<NpcFilterData>();
     var recordsBag = new ConcurrentBag<NpcRecordViewModel>();
 
-    Parallel.ForEach(validNpcs,
+    Parallel.ForEach(
+      validNpcs,
       npc =>
       {
         try
@@ -982,54 +1012,49 @@ public class GameDataCacheService : IDisposable
     return containers;
   }
 
-  private static Dictionary<FormKey, string> BuildMerchantContainerLookup(
+  private Dictionary<FormKey, string> BuildMerchantContainerLookup(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, string>();
 
     foreach (var faction in linkCache.WinningOverrides<IFactionGetter>())
     {
-      try
+      TryProcessRecord(faction, () =>
       {
         if (faction.MerchantContainer.IsNull)
         {
-          continue;
+          return;
         }
 
-        if (!linkCache.TryResolve<IPlacedObjectGetter>(faction.MerchantContainer.FormKey, out var placedRef))
+        if (!linkCache.TryResolve<IPlacedObjectGetter>(
+              faction.MerchantContainer.FormKey,
+              out var placedRef))
         {
-          continue;
+          return;
         }
 
         if (placedRef.Base.IsNull)
         {
-          continue;
+          return;
         }
 
         var baseContainerFormKey = placedRef.Base.FormKey;
         var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
         result.TryAdd(baseContainerFormKey, factionName);
-      }
-      catch (Exception ex)
-      {
-        Log.Warning(ex,
-          "Failed to process faction {EditorID} from {Plugin}",
-          faction.EditorID ?? "Unknown",
-          faction.FormKey.ModKey.FileName);
-      }
+      }, "faction");
     }
 
     return result;
   }
 
-  private static Dictionary<FormKey, List<string>> BuildCellPlacementLookup(
+  private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, List<string>>();
 
     foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
     {
-      try
+      TryProcessRecord(cell, () =>
       {
         var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
 
@@ -1074,14 +1099,7 @@ public class GameDataCacheService : IDisposable
             }
           }
         }
-      }
-      catch (Exception ex)
-      {
-        Log.Warning(ex,
-          "Failed to process cell {EditorID} from {Plugin}",
-          cell.EditorID ?? "Unknown",
-          cell.FormKey.ModKey.FileName);
-      }
+      }, "cell");
     }
 
     return result;
