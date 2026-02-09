@@ -1,8 +1,16 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:guideline="clr-namespace:GuideLine.WPF.View;assembly=GuideLine"
                     xmlns:controls="clr-namespace:Boutique.Controls"
-                    xmlns:themes="clr-namespace:Boutique.Themes">
+                    xmlns:themes="clr-namespace:Boutique.Themes"
+                    xmlns:vm="clr-namespace:Boutique.ViewModels"
+                    mc:Ignorable="d">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="ColorPaletteDark.xaml" />
+  </ResourceDictionary.MergedDictionaries>
+
   <!-- Typography -->
   <FontFamily x:Key="Font.Primary">Segoe UI</FontFamily>
   <FontFamily x:Key="Font.Mono">Consolas</FontFamily>
@@ -209,8 +217,7 @@
   </Style>
 
   <!-- Settings Panel Styles -->
-  <Style x:Key="{x:Static themes:ResourceKeys.SettingsLabelStyleKey}" TargetType="TextBlock"
-         BasedOn="{StaticResource {x:Type TextBlock}}">
+  <Style x:Key="{x:Static themes:ResourceKeys.SettingsLabelStyleKey}" TargetType="TextBlock">
     <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
     <Setter Property="Margin" Value="0,0,12,12" />
   </Style>
@@ -220,7 +227,8 @@
   </Style>
 
   <!-- DataTemplates -->
-  <DataTemplate x:Key="{x:Static themes:ResourceKeys.FilterChipTemplateKey}">
+  <DataTemplate x:Key="{x:Static themes:ResourceKeys.FilterChipTemplateKey}"
+                d:DataContext="{d:DesignInstance vm:NpcRecordViewModel}">
     <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
@@ -233,7 +241,8 @@
     </Border>
   </DataTemplate>
 
-  <DataTemplate x:Key="{x:Static themes:ResourceKeys.FilterDataGridTemplateKey}">
+  <DataTemplate x:Key="{x:Static themes:ResourceKeys.FilterDataGridTemplateKey}"
+                d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel}">
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />

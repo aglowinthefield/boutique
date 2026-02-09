@@ -155,11 +155,13 @@ public class FilterableSelector : Control
 
   private void SetupFilteredView()
   {
-    if (ItemsSource is IList list)
+    if (ItemsSource is not IList list)
     {
-      _filteredView = new ListCollectionView(list);
-      _listBox?.ItemsSource = _filteredView;
+      return;
     }
+
+    _filteredView = new ListCollectionView(list);
+    _listBox?.ItemsSource = _filteredView;
   }
 
   private void UpdateTextFromSelection()
@@ -195,16 +197,12 @@ public class FilterableSelector : Control
       return;
     }
 
-    var filterText = _textBox?.Text?.Trim() ?? string.Empty;
+    var filterText = _textBox?.Text.Trim() ?? string.Empty;
     var filterPath = FilterPath ?? DisplayMemberPath;
 
-    if (string.IsNullOrEmpty(filterText))
-    {
-      _filteredView.Filter = null;
-    }
-    else
-    {
-      _filteredView.Filter = item =>
+    _filteredView.Filter = string.IsNullOrEmpty(filterText)
+      ? null
+      : item =>
       {
         if (item == null)
         {
@@ -216,7 +214,6 @@ public class FilterableSelector : Control
           : GetPropertyValue(item, filterPath);
         return value?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true;
       };
-    }
 
     if (!IsDropDownOpen && !string.IsNullOrEmpty(filterText))
     {
@@ -251,6 +248,7 @@ public class FilterableSelector : Control
       return;
     }
 
+    // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
     switch (e.Key)
     {
       case Key.Down:

@@ -38,7 +38,7 @@
 
       <StackPanel Grid.Column="2" Orientation="Horizontal">
         <CheckBox Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.HideVanilla}}"
-                  IsChecked="{Binding HideVanillaDistributions}"
+                  IsChecked="{Binding NpcsTab.HideVanillaDistributions}"
                   VerticalAlignment="Center" Margin="0,0,16,0"
                   ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.HideVanillaTooltip}}" />
         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
@@ -95,8 +95,8 @@
           <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Faction}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
-            <controls:FilterableSelector ItemsSource="{Binding AvailableFactions}"
-                                         SelectedItem="{Binding SelectedFaction}"
+            <controls:FilterableSelector ItemsSource="{Binding AvailableFactionsForNpcFilter}"
+                                         SelectedItem="{Binding SelectedFactionForNpcFilter}"
                                          DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="150"
                                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.FactionTooltip}}" />
           </StackPanel>
@@ -105,7 +105,8 @@
           <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Race}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
-            <controls:FilterableSelector ItemsSource="{Binding AvailableRaces}" SelectedItem="{Binding SelectedRace}"
+            <controls:FilterableSelector ItemsSource="{Binding AvailableRacesForNpcFilter}"
+                                         SelectedItem="{Binding SelectedRaceForNpcFilter}"
                                          DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="120"
                                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.RaceTooltip}}" />
           </StackPanel>
@@ -114,8 +115,8 @@
           <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Class}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
-            <controls:FilterableSelector ItemsSource="{Binding AvailableClasses}"
-                                         SelectedItem="{Binding SelectedClass}"
+            <controls:FilterableSelector ItemsSource="{Binding NpcsTab.AvailableClasses}"
+                                         SelectedItem="{Binding NpcsTab.SelectedClass}"
                                          DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="130"
                                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.ClassTooltip}}" />
           </StackPanel>
@@ -124,8 +125,8 @@
           <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keyword}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
-            <controls:FilterableSelector ItemsSource="{Binding AvailableKeywords}"
-                                         SelectedItem="{Binding SelectedKeyword}"
+            <controls:FilterableSelector ItemsSource="{Binding AvailableKeywordsForNpcFilter}"
+                                         SelectedItem="{Binding SelectedKeywordForNpcFilter}"
                                          DisplayMemberPath="DisplayName" FilterPath="DisplayName" MinWidth="140"
                                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Filters.KeywordTooltip}}" />
           </StackPanel>

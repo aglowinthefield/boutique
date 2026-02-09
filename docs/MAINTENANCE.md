@@ -23,9 +23,10 @@ referenced by URL in the markdown.
    ```
 
 2. **Edit README.md** using your preferred markdown editor
-  - VS Code recommended for markdown preview
-  - Follow the existing structure and style
-  - Use placeholder text for new images: `![Placeholder: Description]()`
+
+- VS Code recommended for markdown preview
+- Follow the existing structure and style
+- Use placeholder text for new images: `![Placeholder: Description]()`
 
 3. **Commit changes**:
    ```bash
@@ -53,49 +54,55 @@ referenced by URL in the markdown.
 ### Step-by-Step Sync Process
 
 1. **Capture New Screenshots** (if needed):
-  - Resolution: 1920x1080 or higher
-  - Format: PNG
-  - Save temporarily to `docs/images/` (gitignored)
-  - Follow naming: `boutique-{section}-{number}.png`
+
+- Resolution: 1920x1080 or higher
+- Format: PNG
+- Save temporarily to `docs/images/` (gitignored)
+- Follow naming: `boutique-{section}-{number}.png`
 
 2. **Upload Images to Nexus**:
-  - Log in to Nexus Mods
-  - Navigate to Boutique mod page → Articles → Edit
-  - Use Nexus image uploader to upload screenshots
-  - Copy the Nexus-generated image URLs
+
+- Log in to Nexus Mods
+- Navigate to Boutique mod page → Articles → Edit
+- Use Nexus image uploader to upload screenshots
+- Copy the Nexus-generated image URLs
 
 3. **Record Image URLs**:
-  - Open `docs/images/image-urls.md`
-  - Add entries for each uploaded image:
-    ```
-    [Section Name] Description - https://nexus-url.com/image.png - 2026-02-06
-    ```
-  - Commit this file to git
+
+- Open `docs/images/image-urls.md`
+- Add entries for each uploaded image:
+  ```
+  [Section Name] Description - https://nexus-url.com/image.png - 2026-02-06
+  ```
+- Commit this file to git
 
 4. **Update README.md**:
-  - Replace image placeholders with actual Nexus URLs:
-    ```markdown
-    ![Description](https://nexus-url.com/image.png)
-    *Caption text*
-    ```
-  - Commit changes to git
+
+- Replace image placeholders with actual Nexus URLs:
+  ```markdown
+  ![Description](https://nexus-url.com/image.png)
+  *Caption text*
+  ```
+- Commit changes to git
 
 5. **Convert Markdown to Nexus Format**:
-  - Nexus articles support limited HTML/BB Code
-  - Open README.md in editor
-  - Copy sections into Nexus article editor
-  - Format adjustments:
-    - Headers: Use Nexus heading styles
-    - Code blocks: Use Nexus code formatting
-    - Links: Convert to Nexus link format if needed
-    - Lists: Should work as-is
-  - Verify images display correctly in preview
+
+- Nexus articles support limited HTML/BB Code
+- Open README.md in editor
+- Copy sections into Nexus article editor
+- Format adjustments:
+  - Headers: Use Nexus heading styles
+  - Code blocks: Use Nexus code formatting
+  - Links: Convert to Nexus link format if needed
+  - Lists: Should work as-is
+- Verify images display correctly in preview
 
 6. **Publish on Nexus**:
-  - Review entire article in Nexus preview
-  - Test all internal links (table of contents)
-  - Test all image links
-  - Click "Publish" or "Update"
+
+- Review entire article in Nexus preview
+- Test all internal links (table of contents)
+- Test all image links
+- Click "Publish" or "Update"
 
 7. **Tag Release** (for major updates):
    ```bash
@@ -105,8 +112,9 @@ referenced by URL in the markdown.
    ```
 
 8. **Clean Up**:
-  - Delete local screenshot copies from `docs/images/`
-  - Images are now hosted on Nexus only
+
+- Delete local screenshot copies from `docs/images/`
+- Images are now hosted on Nexus only
 
 ## When to Update Documentation
 

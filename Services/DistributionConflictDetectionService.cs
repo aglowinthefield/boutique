@@ -113,8 +113,8 @@ public class DistributionConflictDetectionService
               $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.")
             .AppendLine()
             .Append(
-            CultureInfo.InvariantCulture,
-            $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
+              CultureInfo.InvariantCulture,
+              $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
         }
         else
         {

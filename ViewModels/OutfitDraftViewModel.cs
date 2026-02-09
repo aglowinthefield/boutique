@@ -60,8 +60,6 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
       this.WhenAnyValue(x => x.HasPieces));
   }
 
-  public Guid Id { get; } = Guid.NewGuid();
-
   public string Name
   {
     get => _name;
@@ -137,8 +135,6 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     this.RaisePropertyChanged(nameof(HasPieces));
     this.RaisePropertyChanged(nameof(PieceCount));
   }
-
-  public void RevertName() => SetNameInternal(_previousValidName, false);
 
   private void SetNameInternal(string? value, bool updateHistory)
   {

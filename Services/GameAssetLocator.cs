@@ -223,9 +223,12 @@ public class GameAssetLocator
           pluginPath,
           _mutagenService.SkyrimRelease,
           _mutagenService.Utf8ReadParameters);
-        masters = [.. mod.ModHeader.MasterReferences
-          .Select(m => m.Master)
-          .Distinct()];
+        masters =
+        [
+          .. mod.ModHeader.MasterReferences
+            .Select(m => m.Master)
+            .Distinct()
+        ];
       }
       catch (Exception ex)
       {

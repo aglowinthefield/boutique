@@ -7,6 +7,7 @@ using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
 using Boutique.Views;
+using JetBrains.Annotations;
 using Microsoft.Win32;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Installs;
@@ -17,6 +18,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public enum ThemeOption
 {
   System,

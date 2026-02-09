@@ -93,7 +93,7 @@ public partial class App
       _ = Task.Run(async () =>
       {
         await Task.Delay(1500);
-        Current.Dispatcher.Invoke(() => CheckForUpdates(false));
+        Current.Dispatcher.Invoke(() => CheckForUpdates());
       });
     }
   }
