@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Boutique.Views"
         xmlns:vm="clr-namespace:Boutique.ViewModels"
-        xmlns:guideline="clr-namespace:GuideLine.WPF.View;assembly=GuideLine"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
@@ -70,16 +69,5 @@
         </Button>
       </StackPanel>
     </Grid>
-
-    <!-- Tutorial overlay - must be last to render on top -->
-    <guideline:GuideLine_View x:Name="MainGuideline"
-                              Grid.Row="0" Grid.RowSpan="2"
-                              PreviewKeyDown="MainGuideline_PreviewKeyDown"
-                              HighlightCornerRadius="8"
-                              HighlightMargin="8"
-                              AnimateDialog="True"
-                              AnimationDuration="0:0:0.25"
-                              Background="{DynamicResource Brush.Tutorial.Overlay}"
-                              Foreground="{DynamicResource Brush.Tutorial.DialogForeground}" />
   </Grid>
 </Window>

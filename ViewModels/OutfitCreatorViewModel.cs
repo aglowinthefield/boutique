@@ -27,7 +27,6 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private readonly IObservable<bool> _canSaveOutfits;
   private readonly CompositeDisposable _disposables = new();
   private readonly OutfitDraftManager _draftManager;
-  private readonly GameDataCacheService _gameDataCache;
   private readonly ILogger _logger;
   private readonly MutagenService _mutagenService;
   private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource = new();
@@ -56,7 +55,6 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     MutagenService mutagenService,
     ArmorPreviewService previewService,
     PatchingService patchingService,
-    GameDataCacheService gameDataCache,
     SettingsViewModel settings,
     ILogger logger)
   {
@@ -64,7 +62,6 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     _mutagenService = mutagenService;
     _previewService = previewService;
     _patchingService = patchingService;
-    _gameDataCache = gameDataCache;
     Settings = settings;
     _logger = logger.ForContext<OutfitCreatorViewModel>();
 

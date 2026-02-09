@@ -2,13 +2,9 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Threading;
 using Boutique.Services;
 using Boutique.ViewModels;
-using GuideLine.Core;
-using GuideLine.WPF.View;
 
 namespace Boutique.Views;
 
@@ -17,21 +13,17 @@ public partial class MainWindow : Window
   private readonly CompositeDisposable _bindings = [];
   private readonly GuiSettingsService _guiSettings;
   private readonly ThemeService _themeService;
-  private readonly TutorialService _tutorialService;
   private bool _initialized;
 
   public MainWindow(
     MainViewModel viewModel,
     ThemeService themeService,
-    TutorialService tutorialService,
     GuiSettingsService guiSettings)
   {
     InitializeComponent();
     DataContext = viewModel;
     _themeService = themeService;
-    _tutorialService = tutorialService;
     _guiSettings = guiSettings;
-    _tutorialService.Initialize(MainGuideline);
 
     _guiSettings.RestoreWindowGeometry(this);
 
@@ -204,48 +196,6 @@ public partial class MainWindow : Window
       viewModel.InitializeCommand.Execute().Subscribe();
       _initialized = true;
     }
-
-    if (FeatureFlags.TutorialEnabled && !_tutorialService.HasCompletedTutorial)
-    {
-      Dispatcher.BeginInvoke(() => _tutorialService.StartTutorial(), DispatcherPriority.ApplicationIdle);
-    }
   }
 
-  private void MainGuideline_PreviewKeyDown(object sender, KeyEventArgs e)
-  {
-    if (!FeatureFlags.TutorialEnabled)
-    {
-      return;
-    }
-
-    if (sender is not GuideLine_View { DataContext: GuideLineManager manager })
-    {
-      return;
-    }
-
-    switch (e.Key)
-    {
-      case Key.Left:
-        manager.CurrentGuideLine?.ShowPreviousStep();
-        e.Handled = true;
-        break;
-      case Key.Right:
-        manager.CurrentGuideLine?.ShowNextStep();
-        e.Handled = true;
-        break;
-      case Key.Escape:
-        manager.StopGuideLine();
-        _tutorialService.CompleteTutorial();
-        e.Handled = true;
-        break;
-    }
-  }
-
-  public void StartTutorial()
-  {
-    if (FeatureFlags.TutorialEnabled)
-    {
-      _tutorialService.StartTutorial();
-    }
-  }
 }

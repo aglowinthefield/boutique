@@ -21,7 +21,6 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   [Reactive] private bool _isVisible = true;
 
   private string _name = string.Empty;
-  private string _previousValidName = "Outfit";
 
   public OutfitDraftViewModel(
     string name,
@@ -149,20 +148,10 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
       return;
     }
 
-    if (updateHistory)
-    {
-      _previousValidName = _name;
-    }
-
     this.RaiseAndSetIfChanged(ref _name, sanitized);
     EditorId = sanitized;
     this.RaisePropertyChanged(nameof(EditorId));
     this.RaisePropertyChanged(nameof(Header));
-
-    if (!updateHistory)
-    {
-      _previousValidName = _name;
-    }
   }
 
   private static string Sanitize(string? value) => InputPatterns.Identifier.Sanitize(value);

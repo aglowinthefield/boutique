@@ -57,7 +57,6 @@ public partial class App
     builder.RegisterType<DistributionEntryHydrationService>().SingleInstance();
     builder.RegisterType<DistributionFilePathService>().SingleInstance();
     builder.RegisterType<ThemeService>().SingleInstance();
-    builder.RegisterType<TutorialService>().SingleInstance();
     builder.RegisterType<GuiSettingsService>().SingleInstance();
     builder.RegisterType<LocalizationService>().SingleInstance();
 

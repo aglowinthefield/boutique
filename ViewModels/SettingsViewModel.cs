@@ -34,7 +34,6 @@ public partial class SettingsViewModel : ReactiveObject
   private readonly MutagenService _mutagenService;
   private readonly PatcherSettings _settings;
   private readonly ThemeService _themeService;
-  private readonly TutorialService _tutorialService;
 
   [ReactiveCollection] private ObservableCollection<string> _availableBlacklistPlugins = [];
   [ReactiveCollection] private ObservableCollection<string> _blacklistedPluginNames = [];
@@ -54,7 +53,6 @@ public partial class SettingsViewModel : ReactiveObject
     GuiSettingsService guiSettings,
     ILoggingService loggingService,
     ThemeService themeService,
-    TutorialService tutorialService,
     LocalizationService localizationService,
     MutagenService mutagenService)
   {
@@ -62,7 +60,6 @@ public partial class SettingsViewModel : ReactiveObject
     _guiSettings = guiSettings;
     _loggingService = loggingService;
     _themeService = themeService;
-    _tutorialService = tutorialService;
     _localizationService = localizationService;
     _mutagenService = mutagenService;
 
@@ -199,8 +196,6 @@ public partial class SettingsViewModel : ReactiveObject
       return string.IsNullOrWhiteSpace(folder) ? fileName : Path.Combine(folder, fileName);
     }
   }
-
-  public static bool IsTutorialEnabled => FeatureFlags.TutorialEnabled;
 
   public bool AutoUpdateEnabled
   {
@@ -436,18 +431,6 @@ public partial class SettingsViewModel : ReactiveObject
       SkyrimRelease.SkyrimSEGog => (GameRelease.SkyrimSEGog, "Skyrim SE (GOG)"),
       _ => (GameRelease.SkyrimSE, "Skyrim SE")
     };
-  }
-
-  [ReactiveCommand]
-  private void RestartTutorial()
-  {
-    if (!FeatureFlags.TutorialEnabled)
-    {
-      return;
-    }
-
-    _tutorialService.ResetTutorial();
-    _tutorialService.StartTutorial();
   }
 
   private static string GetDetectionMessage(string gameName, bool success) =>

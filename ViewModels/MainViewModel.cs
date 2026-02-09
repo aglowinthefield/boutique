@@ -25,7 +25,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   private readonly SourceList<string> _availablePluginsSource = new();
   private readonly CompositeDisposable _disposables = new();
-  private readonly GameDataCacheService _gameDataCache;
   private readonly IObservable<bool> _isMapGlamOnly;
   private readonly IObservable<bool> _isMapSelected;
   private readonly ILogger _logger;
@@ -62,8 +61,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
   [Reactive] private string _statusMessage = "Ready";
 
-  private bool _suppressPluginDeselection;
-
   [Reactive] private int _targetArmorsTotalCount;
 
   [Reactive] private string _targetSearchText = string.Empty;
@@ -79,13 +76,11 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     SettingsViewModel settingsViewModel,
     DistributionViewModel distributionViewModel,
     OutfitCreatorViewModel outfitCreatorViewModel,
-    GameDataCacheService gameDataCache,
     ILoggingService loggingService)
   {
     _mutagenService = mutagenService;
     _patchingService = patchingService;
     _previewService = previewService;
-    _gameDataCache = gameDataCache;
     Settings = settingsViewModel;
     Distribution = distributionViewModel;
     OutfitCreator = outfitCreatorViewModel;
@@ -630,8 +625,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
       var previousOutfitPlugin = OutfitCreator.SelectedOutfitPlugin;
 
-      _suppressPluginDeselection = true;
-
       var plugins = await _mutagenService.GetPluginsWithArmorsOrOutfitsAsync();
       var pluginList = plugins.ToList();
       var previousCount = _availablePluginsSource.Count - 1;
@@ -656,13 +649,10 @@ public partial class MainViewModel : ReactiveObject, IDisposable
           DispatcherPriority.Background);
       }
 
-      _suppressPluginDeselection = false;
-
       // LoadOutfitsFromOutputPluginAsync is now handled by OutfitCreatorViewModel
     }
     catch (Exception ex)
     {
-      _suppressPluginDeselection = false;
       _logger.Error(ex, "Failed to refresh available plugins list.");
     }
   }
