@@ -3,7 +3,7 @@ using Boutique.Services;
 
 namespace Boutique.Views;
 
-public partial class RestartDialog : Window
+public partial class RestartDialog
 {
   public RestartDialog()
   {

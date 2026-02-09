@@ -15,13 +15,13 @@ public static class DistributionDropdownOrganizer
   ///   Files with duplicate names get their unique path shown.
   /// </summary>
   /// <returns>Tree-like structure for rendering.</returns>
-  public static GroupedDropdownStructure<DistributionFileInfo> Organize(IEnumerable<DistributionFileViewModel> files)
+  public static GroupedDropdownStructure Organize(IEnumerable<DistributionFileViewModel> files)
   {
     var newFileAction = new GroupedDropdownAction("<New File>", NewFileActionId);
     var fileList = files.ToList();
     if (fileList.Count == 0)
     {
-      return new GroupedDropdownStructure<DistributionFileInfo>(
+      return new GroupedDropdownStructure(
         [newFileAction],
         []);
     }
@@ -70,7 +70,7 @@ public static class DistributionDropdownOrganizer
       }
     }
 
-    return new GroupedDropdownStructure<DistributionFileInfo>(items, groupNames);
+    return new GroupedDropdownStructure(items, groupNames);
   }
 
   private static HashSet<string> GetDuplicateFileNames(IEnumerable<DistributionFileViewModel> files) =>

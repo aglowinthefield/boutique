@@ -415,7 +415,7 @@ public class FormKeyHelperTests
 
         success.Should().BeTrue();
         modKey.Should().NotBeNull();
-        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        modKey.Value.FileName.String.Should().Be("MyMod.esp");
         editorId.Should().Be("MyEditorId");
     }
 
@@ -426,7 +426,7 @@ public class FormKeyHelperTests
 
         success.Should().BeTrue();
         modKey.Should().NotBeNull();
-        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        modKey.Value.FileName.String.Should().Be("MyMod.esp");
         editorId.Should().Be("MyEditorId");
     }
 
@@ -437,7 +437,7 @@ public class FormKeyHelperTests
 
         success.Should().BeTrue();
         modKey.Should().NotBeNull();
-        modKey!.Value.FileName.String.Should().Be("MyMod.esp");
+        modKey.Value.FileName.String.Should().Be("MyMod.esp");
         editorId.Should().Be("MyEditorId");
     }
 

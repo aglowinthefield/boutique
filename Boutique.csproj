@@ -24,14 +24,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <!-- Feature flags (set to true to enable) -->
-    <EnableAutoUpdate>true</EnableAutoUpdate>
     <EnableTutorial>false</EnableTutorial>
   </PropertyGroup>
 
   <!-- Generate feature flags as compile-time constants -->
-  <PropertyGroup Condition="'$(EnableAutoUpdate)' == 'true'">
-    <DefineConstants>$(DefineConstants);FEATURE_AUTO_UPDATE</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(EnableTutorial)' == 'true'">
     <DefineConstants>$(DefineConstants);FEATURE_TUTORIAL</DefineConstants>
   </PropertyGroup>

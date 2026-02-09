@@ -55,7 +55,7 @@ public sealed record GroupedDropdownAction(string Text, string ActionId) : Group
 /// <summary>
 ///   Result of organizing items into a grouped dropdown structure.
 /// </summary>
-public sealed record GroupedDropdownStructure<T>(
+public sealed record GroupedDropdownStructure(
   IReadOnlyList<GroupedDropdownItem> Items,
   IReadOnlyList<string> GroupNames);
 

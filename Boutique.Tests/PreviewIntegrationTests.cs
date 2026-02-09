@@ -31,7 +31,7 @@ public class PreviewIntegrationTests
         var draft = await manager.CreateDraftAsync([mockArmor], "TestOutfit");
 
         draft.Should().NotBeNull();
-        await draft!.PreviewCommand.Execute().ToTask();
+        await draft.PreviewCommand.Execute().ToTask();
 
         previewInvoked.Should().BeTrue("the preview delegate should be invoked when PreviewCommand executes");
         previewedDraft.Should().BeSameAs(draft, "the draft passed to preview should be the same instance");
@@ -48,7 +48,7 @@ public class PreviewIntegrationTests
 
         draft.Should().NotBeNull();
 
-        var act = async () => await draft!.PreviewCommand.Execute().ToTask();
+        var act = async () => await draft.PreviewCommand.Execute().ToTask();
         await act.Should().NotThrowAsync("preview should gracefully handle missing delegate");
     }
 
@@ -69,7 +69,7 @@ public class PreviewIntegrationTests
         var draft = await manager.CreateDraftAsync([mockArmor], "TestOutfit");
         draft.Should().NotBeNull();
 
-        draft!.RemovePiece(mockArmor);
+        draft.RemovePiece(mockArmor);
         draft.HasPieces.Should().BeFalse();
 
         var canExecute = await draft.PreviewCommand.CanExecute.FirstAsync();
@@ -82,7 +82,7 @@ public class PreviewIntegrationTests
     {
         var loggingService = new TestLoggingService();
         var manager = new OutfitDraftManager(loggingService);
-        manager.RequestNameAsync = tuple => Task.FromResult<string?>("DuplicatedOutfit");
+        manager.RequestNameAsync = _ => Task.FromResult<string?>("DuplicatedOutfit");
 
         var mockArmor = CreateMockArmorViewModel();
         var original = await manager.CreateDraftAsync([mockArmor], "OriginalOutfit");
@@ -90,7 +90,7 @@ public class PreviewIntegrationTests
 
         manager.Drafts.Should().HaveCount(1);
 
-        await original!.DuplicateCommand.Execute().ToTask();
+        await original.DuplicateCommand.Execute().ToTask();
 
         manager.Drafts.Should().HaveCount(2, "duplicate should create a new draft");
         manager.Drafts.Should().Contain(d => d.EditorId != original.EditorId, "duplicate should have a different name");
@@ -108,7 +108,7 @@ public class PreviewIntegrationTests
 
         manager.Drafts.Should().HaveCount(1);
 
-        draft!.RemoveSelfCommand.Execute().Subscribe();
+        draft.RemoveSelfCommand.Execute().Subscribe();
 
         manager.Drafts.Should().BeEmpty("draft should be removed after RemoveSelfCommand");
     }

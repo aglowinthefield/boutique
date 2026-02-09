@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace Boutique.Views;
 
-public partial class IconPickerDialog : Window
+public partial class IconPickerDialog
 {
   private readonly IconPickerViewModel _viewModel;
   private string? _selectedIcon;

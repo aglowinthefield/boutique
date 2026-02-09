@@ -5,7 +5,7 @@ using Boutique.Services;
 
 namespace Boutique.Views;
 
-public partial class PatchNameCollisionDialog : Window
+public partial class PatchNameCollisionDialog
 {
   public PatchNameCollisionDialog(string newFileName)
   {

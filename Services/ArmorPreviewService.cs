@@ -91,7 +91,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon) || addon is null)
+        if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon))
         {
           _logger.Warning(
             "Failed to resolve ArmorAddon {FormKey} for armor {Armor}",

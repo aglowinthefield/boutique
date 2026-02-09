@@ -88,7 +88,7 @@ public partial class App
       throw;
     }
 
-    if (FeatureFlags.AutoUpdateEnabled && GuiSettingsService.Current?.AutoUpdateEnabled == true)
+    if (GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {
       _ = Task.Run(async () =>
       {
@@ -100,11 +100,6 @@ public partial class App
 
   public static void CheckForUpdates(bool forceShow = false)
   {
-    if (!FeatureFlags.AutoUpdateEnabled)
-    {
-      return;
-    }
-
     if (!forceShow && GuiSettingsService.Current?.AutoUpdateEnabled != true)
     {
       return;
@@ -259,7 +254,7 @@ public partial class App
       }
 
       var sb = new StringBuilder();
-      foreach (var (version, tag, body, _) in newerReleases)
+      foreach (var (_, tag, body, _) in newerReleases)
       {
         sb.AppendLine($"═══ {tag} ═══");
         sb.AppendLine();

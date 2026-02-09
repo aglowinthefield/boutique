@@ -1203,6 +1203,16 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     string? defaultName = null) =>
     _draftManager.CreateDraftAsync(pieces, defaultName);
 
+  [ReactiveCommand(CanExecute = nameof(_canCreateOutfit))]
+  private async Task CreateOutfitAsync()
+  {
+    var selectedArmors = SelectedOutfitArmors.OfType<ArmorRecordViewModel>().ToList();
+    if (selectedArmors.Count > 0)
+    {
+      await CreateOutfitFromPiecesAsync(selectedArmors);
+    }
+  }
+
   public async Task PreviewDraftAsync(OutfitDraftViewModel draft)
   {
     var pieces = draft.GetPieces();

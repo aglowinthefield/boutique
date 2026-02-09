@@ -2,7 +2,7 @@ using System.Windows;
 
 namespace Boutique.Views;
 
-public partial class UpdateDialog : Window
+public partial class UpdateDialog
 {
   public UpdateDialog()
   {
