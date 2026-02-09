@@ -175,27 +175,6 @@ public class GameDataCacheService : IDisposable
 
   public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
 
-  private T? TryProcessRecord<T>(
-    ISkyrimMajorRecordGetter record,
-    Func<T> processor,
-    string recordType) where T : class
-  {
-    try
-    {
-      return processor();
-    }
-    catch (Exception ex)
-    {
-      _logger.Warning(
-        ex,
-        "Failed to process {RecordType} {EditorID} from {Plugin}",
-        recordType,
-        record.EditorID ?? "Unknown",
-        record.FormKey.ModKey.FileName);
-      return null;
-    }
-  }
-
   private void TryProcessRecord(
     ISkyrimMajorRecordGetter record,
     Action processor,
@@ -304,11 +283,11 @@ public class GameDataCacheService : IDisposable
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
       {
-        var keywords = TryProcessRecord(race, () =>
+        TryProcessRecord(race, () =>
         {
           if (race.Keywords == null)
           {
-            return null;
+            return;
           }
 
           var keywordSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -320,13 +299,8 @@ public class GameDataCacheService : IDisposable
             }
           }
 
-          return keywordSet;
+          raceKeywordLookup.TryAdd(race.FormKey, keywordSet);
         }, "race");
-
-        if (keywords != null)
-        {
-          raceKeywordLookup.TryAdd(race.FormKey, keywords);
-        }
       }
 
       var templateLookup = new Dictionary<FormKey, string>();
@@ -1028,19 +1002,14 @@ public class GameDataCacheService : IDisposable
 
         if (!linkCache.TryResolve<IPlacedObjectGetter>(
               faction.MerchantContainer.FormKey,
-              out var placedRef))
+              out var placedRef) ||
+            placedRef.Base.IsNull)
         {
           return;
         }
 
-        if (placedRef.Base.IsNull)
-        {
-          return;
-        }
-
-        var baseContainerFormKey = placedRef.Base.FormKey;
         var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
-        result.TryAdd(baseContainerFormKey, factionName);
+        result.TryAdd(placedRef.Base.FormKey, factionName);
       }, "faction");
     }
 
@@ -1052,53 +1021,45 @@ public class GameDataCacheService : IDisposable
   {
     var result = new Dictionary<FormKey, List<string>>();
 
+    void AddCellPlacement(FormKey containerFormKey, string locationName)
+    {
+      if (!result.TryGetValue(containerFormKey, out var list))
+      {
+        list = [];
+        result[containerFormKey] = list;
+      }
+
+      if (!list.Contains(locationName))
+      {
+        list.Add(locationName);
+      }
+    }
+
+    void ProcessPlacedObjects(IReadOnlyList<IPlacedGetter>? placedObjects, string locationName)
+    {
+      if (placedObjects == null)
+      {
+        return;
+      }
+
+      foreach (var placed in placedObjects)
+      {
+        if (placed is not IPlacedObjectGetter placedObj || placedObj.Base.IsNull)
+        {
+          continue;
+        }
+
+        AddCellPlacement(placedObj.Base.FormKey, locationName);
+      }
+    }
+
     foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
     {
       TryProcessRecord(cell, () =>
       {
         var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
-
-        if (cell.Temporary is { } temporary)
-        {
-          foreach (var placed in temporary)
-          {
-            if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
-            {
-              var baseFormKey = placedObj.Base.FormKey;
-              if (!result.TryGetValue(baseFormKey, out var list))
-              {
-                list = [];
-                result[baseFormKey] = list;
-              }
-
-              if (!list.Contains(cellName))
-              {
-                list.Add(cellName);
-              }
-            }
-          }
-        }
-
-        if (cell.Persistent is { } persistent)
-        {
-          foreach (var placed in persistent)
-          {
-            if (placed is IPlacedObjectGetter placedObj && !placedObj.Base.IsNull)
-            {
-              var baseFormKey = placedObj.Base.FormKey;
-              if (!result.TryGetValue(baseFormKey, out var list))
-              {
-                list = [];
-                result[baseFormKey] = list;
-              }
-
-              if (!list.Contains(cellName))
-              {
-                list.Add(cellName);
-              }
-            }
-          }
-        }
+        ProcessPlacedObjects(cell.Temporary, cellName);
+        ProcessPlacedObjects(cell.Persistent, cellName);
       }, "cell");
     }
 
