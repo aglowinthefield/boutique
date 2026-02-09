@@ -1198,23 +1198,10 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     return formKey.ModKey;
   }
 
-  [ReactiveCommand(CanExecute = nameof(_canCreateOutfit))]
-  private async Task CreateOutfitAsync()
-  {
-    var selectedPieces = SelectedOutfitArmors
-      .OfType<ArmorRecordViewModel>()
-      .ToList();
-
-    await CreateOutfitFromPiecesAsync(selectedPieces);
-  }
-
   public Task CreateOutfitFromPiecesAsync(
     IReadOnlyList<ArmorRecordViewModel> pieces,
     string? defaultName = null) =>
     _draftManager.CreateDraftAsync(pieces, defaultName);
-
-  public Task DuplicateDraftAsync(OutfitDraftViewModel draft) =>
-    _draftManager.DuplicateDraftAsync(draft);
 
   public async Task PreviewDraftAsync(OutfitDraftViewModel draft)
   {

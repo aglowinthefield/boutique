@@ -23,7 +23,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public record PreviewLineHighlightRequest(int LineNumber, string LineContent, Guid RequestId);
+public record PreviewLineHighlightRequest(int LineNumber);
 
 public class PreviewLine
 {
@@ -1487,10 +1487,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     var lines = DistributionFileContent.Split('\n');
-    var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
+
+    _ = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
     _logger.Information("RaiseHighlightRequest: line {LineNumber}", lineNumber);
-    HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
+    HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
   }
 
   private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry)
@@ -1566,7 +1567,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     var lines = DistributionFileContent.Split('\n');
     var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
-    HighlightRequest = new PreviewLineHighlightRequest(lineNumber, lineContent, Guid.NewGuid());
+    HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
   }
 
   private async Task LoadAvailableOutfitsAsync()

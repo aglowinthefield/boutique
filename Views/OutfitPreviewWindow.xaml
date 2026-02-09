@@ -8,7 +8,7 @@
         Width="900"
         Height="700"
         WindowStartupLocation="CenterOwner">
-  <Grid x:Name="RootGrid">
+  <Grid>
     <Grid.LayoutTransform>
       <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
     </Grid.LayoutTransform>

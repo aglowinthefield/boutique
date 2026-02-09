@@ -1,5 +1,4 @@
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;
 
@@ -15,5 +14,4 @@ public record AffectedOutfitInfo(
 public record MissingMastersResult(
   bool HasMissingMasters,
   IReadOnlyList<MissingMasterInfo> MissingMasters,
-  IReadOnlyList<AffectedOutfitInfo> AllAffectedOutfits,
-  IReadOnlyList<IOutfitGetter> ValidOutfits);
+  IReadOnlyList<AffectedOutfitInfo> AllAffectedOutfits);

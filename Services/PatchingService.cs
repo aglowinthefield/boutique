@@ -541,7 +541,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       if (!File.Exists(patchPath))
       {
         _logger.Debug("Patch file does not exist at {Path}, no missing masters check needed.", patchPath);
-        return new MissingMastersResult(false, [], [], []);
+        return new MissingMastersResult(false, [], []);
       }
 
       try
@@ -584,7 +584,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
           _logger.Debug("All masters present for patch {Patch}.", patchPath);
           var validOutfits = patchMod.Outfits.ToList();
-          return new MissingMastersResult(false, [], [], validOutfits);
+          return new MissingMastersResult(false, [], []);
         }
 
         var missingMasterSet = missingMasters.ToHashSet();
@@ -658,12 +658,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           missingMasters.Count,
           allAffectedOutfits.Count);
 
-        return new MissingMastersResult(true, missingMasterInfos, allAffectedOutfits, validOutfitsList);
+        return new MissingMastersResult(true, missingMasterInfos, allAffectedOutfits);
       }
       catch (Exception ex)
       {
         _logger.Error(ex, "Error checking missing masters for patch {Path}.", patchPath);
-        return new MissingMastersResult(false, [], [], []);
+        return new MissingMastersResult(false, [], []);
       }
     });
   }
