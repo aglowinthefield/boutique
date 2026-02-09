@@ -1,7 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Boutique.ViewModels;
-using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -13,67 +11,6 @@ namespace Boutique.Utilities;
 /// </summary>
 public static class OutfitResolver
 {
-  /// <summary>
-  ///   Tries to resolve an outfit from a string identifier (FormKey or EditorID format).
-  /// </summary>
-  public static bool TryResolve(
-    string identifier,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    ref List<IOutfitGetter>? cachedOutfits,
-    [NotNullWhen(true)] out IOutfitGetter? outfit,
-    out string label)
-  {
-    outfit = null;
-    label = string.Empty;
-
-    if (FormKeyHelper.TryParse(identifier, out var formKey) &&
-        linkCache.TryResolve<IOutfitGetter>(formKey, out var resolvedFromFormKey))
-    {
-      outfit = resolvedFromFormKey;
-      label = outfit.EditorID ?? formKey.ToString();
-      return true;
-    }
-
-    if (TryResolveByEditorId(identifier, linkCache, ref cachedOutfits, out var resolvedFromEditorId))
-    {
-      outfit = resolvedFromEditorId;
-      label = outfit.EditorID ?? identifier;
-      return true;
-    }
-
-    return false;
-  }
-
-  /// <summary>
-  ///   Tries to resolve an outfit by EditorID, optionally filtering by ModKey.
-  /// </summary>
-  public static bool TryResolveByEditorId(
-    string identifier,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    ref List<IOutfitGetter>? cachedOutfits,
-    [NotNullWhen(true)] out IOutfitGetter? outfit)
-  {
-    outfit = null;
-
-    if (!FormKeyHelper.TryParseEditorIdReference(identifier, out var modKey, out var editorId))
-    {
-      return false;
-    }
-
-    cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-
-    var query = cachedOutfits
-      .Where(o => string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
-
-    if (modKey.HasValue)
-    {
-      query = query.Where(o => o.FormKey.ModKey == modKey.Value);
-    }
-
-    outfit = query.FirstOrDefault();
-    return outfit != null;
-  }
-
   /// <summary>
   ///   Gathers armor pieces from an outfit for preview, including those nested within leveled lists.
   ///   For leveled lists without "Use All", picks a random entry using the provided seed.
@@ -352,21 +289,18 @@ public static class OutfitResolver
         formList.FormKey);
 
       var items = formList.Items;
-      if (items != null)
+      foreach (var itemLink in items)
       {
-        foreach (var itemLink in items)
+        var itemFormKey = itemLink.FormKeyNullable;
+        if (!itemFormKey.HasValue || itemFormKey.Value.IsNull)
         {
-          var itemFormKey = itemLink.FormKeyNullable;
-          if (!itemFormKey.HasValue || itemFormKey.Value.IsNull)
-          {
-            continue;
-          }
+          continue;
+        }
 
-          var childNode = BuildTreeNode(itemFormKey.Value, linkCache, visited);
-          if (childNode != null)
-          {
-            node.Children.Add(childNode);
-          }
+        var childNode = BuildTreeNode(itemFormKey.Value, linkCache, visited);
+        if (childNode != null)
+        {
+          node.Children.Add(childNode);
         }
       }
 

@@ -7,15 +7,15 @@ namespace Boutique.Services;
 
 public static class IconCacheService
 {
-  private static readonly Lazy<IReadOnlyList<string>> LazyIcons = new(LoadIcons);
-  private static readonly Random Rng = new();
+  private static readonly Lazy<IReadOnlyList<string>> _lazyIcons = new(LoadIcons);
+  private static readonly Random _rng = new();
 
-  public static IReadOnlyList<string> Icons => LazyIcons.Value;
+  public static IReadOnlyList<string> Icons => _lazyIcons.Value;
 
   public static string? GetRandomIcon()
   {
     var icons = Icons;
-    return icons.Count > 0 ? icons[Rng.Next(icons.Count)] : null;
+    return icons.Count > 0 ? icons[_rng.Next(icons.Count)] : null;
   }
 
   private static List<string> LoadIcons()
@@ -33,16 +33,11 @@ public static class IconCacheService
       }
 
       using var reader = new ResourceReader(stream);
-      foreach (DictionaryEntry entry in reader)
-      {
-        var key = (string)entry.Key;
-        if (key.StartsWith("assets/sprites/", StringComparison.OrdinalIgnoreCase) &&
-            key.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-        {
-          var filename = Path.GetFileName(key);
-          icons.Add(filename);
-        }
-      }
+      icons.AddRange(from DictionaryEntry entry in reader
+        select (string)entry.Key
+        into key
+        where IsIconFile(key)
+        select Path.GetFileName(key));
     }
     catch
     {
@@ -51,5 +46,11 @@ public static class IconCacheService
 
     icons.Sort(StringComparer.OrdinalIgnoreCase);
     return icons;
+  }
+
+  private static bool IsIconFile(string key)
+  {
+    return key.StartsWith("assets/sprites/", StringComparison.OrdinalIgnoreCase) &&
+           key.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
   }
 }

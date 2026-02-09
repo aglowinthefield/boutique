@@ -86,12 +86,6 @@ public class ThemeService
     _logger.Information("Applied font scale: {Scale}x", scale);
   }
 
-  public void ToggleTheme()
-  {
-    var newTheme = IsCurrentlyDark ? AppTheme.Light : AppTheme.Dark;
-    SetTheme(newTheme);
-  }
-
   private void ApplyTheme(AppTheme theme)
   {
     var isDark = theme switch

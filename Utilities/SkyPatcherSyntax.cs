@@ -121,22 +121,6 @@ public static class SkyPatcherSyntax
     return results;
   }
 
-  public static List<FormKey> ParseFormKeysWithVariants(string line, string baseFilterName)
-  {
-    var values = ExtractFilterValuesWithVariants(line, baseFilterName);
-    var results = new List<FormKey>();
-
-    foreach (var value in values)
-    {
-      if (FormKeyHelper.TryParse(value, out var formKey))
-      {
-        results.Add(formKey);
-      }
-    }
-
-    return results;
-  }
-
   public static bool HasFilter(string line, string filterName) =>
     line.Contains(filterName + "=", StringComparison.OrdinalIgnoreCase);
 

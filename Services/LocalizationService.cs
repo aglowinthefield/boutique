@@ -11,16 +11,9 @@ public record LanguageOption(string Code, string DisplayName)
   public override string ToString() => DisplayName;
 }
 
-public class LocalizationService
+public class LocalizationService(ILogger logger, GuiSettingsService guiSettings)
 {
-  private readonly GuiSettingsService _guiSettings;
-  private readonly ILogger _logger;
-
-  public LocalizationService(ILogger logger, GuiSettingsService guiSettings)
-  {
-    _logger = logger.ForContext<LocalizationService>();
-    _guiSettings = guiSettings;
-  }
+  private readonly ILogger _logger = logger.ForContext<LocalizationService>();
 
   public ObservableCollection<LanguageOption> AvailableLanguages { get; } =
   [
@@ -35,7 +28,7 @@ public class LocalizationService
     new("ko", "한국어")
   ];
 
-  public static string CurrentLanguageCode
+  private static string CurrentLanguageCode
   {
     get
     {
@@ -62,7 +55,7 @@ public class LocalizationService
       _logger.Warning(ex, "Failed to set fallback assembly/dictionary for localization");
     }
 
-    var savedLanguage = _guiSettings.Language;
+    var savedLanguage = guiSettings.Language;
     if (!string.IsNullOrEmpty(savedLanguage))
     {
       SetLanguage(savedLanguage, false);
@@ -74,14 +67,7 @@ public class LocalizationService
         l.Code.Equals(systemCulture.Name, StringComparison.OrdinalIgnoreCase) ||
         l.Code.Equals(systemCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase));
 
-      if (matchingLanguage != null)
-      {
-        SetLanguage(matchingLanguage.Code);
-      }
-      else
-      {
-        SetLanguage("en");
-      }
+      SetLanguage(matchingLanguage != null ? matchingLanguage.Code : "en");
     }
 
     _logger.Information("Localization initialized with language: {Language}", CurrentLanguageCode);
@@ -91,7 +77,7 @@ public class LocalizationService
   {
     if (save)
     {
-      _guiSettings.Language = languageCode;
+      guiSettings.Language = languageCode;
     }
 
     try
@@ -109,6 +95,7 @@ public class LocalizationService
       }
       catch
       {
+        // ignored
       }
     }
     catch (Exception ex)

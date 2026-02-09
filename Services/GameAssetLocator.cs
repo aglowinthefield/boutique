@@ -14,7 +14,7 @@ namespace Boutique.Services;
 
 public class GameAssetLocator
 {
-  private static readonly ModKey[] FallbackModKeys =
+  private static readonly ModKey[] _fallbackModKeys =
   [
     ModKey.FromNameAndExtension("Skyrim.esm"),
     ModKey.FromNameAndExtension("Update.esm"),
@@ -175,7 +175,7 @@ public class GameAssetLocator
       }
     }
 
-    foreach (var fallback in FallbackModKeys)
+    foreach (var fallback in _fallbackModKeys)
     {
       yield return fallback;
     }

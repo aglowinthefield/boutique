@@ -175,10 +175,6 @@ public class GameDataCacheService : IDisposable
     _blacklistedPluginsSet.Contains(modKey.FileName);
 
   public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
-  public Optional<FactionRecordViewModel> LookupFaction(FormKey key) => _factionsSource.Lookup(key);
-  public Optional<RaceRecordViewModel> LookupRace(FormKey key) => _racesSource.Lookup(key);
-  public Optional<KeywordRecordViewModel> LookupKeyword(string editorId) => _keywordsSource.Lookup(editorId);
-  public Optional<ClassRecordViewModel> LookupClass(FormKey key) => _classesSource.Lookup(key);
 
   public event EventHandler? CacheLoaded;
 

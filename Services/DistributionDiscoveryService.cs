@@ -244,16 +244,10 @@ public class DistributionDiscoveryService(ILogger logger)
           lineNumber,
           raw,
           kind,
-          sectionName,
-          key,
-          value,
           isOutfitDistribution,
           outfitFormKeys,
           isKeywordDistribution,
-          keywordIdentifier,
-          isExclusiveGroupDistribution,
-          exclusiveGroupIdentifier,
-          exclusiveGroupForms));
+          keywordIdentifier));
       }
 
       var relativePath = Path.GetRelativePath(dataFolderPath, filePath);

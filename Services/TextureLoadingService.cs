@@ -43,14 +43,6 @@ public static class TextureLoadingService
     return result;
   }
 
-  public static void ClearCache()
-  {
-    lock (TextureCacheLock)
-    {
-      TextureCache.Clear();
-    }
-  }
-
   private static (TextureModel? Texture, bool NeedsTransparency) LoadDdsTextureCore(string texturePath)
   {
     try

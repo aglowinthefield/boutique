@@ -56,12 +56,12 @@ public class GuiSettingsService
 {
   private const string SettingsFileName = "gui-settings.json";
 
-  private static readonly string ConfigPath = Path.Combine(
+  private static readonly string _configPath = Path.Combine(
     AppDomain.CurrentDomain.BaseDirectory,
     ".config",
     SettingsFileName);
 
-  private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+  private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
   private readonly ILogger _logger;
   private GuiSettings _settings = new();
@@ -361,13 +361,13 @@ public class GuiSettingsService
   {
     try
     {
-      if (!File.Exists(ConfigPath))
+      if (!File.Exists(_configPath))
       {
         _logger.Debug("GUI settings file not found, using defaults");
         return;
       }
 
-      var json = File.ReadAllText(ConfigPath);
+      var json = File.ReadAllText(_configPath);
       var loaded = JsonSerializer.Deserialize<GuiSettings>(json);
       if (loaded != null)
       {
@@ -384,14 +384,14 @@ public class GuiSettingsService
   {
     try
     {
-      var dir = Path.GetDirectoryName(ConfigPath);
+      var dir = Path.GetDirectoryName(_configPath);
       if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
       {
         Directory.CreateDirectory(dir);
       }
 
-      var json = JsonSerializer.Serialize(_settings, JsonOptions);
-      File.WriteAllText(ConfigPath, json);
+      var json = JsonSerializer.Serialize(_settings, _jsonOptions);
+      File.WriteAllText(_configPath, json);
 
       _logger.Debug("Saved GUI settings");
     }

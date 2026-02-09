@@ -12,9 +12,6 @@ public class SpidFilterMatchingService
     IReadOnlySet<string>? virtualKeywords) =>
     NpcMatchesFilter(npc, filter, virtualKeywords);
 
-  private static bool NpcMatchesFilter(NpcFilterData npc, SpidDistributionFilter filter) =>
-    NpcMatchesFilter(npc, filter, null);
-
   private static bool NpcMatchesFilter(
     NpcFilterData npc,
     SpidDistributionFilter filter,
@@ -23,19 +20,6 @@ public class SpidFilterMatchingService
     MatchesFormFilters(npc, filter.FormFilters) &&
     MatchesLevelFilters(npc, filter.LevelFilters) &&
     MatchesTraitFilters(npc, filter.TraitFilters);
-
-  public static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
-    IReadOnlyList<NpcFilterData> allNpcs,
-    SpidDistributionFilter filter)
-  {
-    if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
-        filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
-    {
-      return allNpcs.ToList();
-    }
-
-    return allNpcs.AsParallel().Where(npc => NpcMatchesFilter(npc, filter)).ToList();
-  }
 
   public static IReadOnlyList<NpcFilterData> GetMatchingNpcsWithVirtualKeywords(
     IReadOnlyList<NpcFilterData> allNpcs,

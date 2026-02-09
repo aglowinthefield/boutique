@@ -25,113 +25,6 @@ public class NpcOutfitResolutionService
     _logger = logger.ForContext<NpcOutfitResolutionService>();
   }
 
-  public async Task<IReadOnlyList<NpcOutfitAssignment>> ResolveNpcOutfitsAsync(
-    IReadOnlyList<DistributionFile> distributionFiles,
-    CancellationToken cancellationToken = default)
-  {
-    _logger.Debug("ResolveNpcOutfitsAsync called with {Count} distribution files", distributionFiles.Count);
-
-    return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
-      () =>
-      {
-        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-        {
-          _logger.Warning("LinkCache not available for NPC outfit resolution.");
-          return [];
-        }
-
-        _logger.Debug("LinkCache is available");
-
-        try
-        {
-          var sortedFiles = SortDistributionFiles(distributionFiles);
-          _logger.Information("Processing {Count} distribution files in order", sortedFiles.Count);
-
-          foreach (var file in sortedFiles)
-          {
-            var outfitLineCount = file.Lines.Count(l => l.IsOutfitDistribution);
-            _logger.Debug(
-              "File: {FileName} ({Type}) - {TotalLines} lines, {OutfitLines} outfit distributions",
-              file.FileName,
-              file.Type,
-              file.Lines.Count,
-              outfitLineCount);
-          }
-
-          var npcDistributions = new Dictionary<FormKey, List<OutfitDistribution>>();
-
-          _logger.Debug("Loading all NPCs from LinkCache...");
-          var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
-          _logger.Debug("Loaded {Count} NPCs from LinkCache", allNpcs.Count);
-
-          var npcByEditorId = allNpcs
-            .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-            .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-          _logger.Debug("Built NPC EditorID lookup with {Count} entries", npcByEditorId.Count);
-
-          var npcByName = allNpcs
-            .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-            .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-          _logger.Debug("Built NPC Name lookup with {Count} entries", npcByName.Count);
-
-          var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
-          _logger.Debug("Built Outfit EditorID lookup with {Count} entries", outfitByEditorId.Count);
-
-          _logger.Debug("Scanning NPCs for ESP-provided default outfits...");
-          ProcessEspProvidedOutfits(linkCache, allNpcs, npcDistributions);
-          _logger.Debug(
-            "After processing ESP outfits: {NpcCount} unique NPCs with distributions",
-            npcDistributions.Count);
-
-          for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
-          {
-            cancellationToken.ThrowIfCancellationRequested();
-            var file = sortedFiles[fileIndex];
-
-            _logger.Debug(
-              "Processing file {Index}/{Total}: {FileName}",
-              fileIndex + 1,
-              sortedFiles.Count,
-              file.FileName);
-
-            ProcessDistributionFile(
-              file,
-              fileIndex + 1,
-              linkCache,
-              npcByEditorId,
-              npcByName,
-              outfitByEditorId,
-              npcDistributions);
-
-            _logger.Debug(
-              "After processing {FileName}: {NpcCount} unique NPCs with distributions",
-              file.FileName,
-              npcDistributions.Count);
-          }
-
-          _logger.Debug("Total unique NPCs with distributions: {Count}", npcDistributions.Count);
-
-          var assignments = BuildNpcOutfitAssignments(npcDistributions, linkCache, allNpcs);
-
-          _logger.Information("Resolved outfit assignments for {Count} NPCs", assignments.Count);
-          return assignments;
-        }
-        catch (OperationCanceledException)
-        {
-          _logger.Information("NPC outfit resolution cancelled.");
-          return [];
-        }
-        catch (Exception ex)
-        {
-          _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
-          return [];
-        }
-      },
-      cancellationToken);
-  }
-
   public async Task<IReadOnlyList<NpcOutfitAssignment>> ResolveNpcOutfitsWithFiltersAsync(
     IReadOnlyList<DistributionFile> distributionFiles,
     IReadOnlyList<NpcFilterData> npcFilterData,
@@ -586,74 +479,6 @@ public class NpcOutfitResolutionService
     return sorted;
   }
 
-  private void ProcessDistributionFile(
-    DistributionFile file,
-    int processingOrder,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    Dictionary<string, INpcGetter> npcByEditorId,
-    Dictionary<string, INpcGetter> npcByName,
-    IReadOnlyDictionary<string, FormKey> outfitByEditorId,
-    Dictionary<FormKey, List<OutfitDistribution>> npcDistributions)
-  {
-    var outfitLineCount = 0;
-    var parsedEntryCount = 0;
-
-    foreach (var line in file.Lines)
-    {
-      if (!line.IsOutfitDistribution)
-      {
-        continue;
-      }
-
-      outfitLineCount++;
-      _logger.Debug(
-        "Processing outfit line {LineNum} in {File}: {Text}",
-        line.LineNumber,
-        file.FileName,
-        line.RawText.Length > 100 ? line.RawText[..100] + "..." : line.RawText);
-
-      var parsedEntries =
-        ParseDistributionLine(file, line, linkCache, npcByEditorId, npcByName, outfitByEditorId);
-
-      _logger.Debug(
-        "Parsed {Count} NPC-outfit entries from line {LineNum}",
-        parsedEntries.Count,
-        line.LineNumber);
-
-      foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in parsedEntries)
-      {
-        parsedEntryCount++;
-
-        if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
-        {
-          distributions = [];
-          npcDistributions[npcFormKey] = distributions;
-        }
-
-        distributions.Add(new OutfitDistribution(
-          file.FullPath,
-          file.FileName,
-          file.Type,
-          outfitFormKey,
-          outfitEditorId,
-          processingOrder,
-          false)); // Will be set later
-
-        _logger.Debug(
-          "Added distribution: NPC={NpcFormKey}, Outfit={OutfitFormKey} ({OutfitEditorId})",
-          npcFormKey,
-          outfitFormKey,
-          outfitEditorId ?? "null");
-      }
-    }
-
-    _logger.Debug(
-      "File {FileName} summary: {OutfitLines} outfit lines, {ParsedEntries} parsed entries",
-      file.FileName,
-      outfitLineCount,
-      parsedEntryCount);
-  }
-
   private List<(FormKey NpcFormKey, FormKey OutfitFormKey, string? OutfitEditorId)> ParseDistributionLine(
     DistributionFile file,
     DistributionLine line,
@@ -664,13 +489,14 @@ public class NpcOutfitResolutionService
   {
     var results = new List<(FormKey, FormKey, string?)>();
 
-    if (file.Type == DistributionFileType.SkyPatcher)
+    switch (file.Type)
     {
-      ParseSkyPatcherLine(line.RawText, linkCache, outfitByEditorId, results);
-    }
-    else if (file.Type == DistributionFileType.Spid)
-    {
-      ParseSpidLine(line.RawText, linkCache, npcByEditorId, npcByName, results);
+      case DistributionFileType.SkyPatcher:
+        ParseSkyPatcherLine(line.RawText, linkCache, outfitByEditorId, results);
+        break;
+      case DistributionFileType.Spid:
+        ParseSpidLine(line.RawText, linkCache, npcByEditorId, npcByName, results);
+        break;
     }
 
     return results;
@@ -807,52 +633,6 @@ public class NpcOutfitResolutionService
     _logger.Debug("SPID line resolved {Resolved}/{Total} NPCs", resolvedCount, npcIdentifiers.Count);
   }
 
-  private void ProcessEspProvidedOutfits(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    List<INpcGetter> allNpcs,
-    Dictionary<FormKey, List<OutfitDistribution>> npcDistributions)
-  {
-    var espOutfitCount = 0;
-
-    foreach (var npc in allNpcs)
-    {
-      var defaultOutfit = npc.DefaultOutfit;
-      if (defaultOutfit is null || defaultOutfit.IsNull)
-      {
-        continue;
-      }
-
-      if (!linkCache.TryResolve<IOutfitGetter>(defaultOutfit.FormKey, out var outfit))
-      {
-        continue;
-      }
-
-      var npcFormKey = npc.FormKey;
-      if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
-      {
-        distributions = [];
-        npcDistributions[npcFormKey] = distributions;
-      }
-
-      var sourcePlugin = npcFormKey.ModKey.FileName;
-
-      distributions.Add(new OutfitDistribution(
-        $"{sourcePlugin} (ESP)",
-        sourcePlugin,
-        DistributionFileType.Esp,
-        outfit.FormKey,
-        outfit.EditorID,
-        0, // ESP has lowest priority
-        false, // Will be determined later
-        null,
-        "Default outfit from ESP"));
-
-      espOutfitCount++;
-    }
-
-    _logger.Debug("Found {Count} NPCs with ESP-provided default outfits", espOutfitCount);
-  }
-
   private void ProcessEspProvidedOutfitsFromFilterData(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     IReadOnlyList<NpcFilterData> allNpcs,
@@ -897,35 +677,6 @@ public class NpcOutfitResolutionService
     }
 
     _logger.Debug("Found {Count} NPCs with ESP-provided default outfits", espOutfitCount);
-  }
-
-  private static List<NpcOutfitAssignment> BuildNpcOutfitAssignments(
-    Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    List<INpcGetter> allNpcs)
-  {
-    var npcLookup = allNpcs.ToDictionary(
-      n => n.FormKey,
-      n =>
-      {
-        var sourceMod = n.FormKey.ModKey;
-        try
-        {
-          var contexts = linkCache.ResolveAllContexts<INpc, INpcGetter>(n.FormKey);
-          var firstContext = contexts.FirstOrDefault();
-          if (firstContext != null)
-          {
-            sourceMod = firstContext.ModKey;
-          }
-        }
-        catch
-        {
-        }
-
-        return new NpcBasicInfo(n.FormKey, n.EditorID, n.Name?.String, sourceMod);
-      });
-
-    return BuildNpcOutfitAssignmentsCore(npcDistributions, npcLookup);
   }
 
   private record NpcBasicInfo(FormKey FormKey, string? EditorId, string? Name, ModKey SourceMod);

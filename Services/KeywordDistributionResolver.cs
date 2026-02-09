@@ -158,24 +158,6 @@ public class KeywordDistributionResolver(ILogger logger)
     return npcKeywords;
   }
 
-  /// <summary>
-  ///   Gets the set of virtual (SPID-distributed) keywords for a specific NPC.
-  /// </summary>
-  public static IReadOnlySet<string> GetVirtualKeywordsForNpc(
-    FormKey npcFormKey,
-    Dictionary<FormKey, HashSet<string>> simulatedKeywords,
-    NpcFilterData npc)
-  {
-    if (!simulatedKeywords.TryGetValue(npcFormKey, out var keywords))
-    {
-      return npc.Keywords;
-    }
-
-    var combined = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
-    combined.UnionWith(keywords);
-    return combined;
-  }
-
   private static IReadOnlyList<NpcFilterData> GetMatchingNpcs(
     KeywordDistributionEntry entry,
     IReadOnlyList<NpcFilterData> allNpcs,

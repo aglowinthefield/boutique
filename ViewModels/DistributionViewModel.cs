@@ -33,8 +33,6 @@ public partial class DistributionViewModel : ReactiveObject
 
   public DistributionViewModel(
     DistributionFileWriterService fileWriterService,
-    NpcScanningService npcScanningService,
-    NpcOutfitResolutionService npcOutfitResolutionService,
     GameDataCacheService gameDataCache,
     SettingsViewModel settings,
     ArmorPreviewService armorPreviewService,

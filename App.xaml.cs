@@ -47,7 +47,6 @@ public partial class App
     builder.RegisterType<PatchingService>().SingleInstance();
     builder.RegisterType<ArmorPreviewService>().SingleInstance();
     builder.RegisterType<DistributionDiscoveryService>().SingleInstance();
-    builder.RegisterType<NpcScanningService>().SingleInstance();
     builder.RegisterType<DistributionFileWriterService>().SingleInstance();
     builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
     builder.RegisterType<KeywordDistributionResolver>().SingleInstance();

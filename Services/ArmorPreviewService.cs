@@ -44,7 +44,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       throw new InvalidOperationException("Link cache is not available.");
     }
 
-    var pieces = armorPieces?.ToList() ?? [];
+    var pieces = armorPieces.ToList();
     return await Task.Run(
       () => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken),
       cancellationToken);
@@ -57,20 +57,19 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     ILinkCache linkCache,
     CancellationToken cancellationToken)
   {
-    var gender = preferredGender;
     _logger.Debug(
       "Building preview for {PieceCount} armor pieces with gender {Gender}",
       pieces.Count,
-      gender);
+      preferredGender);
     var meshes = new List<PreviewMeshShape>();
     var missingAssets = new List<string>();
 
-    var bodyRelative = GetBodyRelativePath(gender);
+    var bodyRelative = GetBodyRelativePath(preferredGender);
     var bodyAssetKey = PathUtilities.NormalizeAssetPath(bodyRelative);
     var bodyPath = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
     if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
     {
-      meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, gender, _skyrimBaseModKey, cancellationToken));
+      meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, preferredGender, _skyrimBaseModKey, cancellationToken));
     }
     else
     {
@@ -101,13 +100,13 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
           continue;
         }
 
-        var (model, variantForAddon) = SelectModel(addon.WorldModel, gender);
+        var (model, variantForAddon) = SelectModel(addon.WorldModel, preferredGender);
         if (model == null)
         {
           _logger.Information(
             "ArmorAddon {Addon} has no usable models for gender {Gender}",
             addon.EditorID,
-            gender);
+            preferredGender);
           continue;
         }
 
@@ -146,7 +145,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       }
     }
 
-    return new ArmorPreviewScene(gender, meshes, missingAssets);
+    return new ArmorPreviewScene(preferredGender, meshes, missingAssets);
   }
 
   private List<PreviewMeshShape> LoadMeshesFromNif(
@@ -326,10 +325,10 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
 
     var matchingTexture = model.AlternateTextures
-      .Where(t => t?.NewTexture != null && !t.NewTexture.IsNull)
+      .Where(t => t.NewTexture is { IsNull: false })
       .FirstOrDefault(t =>
       {
-        var meshName = t.Name ?? string.Empty;
+        var meshName = t.Name;
         return string.IsNullOrEmpty(meshName) || shapeName.Equals(meshName, StringComparison.OrdinalIgnoreCase);
       });
 

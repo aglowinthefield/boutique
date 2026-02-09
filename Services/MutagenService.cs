@@ -18,10 +18,8 @@ namespace Boutique.Services;
 public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
   : IDisposable
 {
-  private readonly GuiSettingsService _guiSettings = guiSettings;
   private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
-  private readonly PatcherSettings _settings = settings;
   private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
 
   public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
@@ -47,7 +45,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   }
 
   private bool IsBlacklisted(string pluginName) =>
-    _guiSettings.BlacklistedPlugins?.Contains(pluginName, StringComparer.OrdinalIgnoreCase) == true;
+    guiSettings.BlacklistedPlugins?.Contains(pluginName, StringComparer.OrdinalIgnoreCase) == true;
 
   public event EventHandler? PluginsChanged;
 
@@ -62,7 +60,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   };
 
   private SkyrimRelease GetSkyrimRelease() =>
-    _settings.SelectedSkyrimRelease != default ? _settings.SelectedSkyrimRelease : SkyrimRelease.SkyrimSE;
+    settings.SelectedSkyrimRelease != default ? settings.SelectedSkyrimRelease : SkyrimRelease.SkyrimSE;
 
   public async Task InitializeAsync(string dataFolderPath)
   {

@@ -199,9 +199,6 @@ public class DistributionLineParserTests
             1,
             rawText,
             DistributionLineKind.KeyValue,
-            null,
-            null,
-            null,
             isOutfitDistribution,
             []);
 

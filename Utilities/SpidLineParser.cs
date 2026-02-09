@@ -6,7 +6,7 @@ namespace Boutique.Utilities;
 
 public static class SpidLineParser
 {
-  private static readonly Dictionary<string, SpidFormType> FormTypeMap = new(StringComparer.OrdinalIgnoreCase)
+  private static readonly Dictionary<string, SpidFormType> _formTypeMap = new(StringComparer.OrdinalIgnoreCase)
   {
     ["Outfit"] = SpidFormType.Outfit,
     ["Keyword"] = SpidFormType.Keyword,
@@ -56,7 +56,7 @@ public static class SpidLineParser
       return false;
     }
 
-    if (!FormTypeMap.TryGetValue(beforeEquals, out var formType))
+    if (!_formTypeMap.TryGetValue(beforeEquals, out var formType))
     {
       return false;
     }
@@ -498,50 +498,5 @@ public static class SpidLineParser
       .Where(p => classEditorIds == null || classEditorIds.Contains(p.Value))
       .Select(p => p.Value)
       .ToList();
-  }
-
-  public static bool IsSpidLine(string line) =>
-    TryParse(line, out _, null);
-
-  public static bool IsOutfitLine(string line) =>
-    TryParse(line, out _, SpidFormType.Outfit);
-
-  public static bool IsKeywordLine(string line) =>
-    TryParse(line, out _, SpidFormType.Keyword);
-
-  public static bool IsExclusiveGroupLine(string line) =>
-    TryParse(line, out _, SpidFormType.ExclusiveGroup);
-
-  public static SpidFormType? GetFormType(string line)
-  {
-    if (string.IsNullOrWhiteSpace(line))
-    {
-      return null;
-    }
-
-    var trimmed = line.Trim();
-    var equalsIndex = trimmed.IndexOf('=');
-    if (equalsIndex < 0)
-    {
-      return null;
-    }
-
-    var beforeEquals = trimmed[..equalsIndex].Trim();
-    return FormTypeMap.TryGetValue(beforeEquals, out var formType) ? formType : null;
-  }
-
-  public static IReadOnlyList<string> GetReferencedKeywords(SpidDistributionFilter filter)
-  {
-    var results = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-    foreach (var expr in filter.StringFilters.Expressions)
-    {
-      foreach (var part in expr.Parts)
-      {
-        results.Add(part.Value);
-      }
-    }
-
-    return results.ToList();
   }
 }

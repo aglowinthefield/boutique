@@ -1,137 +1,9 @@
-using Boutique.Models;
-using Mutagen.Bethesda;
-using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Cache;
-using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Utilities;
 
 public static class NpcDataExtractor
 {
-  public static HashSet<string> ExtractKeywords(INpcGetter npc, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-    // Collect NPC's direct keywords
-    if (npc.Keywords != null)
-    {
-      foreach (var keywordLink in npc.Keywords)
-      {
-        if (keywordLink.TryResolve(linkCache, out var keyword) && !string.IsNullOrWhiteSpace(keyword.EditorID))
-        {
-          keywords.Add(keyword.EditorID);
-        }
-      }
-    }
-
-    // Collect race keywords
-    if (npc.Race.TryResolve(linkCache, out var race) && race.Keywords != null)
-    {
-      foreach (var keywordLink in race.Keywords)
-      {
-        if (keywordLink.TryResolve(linkCache, out var keyword) && !string.IsNullOrWhiteSpace(keyword.EditorID))
-        {
-          keywords.Add(keyword.EditorID);
-        }
-      }
-    }
-
-    return keywords;
-  }
-
-  public static List<FactionMembership> ExtractFactions(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var factions = new List<FactionMembership>();
-
-    if (npc.Factions == null)
-    {
-      return factions;
-    }
-
-    foreach (var factionRank in npc.Factions)
-    {
-      string? editorId = null;
-      if (factionRank.Faction.TryResolve(linkCache, out var faction))
-      {
-        editorId = faction.EditorID;
-      }
-
-      factions.Add(new FactionMembership
-      {
-        FactionFormKey = factionRank.Faction.FormKey, FactionEditorId = editorId, Rank = factionRank.Rank
-      });
-    }
-
-    return factions;
-  }
-
-  public static (FormKey? FormKey, string? EditorId) ExtractRace(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    ExtractLinkedRecord(npc.Race, linkCache);
-
-  public static (FormKey? FormKey, string? EditorId) ExtractClass(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    ExtractLinkedRecord(npc.Class, linkCache);
-
-  public static (FormKey? FormKey, string? EditorId) ExtractCombatStyle(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    ExtractLinkedRecord(npc.CombatStyle, linkCache);
-
-  public static (FormKey? FormKey, string? EditorId) ExtractVoiceType(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    ExtractLinkedRecord(npc.Voice, linkCache);
-
-  public static (FormKey? FormKey, string? EditorId) ExtractDefaultOutfit(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    ExtractLinkedRecord(npc.DefaultOutfit, linkCache);
-
-  private static (FormKey? FormKey, string? EditorId) ExtractLinkedRecord<T>(
-    IFormLinkGetter<T> link,
-    ILinkCache linkCache)
-    where T : class, IMajorRecordGetter
-  {
-    if (link.IsNull)
-    {
-      return (null, null);
-    }
-
-    var editorId = link.TryResolve(linkCache, out var record) ? record.EditorID : null;
-    return (link.FormKey, editorId);
-  }
-
-  public static (FormKey? FormKey, string? EditorId) ExtractTemplate(
-    INpcGetter npc,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    if (npc.Template.IsNull)
-    {
-      return (null, null);
-    }
-
-    var formKey = npc.Template.FormKey;
-    string? editorId = null;
-
-    // Template can be either an NPC or a LeveledNpc
-    if (linkCache.TryResolve<INpcGetter>(formKey, out var templateNpc))
-    {
-      editorId = templateNpc.EditorID;
-    }
-    else if (linkCache.TryResolve<ILeveledNpcGetter>(formKey, out var templateLvln))
-    {
-      editorId = templateLvln.EditorID;
-    }
-
-    return (formKey, editorId);
-  }
-
   public static string? GetName(INpcGetter npc) => npc.Name?.String;
 
   public static bool IsChildRace(string? raceEditorId)
@@ -200,5 +72,5 @@ public static class NpcDataExtractor
   }
 
   private static byte GetSkillValue(IReadOnlyDictionary<Skill, byte> skillValues, Skill skill) =>
-    skillValues.TryGetValue(skill, out var value) ? value : (byte)0;
+    skillValues.GetValueOrDefault(skill, (byte)0);
 }
