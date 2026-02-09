@@ -7,9 +7,9 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class DistributionDiscoveryService(ILogger logger)
+public class DistributionScannerService(ILogger logger)
 {
-  private readonly ILogger _logger = logger.ForContext<DistributionDiscoveryService>();
+  private readonly ILogger _logger = logger.ForContext<DistributionScannerService>();
 
   public async Task<IReadOnlyList<DistributionFile>> DiscoverAsync(
     string dataFolderPath,
@@ -218,8 +218,6 @@ public class DistributionDiscoveryService(ILogger logger)
         var isExclusiveGroupDistribution = IsExclusiveGroupDistributionLine(type, kind, trimmed);
         IReadOnlyList<string> outfitFormKeys = [];
         string? keywordIdentifier = null;
-        string? exclusiveGroupIdentifier = null;
-        IReadOnlyList<string> exclusiveGroupForms = [];
 
         if (isOutfitDistribution)
         {
@@ -236,8 +234,6 @@ public class DistributionDiscoveryService(ILogger logger)
         if (isExclusiveGroupDistribution)
         {
           exclusiveGroupCount++;
-          exclusiveGroupIdentifier = ExtractExclusiveGroupIdentifier(trimmed);
-          exclusiveGroupForms = ExtractExclusiveGroupForms(trimmed);
         }
 
         lines.Add(new DistributionLine(
@@ -319,7 +315,19 @@ public class DistributionDiscoveryService(ILogger logger)
       return false;
     }
 
-    return type == DistributionFileType.Spid && IsSpidExclusiveGroupLine(trimmed);
+    if (type != DistributionFileType.Spid)
+    {
+      return false;
+    }
+
+    const string key = "ExclusiveGroup";
+    if (!trimmed.StartsWith(key, StringComparison.OrdinalIgnoreCase) || trimmed.Length <= key.Length)
+    {
+      return false;
+    }
+
+    var remainder = trimmed[key.Length..].TrimStart();
+    return remainder.Length > 0 && remainder[0] == '=';
   }
 
   private static bool IsSpidOutfitLine(string trimmed)
@@ -344,19 +352,6 @@ public class DistributionDiscoveryService(ILogger logger)
     return remainder.Length > 0 && remainder[0] == '=';
   }
 
-  private static bool IsSpidExclusiveGroupLine(string trimmed)
-  {
-    const string key = "ExclusiveGroup";
-
-    if (!trimmed.StartsWith(key, StringComparison.OrdinalIgnoreCase) || trimmed.Length <= key.Length)
-    {
-      return false;
-    }
-
-    var remainder = trimmed[key.Length..].TrimStart();
-    return remainder.Length > 0 && remainder[0] == '=';
-  }
-
   private static string? ExtractKeywordIdentifier(string trimmed)
   {
     if (!SpidLineParser.TryParseKeyword(trimmed, out var filter) || filter == null)
@@ -365,26 +360,6 @@ public class DistributionDiscoveryService(ILogger logger)
     }
 
     return filter.FormIdentifier;
-  }
-
-  private static string? ExtractExclusiveGroupIdentifier(string trimmed)
-  {
-    if (!SpidLineParser.TryParseExclusiveGroup(trimmed, out var filter) || filter == null)
-    {
-      return null;
-    }
-
-    return filter.FormIdentifier;
-  }
-
-  private static IReadOnlyList<string> ExtractExclusiveGroupForms(string trimmed)
-  {
-    if (!SpidLineParser.TryParseExclusiveGroup(trimmed, out var filter) || filter == null)
-    {
-      return [];
-    }
-
-    return filter.ExclusiveGroupForms;
   }
 
   private static bool IsSkyPatcherOutfitLine(string trimmed)

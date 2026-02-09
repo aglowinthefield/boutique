@@ -40,7 +40,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private readonly CompositeDisposable _disposables = new();
   private readonly Dictionary<DistributionEntryViewModel, IDisposable> _entryChangedSubscriptions = new();
   private readonly DistributionFilePathService _filePathService;
-  private readonly DistributionFileWriterService _fileWriterService;
+  private readonly DistributionFileEditorService _fileWriterService;
   private readonly GuiSettingsService _guiSettings;
 
   private readonly IObservable<bool> _hasEntries;
@@ -136,7 +136,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   [Reactive] private string _suggestedFileName = string.Empty;
 
   public DistributionEditTabViewModel(
-    DistributionFileWriterService fileWriterService,
+    DistributionFileEditorService fileWriterService,
     ArmorPreviewService armorPreviewService,
     MutagenService mutagenService,
     GameDataCacheService cache,

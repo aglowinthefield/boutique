@@ -10,9 +10,9 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class DistributionFileWriterService(MutagenService mutagenService, ILogger logger)
+public class DistributionFileEditorService(MutagenService mutagenService, ILogger logger)
 {
-  private readonly ILogger _logger = logger.ForContext<DistributionFileWriterService>();
+  private readonly ILogger _logger = logger.ForContext<DistributionFileEditorService>();
 
   public async Task<(IReadOnlyList<DistributionEntry> Entries, DistributionFileType DetectedFormat)>
     LoadDistributionFileWithFormatAsync(

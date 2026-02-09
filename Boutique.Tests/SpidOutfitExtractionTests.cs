@@ -15,14 +15,14 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_PlainEditorId_ReturnsEditorId()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("1_Obi_Druchii");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("1_Obi_Druchii");
         result.Should().Be("1_Obi_Druchii");
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_EditorIdWithFilters_ReturnsOnlyEditorId()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(
             "1_Obi_Druchii|ActorTypeNPC|VampireFaction|NONE|F|NONE|5");
         result.Should().Be("1_Obi_Druchii");
     }
@@ -30,7 +30,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_EditorIdWithSingleFilter_ReturnsOnlyEditorId()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("SomeOutfit|NONE");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("SomeOutfit|NONE");
         result.Should().Be("SomeOutfit");
     }
 
@@ -40,7 +40,7 @@ public class SpidOutfitExtractionTests
     [InlineData("Armor_Nordic_Set", "Armor_Nordic_Set")]
     public void ExtractSpidOutfitIdentifier_VariousEditorIds_ReturnsCorrectly(string input, string expected)
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(input);
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(input);
         result.Should().Be(expected);
     }
 
@@ -51,14 +51,14 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_TildeFormKey_ReturnsFullFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("0x12345~MyMod.esp");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("0x12345~MyMod.esp");
         result.Should().Be("0x12345~MyMod.esp");
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_TildeFormKeyWithFilters_ReturnsOnlyFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(
             "0x800~RequiredMod.esp|ActorTypeNPC|SomeFaction");
         result.Should().Be("0x800~RequiredMod.esp");
     }
@@ -69,21 +69,21 @@ public class SpidOutfitExtractionTests
     [InlineData("123456~MyMod.esl", "123456~MyMod.esl")]
     public void ExtractSpidOutfitIdentifier_TildeFormats_ReturnsCorrectFormKey(string input, string expected)
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(input);
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(input);
         result.Should().Be(expected);
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_TildeFormKeyEsm_ReturnsFullFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("0x800~Skyrim.esm|NPC");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("0x800~Skyrim.esm|NPC");
         result.Should().Be("0x800~Skyrim.esm");
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_TildeFormKeyEsl_ReturnsFullFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("0x800~LightPlugin.esl|NPC");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("0x800~LightPlugin.esl|NPC");
         result.Should().Be("0x800~LightPlugin.esl");
     }
 
@@ -94,14 +94,14 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_PipeFormKey_ReturnsFullFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("MyMod.esp|0x12345");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("MyMod.esp|0x12345");
         result.Should().Be("MyMod.esp|0x12345");
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_PipeFormKeyWithFilters_ReturnsOnlyFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(
             "MyMod.esp|0x800|ActorTypeNPC|SomeFaction");
         result.Should().Be("MyMod.esp|0x800");
     }
@@ -112,7 +112,7 @@ public class SpidOutfitExtractionTests
     [InlineData("Light.esl|0x1", "Light.esl|0x1")]
     public void ExtractSpidOutfitIdentifier_PipeFormats_ReturnsCorrectFormKey(string input, string expected)
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(input);
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(input);
         result.Should().Be(expected);
     }
 
@@ -123,7 +123,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitKeys_EditorIdWithFilters_ExtractsEditorId()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys(
+        var result = DistributionScannerService.ExtractSpidOutfitKeys(
             "Outfit = 1_Obi_Druchii|ActorTypeNPC|VampireFaction|NONE|F|NONE|5");
 
         result.Should().ContainSingle().Which.Should().Be("1_Obi_Druchii");
@@ -132,7 +132,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitKeys_TildeFormKey_ExtractsFormKey()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys(
+        var result = DistributionScannerService.ExtractSpidOutfitKeys(
             "Outfit = 0x800~RequiredMod.esp|NpcEditorId");
 
         result.Should().ContainSingle().Which.Should().Be("0x800~RequiredMod.esp");
@@ -141,7 +141,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitKeys_MultipleOutfits_ExtractsAll()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys(
+        var result = DistributionScannerService.ExtractSpidOutfitKeys(
             "Outfit = OutfitA|NONE, OutfitB|NONE, OutfitC");
 
         result.Should().HaveCount(3)
@@ -151,7 +151,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitKeys_PlainEditorId_ExtractsEditorId()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys("Outfit = VampireOutfit");
+        var result = DistributionScannerService.ExtractSpidOutfitKeys("Outfit = VampireOutfit");
 
         result.Should().ContainSingle().Which.Should().Be("VampireOutfit");
     }
@@ -159,21 +159,21 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitKeys_EmptyValue_ReturnsEmpty()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys("Outfit = ");
+        var result = DistributionScannerService.ExtractSpidOutfitKeys("Outfit = ");
         result.Should().BeEmpty();
     }
 
     [Fact]
     public void ExtractSpidOutfitKeys_NoEquals_ReturnsEmpty()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys("Outfit");
+        var result = DistributionScannerService.ExtractSpidOutfitKeys("Outfit");
         result.Should().BeEmpty();
     }
 
     [Fact]
     public void ExtractSpidOutfitKeys_WithInlineComment_IgnoresComment()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys(
+        var result = DistributionScannerService.ExtractSpidOutfitKeys(
             "Outfit = SomeOutfit|NONE ; This is a comment");
 
         result.Should().ContainSingle().Which.Should().Be("SomeOutfit");
@@ -223,28 +223,28 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_WhitespaceOnly_ReturnsEmpty()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("   ");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("   ");
         result.Should().BeEmpty();
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_Null_ReturnsEmpty()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(null!);
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(null!);
         result.Should().BeEmpty();
     }
 
     [Fact]
     public void ExtractSpidOutfitIdentifier_CommentOnly_ReturnsEmpty()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier("; comment");
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier("; comment");
         result.Should().BeEmpty();
     }
 
     [Fact]
     public void ExtractSpidOutfitKeys_CaseVariations_HandlesCorrectly()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitKeys("OUTFIT = MyOutfit|NONE");
+        var result = DistributionScannerService.ExtractSpidOutfitKeys("OUTFIT = MyOutfit|NONE");
 
         result.Should().ContainSingle().Which.Should().Be("MyOutfit");
     }
@@ -252,7 +252,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_ModKeyWithNumbersAndUnderscores_Works()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(
             "0x800~My_Cool_Mod_2024.esp|Filter");
         result.Should().Be("0x800~My_Cool_Mod_2024.esp");
     }
@@ -260,7 +260,7 @@ public class SpidOutfitExtractionTests
     [Fact]
     public void ExtractSpidOutfitIdentifier_ComplexEditorId_Works()
     {
-        var result = DistributionDiscoveryService.ExtractSpidOutfitIdentifier(
+        var result = DistributionScannerService.ExtractSpidOutfitIdentifier(
             "1_Requiem_Outfit_Vampire_Noble_Female|ActorTypeNPC");
         result.Should().Be("1_Requiem_Outfit_Vampire_Noble_Female");
     }

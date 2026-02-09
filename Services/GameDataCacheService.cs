@@ -21,7 +21,7 @@ public class GameDataCacheService : IDisposable
   private readonly HashSet<string> _blacklistedPluginsSet = new(StringComparer.OrdinalIgnoreCase);
   private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
   private readonly SourceCache<ContainerRecordViewModel, FormKey> _containersSource = new(x => x.FormKey);
-  private readonly DistributionDiscoveryService _discoveryService;
+  private readonly DistributionScannerService _discoveryService;
   private readonly CompositeDisposable _disposables = new();
   private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
   private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
@@ -47,7 +47,7 @@ public class GameDataCacheService : IDisposable
 
   public GameDataCacheService(
     MutagenService mutagenService,
-    DistributionDiscoveryService discoveryService,
+    DistributionScannerService discoveryService,
     NpcOutfitResolutionService outfitResolutionService,
     SettingsViewModel settings,
     GuiSettingsService guiSettings,

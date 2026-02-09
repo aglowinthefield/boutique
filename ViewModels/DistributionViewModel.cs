@@ -32,7 +32,7 @@ public partial class DistributionViewModel : ReactiveObject
   [Reactive] private string _statusMessage = "Ready";
 
   public DistributionViewModel(
-    DistributionFileWriterService fileWriterService,
+    DistributionFileEditorService fileWriterService,
     GameDataCacheService gameDataCache,
     SettingsViewModel settings,
     ArmorPreviewService armorPreviewService,
