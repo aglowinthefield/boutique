@@ -1,18 +1,15 @@
-using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using Boutique.Models;
+using Boutique.Services.GameData;
 using Boutique.Utilities;
 using Boutique.ViewModels;
 using DynamicData;
 using DynamicData.Kernel;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Aspects;
-using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using Serilog;
@@ -46,6 +43,7 @@ public class GameDataCacheService : IDisposable
   private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
   private readonly SourceCache<RaceRecordViewModel, FormKey> _racesSource = new(x => x.FormKey);
   private readonly SettingsViewModel _settings;
+  private readonly ContainerDataBuilder _containerDataBuilder;
 
   public GameDataCacheService(
     MutagenService mutagenService,
@@ -61,6 +59,7 @@ public class GameDataCacheService : IDisposable
     _settings = settings;
     _guiSettings = guiSettings;
     _logger = logger.ForContext<GameDataCacheService>();
+    _containerDataBuilder = new ContainerDataBuilder(logger);
 
     _disposables.Add(_npcsSource.Connect()
       .ObserveOn(RxApp.MainThreadScheduler)
@@ -175,26 +174,6 @@ public class GameDataCacheService : IDisposable
 
   public Optional<NpcFilterData> LookupNpc(FormKey key) => _npcsSource.Lookup(key);
 
-  private void TryProcessRecord(
-    ISkyrimMajorRecordGetter record,
-    Action processor,
-    string recordType)
-  {
-    try
-    {
-      processor();
-    }
-    catch (Exception ex)
-    {
-      _logger.Warning(
-        ex,
-        "Failed to process {RecordType} {EditorID} from {Plugin}",
-        recordType,
-        record.EditorID ?? "Unknown",
-        record.FormKey.ModKey.FileName);
-    }
-  }
-
   public event EventHandler? CacheLoaded;
 
   private async void OnMutagenInitialized(object? sender, EventArgs e)
@@ -244,15 +223,15 @@ public class GameDataCacheService : IDisposable
       List<IOutfitGetter> outfitsList;
       List<ContainerRecordViewModel> containersList;
 
-      var factionsTask = Task.Run(() => LoadFactions(linkCache));
-      var racesTask = Task.Run(() => LoadRaces(linkCache));
-      var keywordsTask = Task.Run(() => LoadKeywords(linkCache));
-      var classesTask = Task.Run(() => LoadClasses(linkCache));
-      var outfitsTask = Task.Run(() => LoadOutfits(linkCache));
+      var factionsTask = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
+      var racesTask = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
+      var keywordsTask = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
+      var classesTask = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
+      var outfitsTask = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
 
       if (_guiSettings.ShowContainersTab)
       {
-        var containersTask = Task.Run(() => LoadContainers(linkCache));
+        var containersTask = Task.Run(() => _containerDataBuilder.LoadContainers(linkCache, IsBlacklisted));
         await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask)
           .ContinueWith(_ => { });
         factionsList = await SafeAwaitAsync(factionsTask, "Factions");
@@ -283,7 +262,7 @@ public class GameDataCacheService : IDisposable
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
       {
-        TryProcessRecord(race, () =>
+        RecordProcessingHelper.TryProcessRecord(_logger, race, () =>
         {
           if (race.Keywords == null)
           {
@@ -306,7 +285,7 @@ public class GameDataCacheService : IDisposable
       var templateLookup = new Dictionary<FormKey, string>();
       foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
       {
-        TryProcessRecord(npc, () =>
+        RecordProcessingHelper.TryProcessRecord(_logger, npc, () =>
         {
           if (!string.IsNullOrWhiteSpace(npc.EditorID))
           {
@@ -317,7 +296,7 @@ public class GameDataCacheService : IDisposable
 
       foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
       {
-        TryProcessRecord(lvln, () =>
+        RecordProcessingHelper.TryProcessRecord(_logger, lvln, () =>
         {
           if (!string.IsNullOrWhiteSpace(lvln.EditorID))
           {
@@ -344,7 +323,7 @@ public class GameDataCacheService : IDisposable
         }
       }
 
-      var npcsResult = await Task.Run(() => LoadNpcs(
+      var npcsResult = await Task.Run(() => NpcDataBuilder.LoadNpcs(
         linkCache,
         keywordLookup,
         factionLookup,
@@ -354,7 +333,8 @@ public class GameDataCacheService : IDisposable
         templateLookup,
         combatStyleLookup,
         voiceTypeLookup,
-        raceKeywordLookup));
+        raceKeywordLookup,
+        IsBlacklisted));
       var (npcFilterDataList, npcRecordsList) = npcsResult;
 
       _npcsSource.Edit(cache =>
@@ -650,419 +630,5 @@ public class GameDataCacheService : IDisposable
     }
 
     return new DirectoryInfo(directory).Name;
-  }
-
-  private (List<NpcFilterData> FilterData, List<NpcRecordViewModel> ViewModels) LoadNpcs(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    Dictionary<FormKey, string> keywordLookup,
-    Dictionary<FormKey, string> factionLookup,
-    Dictionary<FormKey, string> raceLookup,
-    Dictionary<FormKey, string> classLookup,
-    Dictionary<FormKey, string> outfitLookup,
-    Dictionary<FormKey, string> templateLookup,
-    Dictionary<FormKey, string> combatStyleLookup,
-    Dictionary<FormKey, string> voiceTypeLookup,
-    Dictionary<FormKey, HashSet<string>> raceKeywordLookup)
-  {
-    var validNpcs = linkCache.WinningOverrides<INpcGetter>()
-      .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID))
-      .Where(npc => !IsBlacklisted(npc.FormKey.ModKey));
-
-    var filterDataBag = new ConcurrentBag<NpcFilterData>();
-    var recordsBag = new ConcurrentBag<NpcRecordViewModel>();
-
-    Parallel.ForEach(
-      validNpcs,
-      npc =>
-      {
-        try
-        {
-          var originalModKey = npc.FormKey.ModKey;
-          var filterData = BuildNpcFilterData(
-            npc,
-            originalModKey,
-            keywordLookup,
-            factionLookup,
-            raceLookup,
-            classLookup,
-            outfitLookup,
-            templateLookup,
-            combatStyleLookup,
-            voiceTypeLookup,
-            raceKeywordLookup);
-          if (filterData is not null)
-          {
-            filterDataBag.Add(filterData);
-          }
-
-          var record = new NpcRecord(
-            npc.FormKey,
-            npc.EditorID!,
-            NpcDataExtractor.GetName(npc),
-            originalModKey);
-          recordsBag.Add(new NpcRecordViewModel(record));
-        }
-        catch
-        {
-        }
-      });
-
-    return ([.. filterDataBag], [.. recordsBag]);
-  }
-
-  private static NpcFilterData? BuildNpcFilterData(
-    INpcGetter npc,
-    ModKey originalModKey,
-    Dictionary<FormKey, string> keywordLookup,
-    Dictionary<FormKey, string> factionLookup,
-    Dictionary<FormKey, string> raceLookup,
-    Dictionary<FormKey, string> classLookup,
-    Dictionary<FormKey, string> outfitLookup,
-    Dictionary<FormKey, string> templateLookup,
-    Dictionary<FormKey, string> combatStyleLookup,
-    Dictionary<FormKey, string> voiceTypeLookup,
-    Dictionary<FormKey, HashSet<string>> raceKeywordLookup)
-  {
-    try
-    {
-      var keywords = ExtractKeywordsFast(npc, keywordLookup, raceKeywordLookup);
-      var factions = ExtractFactionsFast(npc, factionLookup);
-
-      var (raceFormKey, raceEditorId) = ResolveLinkFast(npc.Race, raceLookup);
-      var (classFormKey, classEditorId) = ResolveLinkFast(npc.Class, classLookup);
-      var (outfitFormKey, outfitEditorId) = ResolveLinkFast(npc.DefaultOutfit, outfitLookup);
-      var (templateFormKey, templateEditorId) = ResolveLinkFast(npc.Template, templateLookup);
-      var (combatStyleFormKey, combatStyleEditorId) = ResolveLinkFast(npc.CombatStyle, combatStyleLookup);
-      var (voiceTypeFormKey, voiceTypeEditorId) = ResolveLinkFast(npc.Voice, voiceTypeLookup);
-      var wornArmorFormKey = npc.WornArmor.FormKeyNullable;
-
-      var (isFemale, isUnique, isSummonable, isLeveled) = NpcDataExtractor.ExtractTraits(npc);
-      var isChild = NpcDataExtractor.IsChildRace(raceEditorId);
-      var level = NpcDataExtractor.ExtractLevel(npc);
-      var skillValues = NpcDataExtractor.ExtractSkillValues(npc);
-
-      var filterData = new NpcFilterData
-      {
-        FormKey = npc.FormKey,
-        EditorId = npc.EditorID,
-        Name = NpcDataExtractor.GetName(npc),
-        SourceMod = originalModKey,
-        Keywords = keywords,
-        Factions = factions,
-        RaceFormKey = raceFormKey,
-        RaceEditorId = raceEditorId,
-        ClassFormKey = classFormKey,
-        ClassEditorId = classEditorId,
-        CombatStyleFormKey = combatStyleFormKey,
-        CombatStyleEditorId = combatStyleEditorId,
-        VoiceTypeFormKey = voiceTypeFormKey,
-        VoiceTypeEditorId = voiceTypeEditorId,
-        DefaultOutfitFormKey = outfitFormKey,
-        DefaultOutfitEditorId = outfitEditorId,
-        WornArmorFormKey = wornArmorFormKey,
-        IsFemale = isFemale,
-        IsUnique = isUnique,
-        IsSummonable = isSummonable,
-        IsChild = isChild,
-        IsLeveled = isLeveled,
-        Level = level,
-        TemplateFormKey = templateFormKey,
-        TemplateEditorId = templateEditorId,
-        SkillValues = skillValues
-      };
-
-      // Pre-calculate MatchKeys for faster SPID matching
-      var matchKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-      if (!string.IsNullOrWhiteSpace(filterData.Name))
-      {
-        matchKeys.Add(filterData.Name);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.EditorId))
-      {
-        matchKeys.Add(filterData.EditorId);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.TemplateEditorId))
-      {
-        matchKeys.Add(filterData.TemplateEditorId);
-      }
-
-      foreach (var kw in filterData.Keywords)
-      {
-        matchKeys.Add(kw);
-      }
-
-      foreach (var f in filterData.Factions)
-      {
-        if (!string.IsNullOrWhiteSpace(f.FactionEditorId))
-        {
-          matchKeys.Add(f.FactionEditorId);
-        }
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.RaceEditorId))
-      {
-        matchKeys.Add(filterData.RaceEditorId);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.ClassEditorId))
-      {
-        matchKeys.Add(filterData.ClassEditorId);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.CombatStyleEditorId))
-      {
-        matchKeys.Add(filterData.CombatStyleEditorId);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.VoiceTypeEditorId))
-      {
-        matchKeys.Add(filterData.VoiceTypeEditorId);
-      }
-
-      if (!string.IsNullOrWhiteSpace(filterData.DefaultOutfitEditorId))
-      {
-        matchKeys.Add(filterData.DefaultOutfitEditorId);
-      }
-
-      filterData.MatchKeys = matchKeys;
-
-      return filterData;
-    }
-    catch
-    {
-      return null;
-    }
-  }
-
-  private static HashSet<string> ExtractKeywordsFast(
-    INpcGetter npc,
-    Dictionary<FormKey, string> keywordLookup,
-    Dictionary<FormKey, HashSet<string>> raceKeywordLookup)
-  {
-    raceKeywordLookup.TryGetValue(npc.Race.FormKey, out var raceKeywords);
-    var hasRaceKeywords = raceKeywords != null && raceKeywords.Count > 0;
-    var hasNpcKeywords = npc.Keywords != null && npc.Keywords.Count > 0;
-
-    if (!hasNpcKeywords && !hasRaceKeywords)
-    {
-      return [];
-    }
-
-    if (!hasNpcKeywords && hasRaceKeywords)
-    {
-      return new HashSet<string>(raceKeywords!, StringComparer.OrdinalIgnoreCase);
-    }
-
-    var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    AddKeywordsFromAspectFast(npc, keywordLookup, keywords);
-
-    if (hasRaceKeywords)
-    {
-      keywords.UnionWith(raceKeywords!);
-    }
-
-    return keywords;
-  }
-
-  private static void AddKeywordsFromAspectFast(IKeywordedGetter record,
-    Dictionary<FormKey, string> lookup,
-    HashSet<string> target)
-  {
-    if (record.Keywords == null)
-    {
-      return;
-    }
-
-    foreach (var kw in record.Keywords)
-    {
-      if (lookup.TryGetValue(kw.FormKey, out var editorId))
-      {
-        target.Add(editorId);
-      }
-    }
-  }
-
-  private static (FormKey? FormKey, string? EditorId) ResolveLinkFast(IFormLinkGetter link,
-    Dictionary<FormKey, string> lookup)
-  {
-    if (link.IsNull)
-    {
-      return (null, null);
-    }
-
-    lookup.TryGetValue(link.FormKey, out var editorId);
-    return (link.FormKey, editorId);
-  }
-
-  private static List<FactionMembership> ExtractFactionsFast(INpcGetter npc,
-    Dictionary<FormKey, string> factionLookup)
-  {
-    var factions = new List<FactionMembership>();
-    if (npc.Factions != null)
-    {
-      foreach (var f in npc.Factions)
-      {
-        if (factionLookup.TryGetValue(f.Faction.FormKey, out var editorId))
-        {
-          factions.Add(new FactionMembership
-          {
-            FactionFormKey = f.Faction.FormKey, FactionEditorId = editorId, Rank = f.Rank
-          });
-        }
-        else
-        {
-          factions.Add(new FactionMembership
-          {
-            FactionFormKey = f.Faction.FormKey, FactionEditorId = null, Rank = f.Rank
-          });
-        }
-      }
-    }
-
-    return factions;
-  }
-
-  private List<FactionRecordViewModel> LoadFactions(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    RecordLoader.LoadRecords<IFactionGetter, FactionRecordViewModel>(
-      linkCache,
-      f => new FactionRecordViewModel(new FactionRecord(f.FormKey, f.EditorID, f.Name?.String, f.FormKey.ModKey)),
-      f => f.DisplayName,
-      IsBlacklisted);
-
-  private List<RaceRecordViewModel> LoadRaces(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    RecordLoader.LoadRecords<IRaceGetter, RaceRecordViewModel>(
-      linkCache,
-      r => new RaceRecordViewModel(new RaceRecord(r.FormKey, r.EditorID, r.Name?.String, r.FormKey.ModKey)),
-      r => r.DisplayName,
-      IsBlacklisted);
-
-  private List<KeywordRecordViewModel> LoadKeywords(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    RecordLoader.LoadRecords<IKeywordGetter, KeywordRecordViewModel>(
-      linkCache,
-      k => new KeywordRecordViewModel(new KeywordRecord(k.FormKey, k.EditorID, k.FormKey.ModKey)),
-      k => k.DisplayName,
-      IsBlacklisted);
-
-  private List<ClassRecordViewModel> LoadClasses(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    RecordLoader.LoadRecords<IClassGetter, ClassRecordViewModel>(
-      linkCache,
-      c => new ClassRecordViewModel(new ClassRecord(c.FormKey, c.EditorID, c.Name?.String, c.FormKey.ModKey)),
-      c => c.DisplayName,
-      IsBlacklisted);
-
-  private List<IOutfitGetter> LoadOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
-    RecordLoader.LoadRawRecords<IOutfitGetter>(linkCache, IsBlacklisted);
-
-  private List<ContainerRecordViewModel> LoadContainers(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var sw = Stopwatch.StartNew();
-
-    var merchantContainers = BuildMerchantContainerLookup(linkCache);
-    var merchantTime = sw.ElapsedMilliseconds;
-
-    var cellPlacements = BuildCellPlacementLookup(linkCache);
-    var cellTime = sw.ElapsedMilliseconds - merchantTime;
-
-    var containers = linkCache.WinningOverrides<IContainerGetter>()
-      .Where(c => !IsBlacklisted(c.FormKey.ModKey))
-      .Select(c => new ContainerRecordViewModel(
-        c,
-        linkCache,
-        merchantContainers.GetValueOrDefault(c.FormKey),
-        cellPlacements.GetValueOrDefault(c.FormKey)))
-      .OrderBy(c => c.DisplayName)
-      .ToList();
-
-    sw.Stop();
-    _logger.Information(
-      "Container loading: {MerchantMs}ms merchant lookup, {CellMs}ms cell placement, {TotalMs}ms total for {Count} containers",
-      merchantTime,
-      cellTime,
-      sw.ElapsedMilliseconds,
-      containers.Count);
-
-    return containers;
-  }
-
-  private Dictionary<FormKey, string> BuildMerchantContainerLookup(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var result = new Dictionary<FormKey, string>();
-
-    foreach (var faction in linkCache.WinningOverrides<IFactionGetter>())
-    {
-      TryProcessRecord(faction, () =>
-      {
-        if (faction.MerchantContainer.IsNull)
-        {
-          return;
-        }
-
-        if (!linkCache.TryResolve<IPlacedObjectGetter>(
-              faction.MerchantContainer.FormKey,
-              out var placedRef) ||
-            placedRef.Base.IsNull)
-        {
-          return;
-        }
-
-        var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
-        result.TryAdd(placedRef.Base.FormKey, factionName);
-      }, "faction");
-    }
-
-    return result;
-  }
-
-  private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var result = new Dictionary<FormKey, List<string>>();
-
-    void AddCellPlacement(FormKey containerFormKey, string locationName)
-    {
-      if (!result.TryGetValue(containerFormKey, out var list))
-      {
-        list = [];
-        result[containerFormKey] = list;
-      }
-
-      if (!list.Contains(locationName))
-      {
-        list.Add(locationName);
-      }
-    }
-
-    void ProcessPlacedObjects(IReadOnlyList<IPlacedGetter>? placedObjects, string locationName)
-    {
-      if (placedObjects == null)
-      {
-        return;
-      }
-
-      foreach (var placed in placedObjects)
-      {
-        if (placed is not IPlacedObjectGetter placedObj || placedObj.Base.IsNull)
-        {
-          continue;
-        }
-
-        AddCellPlacement(placedObj.Base.FormKey, locationName);
-      }
-    }
-
-    foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
-    {
-      TryProcessRecord(cell, () =>
-      {
-        var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
-        ProcessPlacedObjects(cell.Temporary, cellName);
-        ProcessPlacedObjects(cell.Persistent, cellName);
-      }, "cell");
-    }
-
-    return result;
   }
 }
