@@ -429,42 +429,6 @@ public class GameDataCacheService : IDisposable
     await LoadAsync();
   }
 
-  /// <summary>
-  ///   Refreshes only the outfits from the output patch file without reloading the entire LinkCache.
-  ///   Much faster than a full ReloadAsync when only outfit changes need to be reflected.
-  /// </summary>
-  public async Task RefreshOutfitsFromPatchAsync()
-  {
-    var patchFileName = _settings.PatchFileName;
-    if (string.IsNullOrEmpty(patchFileName))
-    {
-      return;
-    }
-
-    var patchOutfits = (await _mutagenService.LoadOutfitsFromPluginAsync(patchFileName)).ToList();
-    if (patchOutfits.Count == 0)
-    {
-      return;
-    }
-
-    var patchModKey = ModKey.FromFileName(patchFileName);
-    _outfitsSource.Edit(cache =>
-    {
-      var existingPatchKeys = cache.Keys.Where(k => k.ModKey == patchModKey).ToList();
-      cache.Remove(existingPatchKeys);
-      cache.AddOrUpdate(patchOutfits);
-    });
-
-    _outfitRecordsSource.Edit(cache =>
-    {
-      var existingPatchKeys = cache.Keys.Where(k => k.ModKey == patchModKey).ToList();
-      cache.Remove(existingPatchKeys);
-      cache.AddOrUpdate(patchOutfits.Select(o => new OutfitRecordViewModel(o)));
-    });
-
-    _logger.Information("Refreshed {Count} outfit(s) from patch file {Patch}.", patchOutfits.Count, patchFileName);
-  }
-
   public async Task EnsureLoadedAsync()
   {
     if (IsLoaded)
@@ -586,29 +550,34 @@ public class GameDataCacheService : IDisposable
     var existingEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     var virtualKeywords = new List<KeywordRecordViewModel>();
 
-    foreach (var file in discoveredFiles)
+    var spidFiles = discoveredFiles.Where(f => f.Type == DistributionFileType.Spid);
+
+    foreach (var file in spidFiles)
     {
-      if (file.Type != DistributionFileType.Spid)
-      {
-        continue;
-      }
-
       var sourceName = ExtractModFolderName(file.FullPath);
-
-      foreach (var line in file.Lines)
-      {
-        if (line.IsKeywordDistribution && !string.IsNullOrWhiteSpace(line.KeywordIdentifier))
-        {
-          if (existingEditorIds.Add(line.KeywordIdentifier))
-          {
-            var record = new KeywordRecord(FormKey.Null, line.KeywordIdentifier, ModKey.Null, sourceName);
-            virtualKeywords.Add(new KeywordRecordViewModel(record));
-          }
-        }
-      }
+      ProcessKeywordLines(file.Lines, sourceName);
     }
 
     return virtualKeywords.OrderBy(k => k.DisplayName).ToList();
+
+    void ProcessKeywordLines(IEnumerable<DistributionLine> lines, string? sourceName)
+    {
+      foreach (var line in lines)
+      {
+        if (!line.IsKeywordDistribution || string.IsNullOrWhiteSpace(line.KeywordIdentifier))
+        {
+          continue;
+        }
+
+        if (!existingEditorIds.Add(line.KeywordIdentifier))
+        {
+          continue;
+        }
+
+        var record = new KeywordRecord(FormKey.Null, line.KeywordIdentifier, ModKey.Null, sourceName);
+        virtualKeywords.Add(new KeywordRecordViewModel(record));
+      }
+    }
   }
 
   private static string? ExtractModFolderName(string fullPath)
