@@ -238,7 +238,6 @@ public static class FormKeyHelper
 
   public static FormKey? ResolveOutfit(
     string identifier,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> _,
     IReadOnlyDictionary<string, FormKey> outfitByEditorId)
   {
     if (string.IsNullOrWhiteSpace(identifier))

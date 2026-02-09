@@ -4,14 +4,12 @@ using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
-using Serilog;
 
 namespace Boutique.Services;
 
 public class DistributionEntryHydrationService(
   GameDataCacheService cache,
-  MutagenService mutagenService,
-  ILogger _)
+  MutagenService mutagenService)
 {
   public void HydrateEntry(
     DistributionEntryViewModel entryVm,
@@ -63,7 +61,7 @@ public class DistributionEntryHydrationService(
     }
   }
 
-  public void ResolveEntryOutfit(DistributionEntryViewModel entryVm, IEnumerable<IOutfitGetter> availableOutfits)
+  public static void ResolveEntryOutfit(DistributionEntryViewModel entryVm, IEnumerable<IOutfitGetter> availableOutfits)
   {
     if (entryVm.SelectedOutfit == null)
     {

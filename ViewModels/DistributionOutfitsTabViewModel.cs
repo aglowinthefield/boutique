@@ -32,7 +32,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
   [Reactive] private bool _isLoading;
 
-  private IReadOnlyList<NpcOutfitAssignment>? _npcAssignments;
+  private List<NpcOutfitAssignment>? _npcAssignments;
 
   [Reactive] private string _outfitSearchText = string.Empty;
 
@@ -240,7 +240,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     {
       StatusMessage = $"Building preview for {label}...";
 
-      var metadata = new OutfitMetadata(label,
+      var metadata = new OutfitMetadata(
+        label,
         outfit.FormKey.ModKey.FileName.String,
         false,
         initialResult.ContainsLeveledItems);
@@ -362,7 +363,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     return Task.CompletedTask;
   }
 
-  private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(string? searchText,
+  private Func<OutfitRecordViewModel, bool> CreateOutfitFilter(
+    string? searchText,
     bool hideVanilla,
     bool showOnlyLeveled)
   {

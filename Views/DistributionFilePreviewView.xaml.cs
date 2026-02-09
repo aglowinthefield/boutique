@@ -53,7 +53,8 @@ public partial class DistributionFilePreviewView
       return;
     }
 
-    Dispatcher.BeginInvoke(() =>
+    Dispatcher.BeginInvoke(
+      () =>
       {
         if (LinesControl.ItemContainerGenerator.ContainerFromIndex(lineNumber) is not FrameworkElement container)
         {
@@ -66,7 +67,7 @@ public partial class DistributionFilePreviewView
         var lineHeight = container.ActualHeight > 0 ? container.ActualHeight : 16;
 
         var viewportCenter = PreviewScrollViewer.ViewportHeight / 2;
-        var targetOffset = lineTop - viewportCenter + lineHeight / 2;
+        var targetOffset = lineTop - viewportCenter + (lineHeight / 2);
         targetOffset = Math.Max(0, Math.Min(targetOffset, PreviewScrollViewer.ScrollableHeight));
         PreviewScrollViewer.ScrollToVerticalOffset(targetOffset);
 

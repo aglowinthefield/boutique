@@ -9,7 +9,8 @@ public static class RecordProcessingHelper
     ILogger logger,
     ISkyrimMajorRecordGetter record,
     Func<T> processor,
-    string recordType) where T : class
+    string recordType)
+    where T : class
   {
     try
     {
@@ -31,7 +32,8 @@ public static class RecordProcessingHelper
     ILogger logger,
     ISkyrimMajorRecordGetter record,
     Func<T?> processor,
-    string recordType) where T : struct
+    string recordType)
+    where T : struct
   {
     try
     {

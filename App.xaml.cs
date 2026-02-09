@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -11,6 +12,8 @@ using Boutique.Services;
 using Boutique.ViewModels;
 using Boutique.Views;
 using Serilog;
+
+[assembly: NeutralResourcesLanguage("en")]
 
 namespace Boutique;
 

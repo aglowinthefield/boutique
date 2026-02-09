@@ -414,9 +414,9 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     // Add them as drafts to the queue
     _draftManager.AddDraftsFromOutfits(
       outfits,
-      _mutagenService.LinkCache,
+      _mutagenService.LinkCache!,
       targetModKey,
-      (formKey, excludeMod) => GetWinningModForOutfit(formKey));
+      (formKey, _) => GetWinningModForOutfit(formKey));
 
     _logger.Information("Auto-loaded outfits from {Plugin}", outputPlugin);
   }
@@ -595,7 +595,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   {
     _logger.Information("Outfit copy requested: {Description}", copiedOutfit.Description);
 
-    if (!_mutagenService.LinkCache.TryResolve<IOutfitGetter>(copiedOutfit.OutfitFormKey, out var outfit))
+    if (!_mutagenService.LinkCache!.TryResolve<IOutfitGetter>(copiedOutfit.OutfitFormKey, out var outfit))
     {
       _logger.Warning("Could not resolve outfit {FormKey}", copiedOutfit.OutfitFormKey);
       return;
@@ -627,7 +627,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   private ModKey? GetWinningModForOutfit(FormKey formKey)
   {
-    if (_mutagenService.LinkCache.TryResolve<IOutfitGetter>(formKey, out var resolved))
+    if (_mutagenService.LinkCache!.TryResolve<IOutfitGetter>(formKey, out var resolved))
     {
       return resolved.FormKey.ModKey;
     }
@@ -641,6 +641,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     _mutagenService.PluginsChanged -= OnPluginsChanged;
     _disposables.Dispose();
     _autoSaveTrigger.Dispose();
+    GC.SuppressFinalize(this);
   }
 
   private async void OnMutagenInitialized(object? sender, EventArgs e) => await LoadOutfitPluginsAsync();

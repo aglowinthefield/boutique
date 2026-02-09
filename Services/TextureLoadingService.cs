@@ -99,7 +99,7 @@ public static class TextureLoadingService
       var rowStart = y * stride;
       for (var x = 0; x < width; x += stepX)
       {
-        var alphaIndex = rowStart + x * 4 + 3;
+        var alphaIndex = rowStart + (x * 4) + 3;
         if (alphaIndex >= data.Length)
         {
           continue;
@@ -199,7 +199,7 @@ public static class TextureLoadingService
     for (var y = 0; y < height; y++)
     {
       var rowStart = y * stride;
-      var rowEnd = Math.Min(rowStart + width * 4, span.Length);
+      var rowEnd = Math.Min(rowStart + (width * 4), span.Length);
       for (var i = rowStart + 3; i < rowEnd; i += 4)
       {
         span[i] = span[i] >= 128 ? (byte)255 : (byte)0;
@@ -218,7 +218,7 @@ public static class TextureLoadingService
     for (var y = 0; y < height; y++)
     {
       var rowStart = y * stride;
-      var rowEnd = Math.Min(rowStart + width * 4, span.Length);
+      var rowEnd = Math.Min(rowStart + (width * 4), span.Length);
       for (var i = rowStart + 3; i < rowEnd; i += 4)
       {
         span[i] = 255;

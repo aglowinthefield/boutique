@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Globalization;
 using Boutique.Models;
 using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
@@ -213,7 +212,8 @@ public class NpcOutfitResolutionService
 
     if (spidLines.Count > 0)
     {
-      Parallel.ForEach(allNpcs,
+      Parallel.ForEach(
+        allNpcs,
         npc =>
         {
           simulatedKeywords.TryGetValue(npc.FormKey, out var virtualKeywords);
@@ -290,7 +290,7 @@ public class NpcOutfitResolutionService
       localDistributions.Count);
   }
 
-  private void ParseSkyPatcherLineCore(
+  private static void ParseSkyPatcherLineCore(
     string lineText,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     IReadOnlyDictionary<string, FormKey> outfitByEditorId,
@@ -356,7 +356,7 @@ public class NpcOutfitResolutionService
       return (null, null);
     }
 
-    var resolvedFormKey = FormKeyHelper.ResolveOutfit(outfitString, linkCache, outfitByEditorId);
+    var resolvedFormKey = FormKeyHelper.ResolveOutfit(outfitString, outfitByEditorId);
     if (!resolvedFormKey.HasValue)
     {
       return (null, null);

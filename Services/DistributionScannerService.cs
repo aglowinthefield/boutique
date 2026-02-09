@@ -306,7 +306,8 @@ public class DistributionScannerService(ILogger logger)
     return type == DistributionFileType.Spid && IsSpidKeywordLine(trimmed);
   }
 
-  private static bool IsExclusiveGroupDistributionLine(DistributionFileType type,
+  private static bool IsExclusiveGroupDistributionLine(
+    DistributionFileType type,
     DistributionLineKind kind,
     string trimmed)
   {

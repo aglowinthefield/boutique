@@ -9,8 +9,21 @@ public sealed record ContainerContentItem(
   int Count,
   string ModName)
 {
-  public string DisplayName =>
-    !string.IsNullOrEmpty(Name) ? Name :
-    !string.IsNullOrEmpty(EditorId) ? EditorId :
-    FormKey.ToString();
+  public string DisplayName
+  {
+    get
+    {
+      if (!string.IsNullOrEmpty(Name))
+      {
+        return Name;
+      }
+
+      if (!string.IsNullOrEmpty(EditorId))
+      {
+        return EditorId;
+      }
+
+      return FormKey.ToString();
+    }
+  }
 }

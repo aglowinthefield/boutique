@@ -135,7 +135,9 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     this.RaisePropertyChanged(nameof(PieceCount));
   }
 
-  private void SetNameInternal(string? value, bool updateHistory)
+#pragma warning disable SA1313
+  private void SetNameInternal(string? value, bool _)
+#pragma warning restore SA1313
   {
     var sanitized = Sanitize(value);
     if (string.IsNullOrEmpty(sanitized))

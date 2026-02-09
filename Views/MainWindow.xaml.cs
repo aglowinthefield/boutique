@@ -197,5 +197,4 @@ public partial class MainWindow : Window
       _initialized = true;
     }
   }
-
 }

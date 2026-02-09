@@ -52,24 +52,28 @@ public class ContainerDataBuilder(ILogger logger)
 
     foreach (var faction in linkCache.WinningOverrides<IFactionGetter>())
     {
-      RecordProcessingHelper.TryProcessRecord(_logger, faction, () =>
-      {
-        if (faction.MerchantContainer.IsNull)
+      RecordProcessingHelper.TryProcessRecord(
+        _logger,
+        faction,
+        () =>
         {
-          return;
-        }
+          if (faction.MerchantContainer.IsNull)
+          {
+            return;
+          }
 
-        if (!linkCache.TryResolve<IPlacedObjectGetter>(
-              faction.MerchantContainer.FormKey,
-              out var placedRef) ||
-            placedRef.Base.IsNull)
-        {
-          return;
-        }
+          if (!linkCache.TryResolve<IPlacedObjectGetter>(
+                faction.MerchantContainer.FormKey,
+                out var placedRef) ||
+              placedRef.Base.IsNull)
+          {
+            return;
+          }
 
-        var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
-        result.TryAdd(placedRef.Base.FormKey, factionName);
-      }, "faction");
+          var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
+          result.TryAdd(placedRef.Base.FormKey, factionName);
+        },
+        "faction");
     }
 
     return result;
@@ -82,12 +86,16 @@ public class ContainerDataBuilder(ILogger logger)
 
     foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
     {
-      RecordProcessingHelper.TryProcessRecord(_logger, cell, () =>
-      {
-        var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
-        ProcessPlacedObjects(cell.Temporary, cellName);
-        ProcessPlacedObjects(cell.Persistent, cellName);
-      }, "cell");
+      RecordProcessingHelper.TryProcessRecord(
+        _logger,
+        cell,
+        () =>
+        {
+          var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
+          ProcessPlacedObjects(cell.Temporary, cellName);
+          ProcessPlacedObjects(cell.Persistent, cellName);
+        },
+        "cell");
     }
 
     return result;

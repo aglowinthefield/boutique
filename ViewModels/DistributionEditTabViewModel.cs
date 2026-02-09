@@ -460,7 +460,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
   public bool IsInitialized => _mutagenService.IsInitialized;
-  private IReadOnlyList<DistributionFileViewModel> DistributionFiles => _cache.AllDistributionFiles;
+  private ReadOnlyObservableCollection<DistributionFileViewModel> DistributionFiles => _cache.AllDistributionFiles;
 
   public void Dispose()
   {
@@ -570,8 +570,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             return (
               NpcName: npc?.DisplayName ?? kv.Key.ToString(),
               EntryCount: kv.Value.Count,
-              Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList()
-            );
+              Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList());
           })
       ];
     }

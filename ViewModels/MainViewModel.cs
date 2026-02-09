@@ -100,7 +100,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     });
 
     // Forward outfit copy requests from Distribution to OutfitCreator
-    Distribution.OutfitCopiedToCreator += async (sender, copiedOutfit) =>
+    Distribution.OutfitCopiedToCreator += async (_, copiedOutfit) =>
       await OutfitCreator.OnOutfitCopiedToCreator(copiedOutfit);
 
     // Forward interactions from OutfitCreator to main window
@@ -307,7 +307,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     FilteredTargetArmors = filteredTargetArmors;
   }
 
-  private static IComparer<ArmorRecordViewModel> BuildTargetSortComparer(string? propertyName, bool ascending)
+  private static SortExpressionComparer<ArmorRecordViewModel> BuildTargetSortComparer(string? propertyName, bool ascending)
   {
     var comparer = SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.SlotCompatibilityPriority);
 

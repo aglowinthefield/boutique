@@ -37,7 +37,8 @@ public static class RecordLoader
     }
     catch (AggregateException ex)
     {
-      Log.Warning(ex,
+      Log.Warning(
+        ex,
         "Encountered errors while loading {RecordType} records. Processing non-corrupt records only.",
         typeof(TRecord).Name);
 

@@ -335,10 +335,10 @@ public static class OutfitResolver
     var indent = new string(' ', depth * 2);
     var typeIndicator = node.NodeType switch
     {
-      OutfitTreeNodeType.Armor => "",
-      OutfitTreeNodeType.LeveledList => $" (LL{(string.IsNullOrEmpty(node.Flags) ? "" : $", {node.Flags}")})",
+      OutfitTreeNodeType.Armor => string.Empty,
+      OutfitTreeNodeType.LeveledList => $" (LL{(string.IsNullOrEmpty(node.Flags) ? string.Empty : $", {node.Flags}")})",
       OutfitTreeNodeType.FormList => " (FL)",
-      _ => ""
+      _ => string.Empty
     };
 
     sb.AppendLine($"{indent}- {node.Name}{typeIndicator}");

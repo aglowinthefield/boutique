@@ -368,15 +368,23 @@ public partial class DistributionEntryViewModel : ReactiveObject
     _selectedNpcs.Count > 0 || _selectedFactions.Count > 0 || _selectedKeywords.Count > 0 ||
     _selectedRaces.Count > 0 || _selectedClasses.Count > 0 || _selectedOutfitFilters.Count > 0 || HasTraitFilters;
 
-  public string TargetDisplayName => Type == DistributionType.Outfit
-    ? SelectedOutfit?.EditorID ?? "(No outfit)"
-    : Type == DistributionType.Keyword
-      ? !string.IsNullOrWhiteSpace(KeywordToDistribute)
-        ? KeywordToDistribute
-        : "(No keyword)"
-      : !string.IsNullOrWhiteSpace(ExclusiveGroupName)
-        ? ExclusiveGroupName
-        : "(No group)";
+  public string TargetDisplayName
+  {
+    get
+    {
+      if (Type == DistributionType.Outfit)
+      {
+        return SelectedOutfit?.EditorID ?? "(No outfit)";
+      }
+
+      if (Type == DistributionType.Keyword)
+      {
+        return !string.IsNullOrWhiteSpace(KeywordToDistribute) ? KeywordToDistribute : "(No keyword)";
+      }
+
+      return !string.IsNullOrWhiteSpace(ExclusiveGroupName) ? ExclusiveGroupName : "(No group)";
+    }
+  }
 
   public string FilterSummary => BuildFilterSummary();
 

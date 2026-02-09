@@ -67,7 +67,8 @@ public partial class DistributionViewModel : ReactiveObject
       gameDataCache,
       logger);
 
-    OutfitsTab = new DistributionOutfitsTabViewModel(armorPreviewService,
+    OutfitsTab = new DistributionOutfitsTabViewModel(
+      armorPreviewService,
       mutagenService,
       gameDataCache,
       settings,
@@ -390,7 +391,7 @@ public partial class DistributionViewModel : ReactiveObject
   public ReactiveCommand<Unit, Unit> SaveDistributionFileCommand => EditTab.SaveDistributionFileCommand;
   public ReactiveCommand<Unit, Unit> ScanNpcsCommand => EditTab.ScanNpcsCommand;
   public ReactiveCommand<Unit, Unit> SelectDistributionFilePathCommand => EditTab.SelectDistributionFilePathCommand;
-  public ReactiveCommand<DistributionEntryViewModel, Unit> PreviewEntryCommand => EditTab.PreviewEntryCommand;
+  public ReactiveCommand<DistributionEntryViewModel?, Unit> PreviewEntryCommand => EditTab.PreviewEntryCommand;
   public ReactiveCommand<Unit, Unit> PasteFilterToEntryCommand => EditTab.PasteFilterToEntryCommand;
   public CopiedNpcFilter? CopiedFilter => EditTab.CopiedFilter;
   public bool HasCopiedFilter => EditTab.HasCopiedFilter;
@@ -420,10 +421,10 @@ public partial class DistributionViewModel : ReactiveObject
   public NpcFilterData? SelectedNpcFilterData => NpcsTab.SelectedNpcFilterData;
   public ReactiveCommand<Unit, Unit> ScanNpcOutfitsCommand => NpcsTab.ScanNpcOutfitsCommand;
 
-  public ReactiveCommand<NpcOutfitAssignmentViewModel, Unit> PreviewNpcOutfitCommand =>
+  public ReactiveCommand<NpcOutfitAssignmentViewModel?, Unit> PreviewNpcOutfitCommand =>
     NpcsTab.PreviewNpcOutfitCommand;
 
-  public ReactiveCommand<OutfitDistribution, Unit> PreviewDistributionOutfitCommand =>
+  public ReactiveCommand<OutfitDistribution?, Unit> PreviewDistributionOutfitCommand =>
     NpcsTab.PreviewDistributionOutfitCommand;
 
   public IReadOnlyList<string> GenderFilterOptions => NpcsTab.GenderFilterOptions;
@@ -523,7 +524,7 @@ public partial class DistributionViewModel : ReactiveObject
     OutfitsTab.SelectedOutfitNpcAssignments;
 
   public ReactiveCommand<Unit, Unit> LoadOutfitsCommand => OutfitsTab.LoadOutfitsCommand;
-  public ReactiveCommand<OutfitRecordViewModel, Unit> PreviewOutfitCommand => OutfitsTab.PreviewOutfitCommand;
+  public ReactiveCommand<OutfitRecordViewModel?, Unit> PreviewOutfitCommand => OutfitsTab.PreviewOutfitCommand;
 
   #endregion
 

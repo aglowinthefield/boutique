@@ -294,7 +294,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       StatusMessage = $"Building preview for {label}...";
 
       var npcGender = GetNpcGender(npcAssignment.NpcFormKey, linkCache);
-      var metadata = new OutfitMetadata(label,
+      var metadata = new OutfitMetadata(
+        label,
         outfit.FormKey.ModKey.FileName.String,
         false,
         initialResult.ContainsLeveledItems);

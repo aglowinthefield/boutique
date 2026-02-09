@@ -143,7 +143,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       }
 
       const string namePrompt = "Enter the outfit name (also used as the EditorID):";
-      var result = await RequestNameAsync((namePrompt, ""));
+      var result = await RequestNameAsync((namePrompt, string.Empty));
 
       if (string.IsNullOrWhiteSpace(result))
       {
@@ -1145,7 +1145,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     while (index > 0)
     {
       index--;
-      builder.Insert(0, (char)('A' + index % 26));
+      builder.Insert(0, (char)('A' + (index % 26)));
       index /= 26;
     }
 

@@ -616,7 +616,8 @@ public partial class OutfitCreatorView
     SetSeparatorHighlight(container, false);
   }
 
-  private static T? FindChild<T>(DependencyObject parent, string name) where T : FrameworkElement
+  private static T? FindChild<T>(DependencyObject parent, string name)
+    where T : FrameworkElement
   {
     var count = VisualTreeHelper.GetChildrenCount(parent);
     for (var i = 0; i < count; i++)

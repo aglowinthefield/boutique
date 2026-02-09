@@ -113,7 +113,8 @@ public partial class IconPickerDialog
 
   private void OkButton_Click(object sender, RoutedEventArgs e) => Close();
 
-  private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+  private static T? FindVisualChild<T>(DependencyObject parent)
+    where T : DependencyObject
   {
     var count = VisualTreeHelper.GetChildrenCount(parent);
     for (var i = 0; i < count; i++)

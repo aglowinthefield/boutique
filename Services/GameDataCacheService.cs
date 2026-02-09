@@ -262,47 +262,59 @@ public class GameDataCacheService : IDisposable
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
       {
-        RecordProcessingHelper.TryProcessRecord(_logger, race, () =>
-        {
-          if (race.Keywords == null)
+        RecordProcessingHelper.TryProcessRecord(
+          _logger,
+          race,
+          () =>
           {
-            return;
-          }
-
-          var keywordSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-          foreach (var kw in race.Keywords)
-          {
-            if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
+            if (race.Keywords == null)
             {
-              keywordSet.Add(editorId);
+              return;
             }
-          }
 
-          raceKeywordLookup.TryAdd(race.FormKey, keywordSet);
-        }, "race");
+            var keywordSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kw in race.Keywords)
+            {
+              if (keywordLookup.TryGetValue(kw.FormKey, out var editorId))
+              {
+                keywordSet.Add(editorId);
+              }
+            }
+
+            raceKeywordLookup.TryAdd(race.FormKey, keywordSet);
+          },
+          "race");
       }
 
       var templateLookup = new Dictionary<FormKey, string>();
       foreach (var npc in linkCache.WinningOverrides<INpcGetter>())
       {
-        RecordProcessingHelper.TryProcessRecord(_logger, npc, () =>
-        {
-          if (!string.IsNullOrWhiteSpace(npc.EditorID))
+        RecordProcessingHelper.TryProcessRecord(
+          _logger,
+          npc,
+          () =>
           {
-            templateLookup.TryAdd(npc.FormKey, npc.EditorID);
-          }
-        }, "NPC");
+            if (!string.IsNullOrWhiteSpace(npc.EditorID))
+            {
+              templateLookup.TryAdd(npc.FormKey, npc.EditorID);
+            }
+          },
+          "NPC");
       }
 
       foreach (var lvln in linkCache.WinningOverrides<ILeveledNpcGetter>())
       {
-        RecordProcessingHelper.TryProcessRecord(_logger, lvln, () =>
-        {
-          if (!string.IsNullOrWhiteSpace(lvln.EditorID))
+        RecordProcessingHelper.TryProcessRecord(
+          _logger,
+          lvln,
+          () =>
           {
-            templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
-          }
-        }, "leveled NPC");
+            if (!string.IsNullOrWhiteSpace(lvln.EditorID))
+            {
+              templateLookup.TryAdd(lvln.FormKey, lvln.EditorID);
+            }
+          },
+          "leveled NPC");
       }
 
       var combatStyleLookup = new Dictionary<FormKey, string>();

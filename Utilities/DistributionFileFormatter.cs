@@ -37,7 +37,7 @@ public static class DistributionFileFormatter
   {
     var version = GetAppVersion();
     var date = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-    var prefix = string.IsNullOrEmpty(fileTypePrefix) ? "" : $"{fileTypePrefix} ";
+    var prefix = string.IsNullOrEmpty(fileTypePrefix) ? string.Empty : $"{fileTypePrefix} ";
 
     return
     [

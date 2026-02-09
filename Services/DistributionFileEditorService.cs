@@ -234,7 +234,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, null);
       }
 
-      var outfitFormKey = FormKeyHelper.ResolveOutfit(outfitString, linkCache, outfitByEditorId);
+      var outfitFormKey = FormKeyHelper.ResolveOutfit(outfitString, outfitByEditorId);
 
       if (!outfitFormKey.HasValue)
       {

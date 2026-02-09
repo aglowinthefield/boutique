@@ -33,6 +33,7 @@ public sealed record OutfitMetadata(
   bool IsWinner,
   bool ContainsLeveledItems = false);
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix", Justification = "ArmorPreviewSceneCollection is a logical name for a collection of preview scenes")]
 public sealed class ArmorPreviewSceneCollection(
   int count,
   int initialIndex,
