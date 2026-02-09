@@ -219,13 +219,13 @@ public class GameAssetLocator
     {
       try
       {
-        using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath,
+        using var mod = SkyrimMod.CreateFromBinaryOverlay(
+          pluginPath,
           _mutagenService.SkyrimRelease,
           _mutagenService.Utf8ReadParameters);
-        masters = mod.ModHeader.MasterReferences
+        masters = [.. mod.ModHeader.MasterReferences
           .Select(m => m.Master)
-          .Distinct()
-          .ToList();
+          .Distinct()];
       }
       catch (Exception ex)
       {

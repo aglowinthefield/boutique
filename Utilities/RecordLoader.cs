@@ -45,7 +45,8 @@ public static class RecordLoader
       {
         if (inner is RecordException recEx)
         {
-          Log.Error("Skipping corrupted plugin {PluginName}: {ErrorMessage}",
+          Log.Error(
+            "Skipping corrupted plugin {PluginName}: {ErrorMessage}",
             recEx.ModKey?.FileName ?? "Unknown",
             recEx.Message);
         }
@@ -81,7 +82,8 @@ public static class RecordLoader
     }
     catch (AggregateException ex)
     {
-      Log.Warning(ex,
+      Log.Warning(
+        ex,
         "Encountered errors while loading {RecordType} records. Processing non-corrupt records only.",
         typeof(TRecord).Name);
 
@@ -89,7 +91,8 @@ public static class RecordLoader
       {
         if (inner is RecordException recEx)
         {
-          Log.Error("Skipping corrupted plugin {PluginName}: {ErrorMessage}",
+          Log.Error(
+            "Skipping corrupted plugin {PluginName}: {ErrorMessage}",
             recEx.ModKey?.FileName ?? "Unknown",
             recEx.Message);
         }
@@ -119,14 +122,15 @@ public static class RecordLoader
       }
       catch (Exception ex)
       {
-        Log.Warning(ex,
+        Log.Warning(
+          ex,
           "Failed to load record {EditorID} from {Plugin}",
           record.EditorID ?? "Unknown",
           record.FormKey.ModKey.FileName);
       }
     }
 
-    return results.OrderBy(getDisplayName).ToList();
+    return [.. results.OrderBy(getDisplayName)];
   }
 
   private static List<TRecord> SafeLoadRawRecords<TRecord>(IEnumerable<TRecord> query)
@@ -138,7 +142,7 @@ public static class RecordLoader
     {
       try
       {
-        var _ = record.EditorID;
+        _ = record.EditorID;
         results.Add(record);
       }
       catch (Exception ex)

@@ -10,7 +10,7 @@
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance vm:DistributionNpcsTabViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance vm:DistributionViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600"
              d:DesignWidth="1100">
   <Grid>

@@ -111,8 +111,8 @@ public class DistributionConflictDetectionService
           sb.Append(
               CultureInfo.InvariantCulture,
               $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.")
-            .AppendLine();
-          sb.Append(
+            .AppendLine()
+            .Append(
             CultureInfo.InvariantCulture,
             $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
         }

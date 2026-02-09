@@ -38,37 +38,38 @@
 
   <!-- Allow test project to access internal members -->
   <ItemGroup>
-    <InternalsVisibleTo Include="Boutique.Tests"/>
+    <InternalsVisibleTo Include="Boutique.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="9.4.1"/>
-    <PackageReference Include="GuideLine.WPF" Version="1.0.3"/>
-    <PackageReference Include="Loqui" Version="3.2.0"/>
-    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.53.1"/>
-    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.5"/>
-    <PackageReference Include="Pfim" Version="0.11.4"/>
+    <PackageReference Include="DynamicData" Version="9.4.1" />
+    <PackageReference Include="GuideLine.WPF" Version="1.0.3" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="Loqui" Version="3.2.0" />
+    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.53.1" />
+    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.35.5" />
+    <PackageReference Include="Pfim" Version="0.11.4" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ReactiveUI.WPF" Version="22.3.1"/>
-    <PackageReference Include="Autofac" Version="9.0.0"/>
-    <PackageReference Include="System.Reactive" Version="6.1.0"/>
-    <PackageReference Include="Serilog" Version="4.3.0"/>
-    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
-    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0"/>
-    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-    <PackageReference Include="Nifly" Version="1.0.0"/>
+    <PackageReference Include="ReactiveUI.WPF" Version="22.3.1" />
+    <PackageReference Include="Autofac" Version="9.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Nifly" Version="1.0.0" />
     <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.27.3">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2"/>
-    <PackageReference Include="MessagePack" Version="3.1.4"/>
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all"/>
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.9.2" />
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
 
     <!-- Code analyzers -->
     <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
@@ -79,12 +80,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="WPFLocalizeExtension" Version="3.10.0"/>
+    <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\eye.png"/>
-    <Resource Include="Assets\sprites\*.png"/>
+    <Resource Include="Assets\eye.png" />
+    <Resource Include="Assets\sprites\*.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -100,20 +101,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="stylecop.json"/>
+    <AdditionalFiles Include="stylecop.json" />
   </ItemGroup>
 
   <!-- Exclude test project directory from main project -->
   <ItemGroup>
-    <Compile Remove="Boutique.Tests\**"/>
-    <EmbeddedResource Remove="Boutique.Tests\**"/>
-    <None Remove="Boutique.Tests\**"/>
-    <Content Remove="Boutique.Tests\**"/>
+    <Compile Remove="Boutique.Tests\**" />
+    <EmbeddedResource Remove="Boutique.Tests\**" />
+    <None Remove="Boutique.Tests\**" />
+    <Content Remove="Boutique.Tests\**" />
   </ItemGroup>
 
   <Target Name="HuskyInstall" BeforeTargets="Restore;CollectPackageReferences" Condition="'$(HUSKY)' != '0'">
-    <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High"/>
-    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High"/>
+    <Exec Command="dotnet tool restore" StandardOutputImportance="Low" StandardErrorImportance="High" />
+    <Exec Command="dotnet husky install" StandardOutputImportance="Low" StandardErrorImportance="High" />
   </Target>
 
 </Project>

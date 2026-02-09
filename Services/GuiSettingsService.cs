@@ -293,11 +293,12 @@ public class GuiSettingsService
   public OutfitDraftsState? GetOutfitDraftsState(string patchName) =>
     _settings.OutfitDraftsStates?.GetValueOrDefault(patchName);
 
-  public void SetOutfitDraftOrder(string patchName,
+  public void SetOutfitDraftOrder(
+    string patchName,
     IEnumerable<string> itemIds,
     IEnumerable<SeparatorState>? separators = null)
   {
-    _settings.OutfitDraftsStates ??= new Dictionary<string, OutfitDraftsState>();
+    _settings.OutfitDraftsStates ??= [];
 
     if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
     {
@@ -305,7 +306,7 @@ public class GuiSettingsService
       _settings.OutfitDraftsStates[patchName] = state;
     }
 
-    state.Order = itemIds.ToList();
+    state.Order = [.. itemIds];
     state.Separators = separators?.ToList();
     SaveSettings();
   }

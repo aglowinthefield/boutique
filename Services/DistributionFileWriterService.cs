@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IO;
 using System.Text;
 using Boutique.Models;
@@ -11,16 +10,9 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class DistributionFileWriterService
+public class DistributionFileWriterService(MutagenService mutagenService, ILogger logger)
 {
-  private readonly ILogger _logger;
-  private readonly MutagenService _mutagenService;
-
-  public DistributionFileWriterService(MutagenService mutagenService, ILogger logger)
-  {
-    _mutagenService = mutagenService;
-    _logger = logger.ForContext<DistributionFileWriterService>();
-  }
+  private readonly ILogger _logger = logger.ForContext<DistributionFileWriterService>();
 
   public async Task<(IReadOnlyList<DistributionEntry> Entries, DistributionFileType DetectedFormat)>
     LoadDistributionFileWithFormatAsync(
@@ -51,7 +43,7 @@ public class DistributionFileWriterService
           return (entries, detectedFormat, parseErrors);
         }
 
-        if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        if (mutagenService.LinkCache is not { } linkCache)
         {
           _logger.Warning("LinkCache not available. Cannot load distribution file.");
           return (entries, detectedFormat, parseErrors);
@@ -449,88 +441,8 @@ public class DistributionFileWriterService
     return results;
   }
 
-  private static string FormatFormKey(FormKey formKey) => FormKeyHelper.Format(formKey);
-
-  private static string FormatOutfitIdentifier(IOutfitGetter outfit) =>
-    $"0x{outfit.FormKey.ID:X}~{outfit.FormKey.ModKey.FileName}";
-
   private static FormKey? TryParseFormKey(string text) =>
     FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
-
-  private static string? FormatTraitFilters(SpidTraitFilters traits)
-  {
-    if (traits.IsEmpty)
-    {
-      return null;
-    }
-
-    var parts = new List<string>();
-
-    if (traits.IsFemale == true)
-    {
-      parts.Add("F");
-    }
-    else if (traits.IsFemale == false)
-    {
-      parts.Add("M");
-    }
-
-    if (traits.IsUnique == true)
-    {
-      parts.Add("U");
-    }
-    else if (traits.IsUnique == false)
-    {
-      parts.Add("-U");
-    }
-
-    if (traits.IsSummonable == true)
-    {
-      parts.Add("S");
-    }
-    else if (traits.IsSummonable == false)
-    {
-      parts.Add("-S");
-    }
-
-    if (traits.IsChild == true)
-    {
-      parts.Add("C");
-    }
-    else if (traits.IsChild == false)
-    {
-      parts.Add("-C");
-    }
-
-    if (traits.IsLeveled == true)
-    {
-      parts.Add("L");
-    }
-    else if (traits.IsLeveled == false)
-    {
-      parts.Add("-L");
-    }
-
-    if (traits.IsTeammate == true)
-    {
-      parts.Add("T");
-    }
-    else if (traits.IsTeammate == false)
-    {
-      parts.Add("-T");
-    }
-
-    if (traits.IsDead == true)
-    {
-      parts.Add("D");
-    }
-    else if (traits.IsDead == false)
-    {
-      parts.Add("-D");
-    }
-
-    return parts.Count > 0 ? string.Join("/", parts) : null;
-  }
 
   private static HashSet<string> ExtractVirtualKeywordsFromLines(string[] lines)
   {

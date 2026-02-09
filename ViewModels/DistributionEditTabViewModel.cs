@@ -560,18 +560,20 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
       }
 
-      conflicts = npcToEntries
-        .Where(kv => kv.Value.Count > 1)
-        .Select(kv =>
-        {
-          var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
-          return (
-            NpcName: npc?.DisplayName ?? kv.Key.ToString(),
-            EntryCount: kv.Value.Count,
-            Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList()
-          );
-        })
-        .ToList();
+      conflicts =
+      [
+        .. npcToEntries
+          .Where(kv => kv.Value.Count > 1)
+          .Select(kv =>
+          {
+            var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+            return (
+              NpcName: npc?.DisplayName ?? kv.Key.ToString(),
+              EntryCount: kv.Value.Count,
+              Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList()
+            );
+          })
+      ];
     }
     else
     {
@@ -1806,14 +1808,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         _ => GenderedModelVariant.Female
       };
 
-      var metadata = new OutfitMetadata(label,
+      var metadata = new OutfitMetadata(
+        label,
         outfit.FormKey.ModKey.FileName.String,
         false,
         initialResult.ContainsLeveledItems);
       var collection = new ArmorPreviewSceneCollection(
         1,
         0,
-        new[] { metadata },
+        [metadata],
         async (_, gender) =>
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
@@ -1886,7 +1889,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       {
         var result = DistributionConflictDetectionService.DetectConflicts(
           entriesSnapshot,
-          DistributionFiles.ToList(),
+          [.. DistributionFiles],
           NewFileName,
           linkCache);
         Application.Current?.Dispatcher.Invoke(() =>
@@ -1956,14 +1959,14 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// </summary>
   private bool IsFormatChangingToSpid()
   {
-    if (DistributionFormat == DistributionFileType.SkyPatcher)
+    if (DistributionFormat != DistributionFileType.SkyPatcher)
     {
-      DistributionFormat = DistributionFileType.Spid;
-      UpdateFileContent();
-      return true;
+      return false;
     }
 
-    return false;
+    DistributionFormat = DistributionFileType.Spid;
+    UpdateFileContent();
+    return true;
   }
 
   private DistributionEntryViewModel CreateEntryViewModel(DistributionEntry entry)
