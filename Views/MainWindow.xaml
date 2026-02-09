@@ -11,6 +11,7 @@
         d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
         Title="{lex:Loc AppTitle}" Height="800" Width="1400"
         WindowStartupLocation="CenterScreen"
+        BorderThickness="0"
         Background="{StaticResource Brush.PrimaryBackground}">
 
   <Grid Background="{StaticResource Brush.PrimaryBackground}">
@@ -28,7 +29,7 @@
         <views:DistributionView DataContext="{Binding Distribution}" />
       </TabItem>
       <TabItem x:Name="OutfitCreatorTab" Header="{lex:Loc Tab_OutfitCreator}">
-        <views:OutfitCreatorView DataContext="{Binding}" />
+        <views:OutfitCreatorView DataContext="{Binding OutfitCreator}" />
       </TabItem>
       <TabItem x:Name="ArmorPatchTab" Header="{lex:Loc Tab_ArmorPatch}">
         <views:ArmorPatchView DataContext="{Binding}" />

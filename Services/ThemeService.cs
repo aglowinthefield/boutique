@@ -167,9 +167,9 @@ public class ThemeService
     var useDarkMode = IsCurrentlyDark ? 1 : 0;
     _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
-    // Set window border color (Windows 11+)
+    // Set window border color to match background (Windows 11+)
     // Color format: 0x00BBGGRR
-    var borderColor = IsCurrentlyDark ? 0x00232323u : 0x00E0E0E0u;
+    var borderColor = IsCurrentlyDark ? 0x001E1E1Eu : 0x00F5F5F5u;
     _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
   }
 
@@ -183,8 +183,8 @@ public class ThemeService
     var useDarkMode = isDark ? 1 : 0;
     _ = DwmSetWindowAttribute(hwnd, DWMWAUSEIMMERSIVEDARKMODE, ref useDarkMode, sizeof(int));
 
-    // Set window border color (Windows 11+)
-    var borderColor = isDark ? 0x00232323u : 0x00E0E0E0u;
+    // Set window border color to match background (Windows 11+)
+    var borderColor = isDark ? 0x001E1E1Eu : 0x00F5F5F5u;
     _ = DwmSetWindowAttribute(hwnd, DWMWABORDERCOLOR, ref borderColor, sizeof(uint));
   }
 

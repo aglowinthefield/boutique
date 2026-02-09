@@ -13,15 +13,10 @@
         MinWidth="450" MinHeight="350"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
+        BorderThickness="0"
         Background="{StaticResource Brush.CardBackground}">
 
-  <Window.Resources>
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Themes/ColorPaletteDark.xaml" />
-      </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
-  </Window.Resources>
+  <!-- Note: ColorPalette (Dark/Light) is loaded globally by ThemeService -->
 
   <Grid Margin="20">
     <Grid.LayoutTransform>

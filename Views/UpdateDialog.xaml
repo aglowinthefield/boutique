@@ -8,6 +8,7 @@
         d:DataContext="{d:DesignInstance Type=views:UpdateDialog}"
         Title="Update Available" Height="450" Width="550"
         WindowStartupLocation="CenterOwner"
+        BorderThickness="0"
         Background="{DynamicResource Brush.Background}">
   <Grid Margin="16">
     <Grid.RowDefinitions>

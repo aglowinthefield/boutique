@@ -10,7 +10,7 @@
              xmlns:res="clr-namespace:Boutique.Resources"
              xmlns:views="clr-namespace:Boutique.Views"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance vm:MainViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance vm:OutfitCreatorViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="800"
              d:DesignWidth="1400">
   <UserControl.Resources>

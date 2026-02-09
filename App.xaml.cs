@@ -64,6 +64,7 @@ public partial class App
     builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
     builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
     builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();
+    builder.RegisterType<OutfitCreatorViewModel>().AsSelf().SingleInstance();
 
     builder.RegisterType<MainWindow>().AsSelf();
 

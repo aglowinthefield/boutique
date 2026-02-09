@@ -82,7 +82,7 @@ public partial class MainWindow : Window
     });
     _bindings.Add(confirmDeleteDisposable);
 
-    var outfitNameDisposable = viewModel.RequestOutfitName.RegisterHandler(async interaction =>
+    var outfitNameDisposable = viewModel.OutfitCreator.RequestOutfitName.RegisterHandler(async interaction =>
     {
       var (prompt, defaultValue) = interaction.Input;
       var result = await Dispatcher.InvokeAsync(() =>
@@ -187,7 +187,7 @@ public partial class MainWindow : Window
         await viewModel.LoadTargetPluginAsync();
         break;
       case "Outfit Creator":
-        await viewModel.LoadOutfitPluginAsync();
+        await viewModel.OutfitCreator.LoadOutfitPluginAsync();
         break;
     }
   }

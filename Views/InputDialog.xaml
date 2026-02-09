@@ -7,6 +7,7 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         WindowStyle="ToolWindow"
+        BorderThickness="0"
         Background="{StaticResource Brush.CardBackground}">
 
   <Grid Margin="20">

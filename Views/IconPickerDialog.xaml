@@ -12,6 +12,7 @@
         ResizeMode="CanResizeWithGrip"
         ShowInTaskbar="False"
         MinWidth="320" MinHeight="300"
+        BorderThickness="0"
         Background="{StaticResource Brush.CardBackground}">
 
   <Grid Margin="12">

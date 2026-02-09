@@ -21,7 +21,7 @@ public partial class OutfitCreatorView
       typeof(OutfitCreatorView),
       new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
 
-  private MainViewModel? _currentViewModel;
+  private OutfitCreatorViewModel? _currentViewModel;
   private Point? _draftDragStartPoint;
   private IOutfitQueueItem? _draggedItem;
 
@@ -39,7 +39,7 @@ public partial class OutfitCreatorView
     OutfitArmorsGrid.Loaded += (_, _) => SynchronizeOutfitSelection();
   }
 
-  private MainViewModel? ViewModel => DataContext as MainViewModel;
+  private OutfitCreatorViewModel? ViewModel => DataContext as OutfitCreatorViewModel;
 
   public static bool GetIsDragging(DependencyObject obj) => (bool)obj.GetValue(IsDraggingProperty);
   public static void SetIsDragging(DependencyObject obj, bool value) => obj.SetValue(IsDraggingProperty, value);
@@ -49,9 +49,9 @@ public partial class OutfitCreatorView
   private void OnUnloaded(object sender, RoutedEventArgs e) => AttachToViewModel(null);
 
   private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) =>
-    AttachToViewModel(e.NewValue as MainViewModel);
+    AttachToViewModel(e.NewValue as OutfitCreatorViewModel);
 
-  private void AttachToViewModel(MainViewModel? viewModel)
+  private void AttachToViewModel(OutfitCreatorViewModel? viewModel)
   {
     if (ReferenceEquals(viewModel, _currentViewModel))
     {
@@ -76,7 +76,7 @@ public partial class OutfitCreatorView
 
   private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    if (e.PropertyName == nameof(MainViewModel.SelectedOutfitArmors))
+    if (e.PropertyName == nameof(OutfitCreatorViewModel.SelectedOutfitArmors))
     {
       SynchronizeOutfitSelection();
     }
@@ -380,7 +380,7 @@ public partial class OutfitCreatorView
 
     e.Handled = true; // Handle immediately to let drag-drop modal loop complete
 
-    if (ViewModel is not MainViewModel viewModel)
+    if (ViewModel is not OutfitCreatorViewModel viewModel)
     {
       return;
     }
@@ -415,7 +415,7 @@ public partial class OutfitCreatorView
     HideAllIndicators(sender as Grid);
     ClearConflictHighlights(sender as Grid);
 
-    if (ViewModel is not MainViewModel viewModel)
+    if (ViewModel is not OutfitCreatorViewModel viewModel)
     {
       e.Handled = true;
       return;
@@ -483,7 +483,7 @@ public partial class OutfitCreatorView
     {
       if (sourceItem is OutfitSeparatorViewModel sourceSeparator &&
           container.DataContext is IOutfitQueueItem targetItem &&
-          ViewModel is MainViewModel viewModel)
+          ViewModel is OutfitCreatorViewModel viewModel)
       {
         var groupedItems = viewModel.GetGroupedItems(sourceSeparator);
         if (groupedItems.Contains(targetItem))
