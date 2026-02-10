@@ -1,3 +1,5 @@
+using Noggog;
+
 namespace Boutique.Utilities;
 
 public static class StringUtilities
@@ -14,4 +16,10 @@ public static class StringUtilities
 
     return text.Trim();
   }
+
+  public static bool AnyContainValue(IReadOnlySet<string>? strings, string value) =>
+    strings?.Any(s => ContainsValue(s, value)) ?? false;
+
+  public static bool ContainsValue(string? source, string value) =>
+    !source.IsNullOrWhitespace() && source.Contains(value, StringComparison.OrdinalIgnoreCase);
 }

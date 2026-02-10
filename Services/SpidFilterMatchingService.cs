@@ -176,15 +176,15 @@ public class SpidFilterMatchingService
     return virtualKeywords?.Contains(value) ?? false;
   }
 
-  private static bool
-    PartialMatchesNpcStrings(NpcFilterData npc, string value, IReadOnlySet<string>? virtualKeywords) =>
-    (!string.IsNullOrWhiteSpace(npc.Name) && npc.Name.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
-    (!string.IsNullOrWhiteSpace(npc.EditorId) &&
-     npc.EditorId.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
-    npc.Keywords.Any(k => k.Contains(value, StringComparison.OrdinalIgnoreCase)) ||
-    (virtualKeywords?.Any(k => k.Contains(value, StringComparison.OrdinalIgnoreCase)) ?? false) ||
-    (!string.IsNullOrWhiteSpace(npc.TemplateEditorId) &&
-     npc.TemplateEditorId.Contains(value, StringComparison.OrdinalIgnoreCase));
+  internal static bool PartialMatchesNpcStrings(
+    NpcFilterData npc,
+    string value,
+    IReadOnlySet<string>? virtualKeywords) =>
+    StringUtilities.ContainsValue(npc.Name, value) ||
+    StringUtilities.ContainsValue(npc.EditorId, value) ||
+    StringUtilities.ContainsValue(npc.TemplateEditorId, value) ||
+    StringUtilities.AnyContainValue(npc.Keywords, value) ||
+    StringUtilities.AnyContainValue(virtualKeywords, value);
 
   private static bool MatchesFormFilters(NpcFilterData npc, SpidFilterSection filters)
   {
