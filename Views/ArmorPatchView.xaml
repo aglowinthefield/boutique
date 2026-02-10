@@ -138,7 +138,7 @@
               <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+ArmorPatch.MapSelection}}"
                       Command="{Binding MapSelectedCommand}" />
               <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+ArmorPatch.MarkGlamOnly}}"
-                      Command="{Binding MapGlamOnlyCommand}" />
+                      Command="{Binding MapSelectedAsGlamOnlyCommand}" />
               <TextBlock Text="{Binding Matches.Count, StringFormat='{}{0} mappings'}"
                          Margin="8,0,0,0" VerticalAlignment="Center" />
             </StackPanel>

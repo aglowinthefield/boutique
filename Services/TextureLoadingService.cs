@@ -21,11 +21,11 @@ public static class TextureLoadingService
   private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> TextureCache =
     new(StringComparer.OrdinalIgnoreCase);
 
-  private static readonly object TextureCacheLock = new();
+  private static readonly object _textureCacheLock = new();
 
   public static (TextureModel? Texture, bool NeedsTransparency) LoadDdsTexture(string texturePath)
   {
-    lock (TextureCacheLock)
+    lock (_textureCacheLock)
     {
       if (TextureCache.TryGetValue(texturePath, out var cached))
       {
@@ -35,7 +35,7 @@ public static class TextureLoadingService
 
     var result = LoadDdsTextureCore(texturePath);
 
-    lock (TextureCacheLock)
+    lock (_textureCacheLock)
     {
       TextureCache[texturePath] = result;
     }

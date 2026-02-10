@@ -204,7 +204,6 @@
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto" />
               <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="140" />
@@ -212,28 +211,20 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Row 0: Tutorial (hidden when feature is disabled) -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_Tutorial}" VerticalAlignment="Center"
-                       Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-            <Button Grid.Row="0" Grid.Column="1" Content="{lex:Loc Button_RestartTutorial}"
-                    Command="{Binding Settings.RestartTutorialCommand}"
-                    HorizontalAlignment="Left" MinWidth="120" Margin="0,0,0,12"
-                    Visibility="{Binding Settings.IsTutorialEnabled, Converter={StaticResource BoolToVisConverter}}" />
-
-            <!-- Row 1: Auto Update -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto Update"
+            <!-- Row 0: Auto Update -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Auto Update"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
+            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
               <CheckBox IsChecked="{Binding Settings.AutoUpdateEnabled}" VerticalAlignment="Center"
                         Content="Check for updates on startup" />
               <Button Content="Check Now" Command="{Binding Settings.TestAutoUpdateCommand}"
                       Margin="16,0,0,0" MinWidth="90" />
             </StackPanel>
 
-            <!-- Row 2: Experimental Features -->
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Experimental"
+            <!-- Row 1: Experimental Features -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Experimental"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <CheckBox Grid.Row="2" Grid.Column="1"
+            <CheckBox Grid.Row="1" Grid.Column="1"
                       IsChecked="{Binding Settings.ShowContainersTab}" VerticalAlignment="Center"
                       Content="Show Containers tab (Requires Restart)" />
           </Grid>

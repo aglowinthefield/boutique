@@ -66,7 +66,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     WritePatchWithRetry(patchMod, outputPath, actuallyRequiredMasters);
   }
 
-  private async Task RefreshAfterWrite(
+  private async Task RefreshAfterWriteAsync(
     string outputPath,
     IProgress<(int current, int total, string message)>? progress)
   {
@@ -147,7 +147,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     if (result.Item1)
     {
-      await RefreshAfterWrite(outputPath, progress);
+      await RefreshAfterWriteAsync(outputPath, progress);
     }
     else
     {
@@ -321,7 +321,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     if (result.Item1)
     {
-      await RefreshAfterWrite(outputPath, progress);
+      await RefreshAfterWriteAsync(outputPath, progress);
     }
     else
     {
