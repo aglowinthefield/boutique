@@ -144,12 +144,7 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
         linkCache.TryResolve<IFactionGetter>(formKey, out var faction))
     {
-      var factionRecord = new FactionRecord(
-        faction.FormKey,
-        faction.EditorID,
-        faction.Name?.String,
-        faction.FormKey.ModKey);
-      return new FactionRecordViewModel(factionRecord);
+      return new FactionRecordViewModel(FactionRecord.FromGetter(faction));
     }
 
     return null;
@@ -186,17 +181,13 @@ public class DistributionEntryHydrationService(
       return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    if (mutagenService.LinkCache is { } linkCache)
     {
       var keyword = linkCache.WinningOverrides<IKeywordGetter>()
         .FirstOrDefault(k => string.Equals(k.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
       if (keyword != null)
       {
-        var keywordRecord = new KeywordRecord(
-          keyword.FormKey,
-          keyword.EditorID,
-          keyword.FormKey.ModKey);
-        return new KeywordRecordViewModel(keywordRecord);
+        return new KeywordRecordViewModel(KeywordRecord.FromGetter(keyword));
       }
     }
 
@@ -212,14 +203,10 @@ public class DistributionEntryHydrationService(
       return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword))
     {
-      var keywordRecord = new KeywordRecord(
-        keyword.FormKey,
-        keyword.EditorID,
-        keyword.FormKey.ModKey);
-      return new KeywordRecordViewModel(keywordRecord);
+      return new KeywordRecordViewModel(KeywordRecord.FromGetter(keyword));
     }
 
     return null;
@@ -253,12 +240,7 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
         linkCache.TryResolve<IRaceGetter>(formKey, out var race))
     {
-      var raceRecord = new RaceRecord(
-        race.FormKey,
-        race.EditorID,
-        race.Name?.String,
-        race.FormKey.ModKey);
-      return new RaceRecordViewModel(raceRecord);
+      return new RaceRecordViewModel(RaceRecord.FromGetter(race));
     }
 
     return null;
@@ -278,12 +260,7 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
         linkCache.TryResolve<IClassGetter>(formKey, out var classRecord))
     {
-      var record = new ClassRecord(
-        classRecord.FormKey,
-        classRecord.EditorID,
-        classRecord.Name?.String,
-        classRecord.FormKey.ModKey);
-      return new ClassRecordViewModel(record);
+      return new ClassRecordViewModel(ClassRecord.FromGetter(classRecord));
     }
 
     return null;

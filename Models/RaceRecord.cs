@@ -1,12 +1,9 @@
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;
 
-public sealed record RaceRecord(
-  FormKey FormKey,
-  string? EditorID,
-  string? Name,
-  ModKey ModKey) : IGameRecord
+public sealed record RaceRecord(FormKey FormKey, string? EditorID, string? Name, ModKey ModKey) : IGameRecord
 {
   /// <summary>
   ///   Display name prefers EditorID over localized Name to avoid duplicates in dropdowns.
@@ -16,4 +13,7 @@ public sealed record RaceRecord(
 
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => ModKey.FileName;
+
+  public static RaceRecord FromGetter(IRaceGetter race) =>
+    new(race.FormKey, race.EditorID, race.Name?.String, race.FormKey.ModKey);
 }

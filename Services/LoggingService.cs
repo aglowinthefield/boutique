@@ -8,8 +8,8 @@ namespace Boutique.Services;
 public sealed class LoggingService : ILoggingService
 {
   private readonly LoggingLevelSwitch _levelSwitch;
-  private readonly Logger _logger;
-  private bool _disposed;
+  private readonly Logger             _logger;
+  private          bool               _disposed;
 
   public LoggingService()
   {
@@ -25,17 +25,17 @@ public sealed class LoggingService : ILoggingService
     _levelSwitch = new LoggingLevelSwitch();
 
     _logger = new LoggerConfiguration()
-      .MinimumLevel.ControlledBy(_levelSwitch)
-      .Enrich.FromLogContext()
-      .WriteTo.Async(configuration =>
+              .MinimumLevel.ControlledBy(_levelSwitch)
+              .Enrich.FromLogContext()
+              .WriteTo.Async(configuration =>
 #pragma warning disable CA1305 // File sink configuration doesn't involve locale-sensitive formatting
-        configuration.File(
-          LogFilePattern,
-          rollingInterval: RollingInterval.Day,
-          retainedFileCountLimit: 14,
-          shared: true))
+                               configuration.File(
+                                 LogFilePattern,
+                                 shared: true,
+                                 rollingInterval: RollingInterval.Day,
+                                 retainedFileCountLimit: 14))
 #pragma warning restore CA1305
-      .CreateLogger();
+              .CreateLogger();
 
     Log.Logger = _logger;
   }

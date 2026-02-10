@@ -22,7 +22,7 @@ public class GameDataCacheService : IDisposable
   private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
   private readonly SourceCache<ContainerRecordViewModel, FormKey> _containersSource = new(x => x.FormKey);
   private readonly DistributionScannerService _discoveryService;
-  private readonly CompositeDisposable _disposables = new();
+  private readonly CompositeDisposable _disposables = [];
   private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
   private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
   private readonly GuiSettingsService _guiSettings;

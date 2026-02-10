@@ -25,10 +25,11 @@ public static class NpcDataBuilder
     Func<ModKey, bool> isBlacklisted)
   {
     var validNpcs = linkCache.WinningOverrides<INpcGetter>()
-      .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID) && !isBlacklisted(npc.FormKey.ModKey));
+                             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID) &&
+                                           !isBlacklisted(npc.FormKey.ModKey));
 
     var filterDataBag = new ConcurrentBag<NpcFilterData>();
-    var recordsBag = new ConcurrentBag<NpcRecordViewModel>();
+    var recordsBag    = new ConcurrentBag<NpcRecordViewModel>();
 
     Parallel.ForEach(
       validNpcs,
@@ -88,48 +89,48 @@ public static class NpcDataBuilder
       var keywords = ExtractKeywordsFast(npc, keywordLookup, raceKeywordLookup);
       var factions = ExtractFactionsFast(npc, factionLookup);
 
-      var (raceFormKey, raceEditorId) = ResolveLinkFast(npc.Race, raceLookup);
-      var (classFormKey, classEditorId) = ResolveLinkFast(npc.Class, classLookup);
-      var (outfitFormKey, outfitEditorId) = ResolveLinkFast(npc.DefaultOutfit, outfitLookup);
-      var (templateFormKey, templateEditorId) = ResolveLinkFast(npc.Template, templateLookup);
+      var (raceFormKey, raceEditorId)               = ResolveLinkFast(npc.Race, raceLookup);
+      var (classFormKey, classEditorId)             = ResolveLinkFast(npc.Class, classLookup);
+      var (outfitFormKey, outfitEditorId)           = ResolveLinkFast(npc.DefaultOutfit, outfitLookup);
+      var (templateFormKey, templateEditorId)       = ResolveLinkFast(npc.Template, templateLookup);
       var (combatStyleFormKey, combatStyleEditorId) = ResolveLinkFast(npc.CombatStyle, combatStyleLookup);
-      var (voiceTypeFormKey, voiceTypeEditorId) = ResolveLinkFast(npc.Voice, voiceTypeLookup);
+      var (voiceTypeFormKey, voiceTypeEditorId)     = ResolveLinkFast(npc.Voice, voiceTypeLookup);
       var wornArmorFormKey = npc.WornArmor.FormKeyNullable;
 
       var (isFemale, isUnique, isSummonable, isLeveled) = NpcDataExtractor.ExtractTraits(npc);
-      var isChild = NpcDataExtractor.IsChildRace(raceEditorId);
-      var level = NpcDataExtractor.ExtractLevel(npc);
+      var isChild     = NpcDataExtractor.IsChildRace(raceEditorId);
+      var level       = NpcDataExtractor.ExtractLevel(npc);
       var skillValues = NpcDataExtractor.ExtractSkillValues(npc);
 
       var filterData = new NpcFilterData
-      {
-        FormKey = npc.FormKey,
-        EditorId = npc.EditorID,
-        Name = NpcDataExtractor.GetName(npc),
-        SourceMod = originalModKey,
-        Keywords = keywords,
-        Factions = factions,
-        RaceFormKey = raceFormKey,
-        RaceEditorId = raceEditorId,
-        ClassFormKey = classFormKey,
-        ClassEditorId = classEditorId,
-        CombatStyleFormKey = combatStyleFormKey,
-        CombatStyleEditorId = combatStyleEditorId,
-        VoiceTypeFormKey = voiceTypeFormKey,
-        VoiceTypeEditorId = voiceTypeEditorId,
-        DefaultOutfitFormKey = outfitFormKey,
-        DefaultOutfitEditorId = outfitEditorId,
-        WornArmorFormKey = wornArmorFormKey,
-        IsFemale = isFemale,
-        IsUnique = isUnique,
-        IsSummonable = isSummonable,
-        IsChild = isChild,
-        IsLeveled = isLeveled,
-        Level = level,
-        TemplateFormKey = templateFormKey,
-        TemplateEditorId = templateEditorId,
-        SkillValues = skillValues
-      };
+                       {
+                         FormKey               = npc.FormKey,
+                         EditorId              = npc.EditorID,
+                         Name                  = NpcDataExtractor.GetName(npc),
+                         SourceMod             = originalModKey,
+                         Keywords              = keywords,
+                         Factions              = factions,
+                         RaceFormKey           = raceFormKey,
+                         RaceEditorId          = raceEditorId,
+                         ClassFormKey          = classFormKey,
+                         ClassEditorId         = classEditorId,
+                         CombatStyleFormKey    = combatStyleFormKey,
+                         CombatStyleEditorId   = combatStyleEditorId,
+                         VoiceTypeFormKey      = voiceTypeFormKey,
+                         VoiceTypeEditorId     = voiceTypeEditorId,
+                         DefaultOutfitFormKey  = outfitFormKey,
+                         DefaultOutfitEditorId = outfitEditorId,
+                         WornArmorFormKey      = wornArmorFormKey,
+                         IsFemale              = isFemale,
+                         IsUnique              = isUnique,
+                         IsSummonable          = isSummonable,
+                         IsChild               = isChild,
+                         IsLeveled             = isLeveled,
+                         Level                 = level,
+                         TemplateFormKey       = templateFormKey,
+                         TemplateEditorId      = templateEditorId,
+                         SkillValues           = skillValues
+                       };
 
       var matchKeys = BuildMatchKeys(filterData);
       filterData.MatchKeys = matchKeys;
@@ -208,17 +209,15 @@ public static class NpcDataBuilder
     Dictionary<FormKey, HashSet<string>> raceKeywordLookup)
   {
     raceKeywordLookup.TryGetValue(npc.Race.FormKey, out var raceKeywords);
-    var hasRaceKeywords = raceKeywords != null && raceKeywords.Count > 0;
-    var hasNpcKeywords = npc.Keywords != null && npc.Keywords.Count > 0;
+    var hasRaceKeywords = raceKeywords?.Count > 0;
+    var hasNpcKeywords  = npc.Keywords?.Count > 0;
 
-    if (!hasNpcKeywords && !hasRaceKeywords)
+    switch (hasNpcKeywords)
     {
-      return [];
-    }
-
-    if (!hasNpcKeywords && hasRaceKeywords)
-    {
-      return new HashSet<string>(raceKeywords!, StringComparer.OrdinalIgnoreCase);
+      case false when !hasRaceKeywords:
+        return [];
+      case false when hasRaceKeywords:
+        return new HashSet<string>(raceKeywords!, StringComparer.OrdinalIgnoreCase);
     }
 
     var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -268,28 +267,11 @@ public static class NpcDataBuilder
     INpcGetter npc,
     Dictionary<FormKey, string> factionLookup)
   {
-    var factions = new List<FactionMembership>();
-    if (npc.Factions != null)
-    {
-      foreach (var f in npc.Factions)
-      {
-        if (factionLookup.TryGetValue(f.Faction.FormKey, out var editorId))
-        {
-          factions.Add(new FactionMembership
-          {
-            FactionFormKey = f.Faction.FormKey, FactionEditorId = editorId, Rank = f.Rank
-          });
-        }
-        else
-        {
-          factions.Add(new FactionMembership
-          {
-            FactionFormKey = f.Faction.FormKey, FactionEditorId = null, Rank = f.Rank
-          });
-        }
-      }
-    }
-
-    return factions;
+    return
+    [
+      .. npc.Factions.Select(f => factionLookup.TryGetValue(f.Faction.FormKey, out var editorId)
+                                    ? new FactionMembership { FactionFormKey = f.Faction.FormKey, FactionEditorId = editorId, Rank = f.Rank }
+                                    : new FactionMembership { FactionFormKey = f.Faction.FormKey, FactionEditorId = null, Rank     = f.Rank })
+    ];
   }
 }

@@ -13,8 +13,8 @@
       "fileNamingConvention": "metadata"
     },
     "indentation": {
-      "indentationSize": 4,
-      "tabSize": 4,
+      "indentationSize": 2,
+      "tabSize": 2,
       "useTabs": false
     },
     "layoutRules": {

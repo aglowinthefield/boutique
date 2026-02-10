@@ -20,16 +20,20 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 {
   private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
-  private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
+  private          IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
 
   public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
   public string? DataFolderPath { get; private set; }
 
   public BinaryReadParameters Utf8ReadParameters { get; } = new()
-  {
-    StringsParam = new StringsReadParameters { NonLocalizedEncodingOverride = MutagenEncoding._utf8 }
-  };
+                                                            {
+                                                              StringsParam =
+                                                                new StringsReadParameters
+                                                                {
+                                                                  NonLocalizedEncodingOverride = MutagenEncoding._utf8
+                                                                }
+                                                            };
 
   public bool IsInitialized => _environment != null;
 
@@ -53,10 +57,10 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
   private GameRelease GetGameRelease() => GetSkyrimRelease() switch
   {
-    SkyrimRelease.SkyrimSE => GameRelease.SkyrimSE,
-    SkyrimRelease.SkyrimVR => GameRelease.SkyrimVR,
+    SkyrimRelease.SkyrimSE    => GameRelease.SkyrimSE,
+    SkyrimRelease.SkyrimVR    => GameRelease.SkyrimVR,
     SkyrimRelease.SkyrimSEGog => GameRelease.SkyrimSEGog,
-    _ => GameRelease.SkyrimSE
+    _                         => GameRelease.SkyrimSE
   };
 
   private SkyrimRelease GetSkyrimRelease() =>
@@ -139,13 +143,13 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   private void BuildEnvironment(string? explicitDataPath)
   {
     _environment = string.IsNullOrEmpty(explicitDataPath)
-      ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
-        .WithUtf8Encoding()
-        .Build()
-      : GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
-        .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
-        .WithUtf8Encoding()
-        .Build();
+                     ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
+                                      .WithUtf8Encoding()
+                                      .Build()
+                     : GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
+                                      .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
+                                      .WithUtf8Encoding()
+                                      .Build();
 
     LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
   }
@@ -158,13 +162,15 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
         return Enumerable.Empty<string>();
       }
 
-      return PathUtilities.EnumeratePluginFiles(DataFolderPath)
-        .Select(Path.GetFileName)
-        .Where(name => !string.IsNullOrEmpty(name))
-        .Cast<string>()
-        .Where(name => !excludeBlacklisted || !IsBlacklisted(name))
-        .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+      return
+      [
+        .. PathUtilities.EnumeratePluginFiles(DataFolderPath)
+                        .Select(Path.GetFileName)
+                        .Where(name => !string.IsNullOrEmpty(name))
+                        .Cast<string>()
+                        .Where(name => !excludeBlacklisted || !IsBlacklisted(name))
+                        .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+      ];
     });
 
   public Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName) =>
@@ -220,9 +226,9 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
         try
         {
-          using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease(), Utf8ReadParameters);
-          var hasArmors = mod.Armors.Any(a => !string.IsNullOrWhiteSpace(a.Name?.String));
-          var hasOutfits = mod.Outfits.Any();
+          using var mod        = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease(), Utf8ReadParameters);
+          var       hasArmors  = mod.Armors.Any(a => !string.IsNullOrWhiteSpace(a.Name?.String));
+          var       hasOutfits = mod.Outfits.Any();
 
           if (hasArmors || hasOutfits)
           {
@@ -265,7 +271,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     });
 
     var newCount = _environment?.LoadOrder.Count ?? 0;
-    var diff = newCount - previousCount;
+    var diff     = newCount - previousCount;
     var diffText = diff > 0 ? $"+{diff}" : diff.ToString(CultureInfo.InvariantCulture);
 
     _logger.Information(
@@ -289,8 +295,11 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
           fileInfo.LastWriteTime);
 
         var inLoadOrder = _environment?.LoadOrder
-          .Any(entry =>
-            string.Equals(entry.Key.FileName, expectedPlugin, StringComparison.OrdinalIgnoreCase)) ?? false;
+                                      .Any(entry =>
+                                             string.Equals(
+                                               entry.Key.FileName,
+                                               expectedPlugin,
+                                               StringComparison.OrdinalIgnoreCase)) ?? false;
 
         if (!inLoadOrder)
         {
@@ -313,15 +322,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     _logger.Debug("Releasing LinkCache file handles...");
     _environment?.Dispose();
     _environment = null;
-    LinkCache = null;
+    LinkCache    = null;
   }
 
   public HashSet<ModKey> GetLoadOrderModKeys() =>
     _environment?.LoadOrder
-      .Select(entry => entry.Key)
-      .ToHashSet() ?? [];
+                .Select(entry => entry.Key)
+                .ToHashSet() ?? [];
 
   public bool IsPluginInLoadOrder(string pluginFileName) =>
     _environment?.LoadOrder
-      .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ?? false;
+                .Any(entry => string.Equals(entry.Key.FileName, pluginFileName, StringComparison.OrdinalIgnoreCase)) ??
+    false;
 }

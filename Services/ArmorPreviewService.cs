@@ -15,9 +15,9 @@ namespace Boutique.Services;
 
 public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator assetLocator, ILogger logger)
 {
-  private const string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";
-  private const string MaleBodyRelativePath = "meshes/actors/character/character assets/malebody_0.nif";
-  private static readonly ModKey _skyrimBaseModKey = ModKey.FromNameAndExtension("Skyrim.esm");
+  private const           string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";
+  private const           string MaleBodyRelativePath   = "meshes/actors/character/character assets/malebody_0.nif";
+  private static readonly ModKey _skyrimBaseModKey      = ModKey.FromNameAndExtension("Skyrim.esm");
 
   private readonly ILogger _logger = logger.ForContext<ArmorPreviewService>();
 
@@ -31,7 +31,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       throw new InvalidOperationException("Mutagen service has not been initialized.");
     }
 
-    var dataPath = mutagenService.DataFolderPath;
+    var dataPath  = mutagenService.DataFolderPath;
     var linkCache = mutagenService.LinkCache;
 
     if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
@@ -46,8 +46,8 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
     var pieces = armorPieces.ToList();
     return await Task.Run(
-      () => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken),
-      cancellationToken);
+             () => BuildPreviewInternal(pieces, preferredGender, dataPath, linkCache, cancellationToken),
+             cancellationToken);
   }
 
   private ArmorPreviewScene BuildPreviewInternal(
@@ -61,12 +61,12 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       "Building preview for {PieceCount} armor pieces with gender {Gender}",
       pieces.Count,
       preferredGender);
-    var meshes = new List<PreviewMeshShape>();
+    var meshes        = new List<PreviewMeshShape>();
     var missingAssets = new List<string>();
 
     var bodyRelative = GetBodyRelativePath(preferredGender);
     var bodyAssetKey = PathUtilities.NormalizeAssetPath(bodyRelative);
-    var bodyPath = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
+    var bodyPath     = assetLocator.ResolveAssetPath(bodyAssetKey, _skyrimBaseModKey);
     if (!string.IsNullOrWhiteSpace(bodyPath) && File.Exists(bodyPath))
     {
       meshes.AddRange(LoadMeshesFromNif("Base Body", bodyPath, preferredGender, _skyrimBaseModKey, cancellationToken));
@@ -84,7 +84,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
       cancellationToken.ThrowIfCancellationRequested();
 
-      var armor = piece.Armor;
+      var armor     = piece.Armor;
       var armorName = armor.Name?.String ?? armor.EditorID ?? "Unknown Armor";
 
       foreach (var addonLink in armor.Armature)
@@ -118,7 +118,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         var meshAssetKey = PathUtilities.NormalizeAssetPath(modelPath);
-        var fullPath = assetLocator.ResolveAssetPath(meshAssetKey, addon.FormKey.ModKey);
+        var fullPath     = assetLocator.ResolveAssetPath(meshAssetKey, addon.FormKey.ModKey);
         if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
         {
           var expected = FormatExpectedPath(dataPath, meshAssetKey);
@@ -134,14 +134,15 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         var partName = $"{armorName} ({addon.EditorID ?? addon.FormKey.ToString()})";
-        meshes.AddRange(LoadMeshesFromNif(
-          partName,
-          fullPath,
-          variantForAddon,
-          addon.FormKey.ModKey,
-          cancellationToken,
-          addon,
-          linkCache));
+        meshes.AddRange(
+          LoadMeshesFromNif(
+            partName,
+            fullPath,
+            variantForAddon,
+            addon.FormKey.ModKey,
+            cancellationToken,
+            addon,
+            linkCache));
       }
     }
 
@@ -158,7 +159,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     ILinkCache? linkCache = null)
   {
     var meshes = new List<PreviewMeshShape>();
-    var nif = new NifFile();
+    var nif    = new NifFile();
 
     try
     {
@@ -199,17 +200,18 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         }
 
         var shapeName = shape.Name?.ToString();
-        var name = string.IsNullOrWhiteSpace(shapeName) ? partName : $"{partName} - {shapeName}";
-        meshes.Add(new PreviewMeshShape(
-          name,
-          meshPath,
-          variant,
-          meshData.Vertices,
-          meshData.Normals,
-          meshData.TextureCoordinates,
-          meshData.Indices,
-          meshData.Transform,
-          meshData.DiffuseTexturePath));
+        var name      = string.IsNullOrWhiteSpace(shapeName) ? partName : $"{partName} - {shapeName}";
+        meshes.Add(
+          new PreviewMeshShape(
+            name,
+            meshPath,
+            variant,
+            meshData.Vertices,
+            meshData.Normals,
+            meshData.TextureCoordinates,
+            meshData.Indices,
+            meshData.Transform,
+            meshData.DiffuseTexturePath));
       }
     }
     catch
@@ -244,7 +246,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       return false;
     }
 
-    var extractedNormals = MeshUtilities.ExtractNormals(shape);
+    var           extractedNormals = MeshUtilities.ExtractNormals(shape);
     List<Vector3> normals;
 
     if (extractedNormals != null && extractedNormals.Count == vertices.Count)
@@ -288,7 +290,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
 
     var transform = MeshUtilities.ComputeWorldTransform(nif, shape);
-    var diffuse = ExtractDiffuseTexturePath(nif, shape, ownerModKey, addon, variant, linkCache);
+    var diffuse   = ExtractDiffuseTexturePath(nif, shape, ownerModKey, addon, variant, linkCache);
 
     if (diffuse == null)
     {
@@ -308,50 +310,80 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     ILinkCache? linkCache)
   {
     var shapeName = shape.Name?.String ?? shape.Name?.ToString() ?? "<unnamed>";
-    var candidates = new List<string>();
 
+    var alternateTexture = TryGetAlternateTexture(addon, variant, linkCache, shapeName);
+    if (alternateTexture != null)
+    {
+      return alternateTexture;
+    }
+
+    return ExtractTextureFromNif(nif, shape, ownerModKey, shapeName);
+  }
+
+  private string? TryGetAlternateTexture(
+    IArmorAddonGetter? addon,
+    GenderedModelVariant variant,
+    ILinkCache? linkCache,
+    string shapeName)
+  {
     if (addon?.WorldModel == null || linkCache == null)
     {
-      goto FallbackToNif;
+      return null;
     }
 
     var model = variant == GenderedModelVariant.Female
-      ? addon.WorldModel.Female
-      : addon.WorldModel.Male;
+                  ? addon.WorldModel.Female
+                  : addon.WorldModel.Male;
 
     if (model?.AlternateTextures == null)
     {
-      goto FallbackToNif;
+      return null;
     }
 
     var matchingTexture = model.AlternateTextures
-      .Where(t => t.NewTexture is { IsNull: false })
-      .FirstOrDefault(t =>
-      {
-        var meshName = t.Name;
-        return string.IsNullOrEmpty(meshName) || shapeName.Equals(meshName, StringComparison.OrdinalIgnoreCase);
-      });
+                               .Where(t => t.NewTexture is { IsNull: false })
+                               .FirstOrDefault(t =>
+                               {
+                                 var meshName = t.Name;
+                                 return string.IsNullOrEmpty(meshName) || shapeName.Equals(
+                                          meshName,
+                                          StringComparison.OrdinalIgnoreCase);
+                               });
 
-    if (matchingTexture != null &&
-        linkCache.TryResolve<ITextureSetGetter>(matchingTexture.NewTexture.FormKey, out var textureSet) &&
-        !string.IsNullOrWhiteSpace(textureSet.Diffuse))
+    if (matchingTexture == null ||
+        !linkCache.TryResolve<ITextureSetGetter>(matchingTexture.NewTexture.FormKey, out var textureSet) ||
+        string.IsNullOrWhiteSpace(textureSet.Diffuse))
     {
-      var textureSetModKey = matchingTexture.NewTexture.FormKey.ModKey;
-      var resolvedPath = assetLocator.ResolveAssetPath(textureSet.Diffuse.ToString(), textureSetModKey);
-
-      if (!string.IsNullOrWhiteSpace(resolvedPath) && File.Exists(resolvedPath))
-      {
-        _logger.Debug(
-          "Using alternate texture for ArmorAddon {Addon} shape '{Shape}': {Texture}",
-          addon.EditorID,
-          shapeName,
-          textureSet.Diffuse);
-
-        return resolvedPath;
-      }
+      return null;
     }
 
-    FallbackToNif:
+    var textureSetModKey = matchingTexture.NewTexture.FormKey.ModKey;
+    var resolvedPath     = assetLocator.ResolveAssetPath(textureSet.Diffuse.ToString(), textureSetModKey);
+
+    if (!string.IsNullOrWhiteSpace(resolvedPath) && File.Exists(resolvedPath))
+    {
+      _logger.Debug(
+        "Using alternate texture for ArmorAddon {Addon} shape '{Shape}': {Texture}",
+        addon.EditorID,
+        shapeName,
+        textureSet.Diffuse);
+
+      return resolvedPath;
+    }
+
+    return null;
+  }
+
+  private string? ExtractTextureFromNif(
+    NifFile nif,
+    INiShape shape,
+    ModKey? ownerModKey,
+    string shapeName)
+  {
+    var candidates = new List<string>();
+
+    void CollectCandidates(BSLightingShaderProperty? shader) =>
+      candidates.AddRange(MeshUtilities.EnumerateTexturePaths(nif, shader));
 
     CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
@@ -381,7 +413,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       }
 
       var normalized = PathUtilities.NormalizeAssetPath(candidate);
-      var resolved = assetLocator.ResolveAssetPath(normalized, ownerModKey);
+      var resolved   = assetLocator.ResolveAssetPath(normalized, ownerModKey);
       if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
       {
         _logger.Debug(
@@ -408,9 +440,6 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
 
     return null;
-
-    void CollectCandidates(BSLightingShaderProperty? shader) =>
-      candidates.AddRange(MeshUtilities.EnumerateTexturePaths(nif, shader));
   }
 
   private static (IModelGetter? Model, GenderedModelVariant Variant) SelectModel(
@@ -423,16 +452,16 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
 
     var (primary, secondary) = preferred == GenderedModelVariant.Female
-      ? (worldModel.Female, worldModel.Male)
-      : (worldModel.Male, worldModel.Female);
+                                 ? (worldModel.Female, worldModel.Male)
+                                 : (worldModel.Male, worldModel.Female);
 
     var alternateVariant = preferred == GenderedModelVariant.Female
-      ? GenderedModelVariant.Male
-      : GenderedModelVariant.Female;
+                             ? GenderedModelVariant.Male
+                             : GenderedModelVariant.Female;
 
     return primary != null
-      ? (primary, preferred)
-      : (secondary, secondary != null ? alternateVariant : preferred);
+             ? (primary, preferred)
+             : (secondary, secondary != null ? alternateVariant : preferred);
   }
 
   private static string? ResolveModelPath(ISimpleModelGetter model)

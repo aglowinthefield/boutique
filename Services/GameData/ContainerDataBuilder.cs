@@ -19,20 +19,20 @@ public class ContainerDataBuilder(ILogger logger)
     var sw = Stopwatch.StartNew();
 
     var merchantContainers = BuildMerchantContainerLookup(linkCache);
-    var merchantTime = sw.ElapsedMilliseconds;
+    var merchantTime       = sw.ElapsedMilliseconds;
 
     var cellPlacements = BuildCellPlacementLookup(linkCache);
-    var cellTime = sw.ElapsedMilliseconds - merchantTime;
+    var cellTime       = sw.ElapsedMilliseconds - merchantTime;
 
     var containers = linkCache.WinningOverrides<IContainerGetter>()
-      .Where(c => !isBlacklisted(c.FormKey.ModKey))
-      .Select(c => new ContainerRecordViewModel(
-        c,
-        linkCache,
-        merchantContainers.GetValueOrDefault(c.FormKey),
-        cellPlacements.GetValueOrDefault(c.FormKey)))
-      .OrderBy(c => c.DisplayName)
-      .ToList();
+                              .Where(c => !isBlacklisted(c.FormKey.ModKey))
+                              .Select(c => new ContainerRecordViewModel(
+                                        c,
+                                        linkCache,
+                                        merchantContainers.GetValueOrDefault(c.FormKey),
+                                        cellPlacements.GetValueOrDefault(c.FormKey)))
+                              .OrderBy(c => c.DisplayName)
+                              .ToList();
 
     sw.Stop();
     _logger.Information(
@@ -45,8 +45,7 @@ public class ContainerDataBuilder(ILogger logger)
     return containers;
   }
 
-  private Dictionary<FormKey, string> BuildMerchantContainerLookup(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  private Dictionary<FormKey, string> BuildMerchantContainerLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, string>();
 
@@ -70,7 +69,9 @@ public class ContainerDataBuilder(ILogger logger)
             return;
           }
 
-          var factionName = faction.Name?.String ?? faction.EditorID ?? faction.FormKey.ToString();
+          var factionName =
+            faction.Name?.String ??
+            faction.EditorID ?? faction.FormKey.ToString();
           result.TryAdd(placedRef.Base.FormKey, factionName);
         },
         "faction");
@@ -79,8 +80,7 @@ public class ContainerDataBuilder(ILogger logger)
     return result;
   }
 
-  private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, List<string>>();
 
@@ -122,7 +122,7 @@ public class ContainerDataBuilder(ILogger logger)
     {
       if (!result.TryGetValue(containerFormKey, out var list))
       {
-        list = [];
+        list                     = [];
         result[containerFormKey] = list;
       }
 
