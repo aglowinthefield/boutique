@@ -10,15 +10,14 @@ namespace Boutique.Services;
 
 public class PatchingService(MutagenService mutagenService, ILoggingService loggingService)
 {
-  private const uint MinimumFormId = 0x800;
-  private readonly ILogger _logger = loggingService.ForContext<PatchingService>();
+  private const    uint    MinimumFormId = 0x800;
+  private readonly ILogger _logger       = loggingService.ForContext<PatchingService>();
 
   private void RequireInitialized()
   {
     if (!mutagenService.IsInitialized)
     {
-      throw new InvalidOperationException(
-        "Mutagen service is not initialized. Please set the Skyrim data path first.");
+      throw new InvalidOperationException("Mutagen service is not initialized. Please set the Skyrim data path first.");
     }
   }
 
@@ -26,7 +25,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string outputPath,
     string operationName)
   {
-    var modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
+    var       modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
     SkyrimMod patchMod;
 
     if (File.Exists(outputPath))
@@ -104,7 +103,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         _logger.Information("Loaded patch containing {ArmorCount} armor overrides.", patchMod.Armors.Count);
 
         var current = 0;
-        var total = validMatches.Count;
+        var total   = validMatches.Count;
 
         foreach (var match in validMatches)
         {
@@ -184,7 +183,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit creation");
 
         var results = new List<OutfitCreationResult>();
-        var total = outfitList.Count;
+        var total   = outfitList.Count;
         var current = 0;
 
         foreach (var (name, editorId, pieces, existingFormKey, isOverride, overrideSourceMod) in outfitList)
@@ -238,12 +237,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           if (existingFormKey.HasValue)
           {
             existing = patchMod.Outfits
-              .FirstOrDefault(o => o.FormKey == existingFormKey.Value);
+                               .FirstOrDefault(o => o.FormKey == existingFormKey.Value);
           }
 
           existing ??= patchMod.Outfits
-            .FirstOrDefault(o =>
-              string.Equals(o.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+                               .FirstOrDefault(o =>
+                                                 string.Equals(
+                                                   o.EditorID,
+                                                   editorId,
+                                                   StringComparison.OrdinalIgnoreCase));
 
           if (pieces.Count == 0)
           {
@@ -281,7 +283,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           }
           else
           {
-            outfit = patchMod.Outfits.AddNew();
+            outfit          = patchMod.Outfits.AddNew();
             outfit.EditorID = editorId;
             _logger.Information(
               "Creating new outfit {EditorId} with {PieceCount} piece(s).",
@@ -347,8 +349,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private static void CopyArmorStats(Armor target, IArmorGetter source)
   {
     target.ArmorRating = source.ArmorRating;
-    target.Value = source.Value;
-    target.Weight = source.Weight;
+    target.Value       = source.Value;
+    target.Weight      = source.Weight;
   }
 
   private static void CopyKeywords(Armor target, IArmorGetter source)
@@ -424,17 +426,17 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         string.Join(", ", extraMasters.Select(m => m.FileName)));
 
       patchMod.BeginWrite
-        .ToPath(tempPath)
-        .WithNoLoadOrder()
-        .WithExtraIncludedMasters(extraMasters)
-        .NoModKeySync()
-        .Write();
+              .ToPath(tempPath)
+              .WithNoLoadOrder()
+              .WithExtraIncludedMasters(extraMasters)
+              .NoModKeySync()
+              .Write();
 
       using (var writtenMod =
-             SkyrimMod.CreateFromBinaryOverlay(
-               tempPath,
-               mutagenService.SkyrimRelease,
-               mutagenService.Utf8ReadParameters))
+        SkyrimMod.CreateFromBinaryOverlay(
+          tempPath,
+          mutagenService.SkyrimRelease,
+          mutagenService.Utf8ReadParameters))
       {
         _logger.Information(
           "Masters after write: {Masters}",
@@ -444,9 +446,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       GC.Collect();
       GC.WaitForPendingFinalizers();
 
-      const int maxRetries = 10;
-      const int initialDelayMs = 100;
-      Exception? lastException = null;
+      const int  maxRetries     = 10;
+      const int  initialDelayMs = 100;
+      Exception? lastException  = null;
 
       for (var attempt = 1; attempt <= maxRetries; attempt++)
       {
@@ -513,7 +515,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     var totalRecordCount = patchMod.EnumerateMajorRecords().Count();
     var newRecordCount = patchMod.EnumerateMajorRecords()
-      .Count(r => r.FormKey.ModKey == patchMod.ModKey);
+                                 .Count(r => r.FormKey.ModKey == patchMod.ModKey);
 
     if (totalRecordCount < eslRecordLimit)
     {
@@ -550,11 +552,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           patchPath,
           mutagenService.SkyrimRelease,
           mutagenService.Utf8ReadParameters);
-        var dataFolder = mutagenService.DataFolderPath ?? string.Empty;
+        var dataFolder       = mutagenService.DataFolderPath ?? string.Empty;
         var loadOrderModKeys = mutagenService.GetLoadOrderModKeys();
-        var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
-        var missingMasters = new List<ModKey>();
-        var patchModKey = patchMod.ModKey;
+        var masterRefs       = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
+        var missingMasters   = new List<ModKey>();
+        var patchModKey      = patchMod.ModKey;
 
         foreach (var master in masterRefs)
         {
@@ -587,9 +589,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           return new MissingMastersResult(false, [], []);
         }
 
-        var missingMasterSet = missingMasters.ToHashSet();
+        var missingMasterSet        = missingMasters.ToHashSet();
         var affectedOutfitsByMaster = new Dictionary<ModKey, List<AffectedOutfitInfo>>();
-        var validOutfitsList = new List<IOutfitGetter>();
+        var validOutfitsList        = new List<IOutfitGetter>();
 
         foreach (var outfit in patchMod.Outfits)
         {
@@ -629,7 +631,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             {
               if (!affectedOutfitsByMaster.TryGetValue(master, out var list))
               {
-                list = [];
+                list                            = [];
                 affectedOutfitsByMaster[master] = list;
               }
 
@@ -644,14 +646,14 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
         var missingMasterInfos = missingMasters
             .ConvertAll(m => new MissingMasterInfo(
-              m,
-              affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
+                          m,
+                          affectedOutfitsByMaster.TryGetValue(m, out var list) ? list : []))
           ;
 
         var allAffectedOutfits = affectedOutfitsByMaster
-          .SelectMany(kvp => kvp.Value)
-          .DistinctBy(a => a.FormKey)
-          .ToList();
+                                 .SelectMany(kvp => kvp.Value)
+                                 .DistinctBy(a => a.FormKey)
+                                 .ToList();
 
         _logger.Information(
           "Missing masters check complete: {MissingCount} missing master(s), {AffectedCount} affected outfit(s).",
@@ -686,26 +688,26 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           patchPath,
           outfitsToRemove.Count);
 
-        var patchMod = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
+        var patchMod           = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
         var outfitsToRemoveSet = outfitsToRemove.Select(o => o.FormKey).ToHashSet();
 
         var removedCount = 0;
         var outfitsToKeep = patchMod.Outfits
-          .Where(o =>
-          {
-            if (outfitsToRemoveSet.Contains(o.FormKey))
-            {
-              _logger.Debug(
-                "Removing outfit {EditorId} ({FormKey}) due to missing masters.",
-                o.EditorID,
-                o.FormKey);
-              removedCount++;
-              return false;
-            }
+                                    .Where(o =>
+                                    {
+                                      if (outfitsToRemoveSet.Contains(o.FormKey))
+                                      {
+                                        _logger.Debug(
+                                          "Removing outfit {EditorId} ({FormKey}) due to missing masters.",
+                                          o.EditorID,
+                                          o.FormKey);
+                                        removedCount++;
+                                        return false;
+                                      }
 
-            return true;
-          })
-          .ToList();
+                                      return true;
+                                    })
+                                    .ToList();
 
         patchMod.Outfits.Clear();
         foreach (var outfit in outfitsToKeep)
@@ -736,7 +738,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
   {
     var requiredMasters = new HashSet<ModKey>();
-    var patchModKey = patchMod.ModKey;
+    var patchModKey     = patchMod.ModKey;
 
     void AddMaster(ModKey modKey)
     {
@@ -802,8 +804,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   {
     var masterList = patchMod.ModHeader.MasterReferences;
     var mastersToRemove = masterList
-      .Where(m => !requiredMasters.Contains(m.Master) && m.Master != patchMod.ModKey)
-      .ToList();
+                          .Where(m => !requiredMasters.Contains(m.Master) && m.Master != patchMod.ModKey)
+                          .ToList();
 
     foreach (var master in mastersToRemove)
     {

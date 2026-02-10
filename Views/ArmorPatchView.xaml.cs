@@ -9,15 +9,15 @@ namespace Boutique.Views;
 public partial class ArmorPatchView : UserControl
 {
   private MainViewModel? _currentViewModel;
-  private bool _syncingSourceSelection;
+  private bool           _syncingSourceSelection;
 
   public ArmorPatchView()
   {
     InitializeComponent();
 
     DataContextChanged += OnDataContextChanged;
-    Loaded += OnLoaded;
-    Unloaded += OnUnloaded;
+    Loaded             += OnLoaded;
+    Unloaded           += OnUnloaded;
 
     SourceArmorsGrid.Loaded += (_, _) => SynchronizeSourceSelection();
     TargetArmorsGrid.Loaded += TargetArmorsGridOnLoaded;
@@ -80,8 +80,8 @@ public partial class ArmorPatchView : UserControl
 
     var dataGrid = (DataGrid)sender;
     var newDirection = e.Column.SortDirection == ListSortDirection.Ascending
-      ? ListSortDirection.Descending
-      : ListSortDirection.Ascending;
+                         ? ListSortDirection.Descending
+                         : ListSortDirection.Ascending;
 
     foreach (var column in dataGrid.Columns)
     {

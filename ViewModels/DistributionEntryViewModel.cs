@@ -68,15 +68,15 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private string _rawStringFilters = string.Empty;
 
-  private ObservableCollection<ClassRecordViewModel> _selectedClasses = [];
+  private ObservableCollection<ClassRecordViewModel>   _selectedClasses  = [];
   private ObservableCollection<FactionRecordViewModel> _selectedFactions = [];
   private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
 
-  [Reactive] private SkillFilterOption? _selectedLevelSkill;
-  private ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
+  [Reactive] private SkillFilterOption?                       _selectedLevelSkill;
+  private            ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
 
-  [Reactive] private IOutfitGetter? _selectedOutfit;
-  private ObservableCollection<OutfitRecordViewModel> _selectedOutfitFilters = [];
+  [Reactive] private IOutfitGetter?                              _selectedOutfit;
+  private            ObservableCollection<OutfitRecordViewModel> _selectedOutfitFilters = [];
 
   private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
 
@@ -91,221 +91,221 @@ public partial class DistributionEntryViewModel : ReactiveObject
     Action<DistributionEntryViewModel>? removeAction = null,
     Func<bool>? isFormatChangingToSpid = null)
   {
-    Entry = entry;
-    Type = entry.Type;
-    SelectedOutfit = entry.Outfit;
+    Entry               = entry;
+    Type                = entry.Type;
+    SelectedOutfit      = entry.Outfit;
     KeywordToDistribute = entry.KeywordToDistribute ?? string.Empty;
-    ExclusiveGroupName = entry.ExclusiveGroupName ?? string.Empty;
+    ExclusiveGroupName  = entry.ExclusiveGroupName ?? string.Empty;
     ExclusiveGroupFormsText = entry.ExclusiveGroupForms.Count > 0
-      ? string.Join(",", entry.ExclusiveGroupForms)
-      : string.Empty;
-    UseChance = entry.Chance.HasValue;
-    Chance = entry.Chance ?? 100;
-    LevelFilters = entry.LevelFilters ?? string.Empty;
+                                ? string.Join(",", entry.ExclusiveGroupForms)
+                                : string.Empty;
+    UseChance          = entry.Chance.HasValue;
+    Chance             = entry.Chance ?? 100;
+    LevelFilters       = entry.LevelFilters ?? string.Empty;
     SelectedLevelSkill = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
     ParseLevelFiltersToUi(LevelFilters);
     RawStringFilters = entry.RawStringFilters ?? string.Empty;
-    RawFormFilters = entry.RawFormFilters ?? string.Empty;
+    RawFormFilters   = entry.RawFormFilters ?? string.Empty;
 
     Gender = entry.TraitFilters.IsFemale switch
     {
-      true => GenderFilter.Female,
+      true  => GenderFilter.Female,
       false => GenderFilter.Male,
-      null => GenderFilter.Any
+      null  => GenderFilter.Any
     };
     Unique = entry.TraitFilters.IsUnique switch
     {
-      true => UniqueFilter.UniqueOnly,
+      true  => UniqueFilter.UniqueOnly,
       false => UniqueFilter.NonUniqueOnly,
-      null => UniqueFilter.Any
+      null  => UniqueFilter.Any
     };
     IsChild = entry.TraitFilters.IsChild;
 
     this.WhenAnyValue(x => x.Type)
-      .Skip(1)
-      .Subscribe(type =>
-      {
-        Entry.Type = type;
-        this.RaisePropertyChanged(nameof(IsOutfitDistribution));
-        this.RaisePropertyChanged(nameof(IsKeywordDistribution));
-        this.RaisePropertyChanged(nameof(IsExclusiveGroupDistribution));
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(type =>
+        {
+          Entry.Type = type;
+          this.RaisePropertyChanged(nameof(IsOutfitDistribution));
+          this.RaisePropertyChanged(nameof(IsKeywordDistribution));
+          this.RaisePropertyChanged(nameof(IsExclusiveGroupDistribution));
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.SelectedOutfit)
-      .Skip(1)
-      .Subscribe(outfit =>
-      {
-        Entry.Outfit = outfit;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(outfit =>
+        {
+          Entry.Outfit = outfit;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.KeywordToDistribute)
-      .Skip(1)
-      .Subscribe(keyword =>
-      {
-        Entry.KeywordToDistribute = keyword;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(keyword =>
+        {
+          Entry.KeywordToDistribute = keyword;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.ExclusiveGroupName)
-      .Skip(1)
-      .Subscribe(groupName =>
-      {
-        Entry.ExclusiveGroupName = groupName;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(groupName =>
+        {
+          Entry.ExclusiveGroupName = groupName;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.ExclusiveGroupFormsText)
-      .Skip(1)
-      .Subscribe(formsText =>
-      {
-        Entry.ExclusiveGroupForms = formsText
-          .Split(',', StringSplitOptions.RemoveEmptyEntries)
-          .Select(f => f.Trim())
-          .Where(f => !string.IsNullOrWhiteSpace(f))
-          .ToList();
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(formsText =>
+        {
+          Entry.ExclusiveGroupForms = formsText
+                                      .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(f => f.Trim())
+                                      .Where(f => !string.IsNullOrWhiteSpace(f))
+                                      .ToList();
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.Gender)
-      .Skip(1)
-      .Subscribe(gender =>
-      {
-        Entry.TraitFilters = Entry.TraitFilters with
+        .Skip(1)
+        .Subscribe(gender =>
         {
-          IsFemale = gender switch
-          {
-            GenderFilter.Female => true,
-            GenderFilter.Male => false,
-            _ => null
-          }
-        };
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+          Entry.TraitFilters = Entry.TraitFilters with
+                               {
+                                 IsFemale = gender switch
+                                 {
+                                   GenderFilter.Female => true,
+                                   GenderFilter.Male   => false,
+                                   _                   => null
+                                 }
+                               };
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.Unique)
-      .Skip(1)
-      .Subscribe(unique =>
-      {
-        Entry.TraitFilters = Entry.TraitFilters with
+        .Skip(1)
+        .Subscribe(unique =>
         {
-          IsUnique = unique switch
-          {
-            UniqueFilter.UniqueOnly => true,
-            UniqueFilter.NonUniqueOnly => false,
-            _ => null
-          }
-        };
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+          Entry.TraitFilters = Entry.TraitFilters with
+                               {
+                                 IsUnique = unique switch
+                                 {
+                                   UniqueFilter.UniqueOnly    => true,
+                                   UniqueFilter.NonUniqueOnly => false,
+                                   _                          => null
+                                 }
+                               };
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.IsChild)
-      .Skip(1)
-      .Subscribe(isChild =>
-      {
-        Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild };
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(isChild =>
+        {
+          Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild };
+          RaiseEntryChanged();
+        });
 
     var previousUseChance = UseChance;
     this.WhenAnyValue(x => x.UseChance)
-      .Skip(1)
-      .Subscribe(useChance =>
-      {
-        var wasEnabled = previousUseChance;
-        previousUseChance = useChance;
-
-        if (useChance && !wasEnabled && isFormatChangingToSpid != null)
+        .Skip(1)
+        .Subscribe(useChance =>
         {
-          if (isFormatChangingToSpid())
-          {
-            var result = MessageBox.Show(
-              "Enabling chance-based distribution will change the file format to SPID.\n\n" +
-              "SkyPatcher does not support chance-based outfit distribution. " +
-              "The file will be saved in SPID format to support this feature.\n\n" +
-              "Do you want to continue?",
-              "Format Change Required",
-              MessageBoxButton.YesNo,
-              MessageBoxImage.Warning);
+          var wasEnabled = previousUseChance;
+          previousUseChance = useChance;
 
-            if (result == MessageBoxResult.No)
+          if (useChance && !wasEnabled && isFormatChangingToSpid != null)
+          {
+            if (isFormatChangingToSpid())
             {
-              previousUseChance = false;
-              UseChance = false;
-              return;
+              var result = MessageBox.Show(
+                "Enabling chance-based distribution will change the file format to SPID.\n\n" +
+                "SkyPatcher does not support chance-based outfit distribution. " +
+                "The file will be saved in SPID format to support this feature.\n\n" +
+                "Do you want to continue?",
+                "Format Change Required",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+              if (result == MessageBoxResult.No)
+              {
+                previousUseChance = false;
+                UseChance         = false;
+                return;
+              }
             }
           }
-        }
 
-        Entry.Chance = useChance ? Chance : null;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
-
-    this.WhenAnyValue(x => x.Chance)
-      .Skip(1)
-      .Subscribe(chance =>
-      {
-        if (UseChance)
-        {
-          Entry.Chance = chance;
+          Entry.Chance = useChance ? Chance : null;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
-        }
-      });
+        });
+
+    this.WhenAnyValue(x => x.Chance)
+        .Skip(1)
+        .Subscribe(chance =>
+        {
+          if (UseChance)
+          {
+            Entry.Chance = chance;
+            RaiseFilterSummaryChanged();
+            RaiseEntryChanged();
+          }
+        });
 
     this.WhenAnyValue(x => x.LevelFilters)
-      .Skip(1)
-      .Subscribe(levelFilters =>
-      {
-        Entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(levelFilters =>
+        {
+          Entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(
-        x => x.LevelFilterMode,
-        x => x.SelectedLevelSkill,
-        x => x.LevelFilterMin,
-        x => x.LevelFilterMax)
-      .Skip(1)
-      .Subscribe(_ => RebuildLevelFiltersFromUi());
+          x => x.LevelFilterMode,
+          x => x.SelectedLevelSkill,
+          x => x.LevelFilterMin,
+          x => x.LevelFilterMax)
+        .Skip(1)
+        .Subscribe(_ => RebuildLevelFiltersFromUi());
 
     this.WhenAnyValue(x => x.LevelFilterMode)
-      .Skip(1)
-      .Subscribe(_ =>
-      {
-        this.RaisePropertyChanged(nameof(IsSkillLevelMode));
-        this.RaisePropertyChanged(nameof(IsRawLevelFilterMode));
-        this.RaisePropertyChanged(nameof(IsStructuredLevelFilterMode));
-        this.RaisePropertyChanged(nameof(HasRangeLevelFilterMode));
-      });
+        .Skip(1)
+        .Subscribe(_ =>
+        {
+          this.RaisePropertyChanged(nameof(IsSkillLevelMode));
+          this.RaisePropertyChanged(nameof(IsRawLevelFilterMode));
+          this.RaisePropertyChanged(nameof(IsStructuredLevelFilterMode));
+          this.RaisePropertyChanged(nameof(HasRangeLevelFilterMode));
+        });
 
     this.WhenAnyValue(x => x.RawStringFilters)
-      .Skip(1)
-      .Subscribe(rawFilters =>
-      {
-        Entry.RawStringFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(rawFilters =>
+        {
+          Entry.RawStringFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     this.WhenAnyValue(x => x.RawFormFilters)
-      .Skip(1)
-      .Subscribe(rawFilters =>
-      {
-        Entry.RawFormFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
-        RaiseFilterSummaryChanged();
-        RaiseEntryChanged();
-      });
+        .Skip(1)
+        .Subscribe(rawFilters =>
+        {
+          Entry.RawFormFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
+          RaiseFilterSummaryChanged();
+          RaiseEntryChanged();
+        });
 
     RemoveCommand = ReactiveCommand.Create(() => removeAction?.Invoke(this));
   }
@@ -332,32 +332,32 @@ public partial class DistributionEntryViewModel : ReactiveObject
     [UniqueFilter.Any, UniqueFilter.UniqueOnly, UniqueFilter.NonUniqueOnly];
 
   public static LevelFilterMode[] LevelFilterModeOptions { get; } =
-  [
-    LevelFilterMode.None, LevelFilterMode.Level, LevelFilterMode.SkillLevel, LevelFilterMode.SkillWeight,
-    LevelFilterMode.Raw
-  ];
+    [
+      LevelFilterMode.None, LevelFilterMode.Level, LevelFilterMode.SkillLevel, LevelFilterMode.SkillWeight,
+      LevelFilterMode.Raw
+    ];
 
   public static IReadOnlyList<SkillFilterOption> SkillFilterOptions { get; } =
-  [
-    new(0, "One-Handed"),
-    new(1, "Two-Handed"),
-    new(2, "Archery"),
-    new(3, "Block"),
-    new(4, "Smithing"),
-    new(5, "Heavy Armor"),
-    new(6, "Light Armor"),
-    new(7, "Pickpocket"),
-    new(8, "Lockpicking"),
-    new(9, "Sneak"),
-    new(10, "Alchemy"),
-    new(11, "Speech"),
-    new(12, "Alteration"),
-    new(13, "Conjuration"),
-    new(14, "Destruction"),
-    new(15, "Illusion"),
-    new(16, "Restoration"),
-    new(17, "Enchanting")
-  ];
+    [
+      new(0, "One-Handed"),
+      new(1, "Two-Handed"),
+      new(2, "Archery"),
+      new(3, "Block"),
+      new(4, "Smithing"),
+      new(5, "Heavy Armor"),
+      new(6, "Light Armor"),
+      new(7, "Pickpocket"),
+      new(8, "Lockpicking"),
+      new(9, "Sneak"),
+      new(10, "Alchemy"),
+      new(11, "Speech"),
+      new(12, "Alteration"),
+      new(13, "Conjuration"),
+      new(14, "Destruction"),
+      new(15, "Illusion"),
+      new(16, "Restoration"),
+      new(17, "Enchanting")
+    ];
 
   public bool HasTraitFilters => Gender != GenderFilter.Any || Unique != UniqueFilter.Any || IsChild.HasValue;
 
@@ -463,8 +463,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
       if (string.IsNullOrWhiteSpace(text) || text.Equals("NONE", StringComparison.OrdinalIgnoreCase))
       {
         LevelFilterMode = LevelFilterMode.None;
-        LevelFilterMin = string.Empty;
-        LevelFilterMax = string.Empty;
+        LevelFilterMin  = string.Empty;
+        LevelFilterMax  = string.Empty;
         return;
       }
 
@@ -476,18 +476,18 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
       if (TryParseSkillLevelFilter(text, out var isWeight, out var skillIndex, out var minValue, out var maxValue))
       {
-        LevelFilterMode = isWeight ? LevelFilterMode.SkillWeight : LevelFilterMode.SkillLevel;
+        LevelFilterMode    = isWeight ? LevelFilterMode.SkillWeight : LevelFilterMode.SkillLevel;
         SelectedLevelSkill = GetSkillFilterOption(skillIndex);
-        LevelFilterMin = minValue.ToString(CultureInfo.InvariantCulture);
-        LevelFilterMax = maxValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        LevelFilterMin     = minValue.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax     = maxValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         return;
       }
 
       if (TryParseRange(text, out var minLevel, out var maxLevel))
       {
         LevelFilterMode = LevelFilterMode.Level;
-        LevelFilterMin = minLevel.ToString(CultureInfo.InvariantCulture);
-        LevelFilterMax = maxLevel?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        LevelFilterMin  = minLevel.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax  = maxLevel?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         return;
       }
 
@@ -508,12 +508,12 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     var rebuilt = LevelFilterMode switch
     {
-      LevelFilterMode.None => null,
-      LevelFilterMode.Level => BuildRangeSyntax(LevelFilterMin, LevelFilterMax),
-      LevelFilterMode.SkillLevel => BuildSkillSyntax(false, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.None        => null,
+      LevelFilterMode.Level       => BuildRangeSyntax(LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.SkillLevel  => BuildSkillSyntax(false, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
       LevelFilterMode.SkillWeight => BuildSkillSyntax(true, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
-      LevelFilterMode.Raw => null,
-      _ => null
+      LevelFilterMode.Raw         => null,
+      _                           => null
     };
 
     if (LevelFilterMode == LevelFilterMode.Raw)
@@ -582,12 +582,12 @@ public partial class DistributionEntryViewModel : ReactiveObject
     out int minValue,
     out int? maxValue)
   {
-    isWeight = false;
+    isWeight   = false;
     skillIndex = 0;
-    minValue = 0;
-    maxValue = null;
+    minValue   = 0;
+    maxValue   = null;
 
-    var openParen = text.IndexOf('(');
+    var openParen  = text.IndexOf('(');
     var closeParen = text.LastIndexOf(')');
     if (openParen < 0 || closeParen <= openParen || closeParen != text.Length - 1)
     {
@@ -603,7 +603,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
     if (prefix.StartsWith('w') || prefix.StartsWith('W'))
     {
       isWeight = true;
-      prefix = prefix[1..];
+      prefix   = prefix[1..];
     }
 
     if (!int.TryParse(prefix, out skillIndex) || skillIndex < 0 || skillIndex > 17)
@@ -665,8 +665,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
     if (Type == DistributionType.ExclusiveGroup)
     {
       return Entry.ExclusiveGroupForms.Count > 0
-        ? $"{Entry.ExclusiveGroupForms.Count} form(s)"
-        : "No forms";
+               ? $"{Entry.ExclusiveGroupForms.Count} form(s)"
+               : "No forms";
     }
 
     var parts = new List<string>();

@@ -10,15 +10,15 @@ namespace Boutique.ViewModels;
 
 public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 {
-  private readonly Func<OutfitDraftViewModel, Task> _duplicateDraft;
-  private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
-  private readonly Func<OutfitDraftViewModel, Task> _previewDraft;
-  private readonly Action<OutfitDraftViewModel> _removeDraft;
-  private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
-  [Reactive] private FormKey? _formKey;
+  private readonly   Func<OutfitDraftViewModel, Task>                   _duplicateDraft;
+  private readonly   ObservableCollection<ArmorRecordViewModel>         _pieces;
+  private readonly   Func<OutfitDraftViewModel, Task>                   _previewDraft;
+  private readonly   Action<OutfitDraftViewModel>                       _removeDraft;
+  private readonly   Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
+  [Reactive] private FormKey?                                           _formKey;
 
   [Reactive] private bool _isExpanded = true;
-  [Reactive] private bool _isVisible = true;
+  [Reactive] private bool _isVisible  = true;
 
   private string _name = string.Empty;
 
@@ -31,26 +31,26 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     Func<OutfitDraftViewModel, Task> previewDraft,
     Func<OutfitDraftViewModel, Task>? duplicateDraft = null)
   {
-    _removeDraft = removeDraft ?? throw new ArgumentNullException(nameof(removeDraft));
-    _removePiece = removePiece ?? throw new ArgumentNullException(nameof(removePiece));
-    _previewDraft = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
+    _removeDraft    = removeDraft ?? throw new ArgumentNullException(nameof(removeDraft));
+    _removePiece    = removePiece ?? throw new ArgumentNullException(nameof(removePiece));
+    _previewDraft   = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
     _duplicateDraft = duplicateDraft ?? (_ => Task.CompletedTask);
 
     SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name, false);
 
-    _pieces = new ObservableCollection<ArmorRecordViewModel>(pieces);
+    _pieces                   =  new ObservableCollection<ArmorRecordViewModel>(pieces);
     _pieces.CollectionChanged += PiecesOnCollectionChanged;
-    Pieces = new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
+    Pieces                    =  new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
 
     this.WhenAnyValue(x => x.FormKey)
-      .Subscribe(_ =>
-      {
-        this.RaisePropertyChanged(nameof(FormIdDisplay));
-        this.RaisePropertyChanged(nameof(Header));
-      });
+        .Subscribe(_ =>
+        {
+          this.RaisePropertyChanged(nameof(FormIdDisplay));
+          this.RaisePropertyChanged(nameof(Header));
+        });
 
     RemovePieceCommand = ReactiveCommand.Create<ArmorRecordViewModel>(piece => _removePiece(this, piece));
-    RemoveSelfCommand = ReactiveCommand.Create(() => _removeDraft(this));
+    RemoveSelfCommand  = ReactiveCommand.Create(() => _removeDraft(this));
     PreviewCommand = ReactiveCommand.CreateFromTask(
       () => _previewDraft(this),
       this.WhenAnyValue(x => x.HasPieces));
@@ -80,8 +80,8 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   public string FormIdDisplay => FormKey.HasValue ? $"0x{FormKey.Value.ID:X8}" : "Pending";
 
   public string? OverrideDisplayText => IsOverride && FormKey.HasValue
-    ? $"Overrides {FormIdDisplay} in {OverrideSourceMod?.FileName ?? FormKey.Value.ModKey.FileName}"
-    : null;
+                                          ? $"Overrides {FormIdDisplay} in {OverrideSourceMod?.FileName ?? FormKey.Value.ModKey.FileName}"
+                                          : null;
 
   public string Header => $"{Name} ({EditorId}) — FormID {FormIdDisplay}";
 

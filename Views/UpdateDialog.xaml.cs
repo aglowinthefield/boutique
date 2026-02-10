@@ -18,21 +18,21 @@ public partial class UpdateDialog
 
   private void Update_Click(object sender, RoutedEventArgs e)
   {
-    Result = UpdateResult.Update;
+    Result       = UpdateResult.Update;
     DialogResult = true;
     Close();
   }
 
   private void Skip_Click(object sender, RoutedEventArgs e)
   {
-    Result = UpdateResult.Skip;
+    Result       = UpdateResult.Skip;
     DialogResult = false;
     Close();
   }
 
   private void Later_Click(object sender, RoutedEventArgs e)
   {
-    Result = UpdateResult.Later;
+    Result       = UpdateResult.Later;
     DialogResult = false;
     Close();
   }

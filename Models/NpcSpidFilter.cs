@@ -102,12 +102,12 @@ public class NpcSpidFilter
   /// </summary>
   public void Clear()
   {
-    IsFemale = null;
-    IsUnique = null;
-    IsTemplated = null;
-    IsChild = null;
+    IsFemale     = null;
+    IsUnique     = null;
+    IsTemplated  = null;
+    IsChild      = null;
     IsSummonable = null;
-    IsLeveled = null;
+    IsLeveled    = null;
     Factions.Clear();
     Races.Clear();
     Keywords.Clear();

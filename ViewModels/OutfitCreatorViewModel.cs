@@ -4,6 +4,7 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
 using Boutique.Models;
 using Boutique.Services;
@@ -20,35 +21,35 @@ namespace Boutique.ViewModels;
 
 public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 {
-  private readonly System.Reactive.Subjects.Subject<Unit> _autoSaveTrigger = new();
-  private readonly IObservable<bool> _canCopyExistingOutfits;
-  private readonly IObservable<bool> _canCreateOutfit;
-  private readonly IObservable<bool> _canLoadOutfitPlugin;
-  private readonly IObservable<bool> _canSaveOutfits;
-  private readonly CompositeDisposable _disposables = new();
-  private readonly OutfitDraftManager _draftManager;
-  private readonly ILogger _logger;
-  private readonly MutagenService _mutagenService;
-  private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource = new();
-  private readonly SourceList<string> _outfitPluginsSource = new();
-  private readonly ArmorPreviewService _previewService;
-  private readonly PatchingService _patchingService;
-
-  private string? _lastLoadedOutfitPlugin;
-  private bool _suppressPluginDeselection;
+  private readonly Subject<Unit>                    _autoSaveTrigger = new();
+  private readonly IObservable<bool>                _canCopyExistingOutfits;
+  private readonly IObservable<bool>                _canCreateOutfit;
+  private readonly IObservable<bool>                _canLoadOutfitPlugin;
+  private readonly IObservable<bool>                _canSaveOutfits;
+  private readonly CompositeDisposable              _disposables = new();
+  private readonly OutfitDraftManager               _draftManager;
+  private readonly ILogger                          _logger;
+  private readonly MutagenService                   _mutagenService;
+  private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource  = new();
+  private readonly SourceList<string>               _outfitPluginsSource = new();
+  private readonly PatchingService                  _patchingService;
+  private readonly ArmorPreviewService              _previewService;
 
   [Reactive] private bool _hasExistingPluginOutfits;
   [Reactive] private bool _hasOutfitDrafts;
   [Reactive] private bool _hasPendingOutfitDeletions;
   [Reactive] private bool _isCreatingOutfits;
-  [Reactive] private int _outfitArmorsTotalCount;
-  [Reactive] private string _outfitPluginSearchText = string.Empty;
-  [Reactive] private string _outfitSearchText = string.Empty;
-  [Reactive] private int _selectedOutfitArmorCount;
-  private IList _selectedOutfitArmors = new List<ArmorRecordViewModel>();
+
+  private            string? _lastLoadedOutfitPlugin;
+  [Reactive] private int     _outfitArmorsTotalCount;
+  [Reactive] private string  _outfitPluginSearchText = string.Empty;
+  [Reactive] private string  _outfitSearchText       = string.Empty;
+  [Reactive] private int     _selectedOutfitArmorCount;
+  private            IList   _selectedOutfitArmors = new List<ArmorRecordViewModel>();
   [Reactive] private string? _selectedOutfitArmorType;
   [Reactive] private string? _selectedOutfitSlot;
-  [Reactive] private string _statusMessage = "Ready";
+  [Reactive] private string  _statusMessage = "Ready";
+  private            bool    _suppressPluginDeselection;
 
   public OutfitCreatorViewModel(
     OutfitDraftManager draftManager,
@@ -58,12 +59,12 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     SettingsViewModel settings,
     ILogger logger)
   {
-    _draftManager = draftManager;
-    _mutagenService = mutagenService;
-    _previewService = previewService;
+    _draftManager    = draftManager;
+    _mutagenService  = mutagenService;
+    _previewService  = previewService;
     _patchingService = patchingService;
-    Settings = settings;
-    _logger = logger.ForContext<OutfitCreatorViewModel>();
+    Settings         = settings;
+    _logger          = logger.ForContext<OutfitCreatorViewModel>();
 
     // Wire up draft manager events
     _draftManager.StatusChanged += message => StatusMessage = message;
@@ -75,25 +76,26 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       await ConfirmDelete.Handle(message).ToTask();
 
     _draftManager.WhenAnyValue(m => m.HasDrafts)
-      .Subscribe(v => HasOutfitDrafts = v);
+                 .Subscribe(v => HasOutfitDrafts = v);
     _draftManager.WhenAnyValue(m => m.HasPendingDeletions)
-      .Subscribe(v => HasPendingOutfitDeletions = v);
+                 .Subscribe(v => HasPendingOutfitDeletions = v);
     _draftManager.WhenAnyValue(m => m.HasExistingOutfits)
-      .Subscribe(v => HasExistingPluginOutfits = v);
+                 .Subscribe(v => HasExistingPluginOutfits = v);
 
-    OutfitDrafts = _draftManager.QueueItems;
-    ExistingOutfits = _draftManager.ExistingOutfits;
-    HasOutfitDrafts = _draftManager.HasDrafts;
-    HasExistingPluginOutfits = _draftManager.HasExistingOutfits;
+    OutfitDrafts              = _draftManager.QueueItems;
+    ExistingOutfits           = _draftManager.ExistingOutfits;
+    HasOutfitDrafts           = _draftManager.HasDrafts;
+    HasExistingPluginOutfits  = _draftManager.HasExistingOutfits;
     HasPendingOutfitDeletions = _draftManager.HasPendingDeletions;
 
     // Auto-save logic
-    _disposables.Add(_autoSaveTrigger
-      .Throttle(TimeSpan.FromMilliseconds(1500))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
-      .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
-      .Subscribe());
+    _disposables.Add(
+      _autoSaveTrigger
+        .Throttle(TimeSpan.FromMilliseconds(1500))
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
+        .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
+        .Subscribe());
 
     // Configure filtering
     ConfigureOutfitPluginsFiltering();
@@ -111,11 +113,11 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
     // Auto-load from output plugin when patch filename changes or on initialization
     Settings.WhenAnyValue(x => x.PatchFileName)
-      .Where(_ => _mutagenService.IsInitialized)
-      .Throttle(TimeSpan.FromMilliseconds(500))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .SelectMany(_ => Observable.FromAsync(LoadOutfitsFromOutputPluginAsync))
-      .Subscribe();
+            .Where(_ => _mutagenService.IsInitialized)
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .SelectMany(_ => Observable.FromAsync(LoadOutfitsFromOutputPluginAsync))
+            .Subscribe();
 
     // Also load when MutagenService initializes (if PatchFileName is already set)
     _mutagenService.Initialized += async (_, _) =>
@@ -141,10 +143,10 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   public List<string> OutfitArmorTypeFilterOptions { get; } = ["(All)", "Heavy", "Light", "Clothing"];
 
   public List<string> OutfitSlotFilterOptions { get; } =
-  [
-    "(All)", "Head", "Hair", "Body", "Hands", "Forearms", "Amulet", "Ring", "Feet", "Calves", "Shield",
-    "LongHair", "Circlet", "Ears"
-  ];
+    [
+      "(All)", "Head", "Hair", "Body", "Hands", "Forearms", "Amulet", "Ring", "Feet", "Calves", "Shield",
+      "LongHair", "Circlet", "Ears"
+    ];
 
   public IList SelectedOutfitArmors
   {
@@ -188,8 +190,8 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       {
         _outfitArmorsSource.Clear();
         OutfitArmorsTotalCount = 0;
-        SelectedOutfitArmors = Array.Empty<ArmorRecordViewModel>();
-        OutfitSearchText = string.Empty;
+        SelectedOutfitArmors   = Array.Empty<ArmorRecordViewModel>();
+        OutfitSearchText       = string.Empty;
         return;
       }
 
@@ -200,10 +202,19 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   public ReadOnlyObservableCollection<IOutfitQueueItem> OutfitDrafts { get; }
   public ReadOnlyObservableCollection<ExistingOutfitViewModel> ExistingOutfits { get; }
 
+  public void Dispose()
+  {
+    _mutagenService.Initialized    -= OnMutagenInitialized;
+    _mutagenService.PluginsChanged -= OnPluginsChanged;
+    _disposables.Dispose();
+    _autoSaveTrigger.Dispose();
+    GC.SuppressFinalize(this);
+  }
+
   private void ConfigureOutfitPluginsFiltering()
   {
     // Subscribe to events
-    _mutagenService.Initialized += OnMutagenInitialized;
+    _mutagenService.Initialized    += OnMutagenInitialized;
     _mutagenService.PluginsChanged += OnPluginsChanged;
 
     // Load immediately if already initialized
@@ -212,30 +223,34 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       _ = LoadOutfitPluginsAsync();
     }
 
-    _disposables.Add(_outfitPluginsSource.Connect()
-      .Filter(this.WhenAnyValue(x => x.OutfitPluginSearchText)
-        .Throttle(TimeSpan.FromMilliseconds(150))
-        .Select(BuildPluginPredicate))
-      .Sort(SortExpressionComparer<string>.Ascending(p => p))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var filteredPlugins)
-      .DisposeMany()
-      .Subscribe());
+    _disposables.Add(
+      _outfitPluginsSource.Connect()
+                          .Filter(
+                            this.WhenAnyValue(x => x.OutfitPluginSearchText)
+                                .Throttle(TimeSpan.FromMilliseconds(150))
+                                .Select(BuildPluginPredicate))
+                          .Sort(SortExpressionComparer<string>.Ascending(p => p))
+                          .ObserveOn(RxApp.MainThreadScheduler)
+                          .Bind(out var filteredPlugins)
+                          .DisposeMany()
+                          .Subscribe());
 
     FilteredOutfitPlugins = filteredPlugins;
 
-    _disposables.Add(_outfitArmorsSource.Connect()
-      .Filter(this.WhenAnyValue(
-          x => x.OutfitSearchText,
-          x => x.SelectedOutfitArmorType,
-          x => x.SelectedOutfitSlot)
-        .Throttle(TimeSpan.FromMilliseconds(150))
-        .Select(tuple => BuildArmorPredicate(tuple.Item1, tuple.Item2, tuple.Item3)))
-      .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var filteredArmors)
-      .DisposeMany()
-      .Subscribe());
+    _disposables.Add(
+      _outfitArmorsSource.Connect()
+                         .Filter(
+                           this.WhenAnyValue(
+                                 x => x.OutfitSearchText,
+                                 x => x.SelectedOutfitArmorType,
+                                 x => x.SelectedOutfitSlot)
+                               .Throttle(TimeSpan.FromMilliseconds(150))
+                               .Select(tuple => BuildArmorPredicate(tuple.Item1, tuple.Item2, tuple.Item3)))
+                         .Sort(SortExpressionComparer<ArmorRecordViewModel>.Ascending(a => a.DisplayName))
+                         .ObserveOn(RxApp.MainThreadScheduler)
+                         .Bind(out var filteredArmors)
+                         .DisposeMany()
+                         .Subscribe());
 
     FilteredOutfitArmors = filteredArmors;
   }
@@ -312,8 +327,8 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
       var armorsFromPlugin = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
       var armors = armorsFromPlugin
-        .Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache))
-        .ToList();
+                   .Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache))
+                   .ToList();
 
       _logger.Debug("Found {Count} armors in {Plugin}", armors.Count, plugin);
 
@@ -323,12 +338,12 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         list.AddRange(armors);
       });
 
-      OutfitArmorsTotalCount = armors.Count;
+      OutfitArmorsTotalCount  = armors.Count;
       _lastLoadedOutfitPlugin = plugin;
 
       SelectedOutfitArmors = FilteredOutfitArmors.Any()
-        ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
-        : Array.Empty<ArmorRecordViewModel>();
+                               ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
+                               : Array.Empty<ArmorRecordViewModel>();
 
       StatusMessage = $"Loaded {armors.Count} armors from {plugin}.";
       _logger.Information("Loaded {Count} outfit armors from {Plugin}", armors.Count, plugin);
@@ -386,8 +401,8 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       if (shouldClean)
       {
         var (success, message) = await _patchingService.CleanPatchMissingMastersAsync(
-          patchPath,
-          missingMastersResult.AllAffectedOutfits);
+                                   patchPath,
+                                   missingMastersResult.AllAffectedOutfits);
 
         if (success)
         {
@@ -440,7 +455,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       try
       {
         SelectedOutfitPlugin = targetPlugin;
-        await LoadOutfitPluginAsync(forceReload: true);
+        await LoadOutfitPluginAsync(true);
       }
       finally
       {
@@ -452,7 +467,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
                targetPlugin,
                StringComparison.OrdinalIgnoreCase))
     {
-      await LoadOutfitPluginAsync(forceReload: true);
+      await LoadOutfitPluginAsync(true);
     }
   }
 
@@ -488,10 +503,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       async (_, gender) =>
       {
         var scene = await _previewService.BuildPreviewAsync(pieces, gender);
-        return scene with
-        {
-          OutfitLabel = draft.Name, SourceFile = draft.EditorId
-        };
+        return scene with { OutfitLabel = draft.Name, SourceFile = draft.EditorId };
       });
 
     await ShowPreview.Handle(collection);
@@ -523,9 +535,9 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         {
           var scene = await _previewService.BuildPreviewAsync([armor], gender);
           return scene with
-          {
-            OutfitLabel = armor.DisplayName, SourceFile = armor.Armor.FormKey.ModKey.FileName.String
-          };
+                 {
+                   OutfitLabel = armor.DisplayName, SourceFile = armor.Armor.FormKey.ModKey.FileName.String
+                 };
         });
 
       await ShowPreview.Handle(collection);
@@ -551,15 +563,15 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     }
 
     IsCreatingOutfits = true;
-    StatusMessage = "Saving outfits...";
+    StatusMessage     = "Saving outfits...";
     _logger.Information("Starting outfit save operation.");
 
     try
     {
       var requests = _draftManager.BuildSaveRequests();
       var (success, message, results) = await _patchingService.CreateOrUpdateOutfitsAsync(
-        requests,
-        Settings.FullOutputPath);
+                                          requests,
+                                          Settings.FullOutputPath);
 
       if (success)
       {
@@ -620,10 +632,10 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     }
   }
 
-  private void CreateOverrideDraft(IOutfitGetter outfit, IReadOnlyList<ArmorRecordViewModel> armorPieces, ModKey? winningMod)
-  {
-    _draftManager.CreateOverrideDraft(outfit, armorPieces, winningMod);
-  }
+  private void CreateOverrideDraft(
+    IOutfitGetter outfit,
+    IReadOnlyList<ArmorRecordViewModel> armorPieces,
+    ModKey? winningMod) => _draftManager.CreateOverrideDraft(outfit, armorPieces, winningMod);
 
   private ModKey? GetWinningModForOutfit(FormKey formKey)
   {
@@ -633,15 +645,6 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     }
 
     return formKey.ModKey;
-  }
-
-  public void Dispose()
-  {
-    _mutagenService.Initialized -= OnMutagenInitialized;
-    _mutagenService.PluginsChanged -= OnPluginsChanged;
-    _disposables.Dispose();
-    _autoSaveTrigger.Dispose();
-    GC.SuppressFinalize(this);
   }
 
   private async void OnMutagenInitialized(object? sender, EventArgs e) => await LoadOutfitPluginsAsync();

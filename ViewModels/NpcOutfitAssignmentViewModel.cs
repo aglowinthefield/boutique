@@ -53,8 +53,8 @@ public partial class NpcOutfitAssignmentViewModel(NpcOutfitAssignment assignment
   ///   Gets a summary of the conflict (e.g., "2 files override")
   /// </summary>
   public string ConflictSummary => HasConflict
-    ? $"{DistributionCount} files"
-    : string.Empty;
+                                     ? $"{DistributionCount} files"
+                                     : string.Empty;
 
   /// <summary>
   ///   Gets the winning distribution file name

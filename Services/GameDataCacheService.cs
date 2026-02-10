@@ -20,6 +20,7 @@ public class GameDataCacheService : IDisposable
 {
   private readonly HashSet<string> _blacklistedPluginsSet = new(StringComparer.OrdinalIgnoreCase);
   private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);
+  private readonly ContainerDataBuilder _containerDataBuilder;
   private readonly SourceCache<ContainerRecordViewModel, FormKey> _containersSource = new(x => x.FormKey);
   private readonly DistributionScannerService _discoveryService;
   private readonly CompositeDisposable _disposables = [];
@@ -29,7 +30,7 @@ public class GameDataCacheService : IDisposable
 
   private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource = new(x => x.EditorID);
 
-  private readonly ILogger _logger;
+  private readonly ILogger        _logger;
   private readonly MutagenService _mutagenService;
 
   private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcOutfitAssignmentsSource =
@@ -37,13 +38,12 @@ public class GameDataCacheService : IDisposable
 
   private readonly SourceCache<NpcRecordViewModel, FormKey> _npcRecordsSource = new(x => x.FormKey);
 
-  private readonly SourceCache<NpcFilterData, FormKey> _npcsSource = new(x => x.FormKey);
+  private readonly SourceCache<NpcFilterData, FormKey>         _npcsSource          = new(x => x.FormKey);
   private readonly SourceCache<OutfitRecordViewModel, FormKey> _outfitRecordsSource = new(x => x.FormKey);
-  private readonly NpcOutfitResolutionService _outfitResolutionService;
-  private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
-  private readonly SourceCache<RaceRecordViewModel, FormKey> _racesSource = new(x => x.FormKey);
-  private readonly SettingsViewModel _settings;
-  private readonly ContainerDataBuilder _containerDataBuilder;
+  private readonly NpcOutfitResolutionService                  _outfitResolutionService;
+  private readonly SourceCache<IOutfitGetter, FormKey>         _outfitsSource = new(x => x.FormKey);
+  private readonly SourceCache<RaceRecordViewModel, FormKey>   _racesSource   = new(x => x.FormKey);
+  private readonly SettingsViewModel                           _settings;
 
   public GameDataCacheService(
     MutagenService mutagenService,
@@ -53,83 +53,94 @@ public class GameDataCacheService : IDisposable
     GuiSettingsService guiSettings,
     ILogger logger)
   {
-    _mutagenService = mutagenService;
-    _discoveryService = discoveryService;
+    _mutagenService          = mutagenService;
+    _discoveryService        = discoveryService;
     _outfitResolutionService = outfitResolutionService;
-    _settings = settings;
-    _guiSettings = guiSettings;
-    _logger = logger.ForContext<GameDataCacheService>();
-    _containerDataBuilder = new ContainerDataBuilder(logger);
+    _settings                = settings;
+    _guiSettings             = guiSettings;
+    _logger                  = logger.ForContext<GameDataCacheService>();
+    _containerDataBuilder    = new ContainerDataBuilder(logger);
 
-    _disposables.Add(_npcsSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allNpcs)
-      .Subscribe());
+    _disposables.Add(
+      _npcsSource.Connect()
+                 .ObserveOn(RxApp.MainThreadScheduler)
+                 .Bind(out var allNpcs)
+                 .Subscribe());
     AllNpcs = allNpcs;
 
-    _disposables.Add(_factionsSource.Connect()
-      .SortBy(x => x.DisplayName)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allFactions)
-      .Subscribe());
+    _disposables.Add(
+      _factionsSource.Connect()
+                     .SortBy(x => x.DisplayName)
+                     .ObserveOn(RxApp.MainThreadScheduler)
+                     .Bind(out var allFactions)
+                     .Subscribe());
     AllFactions = allFactions;
 
-    _disposables.Add(_racesSource.Connect()
-      .SortBy(x => x.DisplayName)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allRaces)
-      .Subscribe());
+    _disposables.Add(
+      _racesSource.Connect()
+                  .SortBy(x => x.DisplayName)
+                  .ObserveOn(RxApp.MainThreadScheduler)
+                  .Bind(out var allRaces)
+                  .Subscribe());
     AllRaces = allRaces;
 
-    _disposables.Add(_keywordsSource.Connect()
-      .SortBy(x => x.DisplayName)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allKeywords)
-      .Subscribe());
+    _disposables.Add(
+      _keywordsSource.Connect()
+                     .SortBy(x => x.DisplayName)
+                     .ObserveOn(RxApp.MainThreadScheduler)
+                     .Bind(out var allKeywords)
+                     .Subscribe());
     AllKeywords = allKeywords;
 
-    _disposables.Add(_classesSource.Connect()
-      .SortBy(x => x.DisplayName)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allClasses)
-      .Subscribe());
+    _disposables.Add(
+      _classesSource.Connect()
+                    .SortBy(x => x.DisplayName)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Bind(out var allClasses)
+                    .Subscribe());
     AllClasses = allClasses;
 
-    _disposables.Add(_outfitsSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allOutfits)
-      .Subscribe());
+    _disposables.Add(
+      _outfitsSource.Connect()
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Bind(out var allOutfits)
+                    .Subscribe());
     AllOutfits = allOutfits;
 
-    _disposables.Add(_outfitRecordsSource.Connect()
-      .SortBy(x => x.EditorID)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allOutfitRecords)
-      .Subscribe());
+    _disposables.Add(
+      _outfitRecordsSource.Connect()
+                          .SortBy(x => x.EditorID)
+                          .ObserveOn(RxApp.MainThreadScheduler)
+                          .Bind(out var allOutfitRecords)
+                          .Subscribe());
     AllOutfitRecords = allOutfitRecords;
 
-    _disposables.Add(_npcRecordsSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allNpcRecords)
-      .Subscribe());
+    _disposables.Add(
+      _npcRecordsSource.Connect()
+                       .ObserveOn(RxApp.MainThreadScheduler)
+                       .Bind(out var allNpcRecords)
+                       .Subscribe());
     AllNpcRecords = allNpcRecords;
 
-    _disposables.Add(_containersSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allContainers)
-      .Subscribe());
+    _disposables.Add(
+      _containersSource.Connect()
+                       .ObserveOn(RxApp.MainThreadScheduler)
+                       .Bind(out var allContainers)
+                       .Subscribe());
     AllContainers = allContainers;
 
-    _disposables.Add(_distributionFilesSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allDistributionFiles)
-      .Subscribe());
+    _disposables.Add(
+      _distributionFilesSource.Connect()
+                              .ObserveOn(RxApp.MainThreadScheduler)
+                              .Bind(out var allDistributionFiles)
+                              .Subscribe());
     AllDistributionFiles = allDistributionFiles;
 
-    _disposables.Add(_npcOutfitAssignmentsSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var allNpcOutfitAssignments)
-      .Subscribe());
+    _disposables.Add(
+      _npcOutfitAssignmentsSource.Connect()
+                                 .ObserveOn(RxApp.MainThreadScheduler)
+                                 .Bind(out var allNpcOutfitAssignments)
+                                 .Subscribe());
     AllNpcOutfitAssignments = allNpcOutfitAssignments;
 
     _mutagenService.Initialized += OnMutagenInitialized;
@@ -216,48 +227,48 @@ public class GameDataCacheService : IDisposable
         }
       }
 
-      List<FactionRecordViewModel> factionsList;
-      List<RaceRecordViewModel> racesList;
-      List<KeywordRecordViewModel> keywordsList;
-      List<ClassRecordViewModel> classesList;
-      List<IOutfitGetter> outfitsList;
+      List<FactionRecordViewModel>   factionsList;
+      List<RaceRecordViewModel>      racesList;
+      List<KeywordRecordViewModel>   keywordsList;
+      List<ClassRecordViewModel>     classesList;
+      List<IOutfitGetter>            outfitsList;
       List<ContainerRecordViewModel> containersList;
 
       var factionsTask = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
-      var racesTask = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
+      var racesTask    = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
       var keywordsTask = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
-      var classesTask = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
-      var outfitsTask = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
+      var classesTask  = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
+      var outfitsTask  = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
 
       if (_guiSettings.ShowContainersTab)
       {
         var containersTask = Task.Run(() => _containerDataBuilder.LoadContainers(linkCache, IsBlacklisted));
         await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask)
-          .ContinueWith(_ => { });
-        factionsList = await SafeAwaitAsync(factionsTask, "Factions");
-        racesList = await SafeAwaitAsync(racesTask, "Races");
-        keywordsList = await SafeAwaitAsync(keywordsTask, "Keywords");
-        classesList = await SafeAwaitAsync(classesTask, "Classes");
-        outfitsList = await SafeAwaitAsync(outfitsTask, "Outfits");
+                  .ContinueWith(_ => { });
+        factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
+        racesList      = await SafeAwaitAsync(racesTask, "Races");
+        keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
+        classesList    = await SafeAwaitAsync(classesTask, "Classes");
+        outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
         containersList = await SafeAwaitAsync(containersTask, "Containers");
       }
       else
       {
         await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask)
-          .ContinueWith(_ => { });
-        factionsList = await SafeAwaitAsync(factionsTask, "Factions");
-        racesList = await SafeAwaitAsync(racesTask, "Races");
-        keywordsList = await SafeAwaitAsync(keywordsTask, "Keywords");
-        classesList = await SafeAwaitAsync(classesTask, "Classes");
-        outfitsList = await SafeAwaitAsync(outfitsTask, "Outfits");
+                  .ContinueWith(_ => { });
+        factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
+        racesList      = await SafeAwaitAsync(racesTask, "Races");
+        keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
+        classesList    = await SafeAwaitAsync(classesTask, "Classes");
+        outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
         containersList = [];
       }
 
       var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID);
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
-      var raceLookup = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
-      var classLookup = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
-      var outfitLookup = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
+      var raceLookup    = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
+      var classLookup   = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
+      var outfitLookup  = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
 
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
@@ -336,17 +347,17 @@ public class GameDataCacheService : IDisposable
       }
 
       var npcsResult = await Task.Run(() => NpcDataBuilder.LoadNpcs(
-        linkCache,
-        keywordLookup,
-        factionLookup,
-        raceLookup,
-        classLookup,
-        outfitLookup,
-        templateLookup,
-        combatStyleLookup,
-        voiceTypeLookup,
-        raceKeywordLookup,
-        IsBlacklisted));
+                                        linkCache,
+                                        keywordLookup,
+                                        factionLookup,
+                                        raceLookup,
+                                        classLookup,
+                                        outfitLookup,
+                                        templateLookup,
+                                        combatStyleLookup,
+                                        voiceTypeLookup,
+                                        raceKeywordLookup,
+                                        IsBlacklisted));
       var (npcFilterDataList, npcRecordsList) = npcsResult;
 
       _npcsSource.Edit(cache =>
@@ -407,8 +418,8 @@ public class GameDataCacheService : IDisposable
 
       IsLoaded = true;
       var logMessage = _guiSettings.ShowContainersTab
-        ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
-        : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
+                         ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
+                         : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
       _logger.Information(
         logMessage,
         npcFilterDataList.Count,
@@ -422,7 +433,7 @@ public class GameDataCacheService : IDisposable
         AllNpcOutfitAssignments.Count);
 
       await Application.Current.Dispatcher.InvokeAsync(() =>
-        CacheLoaded?.Invoke(this, EventArgs.Empty));
+                                                         CacheLoaded?.Invoke(this, EventArgs.Empty));
     }
     catch (Exception ex)
     {
@@ -477,7 +488,7 @@ public class GameDataCacheService : IDisposable
   }
 
   private async Task<T> SafeAwaitAsync<T>(Task<T> task, string taskName)
-      where T : new()
+    where T : new()
   {
     try
     {
@@ -510,20 +521,20 @@ public class GameDataCacheService : IDisposable
         virtualKeywords.Count);
 
       var outfitFiles = discoveredFiles
-        .Where(f => f.OutfitDistributionCount > 0)
-        .ToList();
+                        .Where(f => f.OutfitDistributionCount > 0)
+                        .ToList();
 
       _logger.Debug("Found {Count} distribution files with outfit distributions.", outfitFiles.Count);
 
       // Include ALL discovered files in the dropdown (both outfit and keyword-only files)
       var allFileViewModels = discoveredFiles
-        .Select(f => new DistributionFileViewModel(f))
-        .ToList();
+                              .Select(f => new DistributionFileViewModel(f))
+                              .ToList();
 
       _logger.Debug("Resolving NPC outfit assignments...");
       var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
-        outfitFiles,
-        npcFilterDataList);
+                          outfitFiles,
+                          npcFilterDataList);
       _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
 
       _distributionFilesSource.Edit(cache =>
@@ -541,12 +552,12 @@ public class GameDataCacheService : IDisposable
       _keywordsSource.Edit(cache =>
       {
         var existingEditorIds = cache.Items
-          .Select(k => k.EditorID)
-          .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                     .Select(k => k.EditorID)
+                                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var newKeywords = virtualKeywords
-          .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty))
-          .ToList();
+                          .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty))
+                          .ToList();
 
         cache.AddOrUpdate(newKeywords);
       });
@@ -560,7 +571,7 @@ public class GameDataCacheService : IDisposable
   private static List<KeywordRecordViewModel> ExtractVirtualKeywords(IReadOnlyList<DistributionFile> discoveredFiles)
   {
     var existingEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    var virtualKeywords = new List<KeywordRecordViewModel>();
+    var virtualKeywords   = new List<KeywordRecordViewModel>();
 
     var spidFiles = discoveredFiles.Where(f => f.Type == DistributionFileType.Spid);
 

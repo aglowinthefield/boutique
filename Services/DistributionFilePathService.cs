@@ -43,9 +43,9 @@ public class DistributionFilePathService(SettingsViewModel settings, ILogger log
       return null;
     }
 
-    var baseName = StripFormatSuffixes(currentFileName);
+    var baseName      = StripFormatSuffixes(currentFileName);
     var baseDirectory = GetBaseDirectory(dataPath);
-    var result = GetDistributionFilePath(baseDirectory, baseName, format);
+    var result        = GetDistributionFilePath(baseDirectory, baseName, format);
 
     _logger.Debug(
       "Updated distribution file path for format {Format}: {Path}",

@@ -25,11 +25,11 @@ public static class NpcSpidSyntaxGenerator
     if (filter.IsEmpty)
     {
       return (
-        $"; No filters active - this would target ALL NPCs\n; Outfit = {outfitPlaceholder}",
-        $"; No filters active - this would target ALL NPCs\n; outfitDefault={outfitPlaceholder}");
+               $"; No filters active - this would target ALL NPCs\n; Outfit = {outfitPlaceholder}",
+               $"; No filters active - this would target ALL NPCs\n; outfitDefault={outfitPlaceholder}");
     }
 
-    var spidSyntax = GenerateSpidSyntax(filter, linkCache, outfitPlaceholder);
+    var spidSyntax       = GenerateSpidSyntax(filter, linkCache, outfitPlaceholder);
     var skyPatcherSyntax = GenerateSkyPatcherSyntax(filter, outfitPlaceholder);
 
     return (spidSyntax, skyPatcherSyntax);
@@ -165,8 +165,8 @@ public static class NpcSpidSyntaxGenerator
     if (filter.Factions.Count > 0)
     {
       var factionFormKeys = filter.Factions
-        .Select(FormKeyHelper.Format)
-        .ToList();
+                                  .Select(FormKeyHelper.Format)
+                                  .ToList();
       filterParts.Add($"filterByFactions={string.Join(",", factionFormKeys)}");
     }
 
@@ -174,8 +174,8 @@ public static class NpcSpidSyntaxGenerator
     if (filter.Keywords.Count > 0)
     {
       var keywordFormKeys = filter.Keywords
-        .Select(FormKeyHelper.Format)
-        .ToList();
+                                  .Select(FormKeyHelper.Format)
+                                  .ToList();
       filterParts.Add($"filterByKeywords={string.Join(",", keywordFormKeys)}");
     }
 
@@ -183,8 +183,8 @@ public static class NpcSpidSyntaxGenerator
     if (filter.Races.Count > 0)
     {
       var raceFormKeys = filter.Races
-        .Select(FormKeyHelper.Format)
-        .ToList();
+                               .Select(FormKeyHelper.Format)
+                               .ToList();
       filterParts.Add($"filterByRaces={string.Join(",", raceFormKeys)}");
     }
 
@@ -192,8 +192,8 @@ public static class NpcSpidSyntaxGenerator
     if (filter.Classes.Count > 0)
     {
       var classFormKeys = filter.Classes
-        .Select(FormKeyHelper.Format)
-        .ToList();
+                                .Select(FormKeyHelper.Format)
+                                .ToList();
       filterParts.Add($"filterByClass={string.Join(",", classFormKeys)}");
     }
 

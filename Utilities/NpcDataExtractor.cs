@@ -25,10 +25,10 @@ public static class NpcDataExtractor
   {
     var config = npc.Configuration;
     return (
-      IsFemale: config.Flags.HasFlag(NpcConfiguration.Flag.Female),
-      IsUnique: config.Flags.HasFlag(NpcConfiguration.Flag.Unique),
-      IsSummonable: config.Flags.HasFlag(NpcConfiguration.Flag.Summonable),
-      IsLeveled: config.Level is PcLevelMult);
+             IsFemale: config.Flags.HasFlag(NpcConfiguration.Flag.Female),
+             IsUnique: config.Flags.HasFlag(NpcConfiguration.Flag.Unique),
+             IsSummonable: config.Flags.HasFlag(NpcConfiguration.Flag.Summonable),
+             IsLeveled: config.Level is PcLevelMult);
   }
 
   /// <summary>
@@ -49,10 +49,10 @@ public static class NpcDataExtractor
 
     var skillValues = npc.PlayerSkills.SkillValues;
 
-    skills[6] = GetSkillValue(skillValues, Skill.OneHanded);
-    skills[7] = GetSkillValue(skillValues, Skill.TwoHanded);
-    skills[8] = GetSkillValue(skillValues, Skill.Archery);
-    skills[9] = GetSkillValue(skillValues, Skill.Block);
+    skills[6]  = GetSkillValue(skillValues, Skill.OneHanded);
+    skills[7]  = GetSkillValue(skillValues, Skill.TwoHanded);
+    skills[8]  = GetSkillValue(skillValues, Skill.Archery);
+    skills[9]  = GetSkillValue(skillValues, Skill.Block);
     skills[10] = GetSkillValue(skillValues, Skill.Smithing);
     skills[11] = GetSkillValue(skillValues, Skill.HeavyArmor);
     skills[12] = GetSkillValue(skillValues, Skill.LightArmor);

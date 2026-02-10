@@ -12,8 +12,8 @@ public class OutfitQueueItemTemplateSelector : DataTemplateSelector
   public override DataTemplate? SelectTemplate(object? item, DependencyObject container) =>
     item switch
     {
-      OutfitDraftViewModel => DraftTemplate,
+      OutfitDraftViewModel     => DraftTemplate,
       OutfitSeparatorViewModel => SeparatorTemplate,
-      _ => base.SelectTemplate(item, container)
+      _                        => base.SelectTemplate(item, container)
     };
 }

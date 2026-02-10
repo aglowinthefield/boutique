@@ -10,8 +10,8 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
 {
   [Reactive] private bool _isExcluded;
 
-  [Reactive] private bool _isSelected;
-  private string? _searchCache;
+  [Reactive] private bool    _isSelected;
+  private            string? _searchCache;
 
   public SelectableRecordViewModel(TRecord record)
   {

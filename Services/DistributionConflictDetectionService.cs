@@ -19,9 +19,9 @@ public class DistributionConflictDetectionService
   {
     // Build a set of NPC FormKeys from current entries
     var npcFormKeysInEntries = entries
-      .SelectMany(e => e.SelectedNpcs)
-      .Select(npc => npc.FormKey)
-      .ToHashSet();
+                               .SelectMany(e => e.SelectedNpcs)
+                               .Select(npc => npc.FormKey)
+                               .ToHashSet();
 
     if (npcFormKeysInEntries.Count == 0)
     {
@@ -38,7 +38,7 @@ public class DistributionConflictDetectionService
     var (existingDistributions, allNpcsDistributions) = BuildExistingDistributionMap(existingFiles, linkCache);
 
     // Find conflicts
-    var conflicts = new List<NpcConflictInfo>();
+    var conflicts            = new List<NpcConflictInfo>();
     var conflictingFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     foreach (var entry in entries)
@@ -50,12 +50,13 @@ public class DistributionConflictDetectionService
         // First check for specific NPC conflicts
         if (existingDistributions.TryGetValue(npcVm.FormKey, out var existing))
         {
-          conflicts.Add(new NpcConflictInfo(
-            npcVm.FormKey,
-            npcVm.DisplayName,
-            existing.FileName,
-            existing.OutfitName,
-            newOutfitName));
+          conflicts.Add(
+            new NpcConflictInfo(
+              npcVm.FormKey,
+              npcVm.DisplayName,
+              existing.FileName,
+              existing.OutfitName,
+              newOutfitName));
 
           conflictingFileNames.Add(existing.FileName);
         }
@@ -63,12 +64,13 @@ public class DistributionConflictDetectionService
         {
           // Use the first "all NPCs" distribution as the conflict
           var allNpcsDist = allNpcsDistributions[0];
-          conflicts.Add(new NpcConflictInfo(
-            npcVm.FormKey,
-            npcVm.DisplayName,
-            allNpcsDist.FileName,
-            allNpcsDist.OutfitName,
-            newOutfitName));
+          conflicts.Add(
+            new NpcConflictInfo(
+              npcVm.FormKey,
+              npcVm.DisplayName,
+              allNpcsDist.FileName,
+              allNpcsDist.OutfitName,
+              newOutfitName));
 
           conflictingFileNames.Add(allNpcsDist.FileName);
         }
@@ -79,7 +81,7 @@ public class DistributionConflictDetectionService
     var currentFileLoadsLast = DoesFileLoadAfterAll(newFileName, conflictingFileNames);
 
     // Only show as conflict if the user's file wouldn't load last
-    var hasConflicts = conflicts.Count > 0 && !currentFileLoadsLast;
+    var hasConflicts                = conflicts.Count > 0 && !currentFileLoadsLast;
     var conflictsResolvedByFilename = conflicts.Count > 0 && currentFileLoadsLast;
 
     string conflictSummary;
@@ -95,8 +97,8 @@ public class DistributionConflictDetectionService
       {
         // Conflict exists but is resolved by filename ordering
         var allNpcsNote = hasAllNpcsConflict
-          ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
-          : string.Empty;
+                            ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
+                            : string.Empty;
         conflictSummary =
           $"✓ {conflicts.Count} NPC(s) have existing distributions{allNpcsNote}, but your filename '{newFileName}' will load after them.";
         suggestedFileName = newFileName;
@@ -145,7 +147,7 @@ public class DistributionConflictDetectionService
     }
     else
     {
-      conflictSummary = string.Empty;
+      conflictSummary   = string.Empty;
       suggestedFileName = newFileName;
     }
 
@@ -187,26 +189,26 @@ public class DistributionConflictDetectionService
       IReadOnlyList<DistributionFileViewModel> files,
       ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
-    var map = new Dictionary<FormKey, (string FileName, string? OutfitName)>();
+    var map                  = new Dictionary<FormKey, (string FileName, string? OutfitName)>();
     var allNpcsDistributions = new List<(string FileName, string? OutfitName)>();
 
     // Check if we need NPC lookup dictionaries (for SPID files)
-    var hasSpidFiles = files.Any(f => f.TypeDisplay == "SPID");
+    var                             hasSpidFiles  = files.Any(f => f.TypeDisplay == "SPID");
     Dictionary<string, INpcGetter>? npcByEditorId = null;
-    Dictionary<string, INpcGetter>? npcByName = null;
+    Dictionary<string, INpcGetter>? npcByName     = null;
 
     if (hasSpidFiles)
     {
       // Build NPC lookup dictionaries once for all SPID files
       var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
       npcByEditorId = allNpcs
-        .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-        .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                      .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+                      .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+                      .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
       npcByName = allNpcs
-        .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-        .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                  .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
+                  .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
+                  .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 
     foreach (var file in files)

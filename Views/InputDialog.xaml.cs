@@ -10,8 +10,8 @@ public partial class InputDialog : Window
   {
     InitializeComponent();
 
-    Title = title;
-    PromptText.Text = prompt;
+    Title             = title;
+    PromptText.Text   = prompt;
     InputTextBox.Text = defaultValue;
 
     if (ThemeService.Current is { } themeService)

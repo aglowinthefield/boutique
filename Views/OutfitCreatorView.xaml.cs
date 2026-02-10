@@ -11,7 +11,7 @@ namespace Boutique.Views;
 
 public partial class OutfitCreatorView
 {
-  private const string ArmorDragDataFormat = "Boutique.ArmorRecords";
+  private const string ArmorDragDataFormat     = "Boutique.ArmorRecords";
   private const string QueueItemDragDataFormat = "Boutique.QueueItem";
 
   public static readonly DependencyProperty IsDraggingProperty =
@@ -22,19 +22,19 @@ public partial class OutfitCreatorView
       new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
 
   private OutfitCreatorViewModel? _currentViewModel;
-  private Point? _draftDragStartPoint;
-  private IOutfitQueueItem? _draggedItem;
+  private Point?                  _draftDragStartPoint;
+  private IOutfitQueueItem?       _draggedItem;
 
   private Point? _outfitDragStartPoint;
-  private bool _syncingOutfitSelection;
+  private bool   _syncingOutfitSelection;
 
   public OutfitCreatorView()
   {
     InitializeComponent();
 
     DataContextChanged += OnDataContextChanged;
-    Loaded += OnLoaded;
-    Unloaded += OnUnloaded;
+    Loaded             += OnLoaded;
+    Unloaded           += OnUnloaded;
 
     OutfitArmorsGrid.Loaded += (_, _) => SynchronizeOutfitSelection();
   }
@@ -164,8 +164,8 @@ public partial class OutfitCreatorView
     }
 
     var selected = OutfitArmorsGrid.SelectedItems
-      .OfType<ArmorRecordViewModel>()
-      .ToList();
+                                   .OfType<ArmorRecordViewModel>()
+                                   .ToList();
 
     if (selected.Count == 0)
     {
@@ -194,8 +194,8 @@ public partial class OutfitCreatorView
     }
 
     var pieces = OutfitArmorsGrid.SelectedItems
-      .OfType<ArmorRecordViewModel>()
-      .ToList();
+                                 .OfType<ArmorRecordViewModel>()
+                                 .ToList();
 
     if (pieces.Count == 0)
     {
@@ -240,7 +240,7 @@ public partial class OutfitCreatorView
     }
 
     viewModel.SelectedOutfitArmorType = null;
-    viewModel.SelectedOutfitSlot = null;
+    viewModel.SelectedOutfitSlot      = null;
   }
 
   private void SeparatorIconButton_Click(object sender, RoutedEventArgs e) =>
@@ -276,14 +276,14 @@ public partial class OutfitCreatorView
     }
 
     var textBlock = grid.Children.OfType<TextBlock>().FirstOrDefault();
-    var textBox = grid.Children.OfType<TextBox>().FirstOrDefault();
+    var textBox   = grid.Children.OfType<TextBox>().FirstOrDefault();
     if (textBlock == null || textBox == null)
     {
       return;
     }
 
     textBlock.Visibility = Visibility.Collapsed;
-    textBox.Visibility = Visibility.Visible;
+    textBox.Visibility   = Visibility.Visible;
     textBox.Focus();
     textBox.SelectAll();
     e.Handled = true;
@@ -308,14 +308,14 @@ public partial class OutfitCreatorView
       return;
     }
 
-    var parent = textBox.Parent as Grid;
+    var parent    = textBox.Parent as Grid;
     var textBlock = parent?.Children.OfType<TextBlock>().FirstOrDefault();
     if (textBlock == null)
     {
       return;
     }
 
-    textBox.Visibility = Visibility.Collapsed;
+    textBox.Visibility   = Visibility.Collapsed;
     textBlock.Visibility = Visibility.Visible;
   }
 
@@ -343,14 +343,14 @@ public partial class OutfitCreatorView
       return;
     }
 
-    var selectionStart = textBox.SelectionStart;
+    var selectionStart  = textBox.SelectionStart;
     var selectionLength = textBox.SelectionLength;
 
     var newText = textBox.Text.Remove(selectionStart, selectionLength);
     newText = newText.Insert(selectionStart, sanitized);
 
-    textBox.Text = newText;
-    textBox.SelectionStart = selectionStart + sanitized.Length;
+    textBox.Text            = newText;
+    textBox.SelectionStart  = selectionStart + sanitized.Length;
     textBox.SelectionLength = 0;
     e.CancelCommand();
   }
@@ -442,8 +442,8 @@ public partial class OutfitCreatorView
       if (sourceItem is OutfitDraftViewModel && targetItem is OutfitSeparatorViewModel targetSeparator)
       {
         var groupedItems = viewModel.GetGroupedItems(targetSeparator);
-        var lastItem = groupedItems[^1];
-        var lastIndex = viewModel.OutfitDrafts.IndexOf(lastItem);
+        var lastItem     = groupedItems[^1];
+        var lastIndex    = viewModel.OutfitDrafts.IndexOf(lastItem);
         if (lastIndex >= 0)
         {
           viewModel.MoveDraft(sourceItem, lastIndex, false);
@@ -569,7 +569,7 @@ public partial class OutfitCreatorView
 
   private static void ShowDropIndicator(Grid container, bool showTop)
   {
-    var topIndicator = FindChild<Border>(container, "DropIndicatorTop");
+    var topIndicator    = FindChild<Border>(container, "DropIndicatorTop");
     var bottomIndicator = FindChild<Border>(container, "DropIndicatorBottom");
 
     topIndicator?.Visibility = showTop ? Visibility.Visible : Visibility.Collapsed;
@@ -584,7 +584,7 @@ public partial class OutfitCreatorView
       return;
     }
 
-    var topIndicator = FindChild<Border>(container, "DropIndicatorTop");
+    var topIndicator    = FindChild<Border>(container, "DropIndicatorTop");
     var bottomIndicator = FindChild<Border>(container, "DropIndicatorBottom");
 
     topIndicator?.Visibility = Visibility.Collapsed;
@@ -606,8 +606,8 @@ public partial class OutfitCreatorView
     }
 
     separatorBorder.BorderBrush = highlight
-      ? new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4))
-      : Brushes.Transparent;
+                                    ? new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4))
+                                    : Brushes.Transparent;
   }
 
   private static void HideAllIndicators(Grid? container)
@@ -646,8 +646,8 @@ public partial class OutfitCreatorView
     }
 
     _draftDragStartPoint = e.GetPosition(null);
-    _draggedItem = item;
-    e.Handled = true;
+    _draggedItem         = item;
+    e.Handled            = true;
   }
 
   private void DragHandle_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -666,7 +666,7 @@ public partial class OutfitCreatorView
 
     var item = _draggedItem;
     _draftDragStartPoint = null;
-    _draggedItem = null;
+    _draggedItem         = null;
 
     SetIsDragging(this, true);
     try
@@ -685,7 +685,7 @@ public partial class OutfitCreatorView
   private void DragHandle_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
   {
     _draftDragStartPoint = null;
-    _draggedItem = null;
+    _draggedItem         = null;
   }
 
   private static void HandleDropTargetDrag(Border? border, DragEventArgs e)
@@ -746,8 +746,8 @@ public partial class OutfitCreatorView
     if (data.GetData(ArmorDragDataFormat) is IEnumerable<ArmorRecordViewModel> records)
     {
       pieces = records
-        .Where(r => r != null)
-        .ToList();
+               .Where(r => r != null)
+               .ToList();
       return pieces.Count > 0;
     }
 
@@ -764,19 +764,19 @@ public partial class OutfitCreatorView
 
     if (border.Tag is not DropVisualSnapshot snapshot)
     {
-      snapshot = new DropVisualSnapshot(border.BorderBrush, border.Background);
+      snapshot   = new DropVisualSnapshot(border.BorderBrush, border.Background);
       border.Tag = snapshot;
     }
 
     if (isActive)
     {
       border.BorderBrush = Brushes.DodgerBlue;
-      border.Background = new SolidColorBrush(Color.FromArgb(48, 30, 144, 255));
+      border.Background  = new SolidColorBrush(Color.FromArgb(48, 30, 144, 255));
     }
     else
     {
       border.BorderBrush = snapshot.BorderBrush;
-      border.Background = snapshot.Background;
+      border.Background  = snapshot.Background;
     }
   }
 

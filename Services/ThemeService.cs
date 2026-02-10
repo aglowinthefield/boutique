@@ -17,9 +17,9 @@ public enum AppTheme
 
 public class ThemeService
 {
-  private const string ThemeConfigFileName = "theme.json";
-  private const int DWMWAUSEIMMERSIVEDARKMODE = 20;
-  private const int DWMWABORDERCOLOR = 34;
+  private const string ThemeConfigFileName       = "theme.json";
+  private const int    DWMWAUSEIMMERSIVEDARKMODE = 20;
+  private const int    DWMWABORDERCOLOR          = 34;
 
   private static readonly string ConfigPath = Path.Combine(
     AppDomain.CurrentDomain.BaseDirectory,
@@ -90,10 +90,10 @@ public class ThemeService
   {
     var isDark = theme switch
     {
-      AppTheme.Light => false,
-      AppTheme.Dark => true,
+      AppTheme.Light  => false,
+      AppTheme.Dark   => true,
       AppTheme.System => IsSystemDarkMode(),
-      _ => true
+      _               => true
     };
 
     IsCurrentlyDark = isDark;
@@ -109,8 +109,8 @@ public class ThemeService
 
       // Find and remove existing color palette dictionaries
       var toRemove = app.Resources.MergedDictionaries
-        .Where(d => d.Source?.OriginalString.Contains("ColorPalette") == true)
-        .ToList();
+                        .Where(d => d.Source?.OriginalString.Contains("ColorPalette") == true)
+                        .ToList();
 
       foreach (var dict in toRemove)
       {
@@ -192,7 +192,7 @@ public class ThemeService
   {
     // Check if Controls.xaml is already loaded
     var hasControls = app.Resources.MergedDictionaries
-      .Any(d => d.Source?.OriginalString.Contains("Controls.xaml") == true);
+                         .Any(d => d.Source?.OriginalString.Contains("Controls.xaml") == true);
 
     if (!hasControls)
     {
@@ -209,8 +209,7 @@ public class ThemeService
   {
     try
     {
-      using var key = Registry.CurrentUser.OpenSubKey(
-        @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+      using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
 
       if (key?.GetValue("AppsUseLightTheme") is int value)
       {
@@ -250,10 +249,10 @@ public class ThemeService
         return (AppTheme.System, 1.0);
       }
 
-      var json = File.ReadAllText(ConfigPath);
-      using var doc = JsonDocument.Parse(json);
+      var       json = File.ReadAllText(ConfigPath);
+      using var doc  = JsonDocument.Parse(json);
 
-      var theme = AppTheme.System;
+      var theme     = AppTheme.System;
       var fontScale = 1.0;
 
       if (doc.RootElement.TryGetProperty("Theme", out var themeElement))
@@ -292,7 +291,7 @@ public class ThemeService
       }
 
       var settings = new { Theme = theme.ToString(), FontScale = fontScale };
-      var json = JsonSerializer.Serialize(settings, JsonOptions);
+      var json     = JsonSerializer.Serialize(settings, JsonOptions);
       File.WriteAllText(ConfigPath, json);
 
       _logger.Information("Saved settings: Theme={Theme}, FontScale={FontScale}", theme, fontScale);

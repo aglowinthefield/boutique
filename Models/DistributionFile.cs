@@ -4,10 +4,10 @@ namespace Boutique.Models;
 
 public enum DistributionFileType
 {
-  [Description("SPID")] Spid,
+  [Description("SPID")]       Spid,
   [Description("SkyPatcher")] SkyPatcher,
-  [Description("ESP")] Esp,
-  [Description("CDF")] Cdf
+  [Description("ESP")]        Esp,
+  [Description("CDF")]        Cdf
 }
 
 public enum DistributionLineKind

@@ -19,8 +19,9 @@ public partial class PatchNameCollisionDialog
     }
 
     var messageTemplate = Strings.ResourceManager.GetString(
-      "PatchNameCollision_Message",
-      Strings.Culture) ?? "\"{0}\" already exists in your load order. Using this name may overwrite existing data.";
+                            "PatchNameCollision_Message",
+                            Strings.Culture) ??
+                          "\"{0}\" already exists in your load order. Using this name may overwrite existing data.";
     MessageTextBlock.Text = string.Format(CultureInfo.CurrentCulture, messageTemplate, newFileName);
   }
 

@@ -25,12 +25,12 @@ public static class GridSplitterBehavior
       return;
     }
 
-    splitter.Loaded -= OnSplitterLoaded;
+    splitter.Loaded        -= OnSplitterLoaded;
     splitter.DragCompleted -= OnSplitterDragCompleted;
 
     if (e.NewValue is string key && !string.IsNullOrEmpty(key))
     {
-      splitter.Loaded += OnSplitterLoaded;
+      splitter.Loaded        += OnSplitterLoaded;
       splitter.DragCompleted += OnSplitterDragCompleted;
     }
   }
@@ -71,13 +71,13 @@ public static class GridSplitterBehavior
     if (isHorizontal)
     {
       var splitterRow = Grid.GetRow(splitter);
-      var beforeRow = splitterRow - 1;
-      var afterRow = splitterRow + 1;
+      var beforeRow   = splitterRow - 1;
+      var afterRow    = splitterRow + 1;
 
       if (beforeRow >= 0 && afterRow < parent.RowDefinitions.Count)
       {
-        var afterDef = parent.RowDefinitions[afterRow];
-        var afterStarValue = afterDef.Height.IsStar ? afterDef.Height.Value : 1.0;
+        var afterDef        = parent.RowDefinitions[afterRow];
+        var afterStarValue  = afterDef.Height.IsStar ? afterDef.Height.Value : 1.0;
         var beforeStarValue = savedRatio.Value * afterStarValue;
         parent.RowDefinitions[beforeRow].Height = new GridLength(beforeStarValue, GridUnitType.Star);
       }
@@ -85,13 +85,13 @@ public static class GridSplitterBehavior
     else
     {
       var splitterColumn = Grid.GetColumn(splitter);
-      var beforeColumn = splitterColumn - 1;
-      var afterColumn = splitterColumn + 1;
+      var beforeColumn   = splitterColumn - 1;
+      var afterColumn    = splitterColumn + 1;
 
       if (beforeColumn >= 0 && afterColumn < parent.ColumnDefinitions.Count)
       {
-        var afterDef = parent.ColumnDefinitions[afterColumn];
-        var afterStarValue = afterDef.Width.IsStar ? afterDef.Width.Value : 1.0;
+        var afterDef        = parent.ColumnDefinitions[afterColumn];
+        var afterStarValue  = afterDef.Width.IsStar ? afterDef.Width.Value : 1.0;
         var beforeStarValue = savedRatio.Value * afterStarValue;
         parent.ColumnDefinitions[beforeColumn].Width = new GridLength(beforeStarValue, GridUnitType.Star);
       }
@@ -128,13 +128,13 @@ public static class GridSplitterBehavior
     if (isHorizontal)
     {
       var splitterRow = Grid.GetRow(splitter);
-      var beforeRow = splitterRow - 1;
-      var afterRow = splitterRow + 1;
+      var beforeRow   = splitterRow - 1;
+      var afterRow    = splitterRow + 1;
 
       if (beforeRow >= 0 && afterRow < parent.RowDefinitions.Count)
       {
         var beforeHeight = parent.RowDefinitions[beforeRow].ActualHeight;
-        var afterHeight = parent.RowDefinitions[afterRow].ActualHeight;
+        var afterHeight  = parent.RowDefinitions[afterRow].ActualHeight;
 
         if (afterHeight > 0)
         {
@@ -146,13 +146,13 @@ public static class GridSplitterBehavior
     else
     {
       var splitterColumn = Grid.GetColumn(splitter);
-      var beforeColumn = splitterColumn - 1;
-      var afterColumn = splitterColumn + 1;
+      var beforeColumn   = splitterColumn - 1;
+      var afterColumn    = splitterColumn + 1;
 
       if (beforeColumn >= 0 && afterColumn < parent.ColumnDefinitions.Count)
       {
         var beforeWidth = parent.ColumnDefinitions[beforeColumn].ActualWidth;
-        var afterWidth = parent.ColumnDefinitions[afterColumn].ActualWidth;
+        var afterWidth  = parent.ColumnDefinitions[afterColumn].ActualWidth;
 
         if (afterWidth > 0)
         {

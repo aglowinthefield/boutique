@@ -18,14 +18,21 @@ public class KeywordDistributionResolver(ILogger logger)
   public IReadOnlyList<KeywordDistributionEntry> ParseKeywordDistributions(IReadOnlyList<DistributionFile> files)
   {
     var entries = files
-      .Where(f => f.Type == DistributionFileType.Spid)
-      .SelectMany(f => f.Lines
-        .Where(line => line.IsKeywordDistribution)
-        .Select(line => (File: f, Line: line,
-          Parsed: SpidLineParser.TryParseKeyword(line.RawText, out var filter) ? filter : null))
-        .Where(x => x.Parsed != null)
-        .Select(x => KeywordDistributionEntry.FromFilter(x.Parsed!, x.File.FullPath, x.Line.LineNumber)))
-      .ToList();
+                  .Where(f => f.Type == DistributionFileType.Spid)
+                  .SelectMany(f => f.Lines
+                                    .Where(line => line.IsKeywordDistribution)
+                                    .Select(line => (File: f, Line: line,
+                                                     Parsed: SpidLineParser.TryParseKeyword(
+                                                               line.RawText,
+                                                               out var filter)
+                                                               ? filter
+                                                               : null))
+                                    .Where(x => x.Parsed != null)
+                                    .Select(x => KeywordDistributionEntry.FromFilter(
+                                              x.Parsed!,
+                                              x.File.FullPath,
+                                              x.Line.LineNumber)))
+                  .ToList();
 
     _logger.Debug("Parsed {Count} keyword distribution entries from {FileCount} files", entries.Count, files.Count);
     return entries;
@@ -38,8 +45,8 @@ public class KeywordDistributionResolver(ILogger logger)
     IReadOnlyList<KeywordDistributionEntry> entries)
   {
     var keywordToEntry = new Dictionary<string, KeywordDistributionEntry>(StringComparer.OrdinalIgnoreCase);
-    var graph = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-    var inDegree = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    var graph          = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+    var inDegree       = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
     foreach (var entry in entries)
     {
@@ -51,7 +58,7 @@ public class KeywordDistributionResolver(ILogger logger)
 
     foreach (var entry in entries)
     {
-      var keyword = entry.KeywordIdentifier;
+      var keyword      = entry.KeywordIdentifier;
       var dependencies = entry.GetReferencedKeywords();
 
       foreach (var dep in dependencies)
@@ -70,7 +77,7 @@ public class KeywordDistributionResolver(ILogger logger)
 
     var queue = new Queue<string>(inDegree.Where(kv => kv.Value == 0).Select(kv => kv.Key));
 
-    var sorted = new List<KeywordDistributionEntry>();
+    var sorted    = new List<KeywordDistributionEntry>();
     var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     while (queue.Count > 0)
@@ -99,8 +106,8 @@ public class KeywordDistributionResolver(ILogger logger)
     }
 
     var cyclicKeywords = keywordToEntry.Keys
-      .Where(k => !processed.Contains(k))
-      .ToList();
+                                       .Where(k => !processed.Contains(k))
+                                       .ToList();
 
     if (cyclicKeywords.Count > 0)
     {
@@ -164,16 +171,16 @@ public class KeywordDistributionResolver(ILogger logger)
     Dictionary<FormKey, HashSet<string>> currentKeywords)
   {
     var filter = new SpidDistributionFilter
-    {
-      FormType = SpidFormType.Keyword,
-      FormIdentifier = entry.KeywordIdentifier,
-      StringFilters = entry.StringFilters,
-      FormFilters = entry.FormFilters,
-      LevelFilters = entry.LevelFilters,
-      TraitFilters = entry.TraitFilters,
-      Chance = entry.Chance,
-      RawLine = entry.RawLine
-    };
+                 {
+                   FormType       = SpidFormType.Keyword,
+                   FormIdentifier = entry.KeywordIdentifier,
+                   StringFilters  = entry.StringFilters,
+                   FormFilters    = entry.FormFilters,
+                   LevelFilters   = entry.LevelFilters,
+                   TraitFilters   = entry.TraitFilters,
+                   Chance         = entry.Chance,
+                   RawLine        = entry.RawLine
+                 };
 
     return SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
   }
@@ -190,7 +197,7 @@ public class KeywordDistributionResolver(ILogger logger)
       return false;
     }
 
-    var hash = npcFormKey.GetHashCode();
+    var hash        = npcFormKey.GetHashCode();
     var randomValue = Math.Abs(hash) % 100;
     return randomValue < chance;
   }

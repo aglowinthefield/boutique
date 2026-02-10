@@ -17,13 +17,13 @@ namespace Boutique.ViewModels;
 
 public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 {
-  private readonly ArmorPreviewService _armorPreviewService;
+  private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;
-  private readonly CompositeDisposable _disposables = new();
+  private readonly CompositeDisposable  _disposables = new();
 
   private readonly IObservable<bool> _hasFilters;
-  private readonly ILogger _logger;
-  private readonly MutagenService _mutagenService;
+  private readonly ILogger           _logger;
+  private readonly MutagenService    _mutagenService;
   private readonly IObservable<bool> _notLoading;
 
   private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcAssignmentsSource = new(x => x.NpcFormKey);
@@ -47,9 +47,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
     ILogger logger)
   {
     _armorPreviewService = armorPreviewService;
-    _mutagenService = mutagenService;
-    _cache = cache;
-    _logger = logger.ForContext<DistributionNpcsTabViewModel>();
+    _mutagenService      = mutagenService;
+    _cache               = cache;
+    _logger              = logger.ForContext<DistributionNpcsTabViewModel>();
 
     _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
 
@@ -57,29 +57,30 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 
     var filterPredicate = CreateFilterPredicate();
 
-    _disposables.Add(_npcAssignmentsSource.Connect()
-      .Filter(filterPredicate)
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var filteredAssignments)
-      .Subscribe(_ => FilteredCount = filteredAssignments.Count));
+    _disposables.Add(
+      _npcAssignmentsSource.Connect()
+                           .Filter(filterPredicate)
+                           .ObserveOn(RxApp.MainThreadScheduler)
+                           .Bind(out var filteredAssignments)
+                           .Subscribe(_ => FilteredCount = filteredAssignments.Count));
     FilteredNpcOutfitAssignments = filteredAssignments;
 
     this.WhenAnyValue(vm => vm.SelectedNpcAssignment)
-      .Subscribe(_ => UpdateSelectedNpcOutfitContents());
+        .Subscribe(_ => UpdateSelectedNpcOutfitContents());
 
     this.WhenAnyValue(
-        vm => vm.SelectedGenderFilter,
-        vm => vm.SelectedUniqueFilter,
-        vm => vm.SelectedTemplatedFilter,
-        vm => vm.SelectedChildFilter)
-      .Subscribe(_ => OnFiltersChanged());
+          vm => vm.SelectedGenderFilter,
+          vm => vm.SelectedUniqueFilter,
+          vm => vm.SelectedTemplatedFilter,
+          vm => vm.SelectedChildFilter)
+        .Subscribe(_ => OnFiltersChanged());
 
     this.WhenAnyValue(
-        vm => vm.SelectedFaction,
-        vm => vm.SelectedRace,
-        vm => vm.SelectedKeyword,
-        vm => vm.SelectedClass)
-      .Subscribe(_ => OnFiltersChanged());
+          vm => vm.SelectedFaction,
+          vm => vm.SelectedRace,
+          vm => vm.SelectedKeyword,
+          vm => vm.SelectedClass)
+        .Subscribe(_ => OnFiltersChanged());
 
     _cache.CacheLoaded += OnCacheLoaded;
 
@@ -117,8 +118,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
   private IObservable<Func<NpcOutfitAssignmentViewModel, bool>> CreateFilterPredicate()
   {
     var textFilter = this.WhenAnyValue(vm => vm.NpcOutfitSearchText)
-      .Throttle(TimeSpan.FromMilliseconds(200))
-      .Select(text => text?.Trim() ?? string.Empty);
+                         .Throttle(TimeSpan.FromMilliseconds(200))
+                         .Select(text => text?.Trim() ?? string.Empty);
 
     var vanillaFilter = this.WhenAnyValue(vm => vm.HideVanillaDistributions);
 
@@ -134,9 +135,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       (_, _, _, _, _, _, _, _) => Unit.Default);
 
     return textFilter
-      .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
-      .Do(_ => UpdateFilterFromSelections())
-      .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
+           .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
+           .Do(_ => UpdateFilterFromSelections())
+           .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
   }
 
   private Func<NpcOutfitAssignmentViewModel, bool> CreateFilterFunc(string searchText, bool hideVanilla)
@@ -212,7 +213,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      IsLoading = true;
+      IsLoading     = true;
       StatusMessage = "Loading NPC outfit data...";
 
       // Wait for cache to load (uses cached data if available)
@@ -240,7 +241,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      IsLoading = true;
+      IsLoading     = true;
       StatusMessage = "Refreshing NPC outfit data...";
 
       // Force reload (invalidates cache and re-scans)
@@ -280,7 +281,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var label = outfit.EditorID ?? outfit.FormKey.ToString();
+    var label         = outfit.EditorID ?? outfit.FormKey.ToString();
     var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
 
     if (initialResult.ArmorPieces.Count == 0)
@@ -306,7 +307,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         async (_, gender) =>
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-          var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+          var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
           return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
         },
         npcGender);
@@ -342,7 +343,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       StatusMessage = "Building outfit preview...";
 
       var distributions = SelectedNpcAssignment.Distributions;
-      var clickedIndex = -1;
+      var clickedIndex  = -1;
       for (var i = 0; i < distributions.Count; i++)
       {
         if (distributions[i] == clickedDistribution)
@@ -358,22 +359,22 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       }
 
       var metadata = distributions
-        .Select(d =>
-        {
-          var containsLeveled = false;
-          if (linkCache.TryResolve<IOutfitGetter>(d.OutfitFormKey, out var o))
-          {
-            var checkResult = OutfitResolver.GatherArmorPieces(o, linkCache);
-            containsLeveled = checkResult.ContainsLeveledItems;
-          }
+                     .Select(d =>
+                     {
+                       var containsLeveled = false;
+                       if (linkCache.TryResolve<IOutfitGetter>(d.OutfitFormKey, out var o))
+                       {
+                         var checkResult = OutfitResolver.GatherArmorPieces(o, linkCache);
+                         containsLeveled = checkResult.ContainsLeveledItems;
+                       }
 
-          return new OutfitMetadata(
-            d.OutfitEditorId ?? d.OutfitFormKey.ToString(),
-            d.FileName,
-            d.IsWinner,
-            containsLeveled);
-        })
-        .ToList();
+                       return new OutfitMetadata(
+                         d.OutfitEditorId ?? d.OutfitFormKey.ToString(),
+                         d.FileName,
+                         d.IsWinner,
+                         containsLeveled);
+                     })
+                     .ToList();
 
       var npcGender = GetNpcGender(SelectedNpcAssignment.NpcFormKey, linkCache);
       var collection = new ArmorPreviewSceneCollection(
@@ -398,11 +399,11 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 
           var scene = await _armorPreviewService.BuildPreviewAsync(outfitResult.ArmorPieces, gender);
           return scene with
-          {
-            OutfitLabel = distribution.OutfitEditorId ?? distribution.OutfitFormKey.ToString(),
-            SourceFile = distribution.FileName,
-            IsWinner = distribution.IsWinner
-          };
+                 {
+                   OutfitLabel = distribution.OutfitEditorId ?? distribution.OutfitFormKey.ToString(),
+                   SourceFile = distribution.FileName,
+                   IsWinner = distribution.IsWinner
+                 };
         },
         npcGender);
 
@@ -423,29 +424,29 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
     Filter.IsFemale = SelectedGenderFilter switch
     {
       "Female" => true,
-      "Male" => false,
-      _ => null
+      "Male"   => false,
+      _        => null
     };
 
     Filter.IsUnique = SelectedUniqueFilter switch
     {
       "Unique Only" => true,
-      "Non-Unique" => false,
-      _ => null
+      "Non-Unique"  => false,
+      _             => null
     };
 
     Filter.IsTemplated = SelectedTemplatedFilter switch
     {
-      "Templated" => true,
+      "Templated"     => true,
       "Non-Templated" => false,
-      _ => null
+      _               => null
     };
 
     Filter.IsChild = SelectedChildFilter switch
     {
       "Children" => true,
-      "Adults" => false,
-      _ => null
+      "Adults"   => false,
+      _          => null
     };
 
     Filter.Factions.Clear();
@@ -472,7 +473,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       Filter.Classes.Add(SelectedClass.FormKey);
     }
 
-    HasActiveFilters = !Filter.IsEmpty;
+    HasActiveFilters  = !Filter.IsEmpty;
     FilterDescription = NpcSpidSyntaxGenerator.GetFilterDescription(Filter);
   }
 
@@ -513,24 +514,24 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
     var linkCache = _mutagenService.LinkCache;
     var (spidSyntax, skyPatcherSyntax) = NpcSpidSyntaxGenerator.Generate(Filter, linkCache);
 
-    GeneratedSpidSyntax = spidSyntax;
+    GeneratedSpidSyntax       = spidSyntax;
     GeneratedSkyPatcherSyntax = skyPatcherSyntax;
   }
 
   [ReactiveCommand]
   private void ClearFilters()
   {
-    SelectedGenderFilter = "Any";
-    SelectedUniqueFilter = "Any";
+    SelectedGenderFilter    = "Any";
+    SelectedUniqueFilter    = "Any";
     SelectedTemplatedFilter = "Any";
-    SelectedChildFilter = "Any";
-    SelectedFaction = null;
-    SelectedRace = null;
-    SelectedKeyword = null;
-    SelectedClass = null;
+    SelectedChildFilter     = "Any";
+    SelectedFaction         = null;
+    SelectedRace            = null;
+    SelectedKeyword         = null;
+    SelectedClass           = null;
 
     Filter.Clear();
-    HasActiveFilters = false;
+    HasActiveFilters  = false;
     FilterDescription = "No filters active";
     UpdateSyntaxPreview();
   }
@@ -592,8 +593,8 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
     if (linkCache.TryResolve<INpcGetter>(npcFormKey, out var npc))
     {
       return npc.Configuration.Flags.HasFlag(NpcConfiguration.Flag.Female)
-        ? GenderedModelVariant.Female
-        : GenderedModelVariant.Male;
+               ? GenderedModelVariant.Female
+               : GenderedModelVariant.Male;
     }
 
     return GenderedModelVariant.Female;

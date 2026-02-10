@@ -61,14 +61,14 @@ public sealed class KeywordDistributionEntry
     new()
     {
       KeywordIdentifier = filter.FormIdentifier,
-      StringFilters = filter.StringFilters,
-      FormFilters = filter.FormFilters,
-      LevelFilters = filter.LevelFilters,
-      TraitFilters = filter.TraitFilters,
-      Chance = filter.Chance,
-      RawLine = filter.RawLine,
-      SourceFile = sourceFile,
-      LineNumber = lineNumber
+      StringFilters     = filter.StringFilters,
+      FormFilters       = filter.FormFilters,
+      LevelFilters      = filter.LevelFilters,
+      TraitFilters      = filter.TraitFilters,
+      Chance            = filter.Chance,
+      RawLine           = filter.RawLine,
+      SourceFile        = sourceFile,
+      LineNumber        = lineNumber
     };
 
   /// <summary>

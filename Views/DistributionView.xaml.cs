@@ -15,8 +15,8 @@ public partial class DistributionView
   {
     InitializeComponent();
     DataContextChanged += OnDataContextChanged;
-    Loaded += OnLoaded;
-    Unloaded += OnUnloaded;
+    Loaded             += OnLoaded;
+    Unloaded           += OnUnloaded;
   }
 
   private void OnUnloaded(object sender, RoutedEventArgs e) => DisposePreviewSubscription();
@@ -34,7 +34,7 @@ public partial class DistributionView
     {
       await Dispatcher.InvokeAsync(() =>
       {
-        var owner = Window.GetWindow(this);
+        var owner        = Window.GetWindow(this);
         var themeService = ThemeService.Current;
         if (themeService == null)
         {
@@ -71,8 +71,8 @@ public partial class DistributionView
     {
       // Subscribe to command completion to trigger NPC scan after cache loads
       viewModel.EnsureLoadedCommand.Execute()
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Subscribe(_ => TriggerNpcScanIfNeeded(viewModel));
+               .ObserveOn(RxApp.MainThreadScheduler)
+               .Subscribe(_ => TriggerNpcScanIfNeeded(viewModel));
     }
     else
     {

@@ -27,9 +27,9 @@ public class CollectionCountToVisibilityConverter : IValueConverter
   {
     var count = value switch
     {
-      int i => i,
+      int i         => i,
       ICollection c => c.Count,
-      _ => 0
+      _             => 0
     };
 
     var isVisible = count > 0;
@@ -53,7 +53,7 @@ public class StringEmptyToVisibilityConverter : IValueConverter
 {
   public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
   {
-    var isEmpty = string.IsNullOrEmpty(value as string);
+    var isEmpty   = string.IsNullOrEmpty(value as string);
     var isVisible = parameter is "Inverse" ? isEmpty : !isEmpty;
     return isVisible ? Visibility.Visible : Visibility.Collapsed;
   }
@@ -70,7 +70,7 @@ public class NullToVisibilityConverter : IValueConverter
 {
   public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
   {
-    var isNull = value is null;
+    var isNull    = value is null;
     var isVisible = parameter is "Inverse" ? isNull : !isNull;
     return isVisible ? Visibility.Visible : Visibility.Collapsed;
   }

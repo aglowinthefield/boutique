@@ -7,19 +7,20 @@ namespace Boutique.Utilities;
 public static class SpidLineParser
 {
   private static readonly Dictionary<string, SpidFormType> _formTypeMap = new(StringComparer.OrdinalIgnoreCase)
-  {
-    ["Outfit"] = SpidFormType.Outfit,
-    ["Keyword"] = SpidFormType.Keyword,
-    ["ExclusiveGroup"] = SpidFormType.ExclusiveGroup,
-    ["Spell"] = SpidFormType.Spell,
-    ["Perk"] = SpidFormType.Perk,
-    ["Item"] = SpidFormType.Item,
-    ["Shout"] = SpidFormType.Shout,
-    ["Package"] = SpidFormType.Package,
-    ["Faction"] = SpidFormType.Faction,
-    ["SleepOutfit"] = SpidFormType.SleepOutfit,
-    ["Skin"] = SpidFormType.Skin
-  };
+                                                                          {
+                                                                            ["Outfit"]  = SpidFormType.Outfit,
+                                                                            ["Keyword"] = SpidFormType.Keyword,
+                                                                            ["ExclusiveGroup"] =
+                                                                              SpidFormType.ExclusiveGroup,
+                                                                            ["Spell"]       = SpidFormType.Spell,
+                                                                            ["Perk"]        = SpidFormType.Perk,
+                                                                            ["Item"]        = SpidFormType.Item,
+                                                                            ["Shout"]       = SpidFormType.Shout,
+                                                                            ["Package"]     = SpidFormType.Package,
+                                                                            ["Faction"]     = SpidFormType.Faction,
+                                                                            ["SleepOutfit"] = SpidFormType.SleepOutfit,
+                                                                            ["Skin"]        = SpidFormType.Skin
+                                                                          };
 
   public static bool TryParse(string line, out SpidDistributionFilter? result) =>
     TryParse(line, out result, null);
@@ -98,28 +99,28 @@ public static class SpidLineParser
     }
 
     var sections = string.IsNullOrWhiteSpace(remainder)
-      ? []
-      : remainder.Split('|');
+                     ? []
+                     : remainder.Split('|');
 
-    var stringFilters = ParseFilterSection(GetSection(sections, 0));
-    var formFilters = ParseFilterSection(GetSection(sections, 1));
-    var levelFilters = GetSection(sections, 2);
-    var traitFilters = ParseTraitFilters(GetSection(sections, 3));
+    var stringFilters     = ParseFilterSection(GetSection(sections, 0));
+    var formFilters       = ParseFilterSection(GetSection(sections, 1));
+    var levelFilters      = GetSection(sections, 2);
+    var traitFilters      = ParseTraitFilters(GetSection(sections, 3));
     var countOrPackageIdx = GetSection(sections, 4);
-    var chance = ParseChance(GetSection(sections, 5));
+    var chance            = ParseChance(GetSection(sections, 5));
 
     return new SpidDistributionFilter
-    {
-      FormType = formType,
-      FormIdentifier = formIdentifier,
-      StringFilters = stringFilters,
-      FormFilters = formFilters,
-      LevelFilters = IsNone(levelFilters) ? null : levelFilters,
-      TraitFilters = traitFilters,
-      CountOrPackageIdx = IsNone(countOrPackageIdx) ? null : countOrPackageIdx,
-      Chance = chance,
-      RawLine = rawLine
-    };
+           {
+             FormType          = formType,
+             FormIdentifier    = formIdentifier,
+             StringFilters     = stringFilters,
+             FormFilters       = formFilters,
+             LevelFilters      = IsNone(levelFilters) ? null : levelFilters,
+             TraitFilters      = traitFilters,
+             CountOrPackageIdx = IsNone(countOrPackageIdx) ? null : countOrPackageIdx,
+             Chance            = chance,
+             RawLine           = rawLine
+           };
   }
 
   private static SpidDistributionFilter? ParseExclusiveGroupValuePart(string valuePart, string rawLine)
@@ -131,9 +132,9 @@ public static class SpidLineParser
     }
 
     var forms = remainder.Split(',', StringSplitOptions.RemoveEmptyEntries)
-      .Select(f => f.Trim())
-      .Where(f => !string.IsNullOrWhiteSpace(f))
-      .ToList();
+                         .Select(f => f.Trim())
+                         .Where(f => !string.IsNullOrWhiteSpace(f))
+                         .ToList();
 
     if (forms.Count == 0)
     {
@@ -141,31 +142,31 @@ public static class SpidLineParser
     }
 
     return new SpidDistributionFilter
-    {
-      FormType = SpidFormType.ExclusiveGroup,
-      FormIdentifier = groupName,
-      FormFilters = ParseFilterSection(remainder),
-      ExclusiveGroupForms = forms,
-      RawLine = rawLine
-    };
+           {
+             FormType            = SpidFormType.ExclusiveGroup,
+             FormIdentifier      = groupName,
+             FormFilters         = ParseFilterSection(remainder),
+             ExclusiveGroupForms = forms,
+             RawLine             = rawLine
+           };
   }
 
   private static (string Identifier, string Remainder) ExtractFormIdentifier(string valuePart)
   {
-    var firstPipe = valuePart.IndexOf('|');
+    var firstPipe  = valuePart.IndexOf('|');
     var tildeIndex = valuePart.IndexOf('~');
 
     if (tildeIndex >= 0 && (firstPipe < 0 || tildeIndex < firstPipe))
     {
-      var afterTilde = valuePart[(tildeIndex + 1)..];
+      var afterTilde  = valuePart[(tildeIndex + 1)..];
       var modEndIndex = FormKeyHelper.FindModKeyEnd(afterTilde);
 
       if (modEndIndex > 0)
       {
         var identifier = valuePart[..(tildeIndex + 1 + modEndIndex)];
         var remainder = afterTilde.Length > modEndIndex && afterTilde[modEndIndex] == '|'
-          ? afterTilde[(modEndIndex + 1)..]
-          : string.Empty;
+                          ? afterTilde[(modEndIndex + 1)..]
+                          : string.Empty;
         return (identifier, remainder);
       }
     }
@@ -177,7 +178,7 @@ public static class SpidLineParser
       if (FormKeyHelper.IsModKeyFileName(firstPart))
       {
         var afterFirstPipe = valuePart[(firstPipe + 1)..];
-        var secondPipe = afterFirstPipe.IndexOf('|');
+        var secondPipe     = afterFirstPipe.IndexOf('|');
 
         if (secondPipe >= 0)
         {
@@ -185,7 +186,7 @@ public static class SpidLineParser
           if (FormKeyHelper.LooksLikeFormId(potentialFormId))
           {
             var identifier = valuePart[..(firstPipe + 1 + secondPipe)];
-            var remainder = afterFirstPipe[(secondPipe + 1)..];
+            var remainder  = afterFirstPipe[(secondPipe + 1)..];
             return (identifier, remainder);
           }
         }
@@ -227,7 +228,7 @@ public static class SpidLineParser
       return section;
     }
 
-    var expressions = sectionText!.Split(',', StringSplitOptions.RemoveEmptyEntries);
+    var expressions      = sectionText!.Split(',', StringSplitOptions.RemoveEmptyEntries);
     var globalExclusions = new List<SpidFilterPart>();
 
     foreach (var expr in expressions)
@@ -296,7 +297,7 @@ public static class SpidLineParser
       }
 
       var isNegated = trimmedPart.StartsWith('-');
-      var value = isNegated ? trimmedPart[1..].Trim() : trimmedPart;
+      var value     = isNegated ? trimmedPart[1..].Trim() : trimmedPart;
 
       if (!string.IsNullOrWhiteSpace(value))
       {
@@ -325,13 +326,13 @@ public static class SpidLineParser
       return new SpidTraitFilters();
     }
 
-    bool? isFemale = null;
-    bool? isUnique = null;
+    bool? isFemale     = null;
+    bool? isUnique     = null;
     bool? isSummonable = null;
-    bool? isChild = null;
-    bool? isLeveled = null;
-    bool? isTeammate = null;
-    bool? isDead = null;
+    bool? isChild      = null;
+    bool? isLeveled    = null;
+    bool? isTeammate   = null;
+    bool? isDead       = null;
 
     var traits = traitText!.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
@@ -344,7 +345,7 @@ public static class SpidLineParser
       }
 
       var isNegated = trimmed.StartsWith('-');
-      var code = isNegated ? trimmed[1..].ToUpperInvariant() : trimmed.ToUpperInvariant();
+      var code      = isNegated ? trimmed[1..].ToUpperInvariant() : trimmed.ToUpperInvariant();
 
       switch (code)
       {
@@ -376,15 +377,15 @@ public static class SpidLineParser
     }
 
     return new SpidTraitFilters
-    {
-      IsFemale = isFemale,
-      IsUnique = isUnique,
-      IsSummonable = isSummonable,
-      IsChild = isChild,
-      IsLeveled = isLeveled,
-      IsTeammate = isTeammate,
-      IsDead = isDead
-    };
+           {
+             IsFemale     = isFemale,
+             IsUnique     = isUnique,
+             IsSummonable = isSummonable,
+             IsChild      = isChild,
+             IsLeveled    = isLeveled,
+             IsTeammate   = isTeammate,
+             IsDead       = isDead
+           };
   }
 
   private static int ParseChance(string? chanceText)
@@ -408,9 +409,9 @@ public static class SpidLineParser
   {
     var results = new List<string>();
     var keywordEditorIds = linkCache?.WinningOverrides<IKeywordGetter>()
-      .Select(k => k.EditorID)
-      .Where(id => !string.IsNullOrWhiteSpace(id))
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                    .Select(k => k.EditorID)
+                                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     foreach (var expr in filter.StringFilters.Expressions)
     {
@@ -434,9 +435,9 @@ public static class SpidLineParser
   {
     var results = new List<string>();
     var keywordEditorIds = linkCache?.WinningOverrides<IKeywordGetter>()
-      .Select(k => k.EditorID)
-      .Where(id => !string.IsNullOrWhiteSpace(id))
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                    .Select(k => k.EditorID)
+                                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     foreach (var expr in filter.StringFilters.Expressions)
     {
@@ -457,15 +458,15 @@ public static class SpidLineParser
     ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
   {
     var factionEditorIds = linkCache?.WinningOverrides<IFactionGetter>()
-      .Select(f => f.EditorID)
-      .Where(id => !string.IsNullOrWhiteSpace(id))
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                    .Select(f => f.EditorID)
+                                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     return filter.FormFilters.Expressions
-      .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
-      .Where(p => factionEditorIds == null || factionEditorIds.Contains(p.Value))
-      .Select(p => p.Value)
-      .ToList();
+                 .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                 .Where(p => factionEditorIds == null || factionEditorIds.Contains(p.Value))
+                 .Select(p => p.Value)
+                 .ToList();
   }
 
   public static IReadOnlyList<string> GetRaceIdentifiers(
@@ -473,15 +474,15 @@ public static class SpidLineParser
     ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
   {
     var raceEditorIds = linkCache?.WinningOverrides<IRaceGetter>()
-      .Select(r => r.EditorID)
-      .Where(id => !string.IsNullOrWhiteSpace(id))
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                 .Select(r => r.EditorID)
+                                 .Where(id => !string.IsNullOrWhiteSpace(id))
+                                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     return filter.FormFilters.Expressions
-      .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
-      .Where(p => raceEditorIds == null || raceEditorIds.Contains(p.Value))
-      .Select(p => p.Value)
-      .ToList();
+                 .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                 .Where(p => raceEditorIds == null || raceEditorIds.Contains(p.Value))
+                 .Select(p => p.Value)
+                 .ToList();
   }
 
   public static IReadOnlyList<string> GetClassIdentifiers(
@@ -489,14 +490,14 @@ public static class SpidLineParser
     ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache = null)
   {
     var classEditorIds = linkCache?.WinningOverrides<IClassGetter>()
-      .Select(c => c.EditorID)
-      .Where(id => !string.IsNullOrWhiteSpace(id))
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                                  .Select(c => c.EditorID)
+                                  .Where(id => !string.IsNullOrWhiteSpace(id))
+                                  .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     return filter.FormFilters.Expressions
-      .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
-      .Where(p => classEditorIds == null || classEditorIds.Contains(p.Value))
-      .Select(p => p.Value)
-      .ToList();
+                 .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                 .Where(p => classEditorIds == null || classEditorIds.Contains(p.Value))
+                 .Select(p => p.Value)
+                 .ToList();
   }
 }

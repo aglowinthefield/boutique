@@ -14,16 +14,16 @@ namespace Boutique.ViewModels;
 
 public enum DistributionTab
 {
-  Create = 0,
+  Create     = 0,
   Containers = 1,
-  Npcs = 2,
-  Outfits = 3
+  Npcs       = 2,
+  Outfits    = 3
 }
 
 public partial class DistributionViewModel : ReactiveObject
 {
   private readonly GameDataCacheService _cache;
-  private readonly ILogger _logger;
+  private readonly ILogger              _logger;
 
   [Reactive] private bool _isLoading;
 
@@ -43,11 +43,11 @@ public partial class DistributionViewModel : ReactiveObject
     ILogger logger)
   {
     Settings = settings;
-    _cache = gameDataCache;
-    _logger = logger.ForContext<DistributionViewModel>();
+    _cache   = gameDataCache;
+    _logger  = logger.ForContext<DistributionViewModel>();
 
     // Commands for loading/refreshing distribution files (calls cache methods)
-    RefreshCommand = ReactiveCommand.CreateFromTask(gameDataCache.ReloadAsync);
+    RefreshCommand      = ReactiveCommand.CreateFromTask(gameDataCache.ReloadAsync);
     EnsureLoadedCommand = ReactiveCommand.CreateFromTask(gameDataCache.EnsureLoadedAsync);
 
     EditTab = new DistributionEditTabViewModel(
@@ -93,67 +93,67 @@ public partial class DistributionViewModel : ReactiveObject
     });
 
     EditTab.WhenAnyValue(vm => vm.DistributionFilePath)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFilePath)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFilePath)));
     EditTab.WhenAnyValue(vm => vm.DistributionFileContent)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFileContent)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFileContent)));
     EditTab.WhenAnyValue(vm => vm.SelectedDistributionFile)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedDistributionFile)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedDistributionFile)));
     EditTab.WhenAnyValue(vm => vm.AvailableDistributionFiles)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(AvailableDistributionFiles)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(AvailableDistributionFiles)));
     EditTab.WhenAnyValue(vm => vm.DistributionEntries)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionEntries)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionEntries)));
     EditTab.WhenAnyValue(vm => vm.SelectedEntry)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedEntry)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedEntry)));
     EditTab.WhenAnyValue(vm => vm.IsCreatingNewFile)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(IsCreatingNewFile)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(IsCreatingNewFile)));
     EditTab.WhenAnyValue(vm => vm.ShowNewFileNameInput)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowNewFileNameInput)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(ShowNewFileNameInput)));
     EditTab.WhenAnyValue(vm => vm.NewFileName)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(NewFileName)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(NewFileName)));
     EditTab.WhenAnyValue(vm => vm.HasConflicts)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(HasConflicts)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(HasConflicts)));
     EditTab.WhenAnyValue(vm => vm.ConflictsResolvedByFilename)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictsResolvedByFilename)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictsResolvedByFilename)));
     EditTab.WhenAnyValue(vm => vm.ConflictSummary)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictSummary)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(ConflictSummary)));
     EditTab.WhenAnyValue(vm => vm.SuggestedFileName)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SuggestedFileName)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SuggestedFileName)));
     EditTab.WhenAnyValue(vm => vm.DistributionFormat)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFormat)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(DistributionFormat)));
 
     NpcsTab.WhenAnyValue(vm => vm.SelectedNpcAssignment)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcAssignment)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcAssignment)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedNpcOutfitContents)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcOutfitContents)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcOutfitContents)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedNpcFilterData)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcFilterData)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedNpcFilterData)));
 
     NpcsTab.WhenAnyValue(vm => vm.SelectedGenderFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedGenderFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedGenderFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedUniqueFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedUniqueFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedUniqueFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedTemplatedFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTemplatedFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTemplatedFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedChildFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedChildFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedChildFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedFaction)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedFactionForNpcFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedFactionForNpcFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedRace)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedRaceForNpcFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedRaceForNpcFilter)));
     NpcsTab.WhenAnyValue(vm => vm.SelectedKeyword)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedKeywordForNpcFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedKeywordForNpcFilter)));
     NpcsTab.WhenAnyValue(vm => vm.GeneratedSpidSyntax)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSpidSyntax)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSpidSyntax)));
     NpcsTab.WhenAnyValue(vm => vm.GeneratedSkyPatcherSyntax)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSkyPatcherSyntax)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(GeneratedSkyPatcherSyntax)));
     NpcsTab.WhenAnyValue(vm => vm.FilterDescription)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(FilterDescription)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(FilterDescription)));
     NpcsTab.WhenAnyValue(vm => vm.HasActiveFilters)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(HasActiveFilters)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(HasActiveFilters)));
     NpcsTab.WhenAnyValue(vm => vm.FilteredCount)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredCount)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredCount)));
     NpcsTab.WhenAnyValue(vm => vm.TotalCount)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(TotalCount)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(TotalCount)));
 
     EditTab.FileSaved += async _ =>
     {
@@ -174,9 +174,9 @@ public partial class DistributionViewModel : ReactiveObject
     };
 
     EditTab.WhenAnyValue(vm => vm.CopiedFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(CopiedFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(CopiedFilter)));
     EditTab.WhenAnyValue(vm => vm.HasCopiedFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
 
     EditTab.AvailableDistributionFiles.CollectionChanged += (sender, e) =>
       this.RaisePropertyChanged(nameof(AvailableDistributionFiles));
@@ -200,79 +200,79 @@ public partial class DistributionViewModel : ReactiveObject
       this.RaisePropertyChanged(nameof(AvailableKeywordsForNpcFilter));
 
     EditTab.WhenAnyValue(vm => vm.NpcSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcSearchText)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcSearchText)));
     EditTab.WhenAnyValue(vm => vm.FactionSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(FactionSearchText)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(FactionSearchText)));
     EditTab.WhenAnyValue(vm => vm.KeywordSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(KeywordSearchText)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(KeywordSearchText)));
     EditTab.WhenAnyValue(vm => vm.RaceSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(RaceSearchText)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(RaceSearchText)));
     NpcsTab.WhenAnyValue(vm => vm.NpcOutfitSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitSearchText)));
+           .Subscribe(_ => this.RaisePropertyChanged(nameof(NpcOutfitSearchText)));
     OutfitsTab.WhenAnyValue(vm => vm.OutfitSearchText)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(OutfitSearchText)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(OutfitSearchText)));
     OutfitsTab.WhenAnyValue(vm => vm.HideVanillaOutfits)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(HideVanillaOutfits)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(HideVanillaOutfits)));
     OutfitsTab.WhenAnyValue(vm => vm.SelectedOutfit)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedOutfit)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedOutfit)));
     OutfitsTab.WhenAnyValue(vm => vm.Outfits)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(Outfits)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(Outfits)));
     OutfitsTab.WhenAnyValue(vm => vm.FilteredOutfits)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredOutfits)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(FilteredOutfits)));
     OutfitsTab.WhenAnyValue(vm => vm.SelectedOutfitNpcAssignments)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedOutfitNpcAssignments)));
+              .Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedOutfitNpcAssignments)));
     OutfitsTab.SelectedOutfitNpcAssignments.CollectionChanged += (sender, e) =>
       this.RaisePropertyChanged(nameof(SelectedOutfitNpcAssignments));
 
     this.WhenAnyValue(
-        vm => vm.EditTab.IsLoading,
-        vm => vm.NpcsTab.IsLoading,
-        vm => vm.OutfitsTab.IsLoading,
-        (edit, npcs, outfits) => edit || npcs || outfits)
-      .Subscribe(loading => IsLoading = loading);
+          vm => vm.EditTab.IsLoading,
+          vm => vm.NpcsTab.IsLoading,
+          vm => vm.OutfitsTab.IsLoading,
+          (edit, npcs, outfits) => edit || npcs || outfits)
+        .Subscribe(loading => IsLoading = loading);
 
     this.WhenAnyValue(
-        vm => vm.EditTab.StatusMessage,
-        vm => vm.NpcsTab.StatusMessage,
-        vm => vm.OutfitsTab.StatusMessage,
-        (edit, npcs, outfits) => GetFirstNonEmptyStatus(edit, npcs, outfits))
-      .Subscribe(msg => StatusMessage = msg);
+          vm => vm.EditTab.StatusMessage,
+          vm => vm.NpcsTab.StatusMessage,
+          vm => vm.OutfitsTab.StatusMessage,
+          (edit, npcs, outfits) => GetFirstNonEmptyStatus(edit, npcs, outfits))
+        .Subscribe(msg => StatusMessage = msg);
 
     this.WhenAnyValue(vm => vm.SelectedTabIndex)
-      .Subscribe(index =>
-      {
-        this.RaisePropertyChanged(nameof(IsEditMode));
-
-        switch (index)
+        .Subscribe(index =>
         {
-          case (int)DistributionTab.Create:
+          this.RaisePropertyChanged(nameof(IsEditMode));
+
+          switch (index)
           {
-            if (EditTab.SelectedDistributionFile == null)
+            case (int)DistributionTab.Create:
             {
-              var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-              if (newFileItem != null)
+              if (EditTab.SelectedDistributionFile == null)
               {
-                EditTab.SelectedDistributionFile = newFileItem;
+                var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+                if (newFileItem != null)
+                {
+                  EditTab.SelectedDistributionFile = newFileItem;
+                }
               }
+
+              break;
             }
 
-            break;
-          }
-
-          case (int)DistributionTab.Npcs:
-            break;
-          case (int)DistributionTab.Outfits:
-          {
-            if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
+            case (int)DistributionTab.Npcs:
+              break;
+            case (int)DistributionTab.Outfits:
             {
-              _logger.Debug("Outfits tab selected, triggering auto-load");
-              _ = OutfitsTab.LoadOutfitsCommand.Execute();
-            }
+              if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
+              {
+                _logger.Debug("Outfits tab selected, triggering auto-load");
+                _ = OutfitsTab.LoadOutfitsCommand.Execute();
+              }
 
-            break;
+              break;
+            }
           }
-        }
-      });
+        });
   }
 
   public SettingsViewModel Settings { get; }

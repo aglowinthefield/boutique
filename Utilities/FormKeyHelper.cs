@@ -72,21 +72,21 @@ public static class FormKeyHelper
       return false;
     }
 
-    var trimmed = text.Trim();
+    var    trimmed = text.Trim();
     string modPart;
     string formIdPart;
 
     if (trimmed.Contains('|'))
     {
       var parts = trimmed.Split('|', 2);
-      modPart = parts[0].Trim();
+      modPart    = parts[0].Trim();
       formIdPart = parts[1].Trim();
     }
     else if (trimmed.Contains('~'))
     {
       var parts = trimmed.Split('~', 2);
       formIdPart = parts[0].Trim();
-      modPart = parts[1].Trim();
+      modPart    = parts[1].Trim();
     }
     else
     {
@@ -140,7 +140,7 @@ public static class FormKeyHelper
 
   public static bool TryParseEditorIdReference(string identifier, out ModKey? modKey, out string editorId)
   {
-    modKey = null;
+    modKey   = null;
     editorId = string.Empty;
 
     if (string.IsNullOrWhiteSpace(identifier))
@@ -148,51 +148,51 @@ public static class FormKeyHelper
       return false;
     }
 
-    var trimmed = identifier.Trim();
+    var     trimmed      = identifier.Trim();
     string? modCandidate = null;
     string? editorCandidate;
 
-    var pipeIndex = trimmed.IndexOf('|');
+    var pipeIndex  = trimmed.IndexOf('|');
     var tildeIndex = trimmed.IndexOf('~');
 
     if (pipeIndex >= 0)
     {
-      var firstPart = trimmed[..pipeIndex].Trim();
+      var firstPart  = trimmed[..pipeIndex].Trim();
       var secondPart = trimmed[(pipeIndex + 1)..].Trim();
       if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
       {
-        modKey = modFromSecond;
+        modKey          = modFromSecond;
         editorCandidate = firstPart;
       }
       else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
       {
-        modKey = modFromFirst;
+        modKey          = modFromFirst;
         editorCandidate = secondPart;
       }
       else
       {
         editorCandidate = firstPart;
-        modCandidate = secondPart;
+        modCandidate    = secondPart;
       }
     }
     else if (tildeIndex >= 0)
     {
-      var firstPart = trimmed[..tildeIndex].Trim();
+      var firstPart  = trimmed[..tildeIndex].Trim();
       var secondPart = trimmed[(tildeIndex + 1)..].Trim();
       if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
       {
-        modKey = modFromSecond;
+        modKey          = modFromSecond;
         editorCandidate = firstPart;
       }
       else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
       {
-        modKey = modFromFirst;
+        modKey          = modFromFirst;
         editorCandidate = secondPart;
       }
       else
       {
         editorCandidate = firstPart;
-        modCandidate = secondPart;
+        modCandidate    = secondPart;
       }
     }
     else
@@ -230,8 +230,8 @@ public static class FormKeyHelper
     }
 
     var outfit = linkCache.WinningOverrides<IOutfitGetter>()
-      .FirstOrDefault(o => !string.IsNullOrWhiteSpace(o.EditorID) &&
-                           o.EditorID.Equals(identifier, StringComparison.OrdinalIgnoreCase));
+                          .FirstOrDefault(o => !string.IsNullOrWhiteSpace(o.EditorID) &&
+                                               o.EditorID.Equals(identifier, StringComparison.OrdinalIgnoreCase));
 
     return outfit?.FormKey;
   }
@@ -251,14 +251,14 @@ public static class FormKeyHelper
     }
 
     return outfitByEditorId.TryGetValue(identifier, out var resolvedFormKey)
-      ? resolvedFormKey
-      : null;
+             ? resolvedFormKey
+             : null;
   }
 
   public static IReadOnlyDictionary<string, FormKey> BuildOutfitEditorIdLookup(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache) =>
     linkCache.WinningOverrides<IOutfitGetter>()
-      .Where(o => !string.IsNullOrWhiteSpace(o.EditorID))
-      .GroupBy(o => o.EditorID!, StringComparer.OrdinalIgnoreCase)
-      .ToDictionary(g => g.Key, g => g.First().FormKey, StringComparer.OrdinalIgnoreCase);
+             .Where(o => !string.IsNullOrWhiteSpace(o.EditorID))
+             .GroupBy(o => o.EditorID!, StringComparer.OrdinalIgnoreCase)
+             .ToDictionary(g => g.Key, g => g.First().FormKey, StringComparer.OrdinalIgnoreCase);
 }

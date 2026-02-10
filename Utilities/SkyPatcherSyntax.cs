@@ -10,36 +10,36 @@ public static class SkyPatcherSyntax
     RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
   private static readonly HashSet<string> _supportedFilters = new(StringComparer.OrdinalIgnoreCase)
-  {
-    "filterByNpcs",
-    "filterByNpcsExcluded",
-    "filterByFactions",
-    "filterByFactionsOr",
-    "filterByFactionsExcluded",
-    "filterByKeywords",
-    "filterByKeywordsOr",
-    "filterByKeywordsExcluded",
-    "filterByRaces",
-    "filterByRacesOr",
-    "filterByRacesExcluded",
-    "filterByClass",
-    "filterByGender",
-    "filterByEditorIdContains",
-    "filterByEditorIdContainsOr",
-    "filterByEditorIdContainsExcluded",
-    "filterByDefaultOutfits",
-    "filterByModNames",
-    "filterByOutfits",
-    "filterByForms",
-    "filterByFormsOr",
-    "filterByFormsExclude",
-    "outfitDefault",
-    "outfitSleep",
-    "formsToAdd",
-    "formsToRemove",
-    "formsToReplace",
-    "clear"
-  };
+                                                              {
+                                                                "filterByNpcs",
+                                                                "filterByNpcsExcluded",
+                                                                "filterByFactions",
+                                                                "filterByFactionsOr",
+                                                                "filterByFactionsExcluded",
+                                                                "filterByKeywords",
+                                                                "filterByKeywordsOr",
+                                                                "filterByKeywordsExcluded",
+                                                                "filterByRaces",
+                                                                "filterByRacesOr",
+                                                                "filterByRacesExcluded",
+                                                                "filterByClass",
+                                                                "filterByGender",
+                                                                "filterByEditorIdContains",
+                                                                "filterByEditorIdContainsOr",
+                                                                "filterByEditorIdContainsExcluded",
+                                                                "filterByDefaultOutfits",
+                                                                "filterByModNames",
+                                                                "filterByOutfits",
+                                                                "filterByForms",
+                                                                "filterByFormsOr",
+                                                                "filterByFormsExclude",
+                                                                "outfitDefault",
+                                                                "outfitSleep",
+                                                                "formsToAdd",
+                                                                "formsToRemove",
+                                                                "formsToReplace",
+                                                                "clear"
+                                                              };
 
   public static string? ExtractFilterValue(string line, string filterName)
   {
@@ -49,14 +49,14 @@ public static class SkyPatcherSyntax
     }
 
     var filterPrefix = filterName + "=";
-    var index = line.IndexOf(filterPrefix, StringComparison.OrdinalIgnoreCase);
+    var index        = line.IndexOf(filterPrefix, StringComparison.OrdinalIgnoreCase);
     if (index < 0)
     {
       return null;
     }
 
     var start = index + filterPrefix.Length;
-    var end = line.IndexOf(':', start);
+    var end   = line.IndexOf(':', start);
 
     var value = end >= 0 ? line.Substring(start, end - start) : line[start..];
     return value.Trim();
@@ -71,9 +71,9 @@ public static class SkyPatcherSyntax
     }
 
     return value.Split(',')
-      .Select(v => v.Trim())
-      .Where(v => !string.IsNullOrWhiteSpace(v))
-      .ToList();
+                .Select(v => v.Trim())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
   }
 
   public static List<string> ExtractFilterValuesWithVariants(string line, string baseFilterName)
@@ -107,7 +107,7 @@ public static class SkyPatcherSyntax
 
   public static List<FormKey> ParseFormKeys(string line, string filterName)
   {
-    var values = ExtractFilterValues(line, filterName);
+    var values  = ExtractFilterValues(line, filterName);
     var results = new List<FormKey>();
 
     foreach (var value in values)
@@ -133,17 +133,17 @@ public static class SkyPatcherSyntax
   {
     var matches = _filterNamePattern.Matches(line);
     return matches
-      .Select(m => m.Groups[1].Value)
-      .Distinct(StringComparer.OrdinalIgnoreCase)
-      .ToList();
+           .Select(m => m.Groups[1].Value)
+           .Distinct(StringComparer.OrdinalIgnoreCase)
+           .ToList();
   }
 
   public static List<string> GetUnsupportedFilters(string line)
   {
     var allFilters = GetAllFilterNames(line);
     return allFilters
-      .Where(f => !_supportedFilters.Contains(f))
-      .ToList();
+           .Where(f => !_supportedFilters.Contains(f))
+           .ToList();
   }
 
   public static bool HasUnsupportedFilters(string line) =>

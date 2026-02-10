@@ -24,10 +24,10 @@ public static class OutfitResolver
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     int? randomSeed = null)
   {
-    var pieces = new List<ArmorRecordViewModel>();
-    var visited = new HashSet<FormKey>();
+    var pieces               = new List<ArmorRecordViewModel>();
+    var visited              = new HashSet<FormKey>();
     var containsLeveledItems = false;
-    var random = randomSeed.HasValue ? new Random(randomSeed.Value) : null;
+    var random               = randomSeed.HasValue ? new Random(randomSeed.Value) : null;
 
     var items = outfit.Items ?? [];
 
@@ -118,7 +118,7 @@ public static class OutfitResolver
       return;
     }
 
-    var useAll = leveledItem.Flags.HasFlag(LeveledItem.Flag.UseAll);
+    var useAll        = leveledItem.Flags.HasFlag(LeveledItem.Flag.UseAll);
     var calculateEach = leveledItem.Flags.HasFlag(LeveledItem.Flag.CalculateForEachItemInCount);
 
     if (useAll)
@@ -157,8 +157,8 @@ public static class OutfitResolver
       }
 
       var selectedEntry = random != null
-        ? validEntries[random.Next(validEntries.Count)]
-        : validEntries[0];
+                            ? validEntries[random.Next(validEntries.Count)]
+                            : validEntries[0];
 
       if (!TryGetEntryFormKey(selectedEntry, out var formKey))
       {
@@ -211,7 +211,7 @@ public static class OutfitResolver
       outfit.FormKey);
 
     var visited = new HashSet<FormKey>();
-    var items = outfit.Items ?? [];
+    var items   = outfit.Items ?? [];
 
     foreach (var itemLink in items)
     {
@@ -335,10 +335,10 @@ public static class OutfitResolver
     var indent = new string(' ', depth * 2);
     var typeIndicator = node.NodeType switch
     {
-      OutfitTreeNodeType.Armor => string.Empty,
+      OutfitTreeNodeType.Armor       => string.Empty,
       OutfitTreeNodeType.LeveledList => $" (LL{(string.IsNullOrEmpty(node.Flags) ? string.Empty : $", {node.Flags}")})",
-      OutfitTreeNodeType.FormList => " (FL)",
-      _ => string.Empty
+      OutfitTreeNodeType.FormList    => " (FL)",
+      _                              => string.Empty
     };
 
     sb.AppendLine($"{indent}- {node.Name}{typeIndicator}");
@@ -393,10 +393,10 @@ public sealed class OutfitTreeNode
 {
   public OutfitTreeNode(string name, OutfitTreeNodeType nodeType, FormKey formKey, string? flags = null)
   {
-    Name = name;
+    Name     = name;
     NodeType = nodeType;
-    FormKey = formKey;
-    Flags = flags;
+    FormKey  = formKey;
+    Flags    = flags;
   }
 
   public string Name { get; }

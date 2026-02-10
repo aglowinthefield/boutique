@@ -270,8 +270,14 @@ public static class NpcDataBuilder
     return
     [
       .. npc.Factions.Select(f => factionLookup.TryGetValue(f.Faction.FormKey, out var editorId)
-                                    ? new FactionMembership { FactionFormKey = f.Faction.FormKey, FactionEditorId = editorId, Rank = f.Rank }
-                                    : new FactionMembership { FactionFormKey = f.Faction.FormKey, FactionEditorId = null, Rank     = f.Rank })
+                                    ? new FactionMembership
+                                      {
+                                        FactionFormKey = f.Faction.FormKey, FactionEditorId = editorId, Rank = f.Rank
+                                      }
+                                    : new FactionMembership
+                                      {
+                                        FactionFormKey = f.Faction.FormKey, FactionEditorId = null, Rank = f.Rank
+                                      })
     ];
   }
 }

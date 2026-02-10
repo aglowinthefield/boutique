@@ -28,25 +28,25 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
-  private readonly GuiSettingsService _guiSettings;
+  private readonly GuiSettingsService  _guiSettings;
   private readonly LocalizationService _localizationService;
-  private readonly ILoggingService _loggingService;
-  private readonly MutagenService _mutagenService;
-  private readonly PatcherSettings _settings;
-  private readonly ThemeService _themeService;
+  private readonly ILoggingService     _loggingService;
+  private readonly MutagenService      _mutagenService;
+  private readonly PatcherSettings     _settings;
+  private readonly ThemeService        _themeService;
 
   [ReactiveCollection] private ObservableCollection<string> _availableBlacklistPlugins = [];
-  [ReactiveCollection] private ObservableCollection<string> _blacklistedPluginNames = [];
-  [Reactive] private bool _detectionFailed;
-  [Reactive] private string _detectionSource = string.Empty;
+  [ReactiveCollection] private ObservableCollection<string> _blacklistedPluginNames    = [];
+  [Reactive]           private bool                         _detectionFailed;
+  [Reactive]           private string                       _detectionSource = string.Empty;
 
-  [Reactive] private bool _isRunningFromMO2;
-  [Reactive] private string _outputPatchPath = string.Empty;
-  [Reactive] private string _patchFileName = string.Empty;
+  [Reactive] private bool            _isRunningFromMO2;
+  [Reactive] private string          _outputPatchPath = string.Empty;
+  [Reactive] private string          _patchFileName   = string.Empty;
   [Reactive] private LanguageOption? _selectedLanguage;
-  [Reactive] private SkyrimRelease _selectedSkyrimRelease;
-  [Reactive] private ThemeOption _selectedTheme;
-  [Reactive] private string _skyrimDataPath = string.Empty;
+  [Reactive] private SkyrimRelease   _selectedSkyrimRelease;
+  [Reactive] private ThemeOption     _selectedTheme;
+  [Reactive] private string          _skyrimDataPath = string.Empty;
 
   public SettingsViewModel(
     PatcherSettings settings,
@@ -56,12 +56,12 @@ public partial class SettingsViewModel : ReactiveObject
     LocalizationService localizationService,
     MutagenService mutagenService)
   {
-    _settings = settings;
-    _guiSettings = guiSettings;
-    _loggingService = loggingService;
-    _themeService = themeService;
+    _settings            = settings;
+    _guiSettings         = guiSettings;
+    _loggingService      = loggingService;
+    _themeService        = themeService;
     _localizationService = localizationService;
-    _mutagenService = mutagenService;
+    _mutagenService      = mutagenService;
 
     _mutagenService.Initialized += OnMutagenInitialized;
 
@@ -72,85 +72,85 @@ public partial class SettingsViewModel : ReactiveObject
       _guiSettings.BlacklistedPlugins = BlacklistedPluginNames.ToList();
 
     var savedDataPath = !string.IsNullOrEmpty(guiSettings.SkyrimDataPath)
-      ? guiSettings.SkyrimDataPath
-      : settings.SkyrimDataPath;
+                          ? guiSettings.SkyrimDataPath
+                          : settings.SkyrimDataPath;
     SkyrimDataPath = NormalizeDataPath(savedDataPath);
     PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName)
-      ? guiSettings.PatchFileName
-      : settings.PatchFileName;
+                      ? guiSettings.PatchFileName
+                      : settings.PatchFileName;
     OutputPatchPath = guiSettings.OutputPatchPath ?? string.Empty;
     SelectedSkyrimRelease = guiSettings.SelectedSkyrimRelease != default
-      ? guiSettings.SelectedSkyrimRelease
-      : settings.SelectedSkyrimRelease;
+                              ? guiSettings.SelectedSkyrimRelease
+                              : settings.SelectedSkyrimRelease;
     _settings.SelectedSkyrimRelease = SelectedSkyrimRelease;
 
-    SelectedTheme = (ThemeOption)_themeService.CurrentThemeSetting;
+    SelectedTheme     = (ThemeOption)_themeService.CurrentThemeSetting;
     SelectedFontScale = _themeService.CurrentFontScale;
 
     this.WhenAnyValue(x => x.SkyrimDataPath)
-      .Skip(1)
-      .Subscribe(v =>
-      {
-        _settings.SkyrimDataPath = v;
-        _guiSettings.SkyrimDataPath = v;
-        this.RaisePropertyChanged(nameof(FullOutputPath));
-      });
+        .Skip(1)
+        .Subscribe(v =>
+        {
+          _settings.SkyrimDataPath    = v;
+          _guiSettings.SkyrimDataPath = v;
+          this.RaisePropertyChanged(nameof(FullOutputPath));
+        });
 
     string? previousPatchFileName = null;
     this.WhenAnyValue(x => x.PatchFileName)
-      .Skip(1)
-      .Subscribe(v =>
-      {
-        var oldValue = previousPatchFileName;
-        previousPatchFileName = v;
-
-        _settings.PatchFileName = v;
-        _guiSettings.PatchFileName = v;
-        this.RaisePropertyChanged(nameof(FullOutputPath));
-
-        if (_mutagenService.IsInitialized &&
-            !string.IsNullOrWhiteSpace(v) &&
-            !string.Equals(v, oldValue, StringComparison.OrdinalIgnoreCase) &&
-            _mutagenService.IsPluginInLoadOrder(v))
+        .Skip(1)
+        .Subscribe(v =>
         {
-          ShowPatchNameCollisionDialog(v, oldValue);
-        }
-      });
+          var oldValue = previousPatchFileName;
+          previousPatchFileName = v;
+
+          _settings.PatchFileName    = v;
+          _guiSettings.PatchFileName = v;
+          this.RaisePropertyChanged(nameof(FullOutputPath));
+
+          if (_mutagenService.IsInitialized &&
+              !string.IsNullOrWhiteSpace(v) &&
+              !string.Equals(v, oldValue, StringComparison.OrdinalIgnoreCase) &&
+              _mutagenService.IsPluginInLoadOrder(v))
+          {
+            ShowPatchNameCollisionDialog(v, oldValue);
+          }
+        });
 
     this.WhenAnyValue(x => x.OutputPatchPath)
-      .Skip(1)
-      .Subscribe(v =>
-      {
-        _guiSettings.OutputPatchPath = v;
-        this.RaisePropertyChanged(nameof(FullOutputPath));
-      });
+        .Skip(1)
+        .Subscribe(v =>
+        {
+          _guiSettings.OutputPatchPath = v;
+          this.RaisePropertyChanged(nameof(FullOutputPath));
+        });
 
     this.WhenAnyValue(x => x.SelectedSkyrimRelease)
-      .Skip(1)
-      .Subscribe(release =>
-      {
-        _settings.SelectedSkyrimRelease = release;
-        _guiSettings.SelectedSkyrimRelease = release;
-      });
+        .Skip(1)
+        .Subscribe(release =>
+        {
+          _settings.SelectedSkyrimRelease    = release;
+          _guiSettings.SelectedSkyrimRelease = release;
+        });
 
     this.WhenAnyValue(x => x.SelectedTheme)
-      .Skip(1)
-      .Subscribe(theme =>
-      {
-        _themeService.SetTheme((AppTheme)theme);
-        ShowRestartDialog();
-      });
+        .Skip(1)
+        .Subscribe(theme =>
+        {
+          _themeService.SetTheme((AppTheme)theme);
+          ShowRestartDialog();
+        });
 
     this.WhenAnyValue(x => x.SelectedFontScale)
-      .Skip(1)
-      .Subscribe(scale => _themeService.SetFontScale(scale));
+        .Skip(1)
+        .Subscribe(scale => _themeService.SetFontScale(scale));
 
     SelectedLanguage = _localizationService.GetCurrentLanguageOption() ?? AvailableLanguages[0];
 
     this.WhenAnyValue(x => x.SelectedLanguage)
-      .Skip(1)
-      .Where(lang => lang != null)
-      .Subscribe(lang => _localizationService.SetLanguage(lang!.Code));
+        .Skip(1)
+        .Where(lang => lang != null)
+        .Subscribe(lang => _localizationService.SetLanguage(lang!.Code));
 
     if (string.IsNullOrEmpty(SkyrimDataPath))
     {
@@ -177,9 +177,9 @@ public partial class SettingsViewModel : ReactiveObject
   [Reactive] public partial double SelectedFontScale { get; set; }
 
   public IReadOnlyList<SkyrimRelease> SkyrimReleaseOptions { get; } =
-  [
-    SkyrimRelease.SkyrimSE, SkyrimRelease.SkyrimVR, SkyrimRelease.SkyrimSEGog
-  ];
+    [
+      SkyrimRelease.SkyrimSE, SkyrimRelease.SkyrimVR, SkyrimRelease.SkyrimSEGog
+    ];
 
   public IReadOnlyList<ThemeOption> ThemeOptions { get; } = Enum.GetValues<ThemeOption>();
 
@@ -191,7 +191,7 @@ public partial class SettingsViewModel : ReactiveObject
   {
     get
     {
-      var folder = !string.IsNullOrWhiteSpace(OutputPatchPath) ? OutputPatchPath : SkyrimDataPath;
+      var folder   = !string.IsNullOrWhiteSpace(OutputPatchPath) ? OutputPatchPath : SkyrimDataPath;
       var fileName = string.IsNullOrWhiteSpace(PatchFileName) ? "BoutiquePatch.esp" : PatchFileName;
       return string.IsNullOrWhiteSpace(folder) ? fileName : Path.Combine(folder, fileName);
     }
@@ -238,7 +238,7 @@ public partial class SettingsViewModel : ReactiveObject
       }
 
       _guiSettings.DebugLoggingEnabled = value;
-      _loggingService.IsDebugEnabled = value;
+      _loggingService.IsDebugEnabled   = value;
       this.RaisePropertyChanged();
     }
   }
@@ -250,13 +250,13 @@ public partial class SettingsViewModel : ReactiveObject
   private void BrowseDataPath()
   {
     var dialog = new OpenFileDialog
-    {
-      Title = "Select Skyrim Data Folder",
-      FileName = "Select Folder",
-      Filter = "Folder|*.none",
-      CheckFileExists = false,
-      CheckPathExists = true
-    };
+                 {
+                   Title           = "Select Skyrim Data Folder",
+                   FileName        = "Select Folder",
+                   Filter          = "Folder|*.none",
+                   CheckFileExists = false,
+                   CheckPathExists = true
+                 };
 
     if (dialog.ShowDialog() == true)
     {
@@ -275,13 +275,13 @@ public partial class SettingsViewModel : ReactiveObject
   private void BrowseOutputPath()
   {
     var dialog = new OpenFileDialog
-    {
-      Title = "Select Output Folder for Patch",
-      FileName = "Select Folder",
-      Filter = "Folder|*.none",
-      CheckFileExists = false,
-      CheckPathExists = true
-    };
+                 {
+                   Title           = "Select Output Folder for Patch",
+                   FileName        = "Select Folder",
+                   Filter          = "Folder|*.none",
+                   CheckFileExists = false,
+                   CheckPathExists = true
+                 };
 
     if (!string.IsNullOrEmpty(OutputPatchPath) && Directory.Exists(OutputPatchPath))
     {
@@ -412,7 +412,7 @@ public partial class SettingsViewModel : ReactiveObject
 
     if (GameLocations.TryGetDataFolder(gameRelease, out var dataFolder))
     {
-      SkyrimDataPath = dataFolder.Path;
+      SkyrimDataPath  = dataFolder.Path;
       DetectionFailed = false;
     }
     else
@@ -427,9 +427,9 @@ public partial class SettingsViewModel : ReactiveObject
   {
     return release switch
     {
-      SkyrimRelease.SkyrimVR => (GameRelease.SkyrimVR, "Skyrim VR"),
+      SkyrimRelease.SkyrimVR    => (GameRelease.SkyrimVR, "Skyrim VR"),
       SkyrimRelease.SkyrimSEGog => (GameRelease.SkyrimSEGog, "Skyrim SE (GOG)"),
-      _ => (GameRelease.SkyrimSE, "Skyrim SE")
+      _                         => (GameRelease.SkyrimSE, "Skyrim SE")
     };
   }
 
@@ -464,6 +464,6 @@ public partial class SettingsViewModel : ReactiveObject
   {
     var plugins = await _mutagenService.GetAvailablePluginsAsync(false);
     Application.Current.Dispatcher.Invoke(() =>
-      AvailableBlacklistPlugins = new ObservableCollection<string>(plugins));
+                                            AvailableBlacklistPlugins = new ObservableCollection<string>(plugins));
   }
 }

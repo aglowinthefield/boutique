@@ -66,12 +66,12 @@ public static class TextureLoadingService
 
         case AlphaType.AlphaTest:
           var thresholdedData = ApplyAlphaThreshold(image.Data, image.Width, image.Height, image.Stride);
-          var texture = CreateTextureFromPixels(thresholdedData, image.Width, image.Height, image.Stride);
+          var texture         = CreateTextureFromPixels(thresholdedData, image.Width, image.Height, image.Stride);
           return (texture, false);
 
         case AlphaType.ProblematicLowAlpha:
         default:
-          var opaqueData = ForceOpaqueAlpha(image.Data, image.Width, image.Height, image.Stride);
+          var opaqueData    = ForceOpaqueAlpha(image.Data, image.Width, image.Height, image.Stride);
           var opaqueTexture = CreateTextureFromPixels(opaqueData, image.Width, image.Height, image.Stride);
           return (opaqueTexture, false);
       }
@@ -85,11 +85,11 @@ public static class TextureLoadingService
 
   private static AlphaType AnalyzeAlphaChannel(byte[] data, int width, int height, int stride)
   {
-    var sampleCount = 0;
-    var opaqueCount = 0;
-    var transparentCount = 0;
+    var sampleCount          = 0;
+    var opaqueCount          = 0;
+    var transparentCount     = 0;
     var semiTransparentCount = 0;
-    var lowAlphaCount = 0;
+    var lowAlphaCount        = 0;
 
     var stepX = Math.Max(1, width / 32);
     var stepY = Math.Max(1, height / 32);
@@ -131,10 +131,10 @@ public static class TextureLoadingService
       return AlphaType.FullyOpaque;
     }
 
-    var opaqueRatio = (float)opaqueCount / sampleCount;
-    var transparentRatio = (float)transparentCount / sampleCount;
+    var opaqueRatio          = (float)opaqueCount / sampleCount;
+    var transparentRatio     = (float)transparentCount / sampleCount;
     var semiTransparentRatio = (float)semiTransparentCount / sampleCount;
-    var lowAlphaRatio = (float)lowAlphaCount / sampleCount;
+    var lowAlphaRatio        = (float)lowAlphaCount / sampleCount;
 
     if (opaqueRatio > 0.95f)
     {
@@ -178,7 +178,7 @@ public static class TextureLoadingService
       bitmapSource.Freeze();
 
       using var memoryStream = new MemoryStream();
-      var encoder = new BmpBitmapEncoder();
+      var       encoder      = new BmpBitmapEncoder();
       encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
       encoder.Save(memoryStream);
 
@@ -199,7 +199,7 @@ public static class TextureLoadingService
     for (var y = 0; y < height; y++)
     {
       var rowStart = y * stride;
-      var rowEnd = Math.Min(rowStart + (width * 4), span.Length);
+      var rowEnd   = Math.Min(rowStart + (width * 4), span.Length);
       for (var i = rowStart + 3; i < rowEnd; i += 4)
       {
         span[i] = span[i] >= 128 ? (byte)255 : (byte)0;
@@ -218,7 +218,7 @@ public static class TextureLoadingService
     for (var y = 0; y < height; y++)
     {
       var rowStart = y * stride;
-      var rowEnd = Math.Min(rowStart + (width * 4), span.Length);
+      var rowEnd   = Math.Min(rowStart + (width * 4), span.Length);
       for (var i = rowStart + 3; i < rowEnd; i += 4)
       {
         span[i] = 255;

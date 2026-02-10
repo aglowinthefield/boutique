@@ -14,14 +14,14 @@ public sealed class ContainerRecordViewModel
     string? merchantFaction = null,
     IReadOnlyList<string>? cellPlacements = null)
   {
-    FormKey = container.FormKey;
-    EditorId = container.EditorID ?? string.Empty;
-    Name = container.Name?.String ?? container.EditorID ?? container.FormKey.ToString();
-    ModName = container.FormKey.ModKey.FileName;
-    Respawns = container.Flags.HasFlag(Container.Flag.Respawns);
-    Items = ResolveItems(container, linkCache);
+    FormKey         = container.FormKey;
+    EditorId        = container.EditorID ?? string.Empty;
+    Name            = container.Name?.String ?? container.EditorID ?? container.FormKey.ToString();
+    ModName         = container.FormKey.ModKey.FileName;
+    Respawns        = container.Flags.HasFlag(Container.Flag.Respawns);
+    Items           = ResolveItems(container, linkCache);
     MerchantFaction = merchantFaction;
-    CellPlacements = cellPlacements ?? [];
+    CellPlacements  = cellPlacements ?? [];
   }
 
   public FormKey FormKey { get; }
@@ -38,9 +38,11 @@ public sealed class ContainerRecordViewModel
   public bool IsMerchantContainer => !string.IsNullOrEmpty(MerchantFaction);
 
   public string CellPlacementsDisplay => CellPlacements.Count > 0
-    ? string.Join(", ", CellPlacements.Take(3)) +
-      (CellPlacements.Count > 3 ? $" (+{CellPlacements.Count - 3})" : string.Empty)
-    : string.Empty;
+                                           ? string.Join(", ", CellPlacements.Take(3)) +
+                                             (CellPlacements.Count > 3
+                                                ? $" (+{CellPlacements.Count - 3})"
+                                                : string.Empty)
+                                           : string.Empty;
 
   private static List<ContainerContentItem> ResolveItems(
     IContainerGetter container,
@@ -56,29 +58,30 @@ public sealed class ContainerRecordViewModel
     foreach (var entry in container.Items)
     {
       var itemLink = entry.Item.Item;
-      var count = entry.Item.Count;
+      var count    = entry.Item.Count;
 
       if (itemLink.IsNull)
       {
         continue;
       }
 
-      var formKey = itemLink.FormKey;
-      var name = string.Empty;
+      var formKey  = itemLink.FormKey;
+      var name     = string.Empty;
       var editorId = string.Empty;
 
       if (linkCache.TryResolve<ISkyrimMajorRecordGetter>(formKey, out var record))
       {
         editorId = record.EditorID ?? string.Empty;
-        name = (record as ITranslatedNamedGetter)?.Name?.String ?? string.Empty;
+        name     = (record as ITranslatedNamedGetter)?.Name?.String ?? string.Empty;
       }
 
-      items.Add(new ContainerContentItem(
-        formKey,
-        name,
-        editorId,
-        count,
-        formKey.ModKey.FileName));
+      items.Add(
+        new ContainerContentItem(
+          formKey,
+          name,
+          editorId,
+          count,
+          formKey.ModKey.FileName));
     }
 
     return items;

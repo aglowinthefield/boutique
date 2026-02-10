@@ -13,12 +13,12 @@ public class ExistingOutfitViewModel
     IEnumerable<IArmorGetter>? pieces)
   {
     DisplayName = displayName;
-    EditorId = editorId;
-    FormKey = formKey;
+    EditorId    = editorId;
+    FormKey     = formKey;
 
     var pieceList = pieces?.ToList() ?? [];
-    Pieces = new ReadOnlyCollection<IArmorGetter>(pieceList);
-    PieceCount = Pieces.Count;
+    Pieces        = new ReadOnlyCollection<IArmorGetter>(pieceList);
+    PieceCount    = Pieces.Count;
     FormIdDisplay = $"0x{formKey.ID:X8}";
   }
 
@@ -35,7 +35,7 @@ public class ExistingOutfitViewModel
   private string FormatName()
   {
     return string.Equals(DisplayName, EditorId, StringComparison.Ordinal)
-      ? DisplayName
-      : $"{DisplayName} ({EditorId})";
+             ? DisplayName
+             : $"{DisplayName} ({EditorId})";
   }
 }

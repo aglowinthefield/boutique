@@ -18,8 +18,8 @@ public static class DistributionLineParser
     return file.TypeDisplay switch
     {
       "SkyPatcher" => ExtractNpcFormKeysFromSkyPatcherLine(line.RawText),
-      "SPID" => ExtractNpcFormKeysFromSpidLine(line.RawText, linkCache, npcByEditorId, npcByName),
-      _ => []
+      "SPID"       => ExtractNpcFormKeysFromSpidLine(line.RawText, linkCache, npcByEditorId, npcByName),
+      _            => []
     };
   }
 
@@ -51,13 +51,13 @@ public static class DistributionLineParser
     {
       var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
       npcByEditorId ??= allNpcs
-        .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-        .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                        .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
+                        .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
       npcByName ??= allNpcs
-        .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-        .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                    .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
+                    .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 
     // Resolve each NPC identifier to a FormKey
@@ -86,9 +86,9 @@ public static class DistributionLineParser
   {
     return file.TypeDisplay switch
     {
-      "SPID" => SpidLineTargetsAllNpcs(line.RawText),
+      "SPID"       => SpidLineTargetsAllNpcs(line.RawText),
       "SkyPatcher" => SkyPatcherLineTargetsAllNpcs(line.RawText),
-      _ => false
+      _            => false
     };
   }
 

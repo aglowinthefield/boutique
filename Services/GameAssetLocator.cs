@@ -30,15 +30,15 @@ public class GameAssetLocator
   private readonly Dictionary<ModKey, IReadOnlyList<ModKey>> _mastersByMod = [];
   private readonly MutagenService _mutagenService;
 
-  private readonly object _sync = new();
-  private string? _currentDataPath;
-  private string _extractionRoot;
+  private readonly object  _sync = new();
+  private          string? _currentDataPath;
+  private          string  _extractionRoot;
 
   public GameAssetLocator(MutagenService mutagenService, ILogger logger)
   {
     _mutagenService = mutagenService;
-    _logger = logger.ForContext<GameAssetLocator>();
-    _fileSystem = new FileSystem();
+    _logger         = logger.ForContext<GameAssetLocator>();
+    _fileSystem     = new FileSystem();
 
     _extractionRoot = Path.Combine(Path.GetTempPath(), "Boutique", "ExtractedAssets", "default");
     EnsureDirectoryExists(_extractionRoot);
@@ -58,7 +58,7 @@ public class GameAssetLocator
     }
 
     var normalized = PathUtilities.NormalizeAssetPath(relativePath);
-    var dataPath = _mutagenService.DataFolderPath;
+    var dataPath   = _mutagenService.DataFolderPath;
 
     if (string.IsNullOrWhiteSpace(dataPath) || !Directory.Exists(dataPath))
     {
@@ -136,7 +136,7 @@ public class GameAssetLocator
     {
       if (!_archivesByMod.TryGetValue(modKey.Value, out archives!))
       {
-        archives = LoadArchivesForMod(modKey.Value);
+        archives                     = LoadArchivesForMod(modKey.Value);
         _archivesByMod[modKey.Value] = archives;
       }
     }
@@ -183,15 +183,15 @@ public class GameAssetLocator
 
   private List<CachedArchive> LoadArchivesForMod(ModKey modKey)
   {
-    var dataPath = _currentDataPath!;
+    var dataPath      = _currentDataPath!;
     var directoryPath = new DirectoryPath(dataPath);
-    var results = new List<CachedArchive>();
+    var results       = new List<CachedArchive>();
 
     foreach (var filePath in Archive.GetApplicableArchivePaths(
-               _mutagenService.GameRelease,
-               directoryPath,
-               modKey,
-               _fileSystem))
+      _mutagenService.GameRelease,
+      directoryPath,
+      modKey,
+      _fileSystem))
     {
       TryAddArchive(results, filePath);
     }
@@ -211,9 +211,9 @@ public class GameAssetLocator
       yield break;
     }
 
-    var dataPath = _currentDataPath!;
-    var pluginPath = Path.Combine(dataPath, modKey.FileName);
-    IReadOnlyList<ModKey> masters = [];
+    var                   dataPath   = _currentDataPath!;
+    var                   pluginPath = Path.Combine(dataPath, modKey.FileName);
+    IReadOnlyList<ModKey> masters    = [];
 
     if (File.Exists(pluginPath))
     {
@@ -226,8 +226,8 @@ public class GameAssetLocator
         masters =
         [
           .. mod.ModHeader.MasterReferences
-            .Select(m => m.Master)
-            .Distinct()
+                .Select(m => m.Master)
+                .Distinct()
         ];
       }
       catch (Exception ex)
@@ -285,7 +285,7 @@ public class GameAssetLocator
   private string? ExtractFile(string assetKey, IArchiveFile file)
   {
     var targetPath = Path.Combine(_extractionRoot, PathUtilities.ToSystemPath(assetKey));
-    var directory = Path.GetDirectoryName(targetPath);
+    var directory  = Path.GetDirectoryName(targetPath);
 
     if (!string.IsNullOrWhiteSpace(directory))
     {
@@ -294,7 +294,7 @@ public class GameAssetLocator
 
     try
     {
-      using var source = file.AsStream();
+      using var source      = file.AsStream();
       using var destination = File.Open(targetPath, FileMode.Create, FileAccess.Write, FileShare.Read);
       source.CopyTo(destination);
       destination.Flush();
@@ -332,21 +332,21 @@ public class GameAssetLocator
   private static string ComputePathHash(string dataPath)
   {
     var bytes = Encoding.UTF8.GetBytes(dataPath.ToLowerInvariant());
-    var hash = SHA256.HashData(bytes);
+    var hash  = SHA256.HashData(bytes);
     return Convert.ToHexString(hash.AsSpan(0, 8));
   }
 
   private sealed class CachedArchive
   {
     private readonly Lazy<Dictionary<string, IArchiveFile>> _files;
-    private readonly ILogger _logger;
-    private readonly IArchiveReader _reader;
+    private readonly ILogger                                _logger;
+    private readonly IArchiveReader                         _reader;
 
     public CachedArchive(string archivePath, IArchiveReader reader, ILogger logger)
     {
       ArchivePath = archivePath;
-      _reader = reader;
-      _logger = logger;
+      _reader     = reader;
+      _logger     = logger;
       _files = new Lazy<Dictionary<string, IArchiveFile>>(
         BuildLookup,
         LazyThreadSafetyMode.ExecutionAndPublication);

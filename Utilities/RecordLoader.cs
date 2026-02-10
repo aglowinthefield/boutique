@@ -19,7 +19,7 @@ public static class RecordLoader
   {
     var results = new List<TViewModel>();
     var query = linkCache.WinningOverrides<TRecord>()
-      .Where(r => !isBlacklisted(r.FormKey.ModKey));
+                         .Where(r => !isBlacklisted(r.FormKey.ModKey));
 
     if (requireEditorId)
     {
@@ -29,11 +29,11 @@ public static class RecordLoader
     try
     {
       results = query
-        .AsParallel()
-        .WithDegreeOfParallelism(Environment.ProcessorCount)
-        .Select(createViewModel)
-        .OrderBy(getDisplayName)
-        .ToList();
+                .AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount)
+                .Select(createViewModel)
+                .OrderBy(getDisplayName)
+                .ToList();
     }
     catch (AggregateException ex)
     {
@@ -67,7 +67,7 @@ public static class RecordLoader
   {
     var results = new List<TRecord>();
     var query = linkCache.WinningOverrides<TRecord>()
-      .Where(r => !isBlacklisted(r.FormKey.ModKey));
+                         .Where(r => !isBlacklisted(r.FormKey.ModKey));
 
     if (requireEditorId)
     {
@@ -77,9 +77,9 @@ public static class RecordLoader
     try
     {
       results = query
-        .AsParallel()
-        .WithDegreeOfParallelism(Environment.ProcessorCount)
-        .ToList();
+                .AsParallel()
+                .WithDegreeOfParallelism(Environment.ProcessorCount)
+                .ToList();
     }
     catch (AggregateException ex)
     {

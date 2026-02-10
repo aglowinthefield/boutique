@@ -68,16 +68,16 @@ public class CopiedNpcFilter
   public static CopiedNpcFilter FromSpidFilter(NpcSpidFilter filter, string description)
   {
     return new CopiedNpcFilter
-    {
-      IsFemale = filter.IsFemale,
-      IsUnique = filter.IsUnique,
-      IsTemplated = filter.IsTemplated,
-      IsChild = filter.IsChild,
-      Factions = [.. filter.Factions],
-      Races = [.. filter.Races],
-      Keywords = [.. filter.Keywords],
-      Classes = [.. filter.Classes],
-      Description = description
-    };
+           {
+             IsFemale    = filter.IsFemale,
+             IsUnique    = filter.IsUnique,
+             IsTemplated = filter.IsTemplated,
+             IsChild     = filter.IsChild,
+             Factions    = [.. filter.Factions],
+             Races       = [.. filter.Races],
+             Keywords    = [.. filter.Keywords],
+             Classes     = [.. filter.Classes],
+             Description = description
+           };
   }
 }

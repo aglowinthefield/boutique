@@ -26,25 +26,25 @@ public class DistributionScannerService(ILogger logger)
 
   private List<DistributionFile> DiscoverInternal(string dataFolderPath, CancellationToken cancellationToken)
   {
-    var files = new ConcurrentBag<DistributionFile>();
+    var files     = new ConcurrentBag<DistributionFile>();
     var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    var spidFileCount = 0;
+    var spidFileCount       = 0;
     var skyPatcherFileCount = 0;
-    var parsedCount = 0;
-    var skippedCount = 0;
+    var parsedCount         = 0;
+    var skippedCount        = 0;
 
     try
     {
       _logger.Debug("Starting distribution file discovery in {DataPath}", dataFolderPath);
 
       var nonRecursiveOptions = new EnumerationOptions
-      {
-        RecurseSubdirectories = false,
-        ReturnSpecialDirectories = false,
-        IgnoreInaccessible = true,
-        MatchCasing = MatchCasing.CaseInsensitive
-      };
+                                {
+                                  RecurseSubdirectories    = false,
+                                  ReturnSpecialDirectories = false,
+                                  IgnoreInaccessible       = true,
+                                  MatchCasing              = MatchCasing.CaseInsensitive
+                                };
       var spidFiles = Directory.EnumerateFiles(dataFolderPath, "*_DISTR*.ini", nonRecursiveOptions).ToList();
 
       _logger.Debug("Searching for SPID files in {DataPath} with pattern *_DISTR*.ini", dataFolderPath);
@@ -66,12 +66,12 @@ public class DistributionScannerService(ILogger logger)
         _logger.Debug("SkyPatcher directory exists: {Path}", skyPatcherRoot);
 
         var skyPatcherOptions = new EnumerationOptions
-        {
-          RecurseSubdirectories = true,
-          ReturnSpecialDirectories = false,
-          IgnoreInaccessible = true,
-          MatchCasing = MatchCasing.CaseInsensitive
-        };
+                                {
+                                  RecurseSubdirectories    = true,
+                                  ReturnSpecialDirectories = false,
+                                  IgnoreInaccessible       = true,
+                                  MatchCasing              = MatchCasing.CaseInsensitive
+                                };
         var skyFiles = Directory.EnumerateFiles(skyPatcherRoot, "*.ini*", skyPatcherOptions).ToList();
 
         foreach (var iniFile in skyFiles)
@@ -106,9 +106,9 @@ public class DistributionScannerService(ILogger logger)
     }
 
     var result = files
-      .OrderBy(f => f.Type)
-      .ThenBy(f => f.RelativePath, StringComparer.OrdinalIgnoreCase)
-      .ToList();
+                 .OrderBy(f => f.Type)
+                 .ThenBy(f => f.RelativePath, StringComparer.OrdinalIgnoreCase)
+                 .ToList();
 
     _logger.Information(
       "Distribution discovery complete: {TotalFound} files found ({SpidCount} SPID, {SkyPatcherCount} SkyPatcher), {ParsedCount} parsed successfully, {SkippedCount} skipped (no outfit distributions), {ResultCount} returned",
@@ -145,12 +145,12 @@ public class DistributionScannerService(ILogger logger)
   {
     var relativePath = Path.GetRelativePath(dataFolderPath, iniFile);
     var normalized = relativePath
-      .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
-      .ToLowerInvariant();
+                     .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+                     .ToLowerInvariant();
 
     var skyPatcherPath = Path.Combine("skse", "plugins", "skypatcher")
-      .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
-      .ToLowerInvariant();
+                             .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+                             .ToLowerInvariant();
 
     if (!normalized.Contains(skyPatcherPath))
     {
@@ -165,24 +165,24 @@ public class DistributionScannerService(ILogger logger)
   {
     try
     {
-      var lines = new List<DistributionLine>();
+      var lines          = new List<DistributionLine>();
       var currentSection = string.Empty;
-      var lineNumber = 0;
+      var lineNumber     = 0;
 
-      var outfitCount = 0;
-      var keywordCount = 0;
+      var outfitCount         = 0;
+      var keywordCount        = 0;
       var exclusiveGroupCount = 0;
-      var totalLines = 0;
+      var totalLines          = 0;
 
       foreach (var raw in File.ReadLines(filePath, Encoding.UTF8))
       {
         lineNumber++;
         totalLines++;
-        var trimmed = raw.Trim();
+        var                  trimmed = raw.Trim();
         DistributionLineKind kind;
-        var sectionName = currentSection;
-        string? key = null;
-        string? value = null;
+        var                  sectionName = currentSection;
+        string?              key         = null;
+        string?              value       = null;
 
         if (string.IsNullOrEmpty(trimmed))
         {
@@ -194,17 +194,17 @@ public class DistributionScannerService(ILogger logger)
         }
         else if (trimmed.StartsWith('[') && trimmed.EndsWith(']') && trimmed.Length > 2)
         {
-          kind = DistributionLineKind.Section;
+          kind           = DistributionLineKind.Section;
           currentSection = trimmed[1..^1].Trim();
-          sectionName = currentSection;
+          sectionName    = currentSection;
         }
         else
         {
           var equalsIndex = trimmed.IndexOf('=');
           if (equalsIndex >= 0)
           {
-            kind = DistributionLineKind.KeyValue;
-            key = trimmed[..equalsIndex].Trim();
+            kind  = DistributionLineKind.KeyValue;
+            key   = trimmed[..equalsIndex].Trim();
             value = trimmed[(equalsIndex + 1)..].Trim();
           }
           else
@@ -213,11 +213,11 @@ public class DistributionScannerService(ILogger logger)
           }
         }
 
-        var isOutfitDistribution = IsOutfitDistributionLine(type, kind, trimmed);
-        var isKeywordDistribution = IsKeywordDistributionLine(type, kind, trimmed);
-        var isExclusiveGroupDistribution = IsExclusiveGroupDistributionLine(type, kind, trimmed);
-        IReadOnlyList<string> outfitFormKeys = [];
-        string? keywordIdentifier = null;
+        var                   isOutfitDistribution         = IsOutfitDistributionLine(type, kind, trimmed);
+        var                   isKeywordDistribution        = IsKeywordDistributionLine(type, kind, trimmed);
+        var                   isExclusiveGroupDistribution = IsExclusiveGroupDistributionLine(type, kind, trimmed);
+        IReadOnlyList<string> outfitFormKeys               = [];
+        string?               keywordIdentifier            = null;
 
         if (isOutfitDistribution)
         {
@@ -236,14 +236,15 @@ public class DistributionScannerService(ILogger logger)
           exclusiveGroupCount++;
         }
 
-        lines.Add(new DistributionLine(
-          lineNumber,
-          raw,
-          kind,
-          isOutfitDistribution,
-          outfitFormKeys,
-          isKeywordDistribution,
-          keywordIdentifier));
+        lines.Add(
+          new DistributionLine(
+            lineNumber,
+            raw,
+            kind,
+            isOutfitDistribution,
+            outfitFormKeys,
+            isKeywordDistribution,
+            keywordIdentifier));
       }
 
       var relativePath = Path.GetRelativePath(dataFolderPath, filePath);
@@ -290,9 +291,9 @@ public class DistributionScannerService(ILogger logger)
 
     return type switch
     {
-      DistributionFileType.Spid => IsSpidOutfitLine(trimmed),
+      DistributionFileType.Spid       => IsSpidOutfitLine(trimmed),
       DistributionFileType.SkyPatcher => IsSkyPatcherOutfitLine(trimmed),
-      _ => false
+      _                               => false
     };
   }
 
@@ -373,9 +374,9 @@ public class DistributionScannerService(ILogger logger)
   {
     return type switch
     {
-      DistributionFileType.Spid => ExtractSpidOutfitKeys(trimmed),
+      DistributionFileType.Spid       => ExtractSpidOutfitKeys(trimmed),
       DistributionFileType.SkyPatcher => ExtractSkyPatcherOutfitKeys(trimmed),
-      _ => []
+      _                               => []
     };
   }
 
@@ -393,7 +394,7 @@ public class DistributionScannerService(ILogger logger)
       return [];
     }
 
-    var tokens = valuePortion.Split([','], StringSplitOptions.RemoveEmptyEntries);
+    var tokens  = valuePortion.Split([','], StringSplitOptions.RemoveEmptyEntries);
     var results = new List<string>();
 
     foreach (var token in tokens)
@@ -424,7 +425,7 @@ public class DistributionScannerService(ILogger logger)
     var tildeIndex = cleaned.IndexOf('~');
     if (tildeIndex >= 0)
     {
-      var afterTilde = cleaned[(tildeIndex + 1)..];
+      var afterTilde   = cleaned[(tildeIndex + 1)..];
       var pipeAfterMod = afterTilde.IndexOf('|');
 
       if (pipeAfterMod >= 0)
@@ -453,7 +454,7 @@ public class DistributionScannerService(ILogger logger)
       if (FormKeyHelper.IsModKeyFileName(firstPart))
       {
         var afterFirstPipe = cleaned[(pipeIndex + 1)..];
-        var secondPipe = afterFirstPipe.IndexOf('|');
+        var secondPipe     = afterFirstPipe.IndexOf('|');
 
         if (secondPipe >= 0)
         {
@@ -497,7 +498,7 @@ public class DistributionScannerService(ILogger logger)
 
       index += marker.Length;
       var endIndex = trimmed.IndexOf(':', index);
-      var segment = endIndex >= 0 ? trimmed[index..endIndex] : trimmed[index..];
+      var segment  = endIndex >= 0 ? trimmed[index..endIndex] : trimmed[index..];
       startIndex = endIndex >= 0 ? endIndex + 1 : trimmed.Length;
 
       if (string.IsNullOrWhiteSpace(segment))
@@ -555,7 +556,7 @@ public class DistributionScannerService(ILogger logger)
 
   private static bool TryExtractFormKeyParts(string text, out string modPart, out string formIdPart)
   {
-    modPart = string.Empty;
+    modPart    = string.Empty;
     formIdPart = string.Empty;
 
     var tildeIndex = text.IndexOf('~');
@@ -569,9 +570,9 @@ public class DistributionScannerService(ILogger logger)
       }
 
       var pipeIndex = remainder.IndexOf('|');
-      modPart = pipeIndex >= 0 ? remainder[..pipeIndex].Trim() : remainder;
+      modPart    = pipeIndex >= 0 ? remainder[..pipeIndex].Trim() : remainder;
       formIdPart = formIdPart.Trim();
-      modPart = modPart.Trim();
+      modPart    = modPart.Trim();
 
       return !string.IsNullOrEmpty(modPart) && !string.IsNullOrEmpty(formIdPart);
     }

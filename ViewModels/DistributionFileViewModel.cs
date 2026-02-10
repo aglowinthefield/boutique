@@ -19,9 +19,9 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
 
   public string TypeDisplay => file.Type switch
   {
-    DistributionFileType.Spid => "SPID",
+    DistributionFileType.Spid       => "SPID",
     DistributionFileType.SkyPatcher => "SkyPatcher",
-    _ => file.Type.ToString()
+    _                               => file.Type.ToString()
   };
 
   public int RecordCount => file.Lines.Count(l => l.Kind == DistributionLineKind.KeyValue);
@@ -35,7 +35,7 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
   private string ExtractUniquePath()
   {
     var relativePath = RelativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-    var parts = relativePath.Split(Path.DirectorySeparatorChar);
+    var parts        = relativePath.Split(Path.DirectorySeparatorChar);
 
     if (file.Type == DistributionFileType.SkyPatcher)
     {
@@ -75,7 +75,7 @@ public class DistributionFileViewModel(DistributionFile file) : ReactiveObject
   private string ExtractModName()
   {
     var relativePath = RelativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-    var parts = relativePath.Split(Path.DirectorySeparatorChar);
+    var parts        = relativePath.Split(Path.DirectorySeparatorChar);
 
     var skseIndex = Array.FindIndex(parts, p => p.Equals("SKSE", StringComparison.OrdinalIgnoreCase));
     if (skseIndex > 0)

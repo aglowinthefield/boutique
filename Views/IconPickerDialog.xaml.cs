@@ -13,16 +13,16 @@ namespace Boutique.Views;
 public partial class IconPickerDialog
 {
   private readonly IconPickerViewModel _viewModel;
-  private string? _selectedIcon;
-  private bool _wasCleared;
+  private          string?             _selectedIcon;
+  private          bool                _wasCleared;
 
   public IconPickerDialog(string? currentIcon)
   {
     InitializeComponent();
 
-    _viewModel = new IconPickerViewModel(currentIcon);
+    _viewModel    = new IconPickerViewModel(currentIcon);
     _selectedIcon = currentIcon;
-    DataContext = _viewModel;
+    DataContext   = _viewModel;
 
     if (ThemeService.Current is { } themeService)
     {
@@ -33,12 +33,12 @@ public partial class IconPickerDialog
     }
 
     _viewModel.FilteredIcons
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Subscribe(icons =>
-      {
-        IconsItemsControl.ItemsSource = icons;
-        UpdateSelection();
-      });
+              .ObserveOn(RxApp.MainThreadScheduler)
+              .Subscribe(icons =>
+              {
+                IconsItemsControl.ItemsSource = icons;
+                UpdateSelection();
+              });
 
     Loaded += (_, _) =>
     {
@@ -81,8 +81,8 @@ public partial class IconPickerDialog
       }
 
       button.BorderBrush = string.Equals(iconName, _selectedIcon, StringComparison.OrdinalIgnoreCase)
-        ? new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4))
-        : Brushes.Transparent;
+                             ? new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4))
+                             : Brushes.Transparent;
     }
   }
 
@@ -100,14 +100,14 @@ public partial class IconPickerDialog
   private void ClearButton_Click(object sender, RoutedEventArgs e)
   {
     _selectedIcon = null;
-    _wasCleared = true;
+    _wasCleared   = true;
     Close();
   }
 
   private void CancelButton_Click(object sender, RoutedEventArgs e)
   {
     _selectedIcon = null;
-    _wasCleared = false;
+    _wasCleared   = false;
     Close();
   }
 

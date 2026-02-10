@@ -19,7 +19,7 @@ public class DistributionFileTypeConverter : IValueConverter
     }
 
     var field = enumValue.GetType().GetField(enumValue.ToString());
-    var attr = field?.GetCustomAttribute<DescriptionAttribute>();
+    var attr  = field?.GetCustomAttribute<DescriptionAttribute>();
     return attr?.Description ?? enumValue.ToString();
   }
 

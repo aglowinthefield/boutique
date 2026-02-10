@@ -24,42 +24,42 @@ namespace Boutique.Views;
 public sealed partial class OutfitPreviewWindow : IDisposable
 {
   private const string WindowGeometryKey = "OutfitPreview";
-  private const float AmbientSrgb = 0.2f;
-  private const float KeyFillSrgb = 0.6f;
-  private const float RimSrgb = 0.85f;
-  private const float FrontalSrgb = 0.2f;
+  private const float  AmbientSrgb       = 0.2f;
+  private const float  KeyFillSrgb       = 0.6f;
+  private const float  RimSrgb           = 0.85f;
+  private const float  FrontalSrgb       = 0.2f;
 
-  private const float MaterialDiffuseMultiplier = 5f;
-  private const float MaterialAmbientMultiplier = 2.3f;
+  private const float MaterialDiffuseMultiplier  = 5f;
+  private const float MaterialAmbientMultiplier  = 2.3f;
   private const float MaterialSpecularMultiplier = 0.3f;
-  private const float MaterialShininess = 0f;
+  private const float MaterialShininess          = 0f;
 
-  private readonly AmbientLight3D _ambientLight = new();
-  private readonly DirectionalLight3D _backLight = new();
-  private readonly DefaultEffectsManager _effectsManager = new();
-  private readonly DirectionalLight3D _frontalLight = new();
-  private readonly DirectionalLight3D _frontLeftLight = new();
-  private readonly DirectionalLight3D _frontRightLight = new();
-  private readonly GroupModel3D _meshGroup = new();
+  private readonly AmbientLight3D              _ambientLight    = new();
+  private readonly DirectionalLight3D          _backLight       = new();
+  private readonly DefaultEffectsManager       _effectsManager  = new();
+  private readonly DirectionalLight3D          _frontalLight    = new();
+  private readonly DirectionalLight3D          _frontLeftLight  = new();
+  private readonly DirectionalLight3D          _frontRightLight = new();
+  private readonly GroupModel3D                _meshGroup       = new();
   private readonly ArmorPreviewSceneCollection _sceneCollection;
-  private readonly ThemeService _themeService;
+  private readonly ThemeService                _themeService;
 
-  private float _ambientMultiplier;
+  private float                _ambientMultiplier;
   private GenderedModelVariant _currentGender;
-  private int _currentSceneIndex;
-  private bool _disposed;
-  private float _frontalMultiplier = 7f;
-  private PerspectiveCamera? _initialCamera;
-  private float _keyFillMultiplier = 1.6f;
-  private float _rimMultiplier = 1f;
+  private int                  _currentSceneIndex;
+  private bool                 _disposed;
+  private float                _frontalMultiplier = 7f;
+  private PerspectiveCamera?   _initialCamera;
+  private float                _keyFillMultiplier = 1.6f;
+  private float                _rimMultiplier     = 1f;
 
   public OutfitPreviewWindow(ArmorPreviewSceneCollection sceneCollection, ThemeService themeService)
   {
     InitializeComponent();
-    _sceneCollection = sceneCollection ?? throw new ArgumentNullException(nameof(sceneCollection));
-    _themeService = themeService;
+    _sceneCollection   = sceneCollection ?? throw new ArgumentNullException(nameof(sceneCollection));
+    _themeService      = themeService;
     _currentSceneIndex = sceneCollection.InitialIndex;
-    _currentGender = sceneCollection.InitialGender;
+    _currentGender     = sceneCollection.InitialGender;
 
     GuiSettingsService.Current?.RestoreSecondaryWindowGeometry(this, WindowGeometryKey);
 
@@ -97,34 +97,39 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   {
     PreviewViewport.EffectsManager = _effectsManager;
     PreviewViewport.Items.Clear();
-    PreviewViewport.MSAA = MSAALevel.Eight;
-    PreviewViewport.CameraMode = CameraMode.Inspect;
-    PreviewViewport.CameraRotationMode = CameraRotationMode.Trackball;
+    PreviewViewport.MSAA                       = MSAALevel.Eight;
+    PreviewViewport.CameraMode                 = CameraMode.Inspect;
+    PreviewViewport.CameraRotationMode         = CameraRotationMode.Trackball;
     PreviewViewport.RotateAroundMouseDownPoint = true;
-    PreviewViewport.ZoomAroundMouseDownPoint = true;
-    PreviewViewport.IsPanEnabled = true;
-    PreviewViewport.IsZoomEnabled = true;
-    PreviewViewport.IsRotationEnabled = true;
-    PreviewViewport.IsInertiaEnabled = false;
-    PreviewViewport.InfiniteSpin = false;
+    PreviewViewport.ZoomAroundMouseDownPoint   = true;
+    PreviewViewport.IsPanEnabled               = true;
+    PreviewViewport.IsZoomEnabled              = true;
+    PreviewViewport.IsRotationEnabled          = true;
+    PreviewViewport.IsInertiaEnabled           = false;
+    PreviewViewport.InfiniteSpin               = false;
 
     PreviewViewport.UseDefaultGestures = false;
     PreviewViewport.InputBindings.Clear();
-    PreviewViewport.InputBindings.Add(new MouseBinding(
-      ViewportCommands.Rotate,
-      new MouseGesture(MouseAction.LeftClick)));
-    PreviewViewport.InputBindings.Add(new MouseBinding(
-      ViewportCommands.Pan,
-      new MouseGesture(MouseAction.MiddleClick)));
-    PreviewViewport.InputBindings.Add(new MouseBinding(
-      ViewportCommands.Zoom,
-      new MouseGesture(MouseAction.RightClick)));
-    PreviewViewport.InputBindings.Add(new MouseBinding(
-      ViewportCommands.ZoomExtents,
-      new MouseGesture(MouseAction.LeftDoubleClick)));
-    PreviewViewport.InputBindings.Add(new MouseBinding(
-      ViewportCommands.ZoomExtents,
-      new MouseGesture(MouseAction.RightDoubleClick)));
+    PreviewViewport.InputBindings.Add(
+      new MouseBinding(
+        ViewportCommands.Rotate,
+        new MouseGesture(MouseAction.LeftClick)));
+    PreviewViewport.InputBindings.Add(
+      new MouseBinding(
+        ViewportCommands.Pan,
+        new MouseGesture(MouseAction.MiddleClick)));
+    PreviewViewport.InputBindings.Add(
+      new MouseBinding(
+        ViewportCommands.Zoom,
+        new MouseGesture(MouseAction.RightClick)));
+    PreviewViewport.InputBindings.Add(
+      new MouseBinding(
+        ViewportCommands.ZoomExtents,
+        new MouseGesture(MouseAction.LeftDoubleClick)));
+    PreviewViewport.InputBindings.Add(
+      new MouseBinding(
+        ViewportCommands.ZoomExtents,
+        new MouseGesture(MouseAction.RightDoubleClick)));
     PreviewViewport.InputBindings.Add(new KeyBinding(ViewportCommands.ZoomExtents, Key.F, ModifierKeys.Control));
     PreviewViewport.BackgroundColor = GetViewportBackgroundColor();
 
@@ -145,7 +150,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     PreviewViewport.KeyDown += OnViewportKeyDown;
 
     var hasMetadata = _sceneCollection.Metadata.Any(m =>
-      !string.IsNullOrWhiteSpace(m.OutfitLabel) || !string.IsNullOrWhiteSpace(m.SourceFile));
+                                                      !string.IsNullOrWhiteSpace(m.OutfitLabel) ||
+                                                      !string.IsNullOrWhiteSpace(m.SourceFile));
     var isSingleScene = _sceneCollection.Count <= 1;
 
     NavigationHeader.Visibility = hasMetadata ? Visibility.Visible : Visibility.Collapsed;
@@ -153,14 +159,14 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     if (isSingleScene)
     {
       PreviousOutfitButton.Visibility = Visibility.Collapsed;
-      NextOutfitButton.Visibility = Visibility.Collapsed;
-      OutfitCounterText.Visibility = Visibility.Collapsed;
+      NextOutfitButton.Visibility     = Visibility.Collapsed;
+      OutfitCounterText.Visibility    = Visibility.Collapsed;
     }
   }
 
   private async void BuildScene()
   {
-    LoadingPanel.Visibility = Visibility.Visible;
+    LoadingPanel.Visibility       = Visibility.Visible;
     MissingAssetsPanel.Visibility = Visibility.Collapsed;
 
     var scene = await _sceneCollection.GetSceneAsync(_currentSceneIndex, _currentGender);
@@ -201,8 +207,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
       if (!string.IsNullOrWhiteSpace(metadata.SourceFile))
       {
         OutfitSourceText.Text = metadata.IsWinner
-          ? $"from {metadata.SourceFile} (Winner)"
-          : $"from {metadata.SourceFile}";
+                                  ? $"from {metadata.SourceFile} (Winner)"
+                                  : $"from {metadata.SourceFile}";
         var brushKey = metadata.IsWinner ? "Brush.Accent" : "Brush.TextSecondary";
         OutfitSourceText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
       }
@@ -248,13 +254,13 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
       var (material, needsTransparency) = CreateMaterialForMesh(evaluated.Shape);
       var model = new MeshGeometryModel3D
-      {
-        Geometry = geometry,
-        Material = material,
-        CullMode = CullMode.None,
-        IsHitTestVisible = false,
-        IsTransparent = needsTransparency
-      };
+                  {
+                    Geometry         = geometry,
+                    Material         = material,
+                    CullMode         = CullMode.None,
+                    IsHitTestVisible = false,
+                    IsTransparent    = needsTransparency
+                  };
 
       _meshGroup.Children.Add(model);
     }
@@ -266,13 +272,13 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private static List<EvaluatedMesh> EvaluateMeshes(ArmorPreviewScene scene, out Vector3 center, out float radius)
   {
     var evaluatedMeshes = new List<EvaluatedMesh>();
-    var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-    var max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+    var min             = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+    var max             = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
     foreach (var mesh in scene.Meshes)
     {
       var transformedVertices = new List<Vector3>(mesh.Vertices.Count);
-      var transformedNormals = new List<Vector3>(mesh.Normals.Count);
+      var transformedNormals  = new List<Vector3>(mesh.Normals.Count);
 
       foreach (var t in mesh.Vertices)
       {
@@ -331,15 +337,13 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     if (evaluated.Normals.Count == evaluated.Vertices.Count)
     {
-      geometry.Normals = new Vector3Collection(
-        evaluated.Normals.Select(n => new SharpDXVector3(n.X, n.Y, n.Z)));
+      geometry.Normals = new Vector3Collection(evaluated.Normals.Select(n => new SharpDXVector3(n.X, n.Y, n.Z)));
     }
 
     var uvs = evaluated.Shape.TextureCoordinates;
     if (uvs != null && uvs.Count == evaluated.Vertices.Count)
     {
-      geometry.TextureCoordinates = new Vector2Collection(
-        uvs.Select(tc => new SharpDXVector2(tc.X, tc.Y)));
+      geometry.TextureCoordinates = new Vector2Collection(uvs.Select(tc => new SharpDXVector2(tc.X, tc.Y)));
     }
     else if (uvs != null)
     {
@@ -357,18 +361,18 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private void ConfigureCamera(float radius)
   {
     var baseDistance = Math.Max(radius * 2.6f, 115.0f);
-    var height = baseDistance * 0.2;
+    var height       = baseDistance * 0.2;
 
     var camera = new PerspectiveCamera
-    {
-      FieldOfView = 47,
-      Position = new Point3D(0, baseDistance, height),
-      LookDirection = new Vector3D(0, -baseDistance, -height),
-      UpDirection = new Vector3D(0, 0, 1)
-    };
+                 {
+                   FieldOfView   = 47,
+                   Position      = new Point3D(0, baseDistance, height),
+                   LookDirection = new Vector3D(0, -baseDistance, -height),
+                   UpDirection   = new Vector3D(0, 0, 1)
+                 };
 
     PreviewViewport.Camera = camera;
-    _initialCamera = (PerspectiveCamera)camera.Clone();
+    _initialCamera         = (PerspectiveCamera)camera.Clone();
 
     UpdateFrontalLightDirection();
   }
@@ -376,10 +380,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private void ConfigureLights()
   {
     // Directions line up with BodySlide's preview rig; intensities are applied separately.
-    _frontLeftLight.Direction = new Vector3D(-0.667124384994991, 0.07412493166611012, 0.7412493166611012);
+    _frontLeftLight.Direction  = new Vector3D(-0.667124384994991, 0.07412493166611012, 0.7412493166611012);
     _frontRightLight.Direction = new Vector3D(0.5715476066494083, 0.08164965809277261, 0.8164965809277261);
-    _backLight.Direction = new Vector3D(0.2822162605150792, 0.18814417367671948, -0.9407208683835974);
-    _frontalLight.Direction = new Vector3D(0, 0, -1);
+    _backLight.Direction       = new Vector3D(0.2822162605150792, 0.18814417367671948, -0.9407208683835974);
+    _frontalLight.Direction    = new Vector3D(0, 0, -1);
 
     ApplyLightIntensities();
   }
@@ -475,18 +479,18 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     }
 
     var fallbackColor = GetFallbackColor(mesh);
-    var baseDiffuse = ToColor4(fallbackColor);
-    var baseAmbient = baseDiffuse;
-    var baseSpecular = new Color4(0.2f, 0.2f, 0.2f, 1f);
+    var baseDiffuse   = ToColor4(fallbackColor);
+    var baseAmbient   = baseDiffuse;
+    var baseSpecular  = new Color4(0.2f, 0.2f, 0.2f, 1f);
 
     var fallbackMaterial = new PhongMaterial
-    {
-      DiffuseColor = ScaleColor(baseDiffuse, MaterialDiffuseMultiplier),
-      AmbientColor = ScaleColor(baseAmbient, MaterialAmbientMultiplier),
-      SpecularColor = ScaleColor(baseSpecular, MaterialSpecularMultiplier),
-      SpecularShininess = Math.Max(0f, MaterialShininess),
-      EmissiveColor = new Color4(0f, 0f, 0f, 1f)
-    };
+                           {
+                             DiffuseColor      = ScaleColor(baseDiffuse, MaterialDiffuseMultiplier),
+                             AmbientColor      = ScaleColor(baseAmbient, MaterialAmbientMultiplier),
+                             SpecularColor     = ScaleColor(baseSpecular, MaterialSpecularMultiplier),
+                             SpecularShininess = Math.Max(0f, MaterialShininess),
+                             EmissiveColor     = new Color4(0f, 0f, 0f, 1f)
+                           };
     return (fallbackMaterial, false);
   }
 
@@ -514,19 +518,19 @@ public sealed partial class OutfitPreviewWindow : IDisposable
         return (null, false);
       }
 
-      var baseDiffuse = new Color4(1f, 1f, 1f, 1f);
-      var baseAmbient = new Color4(0.2f, 0.2f, 0.2f, 1f);
+      var baseDiffuse  = new Color4(1f, 1f, 1f, 1f);
+      var baseAmbient  = new Color4(0.2f, 0.2f, 0.2f, 1f);
       var baseSpecular = new Color4(0.2f, 0.2f, 0.2f, 1f);
 
       var material = new PhongMaterial
-      {
-        DiffuseMap = textureModel,
-        DiffuseColor = ScaleColor(baseDiffuse, MaterialDiffuseMultiplier),
-        AmbientColor = ScaleColor(baseAmbient, MaterialAmbientMultiplier),
-        SpecularColor = ScaleColor(baseSpecular, MaterialSpecularMultiplier),
-        SpecularShininess = Math.Max(0f, MaterialShininess),
-        EmissiveColor = new Color4(0f, 0f, 0f, 1f)
-      };
+                     {
+                       DiffuseMap        = textureModel,
+                       DiffuseColor      = ScaleColor(baseDiffuse, MaterialDiffuseMultiplier),
+                       AmbientColor      = ScaleColor(baseAmbient, MaterialAmbientMultiplier),
+                       SpecularColor     = ScaleColor(baseSpecular, MaterialSpecularMultiplier),
+                       SpecularShininess = Math.Max(0f, MaterialShininess),
+                       EmissiveColor     = new Color4(0f, 0f, 0f, 1f)
+                     };
 
       Log.Debug(
         "Successfully created textured material for {TexturePath} (transparent: {NeedsTransparency})",
@@ -566,12 +570,12 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     }
 
     var hash = mesh.SourcePath.GetHashCode(StringComparison.OrdinalIgnoreCase);
-    var r = (byte)((hash >> 16) & 0xFF);
-    var g = (byte)((hash >> 8) & 0xFF);
-    var b = (byte)(hash & 0xFF);
+    var r    = (byte)((hash >> 16) & 0xFF);
+    var g    = (byte)((hash >> 8) & 0xFF);
+    var b    = (byte)(hash & 0xFF);
 
     const double scale = 0.6;
-    const byte min = 70;
+    const byte   min   = 70;
     r = (byte)(min + (r * scale));
     g = (byte)(min + (g * scale));
     b = (byte)(min + (b * scale));
@@ -597,10 +601,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     if (PreviewViewport.Camera is PerspectiveCamera activeCamera)
     {
-      activeCamera.Position = _initialCamera.Position;
+      activeCamera.Position      = _initialCamera.Position;
       activeCamera.LookDirection = _initialCamera.LookDirection;
-      activeCamera.UpDirection = _initialCamera.UpDirection;
-      activeCamera.FieldOfView = _initialCamera.FieldOfView;
+      activeCamera.UpDirection   = _initialCamera.UpDirection;
+      activeCamera.FieldOfView   = _initialCamera.FieldOfView;
     }
     else
     {
@@ -620,8 +624,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     }
 
     var newGender = selectedItem.Tag?.ToString() == "Male"
-      ? GenderedModelVariant.Male
-      : GenderedModelVariant.Female;
+                      ? GenderedModelVariant.Male
+                      : GenderedModelVariant.Female;
 
     if (newGender == _currentGender)
     {
@@ -635,8 +639,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private void ToggleGender()
   {
     _currentGender = _currentGender == GenderedModelVariant.Female
-      ? GenderedModelVariant.Male
-      : GenderedModelVariant.Female;
+                       ? GenderedModelVariant.Male
+                       : GenderedModelVariant.Female;
 
     GenderComboBox.SelectedIndex = _currentGender == GenderedModelVariant.Female ? 0 : 1;
     BuildScene();

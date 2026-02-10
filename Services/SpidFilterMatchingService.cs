@@ -134,9 +134,9 @@ public class SpidFilterMatchingService
     foreach (var exclusion in filters.GlobalExclusions)
     {
       if (MatchesStringPart(
-            npc,
-            new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
-            virtualKeywords))
+        npc,
+        new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
+        virtualKeywords))
       {
         return false;
       }
@@ -159,8 +159,8 @@ public class SpidFilterMatchingService
   private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part, IReadOnlySet<string>? virtualKeywords)
   {
     var matches = part.HasWildcard
-      ? PartialMatchesNpcStrings(npc, part.Value.Replace("*", string.Empty), virtualKeywords)
-      : ExactMatchesNpcStrings(npc, part.Value, virtualKeywords);
+                    ? PartialMatchesNpcStrings(npc, part.Value.Replace("*", string.Empty), virtualKeywords)
+                    : ExactMatchesNpcStrings(npc, part.Value, virtualKeywords);
 
     return part.IsNegated ? !matches : matches;
   }
@@ -308,10 +308,10 @@ public class SpidFilterMatchingService
   private static bool TryParseSkillFilter(string value, out int skillIndex, out int minSkill, out int? maxSkill)
   {
     skillIndex = 0;
-    minSkill = 0;
-    maxSkill = null;
+    minSkill   = 0;
+    maxSkill   = null;
 
-    var openParen = value.IndexOf('(');
+    var openParen  = value.IndexOf('(');
     var closeParen = value.IndexOf(')');
 
     if (openParen < 0 || closeParen < openParen)

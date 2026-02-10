@@ -18,13 +18,13 @@ namespace Boutique.Services;
 public class OutfitDraftManager : ReactiveObject, IDisposable
 {
   private static readonly BipedObjectFlag[] _bipedFlags = Enum.GetValues<BipedObjectFlag>()
-    .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0)
-    .ToArray();
+                                                              .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0)
+                                                              .ToArray();
 
-  private readonly CompositeDisposable _disposables = new();
+  private readonly CompositeDisposable                           _disposables     = new();
   private readonly ObservableCollection<ExistingOutfitViewModel> _existingOutfits = [];
-  private readonly ILogger _logger;
-  private readonly List<string> _pendingDeletions = [];
+  private readonly ILogger                                       _logger;
+  private readonly List<string>                                  _pendingDeletions = [];
 
   private readonly SourceList<IOutfitQueueItem> _queueSource = new();
 
@@ -34,15 +34,17 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   {
     _logger = loggingService.ForContext<OutfitDraftManager>();
 
-    _disposables.Add(_queueSource.Connect()
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Bind(out var queueItems)
-      .Subscribe());
+    _disposables.Add(
+      _queueSource.Connect()
+                  .ObserveOn(RxApp.MainThreadScheduler)
+                  .Bind(out var queueItems)
+                  .Subscribe());
     QueueItems = queueItems;
 
-    _disposables.Add(_queueSource.Connect()
-      .Select(_ => _queueSource.Items.OfType<OutfitDraftViewModel>().Any())
-      .Subscribe(hasDrafts => HasDrafts = hasDrafts));
+    _disposables.Add(
+      _queueSource.Connect()
+                  .Select(_ => _queueSource.Items.OfType<OutfitDraftViewModel>().Any())
+                  .Subscribe(hasDrafts => HasDrafts = hasDrafts));
 
     ExistingOutfits = new ReadOnlyObservableCollection<ExistingOutfitViewModel>(_existingOutfits);
     _existingOutfits.CollectionChanged += (_, _) =>
@@ -111,7 +113,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     var (distinctPieces, isValid, validationMessage) = await Task.Run(() =>
     {
       var distinct = DistinctArmorPieces(pieces);
-      var valid = ValidateOutfitPieces(distinct, out var message);
+      var valid    = ValidateOutfitPieces(distinct, out var message);
       return (distinct, valid, message);
     });
 
@@ -143,7 +145,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       }
 
       const string namePrompt = "Enter the outfit name (also used as the EditorID):";
-      var result = await RequestNameAsync((namePrompt, string.Empty));
+      var          result     = await RequestNameAsync((namePrompt, string.Empty));
 
       if (string.IsNullOrWhiteSpace(result))
       {
@@ -155,7 +157,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       outfitName = result;
     }
 
-    var trimmedName = outfitName.Trim();
+    var trimmedName   = outfitName.Trim();
     var sanitizedName = SanitizeOutfitName(trimmedName);
     sanitizedName = EnsureUniqueOutfitName(sanitizedName, null);
 
@@ -220,9 +222,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       return null;
     }
 
-    const string namePrompt = "Enter a name for the duplicated outfit:";
-    var defaultName = draft.Name + "_copy";
-    var newName = await RequestNameAsync((namePrompt, defaultName));
+    const string namePrompt  = "Enter a name for the duplicated outfit:";
+    var          defaultName = draft.Name + "_copy";
+    var          newName     = await RequestNameAsync((namePrompt, defaultName));
 
     if (string.IsNullOrWhiteSpace(newName))
     {
@@ -290,7 +292,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     }
 
     var existingPieces = draft.GetPieces();
-    var stagedPieces = new List<ArmorRecordViewModel>();
+    var stagedPieces   = new List<ArmorRecordViewModel>();
 
     foreach (var piece in distinctPieces)
     {
@@ -298,7 +300,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       if (existingConflict is not null)
       {
         var overlap = piece.SlotMask & existingConflict.SlotMask;
-        var slot = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
+        var slot    = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
         RaiseStatus($"Slot conflict: {piece.DisplayName} overlaps {existingConflict.DisplayName} ({slot}).");
         _logger.Warning(
           "Prevented adding {Piece} to outfit {EditorId} due to conflict with {Existing} on slot {Slot}.",
@@ -313,7 +315,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       if (stagedConflict is not null)
       {
         var overlap = piece.SlotMask & stagedConflict.SlotMask;
-        var slot = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
+        var slot    = overlap != 0 ? ArmorRecordViewModel.FormatSlotMask(overlap) : piece.SlotSummary;
         RaiseStatus($"Slot conflict: {piece.DisplayName} overlaps {stagedConflict.DisplayName} ({slot}).");
         _logger.Warning(
           "Prevented adding {Piece} to outfit {EditorId} due to conflict with staged piece {Staged} on slot {Slot}.",
@@ -368,7 +370,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       return 0;
     }
 
-    var pluginModKey = ModKey.FromFileName(plugin);
+    var pluginModKey    = ModKey.FromFileName(plugin);
     var discoveredCount = 0;
 
     foreach (var outfit in outfits)
@@ -378,7 +380,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
         continue;
       }
 
-      var itemLinks = outfit.Items ?? [];
+      var itemLinks   = outfit.Items ?? [];
       var armorPieces = new List<IArmorGetter>();
 
       foreach (var entry in itemLinks)
@@ -420,9 +422,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       }
 
       var distinctPieces = armorPieces
-        .GroupBy(p => p.FormKey)
-        .Select(g => g.First())
-        .ToList();
+                           .GroupBy(p => p.FormKey)
+                           .Select(g => g.First())
+                           .ToList();
 
       if (distinctPieces.Count == 0)
       {
@@ -471,7 +473,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
         continue;
       }
 
-      var baseName = SanitizeOutfitName(existing.EditorId);
+      var baseName   = SanitizeOutfitName(existing.EditorId);
       var uniqueName = EnsureUniqueOutfitName(baseName, null);
 
       if (!string.Equals(uniqueName, baseName, StringComparison.Ordinal))
@@ -483,8 +485,8 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       }
 
       var pieces = existing.Pieces
-        .Select(armor => new ArmorRecordViewModel(armor, linkCache))
-        .ToList();
+                           .Select(armor => new ArmorRecordViewModel(armor, linkCache))
+                           .ToList();
 
       if (!ValidateOutfitPieces(pieces, out var validationMessage))
       {
@@ -568,7 +570,7 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
   public List<IOutfitQueueItem> GetGroupedItems(OutfitSeparatorViewModel separator)
   {
-    var items = _queueSource.Items.ToList();
+    var items      = _queueSource.Items.ToList();
     var startIndex = items.IndexOf(separator);
     if (startIndex < 0)
     {
@@ -594,9 +596,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   {
     try
     {
-      var items = _queueSource.Items.ToList();
+      var items        = _queueSource.Items.ToList();
       var groupedItems = GetGroupedItems(separator);
-      var startIndex = items.IndexOf(separator);
+      var startIndex   = items.IndexOf(separator);
 
       if (startIndex < 0 || groupedItems.Count == 0)
       {
@@ -648,8 +650,8 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   public OutfitSeparatorViewModel AddSeparator(string name = "Group", string? icon = null, int? index = null)
   {
     var separatorIndex = index ?? GetNextSeparatorIndex();
-    var actualIcon = icon ?? IconCacheService.GetRandomIcon();
-    var separator = new OutfitSeparatorViewModel(name, ConfirmAndRemoveSeparatorAsync, separatorIndex, actualIcon);
+    var actualIcon     = icon ?? IconCacheService.GetRandomIcon();
+    var separator      = new OutfitSeparatorViewModel(name, ConfirmAndRemoveSeparatorAsync, separatorIndex, actualIcon);
     separator.PropertyChanged += OnItemPropertyChanged;
     _queueSource.Add(separator);
 
@@ -663,9 +665,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   private int GetNextSeparatorIndex()
   {
     var existingIndices = _queueSource.Items
-      .OfType<OutfitSeparatorViewModel>()
-      .Select(s => s.Index)
-      .ToHashSet();
+                                      .OfType<OutfitSeparatorViewModel>()
+                                      .Select(s => s.Index)
+                                      .ToHashSet();
 
     var index = 0;
     while (existingIndices.Contains(index))
@@ -703,9 +705,10 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   public void ClearDraftsFromOtherPlugins(ModKey targetModKey)
   {
     var draftsFromOtherPlugins = _queueSource.Items
-      .OfType<OutfitDraftViewModel>()
-      .Where(d => d.FormKey.HasValue && d.FormKey.Value.ModKey != targetModKey && !d.IsOverride)
-      .ToList();
+                                             .OfType<OutfitDraftViewModel>()
+                                             .Where(d => d.FormKey.HasValue && d.FormKey.Value.ModKey != targetModKey &&
+                                                         !d.IsOverride)
+                                             .ToList();
 
     if (draftsFromOtherPlugins.Count > 0)
     {
@@ -725,49 +728,52 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     Func<FormKey, ModKey?, ModKey?> getWinningMod)
   {
     var existingDraftKeys = _queueSource.Items
-      .OfType<OutfitDraftViewModel>()
-      .Where(d => d.FormKey.HasValue)
-      .Select(d => d.FormKey!.Value)
-      .ToHashSet();
+                                        .OfType<OutfitDraftViewModel>()
+                                        .Where(d => d.FormKey.HasValue)
+                                        .Select(d => d.FormKey!.Value)
+                                        .ToHashSet();
 
     var drafts = outfits
-      .AsParallel()
-      .WithDegreeOfParallelism(Environment.ProcessorCount)
-      .Select(outfit =>
-      {
-        if (existingDraftKeys.Contains(outfit.FormKey))
-        {
-          return null;
-        }
+                 .AsParallel()
+                 .WithDegreeOfParallelism(Environment.ProcessorCount)
+                 .Select(outfit =>
+                 {
+                   if (existingDraftKeys.Contains(outfit.FormKey))
+                   {
+                     return null;
+                   }
 
-        var result = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-        if (result.ArmorPieces.Count == 0)
-        {
-          return null;
-        }
+                   var result = OutfitResolver.GatherArmorPieces(outfit, linkCache);
+                   if (result.ArmorPieces.Count == 0)
+                   {
+                     return null;
+                   }
 
-        var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
+                   var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
 
-        if (!ValidateOutfitPieces(result.ArmorPieces, out var validationMessage))
-        {
-          _logger.Warning("Skipping outfit {EditorId} due to slot conflict: {Message}", editorId, validationMessage);
-          return null;
-        }
+                   if (!ValidateOutfitPieces(result.ArmorPieces, out var validationMessage))
+                   {
+                     _logger.Warning(
+                       "Skipping outfit {EditorId} due to slot conflict: {Message}",
+                       editorId,
+                       validationMessage);
+                     return null;
+                   }
 
-        var isOverride = outfit.FormKey.ModKey != targetModKey;
-        var overrideSourceMod = isOverride ? getWinningMod(outfit.FormKey, targetModKey) : null;
+                   var isOverride        = outfit.FormKey.ModKey != targetModKey;
+                   var overrideSourceMod = isOverride ? getWinningMod(outfit.FormKey, targetModKey) : null;
 
-        return new
-        {
-          EditorId = editorId,
-          Pieces = result.ArmorPieces,
-          outfit.FormKey,
-          IsOverride = isOverride,
-          OverrideSourceMod = overrideSourceMod
-        };
-      })
-      .Where(d => d != null)
-      .ToList();
+                   return new
+                          {
+                            EditorId = editorId,
+                            Pieces   = result.ArmorPieces,
+                            outfit.FormKey,
+                            IsOverride        = isOverride,
+                            OverrideSourceMod = overrideSourceMod
+                          };
+                 })
+                 .Where(d => d != null)
+                 .ToList();
 
     var draftViewModels = new List<OutfitDraftViewModel>();
     foreach (var d in drafts)
@@ -792,17 +798,17 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
   public List<OutfitCreationRequest> BuildSaveRequests()
   {
-    var populatedDrafts = _queueSource.Items.OfType<OutfitDraftViewModel>().Where(d => d.HasPieces).ToList();
+    var populatedDrafts    = _queueSource.Items.OfType<OutfitDraftViewModel>().Where(d => d.HasPieces).ToList();
     var deletionsToProcess = _pendingDeletions.ToList();
 
     var requests = populatedDrafts
       .ConvertAll(d => new OutfitCreationRequest(
-        d.Name,
-        d.EditorId,
-        [.. d.GetPieces().Select(p => p.Armor)],
-        d.FormKey,
-        d.IsOverride,
-        d.OverrideSourceMod));
+                    d.Name,
+                    d.EditorId,
+                    [.. d.GetPieces().Select(p => p.Armor)],
+                    d.FormKey,
+                    d.IsOverride,
+                    d.OverrideSourceMod));
 
     requests.AddRange(deletionsToProcess.Select(editorId => new OutfitCreationRequest(editorId, editorId, [])));
 
@@ -841,16 +847,16 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
     ModKey? overrideSourceMod = null)
   {
     var draft = new OutfitDraftViewModel(
-      name,
-      name,
-      pieces,
-      RemoveDraft,
-      RemovePiece,
-      d => PreviewDraftAsync?.Invoke(d) ?? Task.CompletedTask,
-      d => DuplicateDraftAsync(d))
-    {
-      FormKey = formKey, IsOverride = isOverride, OverrideSourceMod = overrideSourceMod
-    };
+                  name,
+                  name,
+                  pieces,
+                  RemoveDraft,
+                  RemovePiece,
+                  d => PreviewDraftAsync?.Invoke(d) ?? Task.CompletedTask,
+                  d => DuplicateDraftAsync(d))
+                {
+                  FormKey = formKey, IsOverride = isOverride, OverrideSourceMod = overrideSourceMod
+                };
 
     draft.PropertyChanged += OnItemPropertyChanged;
     return draft;
@@ -918,12 +924,15 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
   private string EnsureUniqueOutfitName(string baseName, OutfitDraftViewModel? exclude)
   {
     var sanitizedBase = string.IsNullOrEmpty(baseName) ? "Outfit" : baseName;
-    var candidate = sanitizedBase;
-    var suffixIndex = 0;
+    var candidate     = sanitizedBase;
+    var suffixIndex   = 0;
 
     while (_queueSource.Items.OfType<OutfitDraftViewModel>().Any(o =>
-             !ReferenceEquals(o, exclude) &&
-             string.Equals(o.EditorId, candidate, StringComparison.OrdinalIgnoreCase)))
+                                                                   !ReferenceEquals(o, exclude) &&
+                                                                   string.Equals(
+                                                                     o.EditorId,
+                                                                     candidate,
+                                                                     StringComparison.OrdinalIgnoreCase)))
     {
       suffixIndex++;
       candidate = sanitizedBase + AlphabetSuffix(suffixIndex);
@@ -970,13 +979,13 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
       if (state.Order is { Count: > 0 } && _queueSource.Count > 0)
       {
         var orderMap = state.Order
-          .Select((itemId, index) => (itemId, index))
-          .ToDictionary(x => x.itemId, x => x.index, StringComparer.OrdinalIgnoreCase);
+                            .Select((itemId, index) => (itemId, index))
+                            .ToDictionary(x => x.itemId, x => x.index, StringComparer.OrdinalIgnoreCase);
 
         var sorted = _queueSource.Items
-          .OrderBy(d => orderMap.TryGetValue(d.ItemId, out var idx) ? idx : int.MaxValue)
-          .ThenBy(d => d.ItemId)
-          .ToList();
+                                 .OrderBy(d => orderMap.TryGetValue(d.ItemId, out var idx) ? idx : int.MaxValue)
+                                 .ThenBy(d => d.ItemId)
+                                 .ToList();
 
         _queueSource.Clear();
         _queueSource.AddRange(sorted);
@@ -1013,10 +1022,10 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
       var order = _queueSource.Items.Select(d => d.ItemId).ToList();
       var separators = _queueSource.Items
-        .OfType<OutfitSeparatorViewModel>()
-        .OrderBy(s => s.Index)
-        .Select(s => new SeparatorState { Name = s.Name, Icon = s.Icon })
-        .ToList();
+                                   .OfType<OutfitSeparatorViewModel>()
+                                   .OrderBy(s => s.Index)
+                                   .Select(s => new SeparatorState { Name = s.Name, Icon = s.Icon })
+                                   .ToList();
 
       GuiSettingsService.Current?.SetOutfitDraftOrder(_currentPatchName, order, separators);
     }
@@ -1059,9 +1068,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
   private void UpdateChildVisibility()
   {
-    var isVisible = true;
+    var                       isVisible        = true;
     OutfitSeparatorViewModel? currentSeparator = null;
-    var currentCount = 0;
+    var                       currentCount     = 0;
 
     foreach (var item in _queueSource.Items)
     {
@@ -1070,9 +1079,9 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
         currentSeparator?.ChildCount = currentCount;
 
         separator.IsVisible = true;
-        isVisible = separator.IsExpanded;
-        currentSeparator = separator;
-        currentCount = 0;
+        isVisible           = separator.IsExpanded;
+        currentSeparator    = separator;
+        currentCount        = 0;
       }
       else
       {

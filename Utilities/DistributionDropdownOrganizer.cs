@@ -18,7 +18,7 @@ public static class DistributionDropdownOrganizer
   public static GroupedDropdownStructure Organize(IEnumerable<DistributionFileViewModel> files)
   {
     var newFileAction = new GroupedDropdownAction("<New File>", NewFileActionId);
-    var fileList = files.ToList();
+    var fileList      = files.ToList();
     if (fileList.Count == 0)
     {
       return new GroupedDropdownStructure(
@@ -29,18 +29,18 @@ public static class DistributionDropdownOrganizer
     var duplicateFileNames = GetDuplicateFileNames(fileList);
 
     var grouped = fileList
-      .Select(f => new
-      {
-        File = f,
-        GroupName = f.ModName,
-        UniquePath = duplicateFileNames.Contains(f.FileName) ? f.UniquePath : f.FileName
-      })
-      .GroupBy(x => x.GroupName, StringComparer.OrdinalIgnoreCase)
-      .OrderBy(g => string.IsNullOrEmpty(g.Key) ? 0 : 1)
-      .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
-      .ToList();
+                  .Select(f => new
+                               {
+                                 File       = f,
+                                 GroupName  = f.ModName,
+                                 UniquePath = duplicateFileNames.Contains(f.FileName) ? f.UniquePath : f.FileName
+                               })
+                  .GroupBy(x => x.GroupName, StringComparer.OrdinalIgnoreCase)
+                  .OrderBy(g => string.IsNullOrEmpty(g.Key) ? 0 : 1)
+                  .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                  .ToList();
 
-    var items = new List<GroupedDropdownItem> { newFileAction };
+    var items      = new List<GroupedDropdownItem> { newFileAction };
     var groupNames = new List<string>();
 
     foreach (var group in grouped)
@@ -54,8 +54,8 @@ public static class DistributionDropdownOrganizer
       }
 
       var sortedFiles = group
-        .OrderBy(x => x.UniquePath, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+                        .OrderBy(x => x.UniquePath, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
 
       foreach (var fileInfo in sortedFiles)
       {
@@ -88,7 +88,7 @@ public static class DistributionDropdownOrganizer
     }
 
     // Check if path starts with groupName followed by / or \
-    var prefixWithSlash = groupName + "/";
+    var prefixWithSlash     = groupName + "/";
     var prefixWithBackslash = groupName + "\\";
 
     if (path.StartsWith(prefixWithSlash, StringComparison.OrdinalIgnoreCase))

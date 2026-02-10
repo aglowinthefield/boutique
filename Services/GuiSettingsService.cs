@@ -63,8 +63,8 @@ public class GuiSettingsService
 
   private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-  private readonly ILogger _logger;
-  private GuiSettings _settings = new();
+  private readonly ILogger     _logger;
+  private          GuiSettings _settings = new();
 
   public GuiSettingsService(ILogger logger)
   {
@@ -190,19 +190,19 @@ public class GuiSettingsService
     if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
         _settings.WindowWidth.Value > 0 && _settings.WindowHeight.Value > 0)
     {
-      window.Width = _settings.WindowWidth.Value;
+      window.Width  = _settings.WindowWidth.Value;
       window.Height = _settings.WindowHeight.Value;
     }
 
     if (_settings.WindowLeft.HasValue && _settings.WindowTop.HasValue)
     {
       var left = _settings.WindowLeft.Value;
-      var top = _settings.WindowTop.Value;
+      var top  = _settings.WindowTop.Value;
 
       if (IsOnScreen(left, top, window.Width, window.Height))
       {
-        window.Left = left;
-        window.Top = top;
+        window.Left                  = left;
+        window.Top                   = top;
         window.WindowStartupLocation = WindowStartupLocation.Manual;
       }
     }
@@ -217,16 +217,16 @@ public class GuiSettingsService
   {
     if (window.WindowState == WindowState.Normal)
     {
-      _settings.WindowLeft = window.Left;
-      _settings.WindowTop = window.Top;
-      _settings.WindowWidth = window.Width;
+      _settings.WindowLeft   = window.Left;
+      _settings.WindowTop    = window.Top;
+      _settings.WindowWidth  = window.Width;
       _settings.WindowHeight = window.Height;
     }
     else if (window.WindowState == WindowState.Maximized)
     {
-      _settings.WindowLeft = window.RestoreBounds.Left;
-      _settings.WindowTop = window.RestoreBounds.Top;
-      _settings.WindowWidth = window.RestoreBounds.Width;
+      _settings.WindowLeft   = window.RestoreBounds.Left;
+      _settings.WindowTop    = window.RestoreBounds.Top;
+      _settings.WindowWidth  = window.RestoreBounds.Width;
       _settings.WindowHeight = window.RestoreBounds.Height;
     }
 
@@ -245,7 +245,7 @@ public class GuiSettingsService
     if (geometry.Width.HasValue && geometry.Height.HasValue &&
         geometry.Width.Value > 0 && geometry.Height.Value > 0)
     {
-      window.Width = geometry.Width.Value;
+      window.Width  = geometry.Width.Value;
       window.Height = geometry.Height.Value;
     }
 
@@ -253,8 +253,8 @@ public class GuiSettingsService
     {
       if (IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
       {
-        window.Left = geometry.Left.Value;
-        window.Top = geometry.Top.Value;
+        window.Left                  = geometry.Left.Value;
+        window.Top                   = geometry.Top.Value;
         window.WindowStartupLocation = WindowStartupLocation.Manual;
       }
     }
@@ -265,9 +265,9 @@ public class GuiSettingsService
     _settings.SecondaryWindowGeometries ??= new Dictionary<string, SecondaryWindowGeometry>();
 
     var geometry = new SecondaryWindowGeometry
-    {
-      Left = window.Left, Top = window.Top, Width = window.Width, Height = window.Height
-    };
+                   {
+                     Left = window.Left, Top = window.Top, Width = window.Width, Height = window.Height
+                   };
 
     _settings.SecondaryWindowGeometries[windowKey] = geometry;
     SaveSettings();
@@ -302,11 +302,11 @@ public class GuiSettingsService
 
     if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
     {
-      state = new OutfitDraftsState();
+      state                                   = new OutfitDraftsState();
       _settings.OutfitDraftsStates[patchName] = state;
     }
 
-    state.Order = [.. itemIds];
+    state.Order      = [.. itemIds];
     state.Separators = separators?.ToList();
     SaveSettings();
   }
@@ -323,15 +323,15 @@ public class GuiSettingsService
 
     if (!_settings.OutfitDraftsStates.TryGetValue(patchName, out var state))
     {
-      state = new OutfitDraftsState();
+      state                                   = new OutfitDraftsState();
       _settings.OutfitDraftsStates[patchName] = state;
     }
 
     state.Collapsed ??= [];
 
     var changed = collapsed
-      ? state.Collapsed.Add(editorId)
-      : state.Collapsed.Remove(editorId);
+                    ? state.Collapsed.Add(editorId)
+                    : state.Collapsed.Remove(editorId);
 
     if (changed)
     {
@@ -341,13 +341,13 @@ public class GuiSettingsService
 
   private static bool IsOnScreen(double left, double top, double width, double height)
   {
-    var virtualScreenLeft = SystemParameters.VirtualScreenLeft;
-    var virtualScreenTop = SystemParameters.VirtualScreenTop;
-    var virtualScreenWidth = SystemParameters.VirtualScreenWidth;
+    var virtualScreenLeft   = SystemParameters.VirtualScreenLeft;
+    var virtualScreenTop    = SystemParameters.VirtualScreenTop;
+    var virtualScreenWidth  = SystemParameters.VirtualScreenWidth;
     var virtualScreenHeight = SystemParameters.VirtualScreenHeight;
 
     var virtualScreen = new Rect(virtualScreenLeft, virtualScreenTop, virtualScreenWidth, virtualScreenHeight);
-    var windowRect = new Rect(left, top, width, height);
+    var windowRect    = new Rect(left, top, width, height);
 
     if (!windowRect.IntersectsWith(virtualScreen))
     {
@@ -368,7 +368,7 @@ public class GuiSettingsService
         return;
       }
 
-      var json = File.ReadAllText(_configPath);
+      var json   = File.ReadAllText(_configPath);
       var loaded = JsonSerializer.Deserialize<GuiSettings>(json);
       if (loaded != null)
       {

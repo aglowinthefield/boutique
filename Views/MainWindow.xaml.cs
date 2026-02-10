@@ -11,9 +11,9 @@ namespace Boutique.Views;
 public partial class MainWindow : Window
 {
   private readonly CompositeDisposable _bindings = [];
-  private readonly GuiSettingsService _guiSettings;
-  private readonly ThemeService _themeService;
-  private bool _initialized;
+  private readonly GuiSettingsService  _guiSettings;
+  private readonly ThemeService        _themeService;
+  private          bool                _initialized;
 
   public MainWindow(
     MainViewModel viewModel,
@@ -21,9 +21,9 @@ public partial class MainWindow : Window
     GuiSettingsService guiSettings)
   {
     InitializeComponent();
-    DataContext = viewModel;
+    DataContext   = viewModel;
     _themeService = themeService;
-    _guiSettings = guiSettings;
+    _guiSettings  = guiSettings;
 
     _guiSettings.RestoreWindowGeometry(this);
 
@@ -32,14 +32,19 @@ public partial class MainWindow : Window
       _themeService.ApplyTitleBarTheme(this);
       ApplyFontScale(_themeService.CurrentFontScale);
     };
-    _themeService.ThemeChanged += OnThemeChanged;
+    _themeService.ThemeChanged     += OnThemeChanged;
     _themeService.FontScaleChanged += OnFontScaleChanged;
 
     var notificationDisposable = viewModel.PatchCreatedNotification.RegisterHandler(async interaction =>
     {
       var message = interaction.Input;
       await Dispatcher.InvokeAsync(() =>
-        MessageBox.Show(this, message, "Patch Created", MessageBoxButton.OK, MessageBoxImage.Information));
+                                     MessageBox.Show(
+                                       this,
+                                       message,
+                                       "Patch Created",
+                                       MessageBoxButton.OK,
+                                       MessageBoxImage.Information));
       interaction.SetOutput(Unit.Default);
     });
     _bindings.Add(notificationDisposable);
@@ -48,13 +53,13 @@ public partial class MainWindow : Window
     {
       var message = interaction.Input;
       var result = await Dispatcher.InvokeAsync(() =>
-        MessageBox.Show(
-          this,
-          message,
-          "Overwrite Existing Patch?",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Warning,
-          MessageBoxResult.No));
+                                                  MessageBox.Show(
+                                                    this,
+                                                    message,
+                                                    "Overwrite Existing Patch?",
+                                                    MessageBoxButton.YesNo,
+                                                    MessageBoxImage.Warning,
+                                                    MessageBoxResult.No));
       interaction.SetOutput(result == MessageBoxResult.Yes);
     });
     _bindings.Add(confirmDisposable);
@@ -63,13 +68,13 @@ public partial class MainWindow : Window
     {
       var message = interaction.Input;
       var result = await Dispatcher.InvokeAsync(() =>
-        MessageBox.Show(
-          this,
-          message,
-          "Confirm Delete",
-          MessageBoxButton.YesNo,
-          MessageBoxImage.Question,
-          MessageBoxResult.No));
+                                                  MessageBox.Show(
+                                                    this,
+                                                    message,
+                                                    "Confirm Delete",
+                                                    MessageBoxButton.YesNo,
+                                                    MessageBoxImage.Question,
+                                                    MessageBoxResult.No));
       interaction.SetOutput(result == MessageBoxResult.Yes);
     });
     _bindings.Add(confirmDeleteDisposable);
@@ -78,7 +83,7 @@ public partial class MainWindow : Window
     {
       var (prompt, defaultValue) = interaction.Input;
       var result = await Dispatcher.InvokeAsync(() =>
-        InputDialog.Show(this, prompt, "Create Outfit", defaultValue));
+                                                  InputDialog.Show(this, prompt, "Create Outfit", defaultValue));
       interaction.SetOutput(result);
     });
     _bindings.Add(outfitNameDisposable);
@@ -112,7 +117,7 @@ public partial class MainWindow : Window
     {
       var (title, message) = interaction.Input;
       await Dispatcher.InvokeAsync(() =>
-        MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Error));
+                                     MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Error));
       interaction.SetOutput(Unit.Default);
     });
     _bindings.Add(errorDisposable);
@@ -121,7 +126,7 @@ public partial class MainWindow : Window
     Closed += (_, _) =>
     {
       _bindings.Dispose();
-      _themeService.ThemeChanged -= OnThemeChanged;
+      _themeService.ThemeChanged     -= OnThemeChanged;
       _themeService.FontScaleChanged -= OnFontScaleChanged;
     };
     Loaded += OnLoaded;

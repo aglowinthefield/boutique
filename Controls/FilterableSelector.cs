@@ -55,9 +55,9 @@ public class FilterableSelector : Control
       new PropertyMetadata(false, OnIsDropDownOpenChanged));
 
   private ListCollectionView? _filteredView;
-  private bool _isUpdatingText;
-  private ListBox? _listBox;
-  private TextBox? _textBox;
+  private bool                _isUpdatingText;
+  private ListBox?            _listBox;
+  private TextBox?            _textBox;
 
   static FilterableSelector()
   {
@@ -113,15 +113,15 @@ public class FilterableSelector : Control
 
     if (_textBox != null)
     {
-      _textBox.TextChanged += OnTextChanged;
-      _textBox.GotFocus += OnTextBoxGotFocus;
-      _textBox.LostFocus += OnTextBoxLostFocus;
+      _textBox.TextChanged    += OnTextChanged;
+      _textBox.GotFocus       += OnTextBoxGotFocus;
+      _textBox.LostFocus      += OnTextBoxLostFocus;
       _textBox.PreviewKeyDown += OnTextBoxKeyDown;
     }
 
     if (_listBox != null)
     {
-      _listBox.SelectionChanged += OnListBoxSelectionChanged;
+      _listBox.SelectionChanged         += OnListBoxSelectionChanged;
       _listBox.PreviewMouseLeftButtonUp += OnListBoxMouseUp;
     }
 
@@ -160,7 +160,7 @@ public class FilterableSelector : Control
       return;
     }
 
-    _filteredView = new ListCollectionView(list);
+    _filteredView         = new ListCollectionView(list);
     _listBox?.ItemsSource = _filteredView;
   }
 
@@ -201,19 +201,19 @@ public class FilterableSelector : Control
     var filterPath = FilterPath ?? DisplayMemberPath;
 
     _filteredView.Filter = string.IsNullOrEmpty(filterText)
-      ? null
-      : item =>
-      {
-        if (item == null)
-        {
-          return true;
-        }
+                             ? null
+                             : item =>
+                             {
+                               if (item == null)
+                               {
+                                 return true;
+                               }
 
-        var value = string.IsNullOrEmpty(filterPath)
-          ? item.ToString()
-          : GetPropertyValue(item, filterPath);
-        return value?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true;
-      };
+                               var value = string.IsNullOrEmpty(filterPath)
+                                             ? item.ToString()
+                                             : GetPropertyValue(item, filterPath);
+                               return value?.Contains(filterText, StringComparison.OrdinalIgnoreCase) == true;
+                             };
 
     if (!IsDropDownOpen && !string.IsNullOrEmpty(filterText))
     {
@@ -307,7 +307,7 @@ public class FilterableSelector : Control
 
   private void SelectItem(object item)
   {
-    SelectedItem = item;
+    SelectedItem   = item;
     IsDropDownOpen = false;
     _filteredView?.Refresh();
     _filteredView!.Filter = null;

@@ -23,15 +23,15 @@ public partial class DistributionEntryListView
     if (e.NewValue is DistributionEditTabViewModel vm)
     {
       _selectedEntrySubscription = vm
-        .WhenAnyValue(x => x.SelectedEntry)
-        .ObserveOn(RxApp.MainThreadScheduler)
-        .Subscribe(entry =>
-        {
-          if (entry != null)
-          {
-            EntryListBox.ScrollIntoView(entry);
-          }
-        });
+                                   .WhenAnyValue(x => x.SelectedEntry)
+                                   .ObserveOn(RxApp.MainThreadScheduler)
+                                   .Subscribe(entry =>
+                                   {
+                                     if (entry != null)
+                                     {
+                                       EntryListBox.ScrollIntoView(entry);
+                                     }
+                                   });
     }
   }
 

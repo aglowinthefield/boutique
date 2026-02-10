@@ -12,20 +12,20 @@ public sealed class FormIdLookupCache
   public FormIdLookupCache(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     NpcsByFormId = linkCache.WinningOverrides<INpcGetter>()
-      .GroupBy(r => r.FormKey.ID)
-      .ToDictionary(g => g.Key, g => g.First().FormKey);
+                            .GroupBy(r => r.FormKey.ID)
+                            .ToDictionary(g => g.Key, g => g.First().FormKey);
 
     FactionsByFormId = linkCache.WinningOverrides<IFactionGetter>()
-      .GroupBy(r => r.FormKey.ID)
-      .ToDictionary(g => g.Key, g => g.First().FormKey);
+                                .GroupBy(r => r.FormKey.ID)
+                                .ToDictionary(g => g.Key, g => g.First().FormKey);
 
     RacesByFormId = linkCache.WinningOverrides<IRaceGetter>()
-      .GroupBy(r => r.FormKey.ID)
-      .ToDictionary(g => g.Key, g => g.First().FormKey);
+                             .GroupBy(r => r.FormKey.ID)
+                             .ToDictionary(g => g.Key, g => g.First().FormKey);
 
     OutfitsByFormId = linkCache.WinningOverrides<IOutfitGetter>()
-      .GroupBy(r => r.FormKey.ID)
-      .ToDictionary(g => g.Key, g => g.First().FormKey);
+                               .GroupBy(r => r.FormKey.ID)
+                               .ToDictionary(g => g.Key, g => g.First().FormKey);
   }
 
   public IReadOnlyDictionary<uint, FormKey> NpcsByFormId { get; }
@@ -54,17 +54,17 @@ public static class SpidFilterResolver
         return null;
       }
 
-      var npcFilters = new List<FormKeyFilter>();
-      var keywordFilters = new List<KeywordFilter>();
-      var factionFilters = new List<FormKeyFilter>();
-      var raceFilters = new List<FormKeyFilter>();
-      var classFormKeys = new List<FormKey>();
-      var combatStyleFormKeys = new List<FormKey>();
+      var npcFilters           = new List<FormKeyFilter>();
+      var keywordFilters       = new List<KeywordFilter>();
+      var factionFilters       = new List<FormKeyFilter>();
+      var raceFilters          = new List<FormKeyFilter>();
+      var classFormKeys        = new List<FormKey>();
+      var combatStyleFormKeys  = new List<FormKey>();
       var outfitFilterFormKeys = new List<FormKey>();
-      var perkFormKeys = new List<FormKey>();
-      var voiceTypeFormKeys = new List<FormKey>();
-      var locationFormKeys = new List<FormKey>();
-      var formListFormKeys = new List<FormKey>();
+      var perkFormKeys         = new List<FormKey>();
+      var voiceTypeFormKeys    = new List<FormKey>();
+      var locationFormKeys     = new List<FormKey>();
+      var formListFormKeys     = new List<FormKey>();
 
       ProcessStringFilters(
         filter.StringFilters,
@@ -112,24 +112,24 @@ public static class SpidFilterResolver
       }
 
       var entry = new DistributionEntry
-      {
-        Outfit = outfit,
-        NpcFilters = npcFilters,
-        KeywordFilters = keywordFilters,
-        FactionFilters = factionFilters,
-        RaceFilters = raceFilters,
-        ClassFormKeys = classFormKeys,
-        CombatStyleFormKeys = combatStyleFormKeys,
-        OutfitFilterFormKeys = outfitFilterFormKeys,
-        PerkFormKeys = perkFormKeys,
-        VoiceTypeFormKeys = voiceTypeFormKeys,
-        LocationFormKeys = locationFormKeys,
-        FormListFormKeys = formListFormKeys,
-        TraitFilters = filter.TraitFilters,
-        LevelFilters = filter.LevelFilters,
-        RawStringFilters = rawStringFilters,
-        RawFormFilters = rawFormFilters
-      };
+                  {
+                    Outfit               = outfit,
+                    NpcFilters           = npcFilters,
+                    KeywordFilters       = keywordFilters,
+                    FactionFilters       = factionFilters,
+                    RaceFilters          = raceFilters,
+                    ClassFormKeys        = classFormKeys,
+                    CombatStyleFormKeys  = combatStyleFormKeys,
+                    OutfitFilterFormKeys = outfitFilterFormKeys,
+                    PerkFormKeys         = perkFormKeys,
+                    VoiceTypeFormKeys    = voiceTypeFormKeys,
+                    LocationFormKeys     = locationFormKeys,
+                    FormListFormKeys     = formListFormKeys,
+                    TraitFilters         = filter.TraitFilters,
+                    LevelFilters         = filter.LevelFilters,
+                    RawStringFilters     = rawStringFilters,
+                    RawFormFilters       = rawFormFilters
+                  };
 
       if (outfitFilterFormKeys.Count > 0)
       {
@@ -171,17 +171,17 @@ public static class SpidFilterResolver
         return null;
       }
 
-      var npcFilters = new List<FormKeyFilter>();
-      var keywordFilters = new List<KeywordFilter>();
-      var factionFilters = new List<FormKeyFilter>();
-      var raceFilters = new List<FormKeyFilter>();
-      var classFormKeys = new List<FormKey>();
-      var combatStyleFormKeys = new List<FormKey>();
+      var npcFilters           = new List<FormKeyFilter>();
+      var keywordFilters       = new List<KeywordFilter>();
+      var factionFilters       = new List<FormKeyFilter>();
+      var raceFilters          = new List<FormKeyFilter>();
+      var classFormKeys        = new List<FormKey>();
+      var combatStyleFormKeys  = new List<FormKey>();
       var outfitFilterFormKeys = new List<FormKey>();
-      var perkFormKeys = new List<FormKey>();
-      var voiceTypeFormKeys = new List<FormKey>();
-      var locationFormKeys = new List<FormKey>();
-      var formListFormKeys = new List<FormKey>();
+      var perkFormKeys         = new List<FormKey>();
+      var voiceTypeFormKeys    = new List<FormKey>();
+      var locationFormKeys     = new List<FormKey>();
+      var formListFormKeys     = new List<FormKey>();
 
       ProcessStringFilters(
         filter.StringFilters,
@@ -215,25 +215,25 @@ public static class SpidFilterResolver
       var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
 
       var entry = new DistributionEntry
-      {
-        Type = DistributionType.Keyword,
-        KeywordToDistribute = keywordToDistribute,
-        NpcFilters = npcFilters,
-        KeywordFilters = keywordFilters,
-        FactionFilters = factionFilters,
-        RaceFilters = raceFilters,
-        ClassFormKeys = classFormKeys,
-        CombatStyleFormKeys = combatStyleFormKeys,
-        OutfitFilterFormKeys = outfitFilterFormKeys,
-        PerkFormKeys = perkFormKeys,
-        VoiceTypeFormKeys = voiceTypeFormKeys,
-        LocationFormKeys = locationFormKeys,
-        FormListFormKeys = formListFormKeys,
-        TraitFilters = filter.TraitFilters,
-        LevelFilters = filter.LevelFilters,
-        RawStringFilters = rawStringFilters,
-        RawFormFilters = rawFormFilters
-      };
+                  {
+                    Type                 = DistributionType.Keyword,
+                    KeywordToDistribute  = keywordToDistribute,
+                    NpcFilters           = npcFilters,
+                    KeywordFilters       = keywordFilters,
+                    FactionFilters       = factionFilters,
+                    RaceFilters          = raceFilters,
+                    ClassFormKeys        = classFormKeys,
+                    CombatStyleFormKeys  = combatStyleFormKeys,
+                    OutfitFilterFormKeys = outfitFilterFormKeys,
+                    PerkFormKeys         = perkFormKeys,
+                    VoiceTypeFormKeys    = voiceTypeFormKeys,
+                    LocationFormKeys     = locationFormKeys,
+                    FormListFormKeys     = formListFormKeys,
+                    TraitFilters         = filter.TraitFilters,
+                    LevelFilters         = filter.LevelFilters,
+                    RawStringFilters     = rawStringFilters,
+                    RawFormFilters       = rawFormFilters
+                  };
 
       if (filter.Chance != 100)
       {
@@ -278,7 +278,7 @@ public static class SpidFilterResolver
 
     if (outfitIdentifier.Contains('|'))
     {
-      var pipeIndex = outfitIdentifier.IndexOf('|');
+      var pipeIndex    = outfitIdentifier.IndexOf('|');
       var modKeyString = outfitIdentifier[..pipeIndex].Trim();
       var formIdString = outfitIdentifier[(pipeIndex + 1)..].Trim();
 
@@ -298,7 +298,10 @@ public static class SpidFilterResolver
     }
 
     var resolvedOutfit = cachedOutfits.FirstOrDefault(o =>
-      string.Equals(o.EditorID, outfitIdentifier, StringComparison.OrdinalIgnoreCase));
+                                                        string.Equals(
+                                                          o.EditorID,
+                                                          outfitIdentifier,
+                                                          StringComparison.OrdinalIgnoreCase));
 
     if (resolvedOutfit == null)
     {
@@ -327,8 +330,14 @@ public static class SpidFilterResolver
         }
 
         var npc = cachedNpcs.FirstOrDefault(n =>
-          string.Equals(n.EditorID, part.Value, StringComparison.OrdinalIgnoreCase) ||
-          string.Equals(n.Name?.String, part.Value, StringComparison.OrdinalIgnoreCase));
+                                              string.Equals(
+                                                n.EditorID,
+                                                part.Value,
+                                                StringComparison.OrdinalIgnoreCase) ||
+                                              string.Equals(
+                                                n.Name?.String,
+                                                part.Value,
+                                                StringComparison.OrdinalIgnoreCase));
         if (npc != null)
         {
           npcFilters.Add(new FormKeyFilter(npc.FormKey, part.IsNegated));
@@ -337,7 +346,10 @@ public static class SpidFilterResolver
         }
 
         var keyword = linkCache.WinningOverrides<IKeywordGetter>()
-          .FirstOrDefault(k => string.Equals(k.EditorID, part.Value, StringComparison.OrdinalIgnoreCase));
+                               .FirstOrDefault(k => string.Equals(
+                                                 k.EditorID,
+                                                 part.Value,
+                                                 StringComparison.OrdinalIgnoreCase));
         if (keyword != null)
         {
           keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? part.Value, part.IsNegated));
@@ -362,8 +374,14 @@ public static class SpidFilterResolver
       }
 
       var npc = cachedNpcs.FirstOrDefault(n =>
-        string.Equals(n.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(n.Name?.String, exclusion.Value, StringComparison.OrdinalIgnoreCase));
+                                            string.Equals(
+                                              n.EditorID,
+                                              exclusion.Value,
+                                              StringComparison.OrdinalIgnoreCase) ||
+                                            string.Equals(
+                                              n.Name?.String,
+                                              exclusion.Value,
+                                              StringComparison.OrdinalIgnoreCase));
       if (npc != null)
       {
         npcFilters.Add(new FormKeyFilter(npc.FormKey, true));
@@ -372,7 +390,10 @@ public static class SpidFilterResolver
       }
 
       var keyword = linkCache.WinningOverrides<IKeywordGetter>()
-        .FirstOrDefault(k => string.Equals(k.EditorID, exclusion.Value, StringComparison.OrdinalIgnoreCase));
+                             .FirstOrDefault(k => string.Equals(
+                                               k.EditorID,
+                                               exclusion.Value,
+                                               StringComparison.OrdinalIgnoreCase));
       if (keyword != null)
       {
         keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? exclusion.Value, true));
@@ -417,25 +438,25 @@ public static class SpidFilterResolver
       {
         logger?.Debug("Processing form filter part: {Value}", part.Value);
         if (TryResolveFormFilterByFormKey(
-              part,
-              linkCache,
-              formIdCache,
-              npcFilters,
-              factionFilters,
-              raceFilters,
-              outfitFilterFormKeys,
-              resolvedEditorIds,
-              logger))
+          part,
+          linkCache,
+          formIdCache,
+          npcFilters,
+          factionFilters,
+          raceFilters,
+          outfitFilterFormKeys,
+          resolvedEditorIds,
+          logger))
         {
           continue;
         }
 
         if (TryResolveAndAddFilter<IFactionGetter>(
-              part.Value,
-              part.IsNegated,
-              linkCache,
-              factionFilters,
-              resolvedEditorIds))
+          part.Value,
+          part.IsNegated,
+          linkCache,
+          factionFilters,
+          resolvedEditorIds))
         {
           continue;
         }
@@ -493,15 +514,15 @@ public static class SpidFilterResolver
     {
       var exclusionPart = new SpidFilterPart { Value = exclusion.Value, IsNegated = true };
       if (TryResolveFormFilterByFormKey(
-            exclusionPart,
-            linkCache,
-            formIdCache,
-            npcFilters,
-            factionFilters,
-            raceFilters,
-            outfitFilterFormKeys,
-            resolvedEditorIds,
-            logger))
+        exclusionPart,
+        linkCache,
+        formIdCache,
+        npcFilters,
+        factionFilters,
+        raceFilters,
+        outfitFilterFormKeys,
+        resolvedEditorIds,
+        logger))
       {
         continue;
       }
@@ -797,7 +818,7 @@ public static class SpidFilterResolver
   private static T? ResolveByEditorId<T>(string editorId, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     where T : class, ISkyrimMajorRecordGetter =>
     linkCache.WinningOverrides<T>()
-      .FirstOrDefault(r => string.Equals(r.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+             .FirstOrDefault(r => string.Equals(r.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
 
   private static bool TryResolveAndAdd<T>(
     string editorId,
@@ -850,9 +871,9 @@ public static class SpidFilterResolver
     bool IsResolved(string value) =>
       resolvedKeywordEditorIds.Contains(value) ||
       cachedNpcs.Any(n =>
-        resolvedNpcFormKeys.Contains(n.FormKey) &&
-        (string.Equals(n.EditorID, value, StringComparison.OrdinalIgnoreCase) ||
-         string.Equals(n.Name?.String, value, StringComparison.OrdinalIgnoreCase)));
+                       resolvedNpcFormKeys.Contains(n.FormKey) &&
+                       (string.Equals(n.EditorID, value, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(n.Name?.String, value, StringComparison.OrdinalIgnoreCase)));
 
     var unresolvableParts = new List<string>();
 

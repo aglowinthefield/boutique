@@ -68,7 +68,7 @@ public class DistributionEntryHydrationService(
       return;
     }
 
-    var outfitFormKey = entryVm.SelectedOutfit.FormKey;
+    var outfitFormKey  = entryVm.SelectedOutfit.FormKey;
     var matchingOutfit = availableOutfits.FirstOrDefault(o => o.FormKey == outfitFormKey);
 
     if (matchingOutfit != null)
@@ -175,7 +175,10 @@ public class DistributionEntryHydrationService(
     }
 
     var existingKeyword = cache.AllKeywords.FirstOrDefault(k =>
-      string.Equals(k.KeywordRecord.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+                                                             string.Equals(
+                                                               k.KeywordRecord.EditorID,
+                                                               editorId,
+                                                               StringComparison.OrdinalIgnoreCase));
     if (existingKeyword != null)
     {
       return new KeywordRecordViewModel(existingKeyword.KeywordRecord);
@@ -184,7 +187,10 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache)
     {
       var keyword = linkCache.WinningOverrides<IKeywordGetter>()
-        .FirstOrDefault(k => string.Equals(k.EditorID, editorId, StringComparison.OrdinalIgnoreCase));
+                             .FirstOrDefault(k => string.Equals(
+                                               k.EditorID,
+                                               editorId,
+                                               StringComparison.OrdinalIgnoreCase));
       if (keyword != null)
       {
         return new KeywordRecordViewModel(KeywordRecord.FromGetter(keyword));

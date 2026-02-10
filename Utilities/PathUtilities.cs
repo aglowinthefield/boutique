@@ -32,9 +32,9 @@ public static class PathUtilities
     try
     {
       return Directory.EnumerateFiles(dataPath, "*.*", SearchOption.TopDirectoryOnly)
-        .Where(f => f.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
-                    f.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
-                    f.EndsWith(".esl", StringComparison.OrdinalIgnoreCase));
+                      .Where(f => f.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
+                                  f.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
+                                  f.EndsWith(".esl", StringComparison.OrdinalIgnoreCase));
     }
     catch
     {

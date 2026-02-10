@@ -30,150 +30,151 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       CancellationToken cancellationToken = default)
   {
     return await Task.Run(
-      () =>
-      {
-        var entries = new List<DistributionEntry>();
-        var parseErrors = new List<DistributionParseError>();
-        var hasSpidLines = false;
-        var detectedFormat = DistributionFileType.SkyPatcher;
+             () =>
+             {
+               var entries        = new List<DistributionEntry>();
+               var parseErrors    = new List<DistributionParseError>();
+               var hasSpidLines   = false;
+               var detectedFormat = DistributionFileType.SkyPatcher;
 
-        if (!File.Exists(filePath))
-        {
-          _logger.Warning("Distribution file does not exist: {FilePath}", filePath);
-          return (entries, detectedFormat, parseErrors);
-        }
+               if (!File.Exists(filePath))
+               {
+                 _logger.Warning("Distribution file does not exist: {FilePath}", filePath);
+                 return (entries, detectedFormat, parseErrors);
+               }
 
-        if (mutagenService.LinkCache is not { } linkCache)
-        {
-          _logger.Warning("LinkCache not available. Cannot load distribution file.");
-          return (entries, detectedFormat, parseErrors);
-        }
+               if (mutagenService.LinkCache is not { } linkCache)
+               {
+                 _logger.Warning("LinkCache not available. Cannot load distribution file.");
+                 return (entries, detectedFormat, parseErrors);
+               }
 
-        try
-        {
-          var lines = File.ReadAllLines(filePath, Encoding.UTF8);
+               try
+               {
+                 var lines = File.ReadAllLines(filePath, Encoding.UTF8);
 
-          List<INpcGetter>? cachedNpcs = null;
-          List<IOutfitGetter>? cachedOutfits = null;
-          FormIdLookupCache? formIdCache = null;
+                 List<INpcGetter>?    cachedNpcs    = null;
+                 List<IOutfitGetter>? cachedOutfits = null;
+                 FormIdLookupCache?   formIdCache   = null;
 
-          var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
-          var virtualKeywords = ExtractVirtualKeywordsFromLines(lines);
+                 var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
+                 var virtualKeywords  = ExtractVirtualKeywordsFromLines(lines);
 
-          for (var lineNumber = 0; lineNumber < lines.Length; lineNumber++)
-          {
-            cancellationToken.ThrowIfCancellationRequested();
+                 for (var lineNumber = 0; lineNumber < lines.Length; lineNumber++)
+                 {
+                   cancellationToken.ThrowIfCancellationRequested();
 
-            var line = lines[lineNumber];
-            var trimmed = line.Trim();
-            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#'))
-            {
-              continue;
-            }
+                   var line    = lines[lineNumber];
+                   var trimmed = line.Trim();
+                   if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#'))
+                   {
+                     continue;
+                   }
 
-            DistributionEntry? entry = null;
-            string? parseFailureReason = null;
+                   DistributionEntry? entry              = null;
+                   string?            parseFailureReason = null;
 
-            if (trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase))
-            {
-              var (parsedEntry, reason) = ParseDistributionLine(trimmed, linkCache, outfitByEditorId);
-              entry = parsedEntry;
-              parseFailureReason = reason;
-            }
-            else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
-            {
-              hasSpidLines = true;
+                   if (trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase))
+                   {
+                     var (parsedEntry, reason) = ParseDistributionLine(trimmed, linkCache, outfitByEditorId);
+                     entry                     = parsedEntry;
+                     parseFailureReason        = reason;
+                   }
+                   else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
+                   {
+                     hasSpidLines = true;
 
-              if (spidFilter.FormType == SpidFormType.Outfit)
-              {
-                cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                formIdCache ??= new FormIdLookupCache(linkCache);
+                     if (spidFilter.FormType == SpidFormType.Outfit)
+                     {
+                       cachedNpcs    ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                       cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
+                       formIdCache   ??= new FormIdLookupCache(linkCache);
 
-                entry = SpidFilterResolver.Resolve(
-                  spidFilter,
-                  linkCache,
-                  cachedNpcs,
-                  cachedOutfits,
-                  virtualKeywords,
-                  formIdCache,
-                  _logger);
-                if (entry == null)
-                {
-                  parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
-                }
-              }
-              else if (spidFilter.FormType == SpidFormType.Keyword)
-              {
-                cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
-                formIdCache ??= new FormIdLookupCache(linkCache);
+                       entry = SpidFilterResolver.Resolve(
+                         spidFilter,
+                         linkCache,
+                         cachedNpcs,
+                         cachedOutfits,
+                         virtualKeywords,
+                         formIdCache,
+                         _logger);
+                       if (entry == null)
+                       {
+                         parseFailureReason = "Could not resolve outfit or filters from SPID syntax";
+                       }
+                     }
+                     else if (spidFilter.FormType == SpidFormType.Keyword)
+                     {
+                       cachedNpcs  ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                       formIdCache ??= new FormIdLookupCache(linkCache);
 
-                entry = SpidFilterResolver.ResolveKeyword(
-                  spidFilter,
-                  linkCache,
-                  cachedNpcs,
-                  virtualKeywords,
-                  formIdCache,
-                  _logger);
-                if (entry == null)
-                {
-                  parseFailureReason =
-                    "Could not resolve keyword distribution filters from SPID syntax";
-                }
-              }
-              else if (spidFilter.FormType == SpidFormType.ExclusiveGroup)
-              {
-                entry = new DistributionEntry
-                {
-                  Type = DistributionType.ExclusiveGroup,
-                  ExclusiveGroupName = spidFilter.FormIdentifier,
-                  ExclusiveGroupForms = spidFilter.ExclusiveGroupForms.ToList()
-                };
-              }
-              else
-              {
-                parseErrors.Add(new DistributionParseError(
-                  lineNumber + 1,
-                  trimmed,
-                  $"{spidFilter.FormType} distribution (preserved)"));
-              }
-            }
-            else
-            {
-              parseFailureReason = "Unrecognized distribution syntax";
-            }
+                       entry = SpidFilterResolver.ResolveKeyword(
+                         spidFilter,
+                         linkCache,
+                         cachedNpcs,
+                         virtualKeywords,
+                         formIdCache,
+                         _logger);
+                       if (entry == null)
+                       {
+                         parseFailureReason =
+                           "Could not resolve keyword distribution filters from SPID syntax";
+                       }
+                     }
+                     else if (spidFilter.FormType == SpidFormType.ExclusiveGroup)
+                     {
+                       entry = new DistributionEntry
+                               {
+                                 Type                = DistributionType.ExclusiveGroup,
+                                 ExclusiveGroupName  = spidFilter.FormIdentifier,
+                                 ExclusiveGroupForms = spidFilter.ExclusiveGroupForms.ToList()
+                               };
+                     }
+                     else
+                     {
+                       parseErrors.Add(
+                         new DistributionParseError(
+                           lineNumber + 1,
+                           trimmed,
+                           $"{spidFilter.FormType} distribution (preserved)"));
+                     }
+                   }
+                   else
+                   {
+                     parseFailureReason = "Unrecognized distribution syntax";
+                   }
 
-            if (entry != null)
-            {
-              entries.Add(entry);
-            }
-            else if (parseFailureReason != null)
-            {
-              parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed, parseFailureReason));
-            }
-          }
+                   if (entry != null)
+                   {
+                     entries.Add(entry);
+                   }
+                   else if (parseFailureReason != null)
+                   {
+                     parseErrors.Add(new DistributionParseError(lineNumber + 1, trimmed, parseFailureReason));
+                   }
+                 }
 
-          detectedFormat = hasSpidLines ? DistributionFileType.Spid : DistributionFileType.SkyPatcher;
+                 detectedFormat = hasSpidLines ? DistributionFileType.Spid : DistributionFileType.SkyPatcher;
 
-          _logger.Information(
-            "Loaded {Count} distribution entries from {FilePath} (detected format: {Format}, {ErrorCount} parse errors)",
-            entries.Count,
-            filePath,
-            detectedFormat,
-            parseErrors.Count);
-        }
-        catch (OperationCanceledException)
-        {
-          _logger.Information("Distribution file load cancelled.");
-        }
-        catch (Exception ex)
-        {
-          _logger.Error(ex, "Failed to load distribution file: {FilePath}", filePath);
-        }
+                 _logger.Information(
+                   "Loaded {Count} distribution entries from {FilePath} (detected format: {Format}, {ErrorCount} parse errors)",
+                   entries.Count,
+                   filePath,
+                   detectedFormat,
+                   parseErrors.Count);
+               }
+               catch (OperationCanceledException)
+               {
+                 _logger.Information("Distribution file load cancelled.");
+               }
+               catch (Exception ex)
+               {
+                 _logger.Error(ex, "Failed to load distribution file: {FilePath}", filePath);
+               }
 
-        return (entries, detectedFormat, parseErrors);
-      },
-      cancellationToken);
+               return (entries, detectedFormat, parseErrors);
+             },
+             cancellationToken);
   }
 
   private (DistributionEntry? Entry, string? Reason) ParseDistributionLine(
@@ -188,20 +189,20 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, null);
       }
 
-      var npcStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
-      var excludedNpcStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
-      var factionStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
-      var keywordStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
+      var npcStrings             = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
+      var excludedNpcStrings     = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
+      var factionStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
+      var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
       var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
-      var raceStrings = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByRaces");
-      var classStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
-      var genderFilter = SkyPatcherSyntax.ParseGenderFilter(line);
+      var raceStrings            = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByRaces");
+      var classStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
+      var genderFilter           = SkyPatcherSyntax.ParseGenderFilter(line);
 
-      var npcFilters = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
+      var npcFilters     = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
       var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
       var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, excludedKeywordStrings, linkCache);
-      var raceFilters = ResolveRaceIdentifiers(raceStrings, linkCache);
-      var classFormKeys = ResolveClassIdentifiers(classStrings, linkCache);
+      var raceFilters    = ResolveRaceIdentifiers(raceStrings, linkCache);
+      var classFormKeys  = ResolveClassIdentifiers(classStrings, linkCache);
 
       var hasAnyParsedFilter = npcFilters.Count > 0 ||
                                factionFilters.Count > 0 ||
@@ -249,16 +250,16 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       }
 
       return (
-        new DistributionEntry
-        {
-          Outfit = outfit,
-          NpcFilters = npcFilters,
-          FactionFilters = factionFilters,
-          KeywordFilters = keywordFilters,
-          RaceFilters = raceFilters,
-          ClassFormKeys = classFormKeys,
-          TraitFilters = new SpidTraitFilters { IsFemale = genderFilter }
-        }, null);
+               new DistributionEntry
+               {
+                 Outfit         = outfit,
+                 NpcFilters     = npcFilters,
+                 FactionFilters = factionFilters,
+                 KeywordFilters = keywordFilters,
+                 RaceFilters    = raceFilters,
+                 ClassFormKeys  = classFormKeys,
+                 TraitFilters   = new SpidTraitFilters { IsFemale = genderFilter }
+               }, null);
     }
     catch (Exception ex)
     {
@@ -301,8 +302,8 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
     }
 
     var npc = linkCache.PriorityOrder.WinningOverrides<INpcGetter>()
-      .FirstOrDefault(n => string.Equals(n.EditorID, id, StringComparison.OrdinalIgnoreCase)
-                           || string.Equals(n.Name?.String, id, StringComparison.OrdinalIgnoreCase));
+                       .FirstOrDefault(n => string.Equals(n.EditorID, id, StringComparison.OrdinalIgnoreCase)
+                                            || string.Equals(n.Name?.String, id, StringComparison.OrdinalIgnoreCase));
     if (npc != null)
     {
       _logger.Debug("Resolved NPC EditorID/Name '{Id}' to {FormKey}", id, npc.FormKey);
@@ -327,7 +328,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       }
 
       var faction = linkCache.PriorityOrder.WinningOverrides<IFactionGetter>()
-        .FirstOrDefault(f => string.Equals(f.EditorID, id, StringComparison.OrdinalIgnoreCase));
+                             .FirstOrDefault(f => string.Equals(f.EditorID, id, StringComparison.OrdinalIgnoreCase));
       if (faction != null)
       {
         results.Add(new FormKeyFilter(faction.FormKey));
@@ -377,10 +378,13 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
     }
 
     var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
-      .FirstOrDefault(k => string.Equals(k.EditorID, id, StringComparison.OrdinalIgnoreCase));
+                                   .FirstOrDefault(k => string.Equals(
+                                                     k.EditorID,
+                                                     id,
+                                                     StringComparison.OrdinalIgnoreCase));
     return resolvedKeyword != null
-      ? new KeywordFilter(resolvedKeyword.EditorID ?? id, isExcluded)
-      : new KeywordFilter(id, isExcluded);
+             ? new KeywordFilter(resolvedKeyword.EditorID ?? id, isExcluded)
+             : new KeywordFilter(id, isExcluded);
   }
 
   private List<FormKeyFilter> ResolveRaceIdentifiers(
@@ -397,7 +401,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       }
 
       var race = linkCache.PriorityOrder.WinningOverrides<IRaceGetter>()
-        .FirstOrDefault(r => string.Equals(r.EditorID, id, StringComparison.OrdinalIgnoreCase));
+                          .FirstOrDefault(r => string.Equals(r.EditorID, id, StringComparison.OrdinalIgnoreCase));
       if (race != null)
       {
         results.Add(new FormKeyFilter(race.FormKey));
@@ -426,7 +430,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       }
 
       var cls = linkCache.PriorityOrder.WinningOverrides<IClassGetter>()
-        .FirstOrDefault(c => string.Equals(c.EditorID, id, StringComparison.OrdinalIgnoreCase));
+                         .FirstOrDefault(c => string.Equals(c.EditorID, id, StringComparison.OrdinalIgnoreCase));
       if (cls != null)
       {
         results.Add(cls.FormKey);

@@ -19,8 +19,8 @@ public partial class MissingMastersDialog : Window
     }
 
     var viewModels = result.MissingMasters
-      .Select(m => new MissingMasterViewModel(m))
-      .ToList();
+                           .Select(m => new MissingMasterViewModel(m))
+                           .ToList();
 
     MissingMastersItemsControl.ItemsSource = viewModels;
 
@@ -34,14 +34,14 @@ public partial class MissingMastersDialog : Window
 
   private void AddMastersButton_Click(object sender, RoutedEventArgs e)
   {
-    CleanPatch = false;
+    CleanPatch   = false;
     DialogResult = false;
     Close();
   }
 
   private void CleanPatchButton_Click(object sender, RoutedEventArgs e)
   {
-    CleanPatch = true;
+    CleanPatch   = true;
     DialogResult = true;
     Close();
   }
@@ -51,7 +51,7 @@ public class MissingMasterViewModel
 {
   public MissingMasterViewModel(MissingMasterInfo info)
   {
-    MasterFileName = info.MissingMaster.FileName;
+    MasterFileName  = info.MissingMaster.FileName;
     AffectedOutfits = [.. info.AffectedOutfits.Select(o => new AffectedOutfitViewModel(o))];
   }
 

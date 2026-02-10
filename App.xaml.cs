@@ -22,9 +22,9 @@ namespace Boutique;
 public partial class App
 #pragma warning restore CA1001
 {
-  private static string _pendingReleaseNotes = string.Empty;
-  private static bool _forceShowUpdate;
-  private LoggingService? _loggingService;
+  private static string          _pendingReleaseNotes = string.Empty;
+  private static bool            _forceShowUpdate;
+  private        LoggingService? _loggingService;
 
   public IContainer? Container { get; private set; }
 
@@ -112,9 +112,9 @@ public partial class App
 
     try
     {
-      AutoUpdater.ReportErrors = forceShow;
+      AutoUpdater.ReportErrors     = forceShow;
       AutoUpdater.RunUpdateAsAdmin = false;
-      AutoUpdater.HttpUserAgent = "Boutique-Updater";
+      AutoUpdater.HttpUserAgent    = "Boutique-Updater";
       AutoUpdater.InstallationPath = AppDomain.CurrentDomain.BaseDirectory;
 
       var installedVersion = GetInstalledVersion();
@@ -126,8 +126,8 @@ public partial class App
 
       AutoUpdater.ParseUpdateInfoEvent -= ParseGitHubReleases;
       AutoUpdater.ParseUpdateInfoEvent += ParseGitHubReleases;
-      AutoUpdater.CheckForUpdateEvent -= OnCheckForUpdate;
-      AutoUpdater.CheckForUpdateEvent += OnCheckForUpdate;
+      AutoUpdater.CheckForUpdateEvent  -= OnCheckForUpdate;
+      AutoUpdater.CheckForUpdateEvent  += OnCheckForUpdate;
       const string updateUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
 
       AutoUpdater.Start(updateUrl);
@@ -144,14 +144,14 @@ public partial class App
     if (args.IsUpdateAvailable)
     {
       var dialog = new UpdateDialog
-      {
-        CurrentVersion = (AutoUpdater.InstalledVersion ?? new Version(0, 0, 0)).ToString(),
-        LatestVersion = args.CurrentVersion,
-        ReleaseNotes = _pendingReleaseNotes,
-        DownloadUrl = args.DownloadURL,
-        Owner = Current.MainWindow,
-        DataContext = null
-      };
+                   {
+                     CurrentVersion = (AutoUpdater.InstalledVersion ?? new Version(0, 0, 0)).ToString(),
+                     LatestVersion  = args.CurrentVersion,
+                     ReleaseNotes   = _pendingReleaseNotes,
+                     DownloadUrl    = args.DownloadURL,
+                     Owner          = Current.MainWindow,
+                     DataContext    = null
+                   };
       dialog.DataContext = dialog;
 
       if (dialog.ShowDialog() == true && dialog.Result == UpdateResult.Update)
@@ -188,9 +188,9 @@ public partial class App
   {
     var assembly = Assembly.GetExecutingAssembly();
     var infoVersion = assembly
-      .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
-      .OfType<AssemblyInformationalVersionAttribute>()
-      .FirstOrDefault()?.InformationalVersion;
+                      .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
+                      .OfType<AssemblyInformationalVersionAttribute>()
+                      .FirstOrDefault()?.InformationalVersion;
 
     return string.IsNullOrEmpty(infoVersion) ? assembly.GetName().Version : ParseSemanticVersion(infoVersion);
   }
@@ -199,8 +199,8 @@ public partial class App
   {
     try
     {
-      using var doc = JsonDocument.Parse(args.RemoteData);
-      var releases = doc.RootElement;
+      using var doc      = JsonDocument.Parse(args.RemoteData);
+      var       releases = doc.RootElement;
 
       if (releases.ValueKind != JsonValueKind.Array || releases.GetArrayLength() == 0)
       {
@@ -209,11 +209,11 @@ public partial class App
       }
 
       var installedVersion = AutoUpdater.InstalledVersion ?? new Version(0, 0, 0);
-      var newerReleases = new List<(Version Version, string Tag, string Body, string? DownloadUrl)>();
+      var newerReleases    = new List<(Version Version, string Tag, string Body, string? DownloadUrl)>();
 
       foreach (var release in releases.EnumerateArray())
       {
-        var tagName = release.GetProperty("tag_name").GetString() ?? string.Empty;
+        var tagName       = release.GetProperty("tag_name").GetString() ?? string.Empty;
         var parsedVersion = ParseSemanticVersion(tagName);
         if (parsedVersion == null || parsedVersion <= installedVersion)
         {
@@ -221,8 +221,8 @@ public partial class App
         }
 
         var body = release.TryGetProperty("body", out var bodyProp)
-          ? bodyProp.GetString() ?? string.Empty
-          : string.Empty;
+                     ? bodyProp.GetString() ?? string.Empty
+                     : string.Empty;
 
         string? downloadUrl = null;
         if (release.TryGetProperty("assets", out var assets))
@@ -268,11 +268,11 @@ public partial class App
       _pendingReleaseNotes = sb.ToString().TrimEnd();
 
       args.UpdateInfo = new UpdateInfoEventArgs
-      {
-        CurrentVersion = latest.Version.ToString(),
-        DownloadURL = latest.DownloadUrl,
-        Mandatory = new Mandatory { Value = false }
-      };
+                        {
+                          CurrentVersion = latest.Version.ToString(),
+                          DownloadURL    = latest.DownloadUrl,
+                          Mandatory      = new Mandatory { Value = false }
+                        };
 
       Log.Information(
         "Found {Count} newer release(s). Latest: {Version}",
@@ -304,14 +304,15 @@ public partial class App
   private static void LogMO2Environment()
   {
     var mo2Vars = new[]
-    {
-      "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR", "MO_MODSDIR", "USVFS_LOGFILE", "VIRTUAL_STORE"
-    };
+                  {
+                    "MO_DATAPATH", "MO_GAMEPATH", "MO_PROFILE", "MO_PROFILEDIR", "MO_MODSDIR", "USVFS_LOGFILE",
+                    "VIRTUAL_STORE"
+                  };
 
     var detected = mo2Vars
-      .Select(v => (Name: v, Value: Environment.GetEnvironmentVariable(v)))
-      .Where(x => !string.IsNullOrEmpty(x.Value))
-      .ToList();
+                   .Select(v => (Name: v, Value: Environment.GetEnvironmentVariable(v)))
+                   .Where(x => !string.IsNullOrEmpty(x.Value))
+                   .ToList();
 
     if (detected.Count > 0)
     {

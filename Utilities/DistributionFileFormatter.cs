@@ -17,7 +17,7 @@ public static class DistributionFileFormatter
   /// </summary>
   public static string GetAppVersion()
   {
-    var assembly = Assembly.GetExecutingAssembly();
+    var assembly    = Assembly.GetExecutingAssembly();
     var infoVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
     if (!string.IsNullOrEmpty(infoVersion))
@@ -36,8 +36,8 @@ public static class DistributionFileFormatter
   public static List<string> GenerateHeaderLines(string? fileTypePrefix = null)
   {
     var version = GetAppVersion();
-    var date = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-    var prefix = string.IsNullOrEmpty(fileTypePrefix) ? string.Empty : $"{fileTypePrefix} ";
+    var date    = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    var prefix  = string.IsNullOrEmpty(fileTypePrefix) ? string.Empty : $"{fileTypePrefix} ";
 
     return
     [
@@ -80,8 +80,8 @@ public static class DistributionFileFormatter
       else if (entry.SelectedOutfit != null)
       {
         line = format == DistributionFileType.Spid
-          ? FormatSpidLine(entry)
-          : FormatSkyPatcherLine(entry);
+                 ? FormatSpidLine(entry)
+                 : FormatSkyPatcherLine(entry);
       }
 
       if (line != null)
@@ -96,11 +96,12 @@ public static class DistributionFileFormatter
     }
 
     var spidPreserved = unparsedLines.Where(e =>
-      e.Reason.EndsWith("(preserved)", StringComparison.Ordinal) &&
-      e.Reason.Contains("SPID", StringComparison.OrdinalIgnoreCase)).ToList();
+                                              e.Reason.EndsWith("(preserved)", StringComparison.Ordinal) &&
+                                              e.Reason.Contains("SPID", StringComparison.OrdinalIgnoreCase)).ToList();
     var skyPatcherPreserved = unparsedLines.Where(e =>
-      e.Reason.EndsWith("(preserved)", StringComparison.Ordinal) &&
-      e.Reason.Contains("SkyPatcher", StringComparison.OrdinalIgnoreCase)).ToList();
+                                                    e.Reason.EndsWith("(preserved)", StringComparison.Ordinal) &&
+                                                    e.Reason.Contains("SkyPatcher", StringComparison.OrdinalIgnoreCase))
+                                           .ToList();
     var errorLines = unparsedLines.Where(e => !e.Reason.EndsWith("(preserved)", StringComparison.Ordinal)).ToList();
 
     if (spidPreserved.Count > 0)
@@ -180,12 +181,12 @@ public static class DistributionFileFormatter
   private static string BuildSpidLine(string formType, string identifier, DistributionEntryViewModel entry)
   {
     var (stringFiltersPart, formFiltersPart) = BuildSpidFilterParts(entry);
-    var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
-    var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
-    string? countPart = null;
+    var     levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
+    var     traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
+    string? countPart        = null;
     var chancePart = entry.UseChance && entry.Chance != 100
-      ? entry.Chance.ToString(CultureInfo.InvariantCulture)
-      : null;
+                       ? entry.Chance.ToString(CultureInfo.InvariantCulture)
+                       : null;
 
     var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
 
@@ -210,27 +211,29 @@ public static class DistributionFileFormatter
     var stringFilterParts = new List<string>();
 
     var includedNpcNames = entry.SelectedNpcs
-      .Where(npc => !npc.IsExcluded && !string.IsNullOrWhiteSpace(npc.DisplayName))
-      .Select(npc => npc.DisplayName)
-      .ToList();
+                                .Where(npc => !npc.IsExcluded && !string.IsNullOrWhiteSpace(npc.DisplayName))
+                                .Select(npc => npc.DisplayName)
+                                .ToList();
     if (includedNpcNames.Count > 0)
     {
       stringFilterParts.Add(string.Join(",", includedNpcNames));
     }
 
     var includedKeywords = entry.SelectedKeywords
-      .Where(k => !k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
-      .Select(k => k.EditorID)
-      .ToList();
+                                .Where(k => !k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) &&
+                                            k.EditorID != "(No EditorID)")
+                                .Select(k => k.EditorID)
+                                .ToList();
     if (includedKeywords.Count > 0)
     {
       stringFilterParts.Add(string.Join("+", includedKeywords));
     }
 
     var excludedKeywords = entry.SelectedKeywords
-      .Where(k => k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) && k.EditorID != "(No EditorID)")
-      .Select(k => $"-{k.EditorID}")
-      .ToList();
+                                .Where(k => k.IsExcluded && !string.IsNullOrWhiteSpace(k.EditorID) &&
+                                            k.EditorID != "(No EditorID)")
+                                .Select(k => $"-{k.EditorID}")
+                                .ToList();
     stringFilterParts.AddRange(excludedKeywords);
 
     if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
@@ -241,7 +244,7 @@ public static class DistributionFileFormatter
     var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
 
     var formFilterParts = new List<string>();
-    var formExclusions = new List<string>();
+    var formExclusions  = new List<string>();
 
     AddFormFiltersWithExclusions(entry.SelectedFactions, formFilterParts, formExclusions);
     AddFormFiltersWithExclusions(entry.SelectedRaces, formFilterParts, formExclusions);
@@ -323,8 +326,8 @@ public static class DistributionFileFormatter
     if (entry.SelectedNpcs.Count > 0)
     {
       var npcFormKeys = entry.SelectedNpcs
-        .Select(npc => FormKeyHelper.Format(npc.FormKey))
-        .ToList();
+                             .Select(npc => FormKeyHelper.Format(npc.FormKey))
+                             .ToList();
       var npcList = string.Join(",", npcFormKeys);
       filterParts.Add($"filterByNpcs={npcList}");
     }
@@ -332,8 +335,8 @@ public static class DistributionFileFormatter
     if (entry.SelectedFactions.Count > 0)
     {
       var factionFormKeys = entry.SelectedFactions
-        .Select(faction => FormKeyHelper.Format(faction.FormKey))
-        .ToList();
+                                 .Select(faction => FormKeyHelper.Format(faction.FormKey))
+                                 .ToList();
       var factionList = string.Join(",", factionFormKeys);
       filterParts.Add($"filterByFactions={factionList}");
     }
@@ -341,8 +344,8 @@ public static class DistributionFileFormatter
     if (entry.SelectedKeywords.Count > 0)
     {
       var keywordFormKeys = entry.SelectedKeywords
-        .Select(keyword => FormKeyHelper.Format(keyword.FormKey))
-        .ToList();
+                                 .Select(keyword => FormKeyHelper.Format(keyword.FormKey))
+                                 .ToList();
       var keywordList = string.Join(",", keywordFormKeys);
       filterParts.Add($"filterByKeywords={keywordList}");
     }
@@ -350,8 +353,8 @@ public static class DistributionFileFormatter
     if (entry.SelectedRaces.Count > 0)
     {
       var raceFormKeys = entry.SelectedRaces
-        .Select(race => FormKeyHelper.Format(race.FormKey))
-        .ToList();
+                              .Select(race => FormKeyHelper.Format(race.FormKey))
+                              .ToList();
       var raceList = string.Join(",", raceFormKeys);
       filterParts.Add($"filterByRaces={raceList}");
     }
@@ -359,8 +362,8 @@ public static class DistributionFileFormatter
     if (entry.SelectedClasses.Count > 0)
     {
       var classFormKeys = entry.SelectedClasses
-        .Select(c => FormKeyHelper.Format(c.FormKey))
-        .ToList();
+                               .Select(c => FormKeyHelper.Format(c.FormKey))
+                               .ToList();
       var classList = string.Join(",", classFormKeys);
       filterParts.Add($"filterByClass={classList}");
     }
@@ -386,34 +389,34 @@ public static class DistributionFileFormatter
     if (filter.FormType == SpidFormType.ExclusiveGroup)
     {
       var forms = filter.ExclusiveGroupForms.Count > 0
-        ? string.Join(",", filter.ExclusiveGroupForms)
-        : FormatFilterSection(filter.FormFilters);
+                    ? string.Join(",", filter.ExclusiveGroupForms)
+                    : FormatFilterSection(filter.FormFilters);
 
       return $"ExclusiveGroup = {filter.FormIdentifier}|{forms}";
     }
 
     var formTypeKeyword = filter.FormType switch
     {
-      SpidFormType.Outfit => "Outfit",
-      SpidFormType.Keyword => "Keyword",
+      SpidFormType.Outfit         => "Outfit",
+      SpidFormType.Keyword        => "Keyword",
       SpidFormType.ExclusiveGroup => "ExclusiveGroup",
-      SpidFormType.Spell => "Spell",
-      SpidFormType.Perk => "Perk",
-      SpidFormType.Item => "Item",
-      SpidFormType.Shout => "Shout",
-      SpidFormType.Package => "Package",
-      SpidFormType.Faction => "Faction",
-      SpidFormType.SleepOutfit => "SleepOutfit",
-      SpidFormType.Skin => "Skin",
-      _ => "Outfit"
+      SpidFormType.Spell          => "Spell",
+      SpidFormType.Perk           => "Perk",
+      SpidFormType.Item           => "Item",
+      SpidFormType.Shout          => "Shout",
+      SpidFormType.Package        => "Package",
+      SpidFormType.Faction        => "Faction",
+      SpidFormType.SleepOutfit    => "SleepOutfit",
+      SpidFormType.Skin           => "Skin",
+      _                           => "Outfit"
     };
 
     var stringFiltersPart = FormatFilterSection(filter.StringFilters);
-    var formFiltersPart = FormatFilterSection(filter.FormFilters);
-    var levelFiltersPart = filter.LevelFilters;
-    var traitFiltersPart = FormatTraitFilters(filter.TraitFilters);
-    var countPart = filter.CountOrPackageIdx;
-    var chancePart = filter.Chance != 100 ? filter.Chance.ToString(CultureInfo.InvariantCulture) : null;
+    var formFiltersPart   = FormatFilterSection(filter.FormFilters);
+    var levelFiltersPart  = filter.LevelFilters;
+    var traitFiltersPart  = FormatTraitFilters(filter.TraitFilters);
+    var countPart         = filter.CountOrPackageIdx;
+    var chancePart        = filter.Chance != 100 ? filter.Chance.ToString(CultureInfo.InvariantCulture) : null;
 
     var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
 
@@ -490,16 +493,16 @@ public static class DistributionFileFormatter
     }
 
     var traitMappings = new (bool? value, string trueFlag, string falseFlag)[]
-    {
-      (traits.IsFemale, "F", "M"), (traits.IsUnique, "U", "-U"), (traits.IsSummonable, "S", "-S"),
-      (traits.IsChild, "C", "-C"), (traits.IsLeveled, "L", "-L"), (traits.IsTeammate, "T", "-T"),
-      (traits.IsDead, "D", "-D")
-    };
+                        {
+                          (traits.IsFemale, "F", "M"), (traits.IsUnique, "U", "-U"), (traits.IsSummonable, "S", "-S"),
+                          (traits.IsChild, "C", "-C"), (traits.IsLeveled, "L", "-L"), (traits.IsTeammate, "T", "-T"),
+                          (traits.IsDead, "D", "-D")
+                        };
 
     var parts = traitMappings
-      .Where(m => m.value.HasValue)
-      .Select(m => m.value!.Value ? m.trueFlag : m.falseFlag)
-      .ToList();
+                .Where(m => m.value.HasValue)
+                .Select(m => m.value!.Value ? m.trueFlag : m.falseFlag)
+                .ToList();
 
     return parts.Count > 0 ? string.Join("/", parts) : null;
   }

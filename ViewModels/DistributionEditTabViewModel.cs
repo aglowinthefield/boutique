@@ -33,23 +33,23 @@ public class PreviewLine
 
 public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
-  private readonly ArmorPreviewService _armorPreviewService;
-  private readonly GameDataCacheService _cache;
-  private readonly IObservable<bool> _canPaste;
-  private readonly IObservable<bool> _canSave;
-  private readonly CompositeDisposable _disposables = new();
+  private readonly ArmorPreviewService                                 _armorPreviewService;
+  private readonly GameDataCacheService                                _cache;
+  private readonly IObservable<bool>                                   _canPaste;
+  private readonly IObservable<bool>                                   _canSave;
+  private readonly CompositeDisposable                                 _disposables               = new();
   private readonly Dictionary<DistributionEntryViewModel, IDisposable> _entryChangedSubscriptions = new();
-  private readonly DistributionFilePathService _filePathService;
-  private readonly DistributionFileEditorService _fileWriterService;
-  private readonly GuiSettingsService _guiSettings;
+  private readonly DistributionFilePathService                         _filePathService;
+  private readonly DistributionFileEditorService                       _fileWriterService;
+  private readonly GuiSettingsService                                  _guiSettings;
 
-  private readonly IObservable<bool> _hasEntries;
-  private readonly DistributionEntryHydrationService _hydrationService;
-  private readonly ILogger _logger;
-  private readonly MutagenService _mutagenService;
-  private readonly IObservable<bool> _notLoading;
-  private readonly SettingsViewModel _settings;
-  private readonly Dictionary<DistributionEntryViewModel, IDisposable> _typeSubscriptions = new();
+  private readonly IObservable<bool>                                   _hasEntries;
+  private readonly DistributionEntryHydrationService                   _hydrationService;
+  private readonly ILogger                                             _logger;
+  private readonly MutagenService                                      _mutagenService;
+  private readonly IObservable<bool>                                   _notLoading;
+  private readonly SettingsViewModel                                   _settings;
+  private readonly Dictionary<DistributionEntryViewModel, IDisposable> _typeSubscriptions      = new();
   private readonly Dictionary<DistributionEntryViewModel, IDisposable> _useChanceSubscriptions = new();
 
   [ReactiveCollection] private ObservableCollection<DistributionFileSelectionItem> _availableDistributionFiles = [];
@@ -146,18 +146,18 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     DistributionFilePathService filePathService,
     ILogger logger)
   {
-    _fileWriterService = fileWriterService;
+    _fileWriterService   = fileWriterService;
     _armorPreviewService = armorPreviewService;
-    _mutagenService = mutagenService;
-    _cache = cache;
-    _settings = settings;
-    _guiSettings = guiSettings;
-    _hydrationService = hydrationService;
-    _filePathService = filePathService;
-    _logger = logger.ForContext<DistributionEditTabViewModel>();
+    _mutagenService      = mutagenService;
+    _cache               = cache;
+    _settings            = settings;
+    _guiSettings         = guiSettings;
+    _hydrationService    = hydrationService;
+    _filePathService     = filePathService;
+    _logger              = logger.ForContext<DistributionEditTabViewModel>();
 
     _mutagenService.PluginsChanged += OnPluginsChanged;
-    _cache.CacheLoaded += OnCacheLoaded;
+    _cache.CacheLoaded             += OnCacheLoaded;
 
     SetupFilterPipelines();
     SetupIntraFileConflictDetection();
@@ -186,31 +186,31 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       (hasCopied, entry) => hasCopied && entry != null);
 
     this.WhenAnyValue(vm => vm.CopiedFilter)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
+        .Subscribe(_ => this.RaisePropertyChanged(nameof(HasCopiedFilter)));
 
     this.WhenAnyValue(vm => vm.DistributionFormat)
-      .Skip(1)
-      .Subscribe(_ =>
-      {
-        UpdateDistributionFilePathForFormat();
-        UpdateFileContent();
-      });
+        .Skip(1)
+        .Subscribe(_ =>
+        {
+          UpdateDistributionFilePathForFormat();
+          UpdateFileContent();
+        });
 
     this.WhenAnyValue(vm => vm.IsCreatingNewFile)
-      .Where(isNew => isNew)
-      .Subscribe(_ => DistributionFormat = DistributionFileType.SkyPatcher);
+        .Where(isNew => isNew)
+        .Subscribe(_ => DistributionFormat = DistributionFileType.SkyPatcher);
 
     this.WhenAnyValue(vm => vm.DistributionFilePath)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
+        .Subscribe(_ => this.RaisePropertyChanged(nameof(ActualFileName)));
 
     this.WhenAnyValue(vm => vm.DistributionFileContent)
-      .Subscribe(_ => UpdatePreviewLines());
+        .Subscribe(_ => UpdatePreviewLines());
 
     this.WhenAnyValue(vm => vm.SelectedEntry)
-      .Where(entry => entry != null && !_isBulkLoading)
-      .Throttle(TimeSpan.FromMilliseconds(50))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Subscribe(entry => RaiseHighlightForEntry(entry!));
+        .Where(entry => entry != null && !_isBulkLoading)
+        .Throttle(TimeSpan.FromMilliseconds(50))
+        .ObserveOn(RxApp.MainThreadScheduler)
+        .Subscribe(entry => RaiseHighlightForEntry(entry!));
   }
 
   public ReadOnlyObservableCollection<ClassRecordViewModel> FilteredClasses { get; private set; } = null!;
@@ -296,11 +296,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       if (SelectedDistributionFile.IsNewFile)
       {
         return DropdownItems.OfType<GroupedDropdownAction>()
-          .FirstOrDefault(a => a.ActionId == DistributionDropdownOrganizer.NewFileActionId);
+                            .FirstOrDefault(a => a.ActionId == DistributionDropdownOrganizer.NewFileActionId);
       }
 
       return DropdownItems.OfType<GroupedDropdownItem<DistributionFileInfo>>()
-        .FirstOrDefault(f => f.Value.FullPath == SelectedDistributionFile.File?.FullPath);
+                          .FirstOrDefault(f => f.Value.FullPath == SelectedDistributionFile.File?.FullPath);
     }
     set
     {
@@ -316,7 +316,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       else if (value is GroupedDropdownItem<DistributionFileInfo> fileItem)
       {
         var match = AvailableDistributionFiles.FirstOrDefault(f =>
-          !f.IsNewFile && f.File?.FullPath == fileItem.Value.FullPath);
+                                                                !f.IsNewFile && f.File?.FullPath ==
+                                                                fileItem.Value.FullPath);
         if (match != null)
         {
           SelectedDistributionFile = match;
@@ -341,7 +342,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         if (!value.IsNewFile && value.File != null)
         {
           DistributionFilePath = value.File.FullPath;
-          NewFileName = string.Empty;
+          NewFileName          = string.Empty;
           if (File.Exists(DistributionFilePath) && !IsLoading)
           {
             _logger.Debug("Auto-loading file: {Path}", DistributionFilePath);
@@ -359,10 +360,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
               ParseErrors = [];
               this.RaisePropertyChanged(nameof(ActualParseErrors));
               this.RaisePropertyChanged(nameof(HasParseErrors));
-              HasConflicts = false;
+              HasConflicts                = false;
               ConflictsResolvedByFilename = false;
-              ConflictSummary = string.Empty;
-              SuggestedFileName = string.Empty;
+              ConflictSummary             = string.Empty;
+              SuggestedFileName           = string.Empty;
               ClearNpcConflictIndicators();
             }
             finally
@@ -424,8 +425,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   ///   For SPID format, this includes the _DISTR suffix.
   /// </summary>
   public string ActualFileName => !string.IsNullOrEmpty(DistributionFilePath)
-    ? Path.GetFileName(DistributionFilePath)
-    : string.Empty;
+                                    ? Path.GetFileName(DistributionFilePath)
+                                    : string.Empty;
 
   /// <summary>
   ///   The distribution file format (SPID or SkyPatcher).
@@ -466,7 +467,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   {
     _disposables.Dispose();
     _mutagenService.PluginsChanged -= OnPluginsChanged;
-    _cache.CacheLoaded -= OnCacheLoaded;
+    _cache.CacheLoaded             -= OnCacheLoaded;
 
     foreach (var sub in _entryChangedSubscriptions.Values)
     {
@@ -494,26 +495,31 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void UpdatePreviewLines()
   {
     var lines = string.IsNullOrEmpty(DistributionFileContent)
-      ? []
-      : DistributionFileContent.Split('\n')
-        .Select((line, index) => new PreviewLine { LineNumber = index + 1, Content = line.TrimEnd('\r') })
-        .ToList();
+                  ? []
+                  : DistributionFileContent.Split('\n')
+                                           .Select((line, index) =>
+                                                     new PreviewLine
+                                                     {
+                                                       LineNumber = index + 1, Content = line.TrimEnd('\r')
+                                                     })
+                                           .ToList();
     PreviewLines = lines;
   }
 
   private void SetupIntraFileConflictDetection()
   {
     var entriesChanged = _distributionEntries
-      .ToObservableChangeSet()
-      .Publish();
+                         .ToObservableChangeSet()
+                         .Publish();
 
     var npcsInEntriesChanged = entriesChanged
       .MergeMany(entry => entry.SelectedNpcs.ToObservableChangeSet());
 
-    _disposables.Add(entriesChanged.Select(_ => Unit.Default).Merge(npcsInEntriesChanged.Select(_ => Unit.Default))
-      .Throttle(TimeSpan.FromMilliseconds(100))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Subscribe(_ => UpdateIntraFileConflicts()));
+    _disposables.Add(
+      entriesChanged.Select(_ => Unit.Default).Merge(npcsInEntriesChanged.Select(_ => Unit.Default))
+                    .Throttle(TimeSpan.FromMilliseconds(100))
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(_ => UpdateIntraFileConflicts()));
 
     _disposables.Add(entriesChanged.Connect());
   }
@@ -521,17 +527,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void UpdateIntraFileConflicts()
   {
     var outfitEntries = DistributionEntries
-      .Where(e => e.Type == DistributionType.Outfit && e.SelectedOutfit != null)
-      .ToList();
+                        .Where(e => e.Type == DistributionType.Outfit && e.SelectedOutfit != null)
+                        .ToList();
 
     if (_isBulkLoading || outfitEntries.Count < 2)
     {
-      HasIntraFileConflicts = false;
+      HasIntraFileConflicts    = false;
       IntraFileConflictSummary = string.Empty;
       return;
     }
 
-    var allNpcs = _cache.AllNpcs.ToList();
+    var                                                          allNpcs = _cache.AllNpcs.ToList();
     List<(string NpcName, int EntryCount, List<string> Outfits)> conflicts;
 
     if (allNpcs.Count > 0)
@@ -545,14 +551,14 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
           continue;
         }
 
-        var outfitName = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
+        var outfitName   = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
         var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
 
         foreach (var npc in matchingNpcs)
         {
           if (!npcToEntries.TryGetValue(npc.FormKey, out var entryList))
           {
-            entryList = [];
+            entryList                 = [];
             npcToEntries[npc.FormKey] = entryList;
           }
 
@@ -563,35 +569,36 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       conflicts =
       [
         .. npcToEntries
-          .Where(kv => kv.Value.Count > 1)
-          .Select(kv =>
-          {
-            var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
-            return (
-              NpcName: npc?.DisplayName ?? kv.Key.ToString(),
-              EntryCount: kv.Value.Count,
-              Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList());
-          })
+           .Where(kv => kv.Value.Count > 1)
+           .Select(kv =>
+           {
+             var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+             return (
+                      NpcName: npc?.DisplayName ?? kv.Key.ToString(),
+                      EntryCount: kv.Value.Count,
+                      Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList());
+           })
       ];
     }
     else
     {
       conflicts = outfitEntries
-        .SelectMany(entry => entry.SelectedNpcs
-          .Where(npc => !npc.IsExcluded)
-          .Select(npc => (Entry: entry, Npc: npc)))
-        .GroupBy(x => x.Npc.FormKey)
-        .Where(g => g.Count() > 1)
-        .Select(g => (
-          NpcName: g.First().Npc.DisplayName,
-          EntryCount: g.Count(),
-          Outfits: g.Select(x => x.Entry.SelectedOutfit?.EditorID ?? "(no outfit)").Distinct().ToList()))
-        .ToList();
+                  .SelectMany(entry => entry.SelectedNpcs
+                                            .Where(npc => !npc.IsExcluded)
+                                            .Select(npc => (Entry: entry, Npc: npc)))
+                  .GroupBy(x => x.Npc.FormKey)
+                  .Where(g => g.Count() > 1)
+                  .Select(g => (
+                                 NpcName: g.First().Npc.DisplayName,
+                                 EntryCount: g.Count(),
+                                 Outfits: g.Select(x => x.Entry.SelectedOutfit?.EditorID ?? "(no outfit)").Distinct()
+                                           .ToList()))
+                  .ToList();
     }
 
     if (conflicts.Count == 0)
     {
-      HasIntraFileConflicts = false;
+      HasIntraFileConflicts    = false;
       IntraFileConflictSummary = string.Empty;
       return;
     }
@@ -615,40 +622,46 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   private void SetupFilterPipelines()
   {
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.NpcSearchText),
-      _cache.AllNpcRecords,
-      out var filteredNpcs));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.NpcSearchText),
+        _cache.AllNpcRecords,
+        out var filteredNpcs));
     FilteredNpcs = filteredNpcs;
 
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.FactionSearchText),
-      _cache.AllFactions,
-      out var filteredFactions));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.FactionSearchText),
+        _cache.AllFactions,
+        out var filteredFactions));
     FilteredFactions = filteredFactions;
 
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.KeywordSearchText),
-      _cache.AllKeywords,
-      out var filteredKeywords));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.KeywordSearchText),
+        _cache.AllKeywords,
+        out var filteredKeywords));
     FilteredKeywords = filteredKeywords;
 
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.RaceSearchText),
-      _cache.AllRaces,
-      out var filteredRaces));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.RaceSearchText),
+        _cache.AllRaces,
+        out var filteredRaces));
     FilteredRaces = filteredRaces;
 
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.ClassSearchText),
-      _cache.AllClasses,
-      out var filteredClasses));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.ClassSearchText),
+        _cache.AllClasses,
+        out var filteredClasses));
     FilteredClasses = filteredClasses;
 
-    _disposables.Add(FilterPipelineFactory.CreateSearchFilter(
-      this.WhenAnyValue(vm => vm.OutfitFilterSearchText),
-      _cache.AllOutfitRecords,
-      out var filteredOutfitFilters));
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.OutfitFilterSearchText),
+        _cache.AllOutfitRecords,
+        out var filteredOutfitFilters));
     FilteredOutfitFilters = filteredOutfitFilters;
   }
 
@@ -694,22 +707,22 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void SubscribeToEntryChanges(DistributionEntryViewModel entry)
   {
     var entryChangedSub = Observable.FromEventPattern(entry, nameof(entry.EntryChanged))
-      .Do(_ => _lastChangedEntry = entry)
-      .Throttle(TimeSpan.FromMilliseconds(300))
-      .ObserveOn(RxApp.MainThreadScheduler)
-      .Subscribe(_ => UpdateFileContent());
+                                    .Do(_ => _lastChangedEntry = entry)
+                                    .Throttle(TimeSpan.FromMilliseconds(300))
+                                    .ObserveOn(RxApp.MainThreadScheduler)
+                                    .Subscribe(_ => UpdateFileContent());
     _entryChangedSubscriptions[entry] = entryChangedSub;
 
     var useChanceSub = entry.WhenAnyValue(e => e.UseChance)
-      .Subscribe(_ => UpdateHasChanceBasedEntries());
+                            .Subscribe(_ => UpdateHasChanceBasedEntries());
     _useChanceSubscriptions[entry] = useChanceSub;
 
     var typeSub = entry.WhenAnyValue(e => e.Type)
-      .Subscribe(_ =>
-      {
-        UpdateHasKeywordDistributions();
-        UpdateHasExclusiveGroupDistributions();
-      });
+                       .Subscribe(_ =>
+                       {
+                         UpdateHasKeywordDistributions();
+                         UpdateHasExclusiveGroupDistributions();
+                       });
     _typeSubscriptions[entry] = typeSub;
   }
 
@@ -814,8 +827,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     var selectedItems = filteredItems
-      .Where(item => item.IsSelected)
-      .ToList();
+                        .Where(item => item.IsSelected)
+                        .ToList();
 
     if (selectedItems.Count == 0)
     {
@@ -824,7 +837,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     var targetCollection = getTargetCollection(SelectedEntry);
-    var addedCount = 0;
+    var addedCount       = 0;
     foreach (var item in selectedItems)
     {
       if (!targetCollection.Any(existing => existing.FormKey == item.FormKey))
@@ -958,10 +971,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     {
       var keywordVm = _hydrationService.ResolveKeywordByFormKey(keywordFormKey);
       if (keywordVm != null && !entry.SelectedKeywords.Any(k =>
-            string.Equals(
-              k.KeywordRecord.EditorID,
-              keywordVm.KeywordRecord.EditorID,
-              StringComparison.OrdinalIgnoreCase)))
+                                                             string.Equals(
+                                                               k.KeywordRecord.EditorID,
+                                                               keywordVm.KeywordRecord.EditorID,
+                                                               StringComparison.OrdinalIgnoreCase)))
       {
         entry.AddKeyword(keywordVm);
         addedItems.Add($"keyword:{keywordVm.DisplayName}");
@@ -1054,8 +1067,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       sb.AppendLine();
       sb.AppendLine(ConflictSummary);
       sb.AppendLine();
-      sb.AppendLine(
-        "To ensure your new distributions take priority (load last), the filename will be changed to:");
+      sb.AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:");
       sb.AppendLine();
       sb.Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine();
       sb.AppendLine();
@@ -1085,8 +1097,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
 
         finalFilePath = !string.IsNullOrEmpty(directory)
-          ? Path.Combine(directory, finalFileName)
-          : finalFileName;
+                          ? Path.Combine(directory, finalFileName)
+                          : finalFileName;
 
         NewFileName = finalFileName;
       }
@@ -1109,7 +1121,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      IsLoading = true;
+      IsLoading     = true;
       StatusMessage = "Saving distribution file...";
 
       // Write the preview text directly - it's already correctly formatted
@@ -1129,9 +1141,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         DistributionFileContent.Split('\n').Length);
 
       // Track the saved file path so RefreshAvailableDistributionFiles can select it
-      _justSavedFilePath = finalFilePath;
+      _justSavedFilePath                    = finalFilePath;
       _guiSettings.LastDistributionFilePath = finalFilePath;
-      DistributionFilePath = finalFilePath;
+      DistributionFilePath                  = finalFilePath;
 
       FileSaved?.Invoke(finalFilePath);
     }
@@ -1164,14 +1176,14 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      IsLoading = true;
+      IsLoading     = true;
       StatusMessage = "Loading distribution file...";
       _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
 
-      var (entries, detectedFormat, parseErrors) = await _fileWriterService.LoadDistributionFileWithErrorsAsync(
-        DistributionFilePath);
+      var (entries, detectedFormat, parseErrors) =
+        await _fileWriterService.LoadDistributionFileWithErrorsAsync(DistributionFilePath);
       DistributionFormat = detectedFormat;
-      ParseErrors = parseErrors;
+      ParseErrors        = parseErrors;
       this.RaisePropertyChanged(nameof(ActualParseErrors));
       this.RaisePropertyChanged(nameof(HasParseErrors));
 
@@ -1180,13 +1192,13 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       try
       {
         DistributionEntries.Clear();
-        HasConflicts = false;
+        HasConflicts                = false;
         ConflictsResolvedByFilename = false;
-        ConflictSummary = string.Empty;
-        SuggestedFileName = string.Empty;
+        ConflictSummary             = string.Empty;
+        SuggestedFileName           = string.Empty;
         ClearNpcConflictIndicators();
         var entryVms = await Task.Run(() =>
-          entries.Select(entry => CreateEntryViewModel(entry)).ToList());
+                                        entries.Select(entry => CreateEntryViewModel(entry)).ToList());
         foreach (var entryVm in entryVms)
         {
           DistributionEntries.Add(entryVm);
@@ -1301,15 +1313,15 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     var dialog = new SaveFileDialog
-    {
-      Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*", DefaultExt = "ini", FileName = NewFileName
-    };
+                 {
+                   Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*", DefaultExt = "ini", FileName = NewFileName
+                 };
 
     // Use output folder as base if set, otherwise fall back to data path
     var targetDirectory = !string.IsNullOrWhiteSpace(_settings.OutputPatchPath) &&
                           Directory.Exists(_settings.OutputPatchPath)
-      ? _settings.OutputPatchPath
-      : _settings.SkyrimDataPath;
+                            ? _settings.OutputPatchPath
+                            : _settings.SkyrimDataPath;
 
     if (!string.IsNullOrWhiteSpace(targetDirectory) && Directory.Exists(targetDirectory))
     {
@@ -1326,7 +1338,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     if (dialog.ShowDialog() == true)
     {
-      NewFileName = Path.GetFileName(dialog.FileName);
+      NewFileName          = Path.GetFileName(dialog.FileName);
       DistributionFilePath = dialog.FileName;
       _logger.Debug("Selected distribution file path: {FilePath}", DistributionFilePath);
     }
@@ -1338,12 +1350,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// </summary>
   private void RefreshAvailableDistributionFiles()
   {
-    var previousSelected = SelectedDistributionFile;
+    var previousSelected    = SelectedDistributionFile;
     var previousNewFileName = NewFileName;
-    var justSaved = _justSavedFilePath;
+    var justSaved           = _justSavedFilePath;
     _justSavedFilePath = null; // Clear after reading
 
-    var files = _cache.AllDistributionFiles.ToList();
+    var files              = _cache.AllDistributionFiles.ToList();
     var duplicateFileNames = GetDuplicateFileNames(files);
 
     _logger.Debug(
@@ -1369,14 +1381,17 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     if (!string.IsNullOrEmpty(justSaved))
     {
       var savedFileItem = AvailableDistributionFiles.FirstOrDefault(item =>
-        !item.IsNewFile && item.File != null &&
-        string.Equals(item.File.FullPath, justSaved, StringComparison.OrdinalIgnoreCase));
+                                                                      !item.IsNewFile && item.File != null &&
+                                                                      string.Equals(
+                                                                        item.File.FullPath,
+                                                                        justSaved,
+                                                                        StringComparison.OrdinalIgnoreCase));
 
       if (savedFileItem != null)
       {
         _logger.Debug("Selecting just-saved file: {Path}", justSaved);
-        IsCreatingNewFile = false;
-        NewFileName = string.Empty;
+        IsCreatingNewFile        = false;
+        NewFileName              = string.Empty;
         SelectedDistributionFile = savedFileItem;
         return;
       }
@@ -1395,7 +1410,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       if (previousSelected.File != null)
       {
         var matchingItem = AvailableDistributionFiles.FirstOrDefault(item =>
-          !item.IsNewFile && item.File?.FullPath == previousSelected.File.FullPath);
+                                                                       !item.IsNewFile && item.File?.FullPath ==
+                                                                       previousSelected.File.FullPath);
         if (matchingItem != null)
         {
           SelectedDistributionFile = matchingItem;
@@ -1409,8 +1425,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     if (!string.IsNullOrEmpty(lastFilePath))
     {
       var lastFileItem = AvailableDistributionFiles.FirstOrDefault(item =>
-        !item.IsNewFile && item.File != null &&
-        string.Equals(item.File.FullPath, lastFilePath, StringComparison.OrdinalIgnoreCase));
+                                                                     !item.IsNewFile && item.File != null &&
+                                                                     string.Equals(
+                                                                       item.File.FullPath,
+                                                                       lastFilePath,
+                                                                       StringComparison.OrdinalIgnoreCase));
 
       if (lastFileItem != null)
       {
@@ -1443,9 +1462,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     try
     {
       var hasSpidOnlyEntries = DistributionEntries.Any(e =>
-        e.UseChance ||
-        e.Type == DistributionType.Keyword ||
-        e.Type == DistributionType.ExclusiveGroup);
+                                                         e.UseChance ||
+                                                         e.Type == DistributionType.Keyword ||
+                                                         e.Type == DistributionType.ExclusiveGroup);
       var effectiveFormat = hasSpidOnlyEntries ? DistributionFileType.Spid : DistributionFormat;
 
       _logger.Debug(
@@ -1555,8 +1574,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void RaiseHighlightForEntry(DistributionEntryViewModel entry)
   {
     var effectiveFormat = DistributionEntries.Any(e => e.UseChance)
-      ? DistributionFileType.Spid
-      : DistributionFormat;
+                            ? DistributionFileType.Spid
+                            : DistributionFormat;
 
     var lineNumber = CalculateLineNumberForEntry(entry);
     if (lineNumber < 0)
@@ -1564,7 +1583,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var lines = DistributionFileContent.Split('\n');
+    var lines       = DistributionFileContent.Split('\n');
     var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
     HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
   }
@@ -1590,10 +1609,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     try
     {
       var outfits = await Task.Run(() =>
-        linkCache.WinningOverrides<IOutfitGetter>().ToList());
+                                     linkCache.WinningOverrides<IOutfitGetter>().ToList());
       await MergeOutfitsFromPatchFileAsync(outfits);
       AvailableOutfits = new ObservableCollection<IOutfitGetter>(outfits);
-      _outfitsLoaded = true;
+      _outfitsLoaded   = true;
       _logger.Debug("Loaded {Count} available outfits.", outfits.Count);
     }
     catch (Exception ex)
@@ -1615,7 +1634,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var patchOutfits = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
+    var patchOutfits     = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
     var existingFormKeys = outfits.Select(o => o.FormKey).ToHashSet();
 
     var newOutfits = patchOutfits.Where(o => !existingFormKeys.Contains(o.FormKey)).ToList();
@@ -1667,7 +1686,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void InitializeFromCache()
   {
     _logger.Debug("InitializeFromCache: Starting linear initialization...");
-    var files = _cache.AllDistributionFiles.ToList();
+    var files              = _cache.AllDistributionFiles.ToList();
     var duplicateFileNames = GetDuplicateFileNames(files);
     AvailableDistributionFiles.Clear();
     AvailableDistributionFiles.Add(new DistributionFileSelectionItem(true, null));
@@ -1686,13 +1705,16 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     if (!string.IsNullOrEmpty(lastFilePath))
     {
       var lastFileItem = AvailableDistributionFiles.FirstOrDefault(item =>
-        !item.IsNewFile && item.File != null &&
-        string.Equals(item.File.FullPath, lastFilePath, StringComparison.OrdinalIgnoreCase));
+                                                                     !item.IsNewFile && item.File != null &&
+                                                                     string.Equals(
+                                                                       item.File.FullPath,
+                                                                       lastFilePath,
+                                                                       StringComparison.OrdinalIgnoreCase));
 
       if (lastFileItem != null)
       {
         _logger.Debug("Restoring last saved file from settings: {Path}", lastFilePath);
-        DistributionFilePath = lastFileItem.File!.FullPath;
+        DistributionFilePath     = lastFileItem.File!.FullPath;
         SelectedDistributionFile = lastFileItem;
         this.RaisePropertyChanged(nameof(SelectedDropdownItem));
         _isInitialized = true;
@@ -1739,9 +1761,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   {
     const string baseName = "Boutique_Distribution";
     var existingFileNames = AvailableDistributionFiles
-      .Where(f => !f.IsNewFile && f.File != null)
-      .Select(f => f.File!.FileName)
-      .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                            .Where(f => !f.IsNewFile && f.File != null)
+                            .Select(f => f.File!.FileName)
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     if (IsBaseNameAvailable(baseName, existingFileNames))
     {
@@ -1788,7 +1810,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     var outfit = entry.SelectedOutfit;
-    var label = outfit.EditorID ?? outfit.FormKey.ToString();
+    var label  = outfit.EditorID ?? outfit.FormKey.ToString();
 
     var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
     if (initialResult.ArmorPieces.Count == 0)
@@ -1803,9 +1825,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
       var initialGender = entry.Gender switch
       {
-        GenderFilter.Male => GenderedModelVariant.Male,
+        GenderFilter.Male   => GenderedModelVariant.Male,
         GenderFilter.Female => GenderedModelVariant.Female,
-        _ => GenderedModelVariant.Female
+        _                   => GenderedModelVariant.Female
       };
 
       var metadata = new OutfitMetadata(
@@ -1820,7 +1842,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         async (_, gender) =>
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-          var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+          var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
           return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
         },
         initialGender);
@@ -1843,46 +1865,46 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   {
     if (!IsCreatingNewFile)
     {
-      HasConflicts = false;
+      HasConflicts                = false;
       ConflictsResolvedByFilename = false;
-      ConflictSummary = string.Empty;
-      SuggestedFileName = NewFileName;
+      ConflictSummary             = string.Empty;
+      SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
     }
 
     if (DistributionEntries.Count == 0)
     {
-      HasConflicts = false;
+      HasConflicts                = false;
       ConflictsResolvedByFilename = false;
-      ConflictSummary = string.Empty;
-      SuggestedFileName = NewFileName;
+      ConflictSummary             = string.Empty;
+      SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
     }
 
     if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      HasConflicts = false;
+      HasConflicts                = false;
       ConflictsResolvedByFilename = false;
-      ConflictSummary = string.Empty;
-      SuggestedFileName = NewFileName;
+      ConflictSummary             = string.Empty;
+      SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
     }
 
     if (DistributionFiles.Count == 0)
     {
-      HasConflicts = false;
+      HasConflicts                = false;
       ConflictsResolvedByFilename = false;
-      ConflictSummary = string.Empty;
-      SuggestedFileName = NewFileName;
+      ConflictSummary             = string.Empty;
+      SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
     }
 
     var entryCountAtStart = DistributionEntries.Count;
-    var entriesSnapshot = DistributionEntries.ToList();
+    var entriesSnapshot   = DistributionEntries.ToList();
     Task.Run(() =>
     {
       try
@@ -1896,13 +1918,13 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         {
           if (DistributionEntries.Count == entryCountAtStart && DistributionEntries.Count > 0)
           {
-            HasConflicts = result.HasConflicts;
+            HasConflicts                = result.HasConflicts;
             ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
-            ConflictSummary = result.ConflictSummary;
-            SuggestedFileName = result.SuggestedFileName;
+            ConflictSummary             = result.ConflictSummary;
+            SuggestedFileName           = result.SuggestedFileName;
             var conflictNpcFormKeys = result.Conflicts
-              .Select(c => c.NpcFormKey)
-              .ToHashSet();
+                                            .Select(c => c.NpcFormKey)
+                                            .ToHashSet();
 
             foreach (var entry in DistributionEntries)
             {
@@ -1911,12 +1933,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                 if (conflictNpcFormKeys.Contains(npcVm.FormKey))
                 {
                   var conflict = result.Conflicts.First(c => c.NpcFormKey == npcVm.FormKey);
-                  npcVm.HasConflict = !result.ConflictsResolvedByFilename;
+                  npcVm.HasConflict         = !result.ConflictsResolvedByFilename;
                   npcVm.ConflictingFileName = conflict.ExistingFileName;
                 }
                 else
                 {
-                  npcVm.HasConflict = false;
+                  npcVm.HasConflict         = false;
                   npcVm.ConflictingFileName = null;
                 }
               }
@@ -1924,12 +1946,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
           }
           else
           {
-            _logger.Debug(
-              "Conflict detection completed but entries were cleared/changed, clearing conflict state");
-            HasConflicts = false;
+            _logger.Debug("Conflict detection completed but entries were cleared/changed, clearing conflict state");
+            HasConflicts                = false;
             ConflictsResolvedByFilename = false;
-            ConflictSummary = string.Empty;
-            SuggestedFileName = NewFileName;
+            ConflictSummary             = string.Empty;
+            SuggestedFileName           = NewFileName;
             ClearNpcConflictIndicators();
           }
         });
@@ -1947,7 +1968,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     {
       foreach (var npc in entry.SelectedNpcs)
       {
-        npc.HasConflict = false;
+        npc.HasConflict         = false;
         npc.ConflictingFileName = null;
       }
     }

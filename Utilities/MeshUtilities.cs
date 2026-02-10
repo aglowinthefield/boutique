@@ -9,34 +9,34 @@ namespace Boutique.Utilities;
 public static class MeshUtilities
 {
   private static readonly HashSet<string> NonDiffuseSegments = new(StringComparer.OrdinalIgnoreCase)
-  {
-    "n",
-    "msn",
-    "spec",
-    "s",
-    "g",
-    "glow",
-    "env",
-    "emit",
-    "em",
-    "mask",
-    "rough",
-    "metal",
-    "m",
-    "etc",
-    "sk",
-    "alpha",
-    "cube",
-    "cmap",
-    "height",
-    "disp",
-    "opacity",
-    "normal",
-    "emis",
-    "metallic",
-    "roughness",
-    "gloss"
-  };
+                                                               {
+                                                                 "n",
+                                                                 "msn",
+                                                                 "spec",
+                                                                 "s",
+                                                                 "g",
+                                                                 "glow",
+                                                                 "env",
+                                                                 "emit",
+                                                                 "em",
+                                                                 "mask",
+                                                                 "rough",
+                                                                 "metal",
+                                                                 "m",
+                                                                 "etc",
+                                                                 "sk",
+                                                                 "alpha",
+                                                                 "cube",
+                                                                 "cmap",
+                                                                 "height",
+                                                                 "disp",
+                                                                 "opacity",
+                                                                 "normal",
+                                                                 "emis",
+                                                                 "metallic",
+                                                                 "roughness",
+                                                                 "gloss"
+                                                               };
 
   private static readonly string[] NonDiffuseSubstrings =
   [
@@ -69,8 +69,8 @@ public static class MeshUtilities
     IEnumerable<Triangle>? triangles = shape switch
     {
       BSTriShape { Triangles: not null } bsTriShape => bsTriShape.Triangles,
-      NiTriShape niTriShape => niTriShape.Triangles ?? niTriShape.GeometryData?.Triangles,
-      _ => null
+      NiTriShape niTriShape                         => niTriShape.Triangles ?? niTriShape.GeometryData?.Triangles,
+      _                                             => null
     };
 
     if (triangles == null)
@@ -113,7 +113,7 @@ public static class MeshUtilities
     {
       BSTriShape bsTriShape => ExtractFromBsTriShape(bsTriShape),
       NiTriShape niTriShape => ExtractFromNiTriShape(niTriShape),
-      _ => null
+      _                     => null
     };
 
   public static List<Vector3> ComputeNormals(List<Vector3> vertices, List<int> indices)
@@ -163,11 +163,11 @@ public static class MeshUtilities
 
   public static Matrix4x4 ComputeWorldTransform(NifFile nif, INiShape shape)
   {
-    var world = Matrix4x4.Identity;
+    var       world    = Matrix4x4.Identity;
     const int MaxDepth = 256;
 
     INiObject? current = shape;
-    var depth = 0;
+    var        depth   = 0;
 
     while (current is NiAVObject avObject)
     {
@@ -226,7 +226,7 @@ public static class MeshUtilities
       return true;
     }
 
-    var lower = name.ToLowerInvariant();
+    var lower    = name.ToLowerInvariant();
     var segments = lower.Split(['_', '-', ' '], StringSplitOptions.RemoveEmptyEntries);
 
     return !segments.Any(segment => NonDiffuseSegments.Contains(segment)) &&
@@ -281,7 +281,7 @@ public static class MeshUtilities
 
   private static List<Vector2>? ExtractFromNiTriShape(NiTriShape shape)
   {
-    var data = shape.GeometryData;
+    var data        = shape.GeometryData;
     var vertexCount = data?.Vertices?.Count ?? data?.NumVertices ?? shape.VertexCount;
     if (vertexCount <= 0)
     {
@@ -311,7 +311,7 @@ public static class MeshUtilities
 
   private static Matrix4x4 CreateLocalTransform(NiAVObject avObject)
   {
-    var scale = avObject.Scale == 0 ? 1f : avObject.Scale;
+    var scale       = avObject.Scale == 0 ? 1f : avObject.Scale;
     var scaleMatrix = Matrix4x4.CreateScale(scale);
 
     var rot = avObject.Rotation;

@@ -65,11 +65,11 @@ public class LocalizationService(ILogger logger, GuiSettingsService guiSettings)
       var systemCulture = CultureInfo.CurrentUICulture;
       var matchingLanguage = AvailableLanguages.FirstOrDefault(l =>
                                                                  l.Code.Equals(
-                                                                               systemCulture.Name,
-                                                                               StringComparison.OrdinalIgnoreCase) ||
+                                                                   systemCulture.Name,
+                                                                   StringComparison.OrdinalIgnoreCase) ||
                                                                  l.Code.Equals(
-                                                                               systemCulture.TwoLetterISOLanguageName,
-                                                                               StringComparison.OrdinalIgnoreCase));
+                                                                   systemCulture.TwoLetterISOLanguageName,
+                                                                   StringComparison.OrdinalIgnoreCase));
 
       SetLanguage(matchingLanguage != null ? matchingLanguage.Code : "en");
     }

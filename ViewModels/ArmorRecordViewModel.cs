@@ -8,23 +8,23 @@ namespace Boutique.ViewModels;
 
 public partial class ArmorRecordViewModel : ReactiveObject
 {
-  private readonly ILinkCache? _linkCache;
-  [Reactive] private bool _isConflicting;
+  private readonly   ILinkCache? _linkCache;
+  [Reactive] private bool        _isConflicting;
 
-  [Reactive] private bool _isMapped;
-  [Reactive] private bool _isSlotCompatible = true;
-  private string? _searchCache;
+  [Reactive] private bool    _isMapped;
+  [Reactive] private bool    _isSlotCompatible = true;
+  private            string? _searchCache;
 
   public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
   {
-    Armor = armor;
-    _linkCache = linkCache;
+    Armor          = armor;
+    _linkCache     = linkCache;
     FormIdSortable = armor.FormKey.ID;
-    FormIdDisplay = $"0x{FormIdSortable:X8}";
-    ArmorType = ResolveArmorType();
+    FormIdDisplay  = $"0x{FormIdSortable:X8}";
+    ArmorType      = ResolveArmorType();
 
     this.WhenAnyValue(x => x.IsSlotCompatible)
-      .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
+        .Subscribe(_ => this.RaisePropertyChanged(nameof(SlotCompatibilityPriority)));
   }
 
   public IArmorGetter Armor { get; }
@@ -58,16 +58,16 @@ public partial class ArmorRecordViewModel : ReactiveObject
       }
 
       var keywordNames = Armor.Keywords
-        .Select(k =>
-        {
-          if (_linkCache.TryResolve<IKeywordGetter>(k.FormKey, out var keyword))
-          {
-            return keyword.EditorID ?? "Unknown";
-          }
+                              .Select(k =>
+                              {
+                                if (_linkCache.TryResolve<IKeywordGetter>(k.FormKey, out var keyword))
+                                {
+                                  return keyword.EditorID ?? "Unknown";
+                                }
 
-          return "Unresolved";
-        })
-        .Take(5); // Limit display to first 5
+                                return "Unresolved";
+                              })
+                              .Take(5); // Limit display to first 5
 
       var result = string.Join(", ", keywordNames);
       if (Armor.Keywords.Count > 5)
@@ -118,7 +118,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
       }
 
       var singleFlag = (BipedObjectFlag)bit;
-      var flagName = singleFlag.ToString();
+      var flagName   = singleFlag.ToString();
       parts.Add(uint.TryParse(flagName, out _) ? $"Slot{i + 30}" : flagName);
 
       value &= ~bit; // Clear this bit

@@ -21,13 +21,13 @@ public partial class OutfitRecordViewModel : ReactiveObject, ISelectableRecordVi
 
   public OutfitRecordViewModel(IOutfitGetter outfit, bool containsLeveledItems = false)
   {
-    Outfit = outfit;
-    EditorID = outfit.EditorID ?? "(No EditorID)";
-    FormKey = outfit.FormKey;
-    FormKeyString = outfit.FormKey.ToString();
-    ModDisplayName = outfit.FormKey.ModKey.FileName;
+    Outfit               = outfit;
+    EditorID             = outfit.EditorID ?? "(No EditorID)";
+    FormKey              = outfit.FormKey;
+    FormKeyString        = outfit.FormKey.ToString();
+    ModDisplayName       = outfit.FormKey.ModKey.FileName;
     ContainsLeveledItems = containsLeveledItems;
-    _searchCache = $"{EditorID} {ModDisplayName} {FormKeyString}".ToLowerInvariant();
+    _searchCache         = $"{EditorID} {ModDisplayName} {FormKeyString}".ToLowerInvariant();
   }
 
   public IOutfitGetter Outfit { get; }
