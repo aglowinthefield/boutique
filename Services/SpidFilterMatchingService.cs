@@ -26,7 +26,7 @@ public class SpidFilterMatchingService
     SpidDistributionFilter filter,
     Dictionary<FormKey, HashSet<string>> virtualKeywordsByNpc)
   {
-    if (filter.TargetsAllNpcs && filter.StringFilters.IsEmpty && filter.FormFilters.IsEmpty &&
+    if (filter is { TargetsAllNpcs: true, StringFilters.IsEmpty: true } && filter.FormFilters.IsEmpty &&
         filter.TraitFilters.IsEmpty && string.IsNullOrWhiteSpace(filter.LevelFilters))
     {
       return allNpcs.ToList();

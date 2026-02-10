@@ -11,6 +11,7 @@ using DynamicData;
 using DynamicData.Kernel;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
+using Mutagen.Bethesda.Strings;
 using ReactiveUI;
 using Serilog;
 
@@ -144,6 +145,7 @@ public class GameDataCacheService : IDisposable
     AllNpcOutfitAssignments = allNpcOutfitAssignments;
 
     _mutagenService.Initialized += OnMutagenInitialized;
+    _mutagenService.PluginsChanged += OnPluginsChanged;
   }
 
   public bool IsLoaded { get; private set; }
@@ -165,6 +167,7 @@ public class GameDataCacheService : IDisposable
   public void Dispose()
   {
     _mutagenService.Initialized -= OnMutagenInitialized;
+    _mutagenService.PluginsChanged -= OnPluginsChanged;
     _disposables.Dispose();
     _npcsSource.Dispose();
     _factionsSource.Dispose();
@@ -190,6 +193,16 @@ public class GameDataCacheService : IDisposable
   private async void OnMutagenInitialized(object? sender, EventArgs e)
   {
     _logger.Information("MutagenService initialized, loading game data cache...");
+    await LoadAsync();
+  }
+
+  private async void OnPluginsChanged(object? sender, EventArgs e)
+  {
+    _logger.Information("Plugins or language changed, reloading game data cache...");
+
+    // Don't call ReloadAsync here - the environment has already been rebuilt
+    // Just reload the cached data with the new environment
+    IsLoaded = false;
     await LoadAsync();
   }
 
@@ -481,7 +494,11 @@ public class GameDataCacheService : IDisposable
       }
 
       _logger.Information("Initializing MutagenService for cache load...");
-      await _mutagenService.InitializeAsync(dataPath);
+      var selectedLanguage = _settings.SelectedLanguage;
+      var mutagenLanguage = selectedLanguage != null
+                              ? LanguageMapper.ToMutagenLanguage(selectedLanguage.Code)
+                              : Language.English;
+      await _mutagenService.InitializeAsync(dataPath, mutagenLanguage);
     }
 
     await LoadAsync();

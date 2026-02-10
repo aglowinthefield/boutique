@@ -10,8 +10,10 @@ using System.Windows;
 using System.Windows.Threading;
 using Boutique.Models;
 using Boutique.Services;
+using Boutique.Utilities;
 using DynamicData;
 using DynamicData.Binding;
+using Mutagen.Bethesda.Strings;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
@@ -592,7 +594,12 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     try
     {
-      await _mutagenService.InitializeAsync(Settings.SkyrimDataPath);
+      var selectedLanguage = Settings.SelectedLanguage;
+      var mutagenLanguage = selectedLanguage != null
+                              ? LanguageMapper.ToMutagenLanguage(selectedLanguage.Code)
+                              : Language.English;
+
+      await _mutagenService.InitializeAsync(Settings.SkyrimDataPath, mutagenLanguage);
 
       var plugins    = await _mutagenService.GetPluginsWithArmorsOrOutfitsAsync();
       var pluginList = plugins.ToList();

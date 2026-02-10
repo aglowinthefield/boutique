@@ -150,7 +150,24 @@ public partial class SettingsViewModel : ReactiveObject
     this.WhenAnyValue(x => x.SelectedLanguage)
         .Skip(1)
         .Where(lang => lang != null)
-        .Subscribe(lang => _localizationService.SetLanguage(lang!.Code));
+        .Subscribe(async lang =>
+        {
+          var logger = _loggingService.ForContext<SettingsViewModel>();
+          logger.Information("Language changed to {Language}, updating UI and game data...", lang!.DisplayName);
+
+          _localizationService.SetLanguage(lang!.Code);
+
+          // Also update Mutagen to use the new language for mod STRINGS files
+          if (_mutagenService.IsInitialized)
+          {
+            var mutagenLanguage = LanguageMapper.ToMutagenLanguage(lang.Code);
+            logger.Information("Reinitializing Mutagen with language: {MutagenLanguage}", mutagenLanguage);
+
+            await _mutagenService.ReinitializeWithLanguageAsync(mutagenLanguage);
+
+            logger.Information("Mutagen reinitialization complete");
+          }
+        });
 
     if (string.IsNullOrEmpty(SkyrimDataPath))
     {

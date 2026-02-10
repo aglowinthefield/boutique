@@ -17,6 +17,7 @@ using Microsoft.Win32;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
+using Mutagen.Bethesda.Strings;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
@@ -1267,7 +1268,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
 
         StatusMessage = "Initializing Skyrim environment...";
-        await _mutagenService.InitializeAsync(dataPath);
+        var selectedLanguage = _settings.SelectedLanguage;
+        var mutagenLanguage = selectedLanguage != null
+                                ? LanguageMapper.ToMutagenLanguage(selectedLanguage.Code)
+                                : Language.English;
+        await _mutagenService.InitializeAsync(dataPath, mutagenLanguage);
         this.RaisePropertyChanged(nameof(IsInitialized));
       }
 

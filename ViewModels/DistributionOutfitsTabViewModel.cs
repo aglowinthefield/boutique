@@ -10,6 +10,7 @@ using DynamicData;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
+using Mutagen.Bethesda.Strings;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
@@ -150,7 +151,11 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 
         StatusMessage = "Initializing Skyrim environment...";
         _logger.Debug("Initializing MutagenService...");
-        await _mutagenService.InitializeAsync(dataPath);
+        var selectedLanguage = _settings.SelectedLanguage;
+        var mutagenLanguage = selectedLanguage != null
+                                ? LanguageMapper.ToMutagenLanguage(selectedLanguage.Code)
+                                : Language.English;
+        await _mutagenService.InitializeAsync(dataPath, mutagenLanguage);
         _logger.Debug("MutagenService initialized successfully");
         this.RaisePropertyChanged(nameof(IsInitialized));
       }

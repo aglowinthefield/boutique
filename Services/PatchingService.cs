@@ -334,14 +334,16 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private void EnsureMinimumFormId(SkyrimMod patchMod)
   {
     var current = patchMod.ModHeader.Stats.NextFormID;
-    if (current < MinimumFormId)
+    if (current >= MinimumFormId)
     {
-      patchMod.ModHeader.Stats.NextFormID = MinimumFormId;
-      _logger.Warning(
-        "NextFormID was {Current:X}, bumped to {Minimum:X} for ESL compatibility.",
-        current,
-        MinimumFormId);
+      return;
     }
+
+    patchMod.ModHeader.Stats.NextFormID = MinimumFormId;
+    _logger.Warning(
+      "NextFormID was {Current:X}, bumped to {Minimum:X} for ESL compatibility.",
+      current,
+      MinimumFormId);
   }
 
   private static void ApplyGlamOnlyAdjustments(Armor target) => target.ArmorRating = 0;

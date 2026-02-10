@@ -26,14 +26,17 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
   public string? DataFolderPath { get; private set; }
 
-  public BinaryReadParameters Utf8ReadParameters { get; } = new()
-                                                            {
-                                                              StringsParam =
-                                                                new StringsReadParameters
-                                                                {
-                                                                  NonLocalizedEncodingOverride = MutagenEncoding._utf8
-                                                                }
-                                                            };
+  public Language ModLanguage { get; private set; } = Language.English;
+
+  public BinaryReadParameters Utf8ReadParameters => new()
+  {
+    StringsParam =
+      new StringsReadParameters
+      {
+        TargetLanguage = ModLanguage,
+        NonLocalizedEncodingOverride = MutagenEncoding._utf8
+      }
+  };
 
   public bool IsInitialized => _environment != null;
 
@@ -66,7 +69,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   private SkyrimRelease GetSkyrimRelease() =>
     settings.SelectedSkyrimRelease != default ? settings.SelectedSkyrimRelease : SkyrimRelease.SkyrimSE;
 
-  public async Task InitializeAsync(string dataFolderPath)
+  public async Task InitializeAsync(string dataFolderPath, Language? language = null)
   {
     if (IsInitialized)
     {
@@ -80,6 +83,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
       {
         return;
       }
+
+      ModLanguage = language ?? Language.English;
 
       await Task.Run(() =>
       {
@@ -101,6 +106,64 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
       });
 
       Initialized?.Invoke(this, EventArgs.Empty);
+    }
+    finally
+    {
+      _initLock.Release();
+    }
+  }
+
+  /// <summary>
+  /// Reinitializes the Mutagen environment with a new language.
+  /// Used when the user changes the language setting.
+  /// </summary>
+  public async Task ReinitializeWithLanguageAsync(Language language)
+  {
+    if (!IsInitialized || DataFolderPath == null)
+    {
+      _logger.Warning("Cannot reinitialize - not previously initialized");
+      return;
+    }
+
+    if (language == ModLanguage)
+    {
+      _logger.Debug("Language unchanged ({Language}), skipping reinitialization", language);
+      return;
+    }
+
+    _logger.Information("Reinitializing with new language: {OldLanguage} -> {NewLanguage}", ModLanguage, language);
+
+    await _initLock.WaitAsync();
+    try
+    {
+      var dataPath = DataFolderPath;
+
+      // Dispose old environment
+      _environment?.Dispose();
+      _environment = null;
+      LinkCache = null;
+
+      // Update language
+      ModLanguage = language;
+
+      // Rebuild environment
+      await Task.Run(() =>
+      {
+        var useExplicitPath = !string.IsNullOrWhiteSpace(dataPath) &&
+                              PathUtilities.HasPluginFiles(dataPath);
+
+        if (useExplicitPath)
+        {
+          InitializeWithExplicitPath(dataPath);
+        }
+        else
+        {
+          InitializeWithAutoDetection(dataPath);
+        }
+      });
+
+      PluginsChanged?.Invoke(this, EventArgs.Empty);
+      _logger.Information("Successfully reinitialized with language: {Language}", language);
     }
     finally
     {
@@ -142,6 +205,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
   private void BuildEnvironment(string? explicitDataPath)
   {
+    _logger.Information("Building environment with language: {Language}", ModLanguage);
+
+    // Set the global default language for all TranslatedString lookups
+    // This affects how armor names, descriptions, and other localized strings are resolved
+    TranslatedString.DefaultLanguage = ModLanguage;
+    _logger.Information("Set TranslatedString.DefaultLanguage to {Language}", ModLanguage);
+    _logger.Information("Expected STRINGS file suffix: _{Language}.STRINGS (e.g. Skyrim_{Language}.STRINGS)",
+                       ModLanguage.ToString().ToLower());
+
+    // Always use UTF-8 for SSE - STRINGS files are UTF-8 encoded regardless of language
     _environment = string.IsNullOrEmpty(explicitDataPath)
                      ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
                                       .WithUtf8Encoding()
@@ -150,6 +223,16 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                                       .WithTargetDataFolder(new DirectoryPath(explicitDataPath))
                                       .WithUtf8Encoding()
                                       .Build();
+
+    _logger.Information("Built environment with UTF-8 encoding for language: {Language}", ModLanguage);
+
+    // Verify STRINGS file discovery
+    if (!string.IsNullOrEmpty(DataFolderPath))
+    {
+      var stringsPath = Path.Combine(DataFolderPath, "Strings", $"Skyrim_{ModLanguage.ToString().ToLowerInvariant()}.STRINGS");
+      var stringsExists = File.Exists(stringsPath);
+      _logger.Information("STRINGS file check: {Path} exists={Exists}", stringsPath, stringsExists);
+    }
 
     LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
   }
