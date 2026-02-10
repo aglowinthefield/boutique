@@ -141,6 +141,26 @@ public static class DistributionLineParser
     return null;
   }
 
+  public static int ExtractChanceFromLine(DistributionFileViewModel file, DistributionLine line)
+  {
+    return file.TypeDisplay switch
+    {
+      "SPID"       => ExtractChanceFromSpidLine(line.RawText),
+      "SkyPatcher" => 100,
+      _            => 100
+    };
+  }
+
+  private static int ExtractChanceFromSpidLine(string rawText)
+  {
+    if (!SpidLineParser.TryParse(rawText, out var filter) || filter == null)
+    {
+      return 100;
+    }
+
+    return filter.Chance;
+  }
+
   private static FormKey? TryParseFormKey(string text) =>
     FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
 }

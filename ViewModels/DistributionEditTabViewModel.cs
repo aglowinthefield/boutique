@@ -62,6 +62,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   [Reactive] private string _conflictSummary = string.Empty;
 
+  [Reactive] private bool _hasOverlaps;
+
+  [Reactive] private bool _overlapsResolvedByFilename;
+
+  [Reactive] private string _overlapSummary = string.Empty;
+
   [Reactive] private CopiedNpcFilter? _copiedFilter;
 
   private ObservableCollection<DistributionEntryViewModel> _distributionEntries = [];
@@ -104,6 +110,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   [Reactive] private PreviewLineHighlightRequest? _highlightRequest;
 
   [Reactive] private string _intraFileConflictSummary = string.Empty;
+
+  [Reactive] private bool _hasIntraFileOverlaps;
+
+  [Reactive] private string _intraFileOverlapSummary = string.Empty;
 
   private bool _isBulkLoading;
 
@@ -367,6 +377,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
               HasConflicts                = false;
               ConflictsResolvedByFilename = false;
               ConflictSummary             = string.Empty;
+              HasOverlaps                 = false;
+              OverlapsResolvedByFilename  = false;
+              OverlapSummary              = string.Empty;
               SuggestedFileName           = string.Empty;
               ClearNpcConflictIndicators();
             }
@@ -538,11 +551,13 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     {
       HasIntraFileConflicts    = false;
       IntraFileConflictSummary = string.Empty;
+      HasIntraFileOverlaps     = false;
+      IntraFileOverlapSummary  = string.Empty;
       return;
     }
 
-    var                                                          allNpcs = _cache.AllNpcs.ToList();
-    List<(string NpcName, int EntryCount, List<string> Outfits)> conflicts;
+    var allNpcs = _cache.AllNpcs.ToList();
+    List<(string NpcName, int EntryCount, List<string> Outfits, bool IsHardConflict)> issues;
 
     if (allNpcs.Count > 0)
     {
@@ -570,58 +585,94 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         }
       }
 
-      conflicts =
+      issues =
       [
         .. npcToEntries
            .Where(kv => kv.Value.Count > 1)
            .Select(kv =>
            {
-             var npc = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+             var npc      = allNpcs.FirstOrDefault(n => n.FormKey == kv.Key);
+             var entries  = kv.Value;
+             var allAre100Percent = entries.All(e => !e.Entry.UseChance || e.Entry.Chance == 100);
              return (
                       NpcName: npc?.DisplayName ?? kv.Key.ToString(),
-                      EntryCount: kv.Value.Count,
-                      Outfits: kv.Value.Select(e => e.OutfitName).Distinct().ToList());
+                      EntryCount: entries.Count,
+                      Outfits: entries.Select(e => e.OutfitName).Distinct().ToList(),
+                      IsHardConflict: allAre100Percent);
            })
       ];
     }
     else
     {
-      conflicts = outfitEntries
-                  .SelectMany(entry => entry.SelectedNpcs
-                                            .Where(npc => !npc.IsExcluded)
-                                            .Select(npc => (Entry: entry, Npc: npc)))
-                  .GroupBy(x => x.Npc.FormKey)
-                  .Where(g => g.Count() > 1)
-                  .Select(g => (
-                                 NpcName: g.First().Npc.DisplayName,
-                                 EntryCount: g.Count(),
-                                 Outfits: g.Select(x => x.Entry.SelectedOutfit?.EditorID ?? "(no outfit)").Distinct()
-                                           .ToList()))
-                  .ToList();
+      issues = outfitEntries
+               .SelectMany(entry => entry.SelectedNpcs
+                                         .Where(npc => !npc.IsExcluded)
+                                         .Select(npc => (Entry: entry, Npc: npc)))
+               .GroupBy(x => x.Npc.FormKey)
+               .Where(g => g.Count() > 1)
+               .Select(g =>
+               {
+                 var entries          = g.ToList();
+                 var allAre100Percent = entries.All(e => !e.Entry.UseChance || e.Entry.Chance == 100);
+                 return (
+                          NpcName: g.First().Npc.DisplayName,
+                          EntryCount: g.Count(),
+                          Outfits: g.Select(x => x.Entry.SelectedOutfit?.EditorID ?? "(no outfit)").Distinct().ToList(),
+                          IsHardConflict: allAre100Percent);
+               })
+               .ToList();
     }
 
+    var conflicts = issues.Where(i => i.IsHardConflict).ToList();
+    var overlaps  = issues.Where(i => !i.IsHardConflict).ToList();
+
+    // Build conflict summary
     if (conflicts.Count == 0)
     {
       HasIntraFileConflicts    = false;
       IntraFileConflictSummary = string.Empty;
-      return;
     }
-
-    HasIntraFileConflicts = true;
-
-    var sb = new StringBuilder();
-    sb.AppendLine($"{conflicts.Count} NPC(s) appear in multiple entries:");
-    foreach (var conflict in conflicts.Take(5))
+    else
     {
-      sb.AppendLine($"  • {conflict.NpcName} ({conflict.EntryCount}x): {string.Join(", ", conflict.Outfits)}");
+      HasIntraFileConflicts = true;
+      var sb = new StringBuilder();
+      sb.AppendLine($"{conflicts.Count} NPC(s) have multiple 100% chance entries:");
+      foreach (var conflict in conflicts.Take(5))
+      {
+        sb.AppendLine($"  • {conflict.NpcName} ({conflict.EntryCount}x): {string.Join(", ", conflict.Outfits)}");
+      }
+
+      if (conflicts.Count > 5)
+      {
+        sb.AppendLine($"  ... and {conflicts.Count - 5} more");
+      }
+
+      IntraFileConflictSummary = sb.ToString().TrimEnd();
     }
 
-    if (conflicts.Count > 5)
+    // Build overlap summary
+    if (overlaps.Count == 0)
     {
-      sb.AppendLine($"  ... and {conflicts.Count - 5} more");
+      HasIntraFileOverlaps    = false;
+      IntraFileOverlapSummary = string.Empty;
     }
+    else
+    {
+      HasIntraFileOverlaps = true;
+      var sb = new StringBuilder();
+      sb.AppendLine($"{overlaps.Count} NPC(s) have multiple chance-based entries (can coexist probabilistically):");
+      foreach (var overlap in overlaps.Take(5))
+      {
+        sb.AppendLine($"  • {overlap.NpcName} ({overlap.EntryCount}x): {string.Join(", ", overlap.Outfits)}");
+      }
 
-    IntraFileConflictSummary = sb.ToString().TrimEnd();
+      if (overlaps.Count > 5)
+      {
+        sb.AppendLine($"  ... and {overlaps.Count - 5} more");
+      }
+
+      IntraFileOverlapSummary = sb.ToString().TrimEnd();
+    }
   }
 
   private void SetupFilterPipelines()
@@ -1214,6 +1265,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         HasConflicts                = false;
         ConflictsResolvedByFilename = false;
         ConflictSummary             = string.Empty;
+        HasOverlaps                 = false;
+        OverlapsResolvedByFilename  = false;
+        OverlapSummary              = string.Empty;
         SuggestedFileName           = string.Empty;
         ClearNpcConflictIndicators();
         var entryVms = await Task.Run(() =>
@@ -1887,6 +1941,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       HasConflicts                = false;
       ConflictsResolvedByFilename = false;
       ConflictSummary             = string.Empty;
+      HasOverlaps                 = false;
+      OverlapsResolvedByFilename  = false;
+      OverlapSummary              = string.Empty;
       SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
@@ -1897,6 +1954,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       HasConflicts                = false;
       ConflictsResolvedByFilename = false;
       ConflictSummary             = string.Empty;
+      HasOverlaps                 = false;
+      OverlapsResolvedByFilename  = false;
+      OverlapSummary              = string.Empty;
       SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
@@ -1907,6 +1967,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       HasConflicts                = false;
       ConflictsResolvedByFilename = false;
       ConflictSummary             = string.Empty;
+      HasOverlaps                 = false;
+      OverlapsResolvedByFilename  = false;
+      OverlapSummary              = string.Empty;
       SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
@@ -1917,6 +1980,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       HasConflicts                = false;
       ConflictsResolvedByFilename = false;
       ConflictSummary             = string.Empty;
+      HasOverlaps                 = false;
+      OverlapsResolvedByFilename  = false;
+      OverlapSummary              = string.Empty;
       SuggestedFileName           = NewFileName;
       ClearNpcConflictIndicators();
       return;
@@ -1940,10 +2006,16 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             HasConflicts                = result.HasConflicts;
             ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
             ConflictSummary             = result.ConflictSummary;
+            HasOverlaps                 = result.HasOverlaps;
+            OverlapsResolvedByFilename  = result.OverlapsResolvedByFilename;
+            OverlapSummary              = result.OverlapSummary;
             SuggestedFileName           = result.SuggestedFileName;
             var conflictNpcFormKeys = result.Conflicts
                                             .Select(c => c.NpcFormKey)
                                             .ToHashSet();
+            var overlapNpcFormKeys = result.Overlaps
+                                           .Select(o => o.NpcFormKey)
+                                           .ToHashSet();
 
             foreach (var entry in DistributionEntries)
             {
@@ -1960,6 +2032,18 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                   npcVm.HasConflict         = false;
                   npcVm.ConflictingFileName = null;
                 }
+
+                if (overlapNpcFormKeys.Contains(npcVm.FormKey))
+                {
+                  var overlap = result.Overlaps.First(o => o.NpcFormKey == npcVm.FormKey);
+                  npcVm.HasOverlap         = !result.OverlapsResolvedByFilename;
+                  npcVm.OverlappingFileName = overlap.ExistingFileName;
+                }
+                else
+                {
+                  npcVm.HasOverlap         = false;
+                  npcVm.OverlappingFileName = null;
+                }
               }
             }
           }
@@ -1969,6 +2053,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             HasConflicts                = false;
             ConflictsResolvedByFilename = false;
             ConflictSummary             = string.Empty;
+            HasOverlaps                 = false;
+            OverlapsResolvedByFilename  = false;
+            OverlapSummary              = string.Empty;
             SuggestedFileName           = NewFileName;
             ClearNpcConflictIndicators();
           }

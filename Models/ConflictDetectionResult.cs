@@ -7,5 +7,9 @@ public sealed record ConflictDetectionResult(
   bool HasConflicts,
   bool ConflictsResolvedByFilename,
   string ConflictSummary,
+  bool HasOverlaps,
+  bool OverlapsResolvedByFilename,
+  string OverlapSummary,
   string SuggestedFileName,
-  IReadOnlyList<NpcConflictInfo> Conflicts);
+  IReadOnlyList<NpcConflictInfo> Conflicts,
+  IReadOnlyList<NpcConflictInfo> Overlaps);

@@ -29,100 +29,134 @@ public class DistributionConflictDetectionService
         false,
         false,
         string.Empty,
+        false,
+        false,
+        string.Empty,
         newFileName,
+        [],
         []);
     }
 
-    // Build a map of NPC FormKey -> (FileName, OutfitEditorId) from existing distribution files
+    // Build a map of NPC FormKey -> (FileName, OutfitEditorId, Chance) from existing distribution files
     // Also track files that target ALL NPCs
     var (existingDistributions, allNpcsDistributions) = BuildExistingDistributionMap(existingFiles, linkCache);
 
-    // Find conflicts
-    var conflicts            = new List<NpcConflictInfo>();
+    // Find conflicts and overlaps
+    var allIssues = new List<NpcConflictInfo>();
     var conflictingFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var overlappingFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     foreach (var entry in entries)
     {
       var newOutfitName = entry.SelectedOutfit?.EditorID ?? entry.SelectedOutfit?.FormKey.ToString();
+      var newChance     = entry.UseChance ? entry.Chance : 100;
 
       foreach (var npcVm in entry.SelectedNpcs)
       {
         // First check for specific NPC conflicts
         if (existingDistributions.TryGetValue(npcVm.FormKey, out var existing))
         {
-          conflicts.Add(
-            new NpcConflictInfo(
-              npcVm.FormKey,
-              npcVm.DisplayName,
-              existing.FileName,
-              existing.OutfitName,
-              newOutfitName));
+          var info = new NpcConflictInfo(
+            npcVm.FormKey,
+            npcVm.DisplayName,
+            existing.FileName,
+            existing.OutfitName,
+            newOutfitName,
+            existing.Chance,
+            newChance);
 
-          conflictingFileNames.Add(existing.FileName);
+          allIssues.Add(info);
+
+          if (info.IsHardConflict)
+          {
+            conflictingFileNames.Add(existing.FileName);
+          }
+          else
+          {
+            overlappingFileNames.Add(existing.FileName);
+          }
         }
         else if (allNpcsDistributions.Count > 0)
         {
           // Use the first "all NPCs" distribution as the conflict
           var allNpcsDist = allNpcsDistributions[0];
-          conflicts.Add(
-            new NpcConflictInfo(
-              npcVm.FormKey,
-              npcVm.DisplayName,
-              allNpcsDist.FileName,
-              allNpcsDist.OutfitName,
-              newOutfitName));
+          var info = new NpcConflictInfo(
+            npcVm.FormKey,
+            npcVm.DisplayName,
+            allNpcsDist.FileName,
+            allNpcsDist.OutfitName,
+            newOutfitName,
+            allNpcsDist.Chance,
+            newChance);
 
-          conflictingFileNames.Add(allNpcsDist.FileName);
+          allIssues.Add(info);
+
+          if (info.IsHardConflict)
+          {
+            conflictingFileNames.Add(allNpcsDist.FileName);
+          }
+          else
+          {
+            overlappingFileNames.Add(allNpcsDist.FileName);
+          }
         }
       }
     }
 
-    // Check if the current filename already loads after all conflicting files
-    var currentFileLoadsLast = DoesFileLoadAfterAll(newFileName, conflictingFileNames);
+    // Separate conflicts from overlaps
+    var conflicts = allIssues.Where(i => i.IsHardConflict).ToList();
+    var overlaps  = allIssues.Where(i => i.IsProbabilisticOverlap).ToList();
 
-    // Only show as conflict if the user's file wouldn't load last
-    var hasConflicts                = conflicts.Count > 0 && !currentFileLoadsLast;
-    var conflictsResolvedByFilename = conflicts.Count > 0 && currentFileLoadsLast;
+    // Check if the current filename already loads after all conflicting/overlapping files
+    var currentFileLoadsAfterConflicts = DoesFileLoadAfterAll(newFileName, conflictingFileNames);
+    var currentFileLoadsAfterOverlaps  = DoesFileLoadAfterAll(newFileName, overlappingFileNames);
+
+    // Only show as conflict/overlap if the user's file wouldn't load last
+    var hasConflicts                = conflicts.Count > 0 && !currentFileLoadsAfterConflicts;
+    var conflictsResolvedByFilename = conflicts.Count > 0 && currentFileLoadsAfterConflicts;
+    var hasOverlaps                 = overlaps.Count > 0 && !currentFileLoadsAfterOverlaps;
+    var overlapsResolvedByFilename  = overlaps.Count > 0 && currentFileLoadsAfterOverlaps;
 
     string conflictSummary;
+    string overlapSummary;
     string suggestedFileName;
 
     // Check if conflicts are from an "all NPCs" distribution
     var hasAllNpcsConflict = allNpcsDistributions.Count > 0 &&
                              conflicts.Any(c => allNpcsDistributions.Exists(d => d.FileName == c.ExistingFileName));
+    var hasAllNpcsOverlap = allNpcsDistributions.Count > 0 &&
+                            overlaps.Any(o => allNpcsDistributions.Exists(d => d.FileName == o.ExistingFileName));
 
+    // Build conflict summary
     if (conflicts.Count > 0)
     {
-      if (currentFileLoadsLast)
+      if (currentFileLoadsAfterConflicts)
       {
-        // Conflict exists but is resolved by filename ordering
         var allNpcsNote = hasAllNpcsConflict
                             ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
                             : string.Empty;
         conflictSummary =
-          $"✓ {conflicts.Count} NPC(s) have existing distributions{allNpcsNote}, but your filename '{newFileName}' will load after them.";
-        suggestedFileName = newFileName;
+          $"✓ {conflicts.Count} NPC(s) have 100% chance distributions{allNpcsNote}, but your filename '{newFileName}' will load after them.";
       }
       else
       {
-        // Build conflict summary
         var sb = new StringBuilder();
 
         if (hasAllNpcsConflict)
         {
           sb.Append(
               CultureInfo.InvariantCulture,
-              $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs.")
+              $"⚠ '{allNpcsDistributions[0].FileName}' distributes outfit '{allNpcsDistributions[0].OutfitName}' to ALL NPCs (100% chance).")
             .AppendLine()
             .Append(
               CultureInfo.InvariantCulture,
-              $"All {conflicts.Count} NPC(s) in your entries will be affected.").AppendLine();
+              $"All {conflicts.Count} NPC(s) in your entries will be overridden.").AppendLine();
         }
         else
         {
           sb.Append(
               CultureInfo.InvariantCulture,
-              $"⚠ {conflicts.Count} NPC(s) already have outfit distributions in existing files:")
+              $"⚠ {conflicts.Count} NPC(s) already have 100% chance outfit distributions:")
             .AppendLine();
 
           foreach (var conflict in conflicts.Take(5))
@@ -140,23 +174,83 @@ public class DistributionConflictDetectionService
         }
 
         conflictSummary = sb.ToString().TrimEnd();
-
-        // Calculate suggested filename with Z-prefix
-        suggestedFileName = CalculateZPrefixedFileName(newFileName, conflictingFileNames);
       }
     }
     else
     {
-      conflictSummary   = string.Empty;
-      suggestedFileName = newFileName;
+      conflictSummary = string.Empty;
     }
+
+    // Build overlap summary
+    if (overlaps.Count > 0)
+    {
+      if (currentFileLoadsAfterOverlaps)
+      {
+        var allNpcsNote = hasAllNpcsOverlap
+                            ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
+                            : string.Empty;
+        overlapSummary =
+          $"ℹ {overlaps.Count} NPC(s) have chance-based distributions{allNpcsNote}. Your file will load after them.";
+      }
+      else
+      {
+        var sb = new StringBuilder();
+
+        if (hasAllNpcsOverlap)
+        {
+          var dist = allNpcsDistributions[0];
+          sb.Append(
+              CultureInfo.InvariantCulture,
+              $"ℹ '{dist.FileName}' distributes outfit '{dist.OutfitName}' to ALL NPCs ({dist.Chance}% chance).")
+            .AppendLine()
+            .Append(
+              CultureInfo.InvariantCulture,
+              $"{overlaps.Count} NPC(s) in your entries may receive multiple outfits probabilistically.").AppendLine();
+        }
+        else
+        {
+          sb.Append(
+              CultureInfo.InvariantCulture,
+              $"ℹ {overlaps.Count} NPC(s) have chance-based distributions (can coexist probabilistically):")
+            .AppendLine();
+
+          foreach (var overlap in overlaps.Take(5))
+          {
+            sb.Append(
+                CultureInfo.InvariantCulture,
+                $"  • {overlap.DisplayName ?? overlap.NpcFormKey.ToString()} ({overlap.ExistingFileName}, {overlap.ExistingChance}% chance)")
+              .AppendLine();
+          }
+
+          if (overlaps.Count > 5)
+          {
+            sb.Append(CultureInfo.InvariantCulture, $"  ... and {overlaps.Count - 5} more").AppendLine();
+          }
+        }
+
+        overlapSummary = sb.ToString().TrimEnd();
+      }
+    }
+    else
+    {
+      overlapSummary = string.Empty;
+    }
+
+    // Calculate suggested filename (only based on hard conflicts, not overlaps)
+    suggestedFileName = conflicts.Count > 0 && !currentFileLoadsAfterConflicts
+                          ? CalculateZPrefixedFileName(newFileName, conflictingFileNames)
+                          : newFileName;
 
     return new ConflictDetectionResult(
       hasConflicts,
       conflictsResolvedByFilename,
       conflictSummary,
+      hasOverlaps,
+      overlapsResolvedByFilename,
+      overlapSummary,
       suggestedFileName,
-      conflicts);
+      conflicts,
+      overlaps);
   }
 
   private static bool DoesFileLoadAfterAll(string fileName, HashSet<string> conflictingFileNames)
@@ -183,14 +277,14 @@ public class DistributionConflictDetectionService
     return true;
   }
 
-  private static (Dictionary<FormKey, (string FileName, string? OutfitName)> SpecificNpcDistributions,
-    List<(string FileName, string? OutfitName)> AllNpcsDistributions)
+  private static (Dictionary<FormKey, (string FileName, string? OutfitName, int Chance)> SpecificNpcDistributions,
+    List<(string FileName, string? OutfitName, int Chance)> AllNpcsDistributions)
     BuildExistingDistributionMap(
       IReadOnlyList<DistributionFileViewModel> files,
       ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
-    var map                  = new Dictionary<FormKey, (string FileName, string? OutfitName)>();
-    var allNpcsDistributions = new List<(string FileName, string? OutfitName)>();
+    var map                  = new Dictionary<FormKey, (string FileName, string? OutfitName, int Chance)>();
+    var allNpcsDistributions = new List<(string FileName, string? OutfitName, int Chance)>();
 
     // Check if we need NPC lookup dictionaries (for SPID files)
     var                             hasSpidFiles  = files.Any(f => f.TypeDisplay == "SPID");
@@ -216,6 +310,7 @@ public class DistributionConflictDetectionService
       foreach (var line in file.Lines.Where(l => l.IsOutfitDistribution))
       {
         var outfitName = DistributionLineParser.ExtractOutfitNameFromLine(line, linkCache);
+        var chance     = DistributionLineParser.ExtractChanceFromLine(file, line);
 
         // Check if this line targets all NPCs (no filters)
         if (DistributionLineParser.LineTargetsAllNpcs(file, line))
@@ -223,7 +318,7 @@ public class DistributionConflictDetectionService
           // Only track the first "all NPCs" distribution
           if (allNpcsDistributions.Count == 0)
           {
-            allNpcsDistributions.Add((file.FileName, outfitName));
+            allNpcsDistributions.Add((file.FileName, outfitName, chance));
           }
 
           continue;
@@ -237,7 +332,7 @@ public class DistributionConflictDetectionService
         {
           if (!map.ContainsKey(npcFormKey))
           {
-            map[npcFormKey] = (file.FileName, outfitName);
+            map[npcFormKey] = (file.FileName, outfitName, chance);
           }
         }
       }

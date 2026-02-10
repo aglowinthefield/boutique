@@ -9,5 +9,9 @@ public partial class NpcRecordViewModel(NpcRecord npcRecord) : SelectableRecordV
 
   [Reactive] private bool _hasConflict;
 
+  [Reactive] private string? _overlappingFileName;
+
+  [Reactive] private bool _hasOverlap;
+
   public NpcRecord NpcRecord => Record;
 }

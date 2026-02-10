@@ -150,6 +150,13 @@
             </StackPanel>
           </StackPanel>
         </Border>
+        <Border BorderBrush="#0078D4" BorderThickness="1" Background="#1A0078D4" CornerRadius="4" Padding="8"
+                Margin="0,6,0,0"
+                Visibility="{Binding HasOverlaps, Converter={StaticResource BoolToVisConverter}}">
+          <StackPanel>
+            <TextBlock Text="{Binding OverlapSummary}" TextWrapping="Wrap" Foreground="#0078D4" FontSize="11" />
+          </StackPanel>
+        </Border>
         <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasIntraFileConflicts, Converter={StaticResource BoolToVisConverter}}">
           <StackPanel>
@@ -157,6 +164,18 @@
                        Margin="0,0,0,4" />
             <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
               <TextBlock Text="{Binding IntraFileConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600"
+                         FontSize="11" />
+            </ScrollViewer>
+          </StackPanel>
+        </Border>
+        <Border BorderBrush="#0078D4" BorderThickness="1" Background="#1A0078D4" CornerRadius="4" Padding="8"
+                Margin="0,6,0,0"
+                Visibility="{Binding HasIntraFileOverlaps, Converter={StaticResource BoolToVisConverter}}">
+          <StackPanel>
+            <TextBlock Text="Intra-file Overlaps" FontWeight="Bold" Foreground="#0078D4" FontSize="11"
+                       Margin="0,0,0,4" />
+            <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+              <TextBlock Text="{Binding IntraFileOverlapSummary}" TextWrapping="Wrap" Foreground="#0078D4"
                          FontSize="11" />
             </ScrollViewer>
           </StackPanel>
