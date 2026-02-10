@@ -45,6 +45,15 @@ public static class RecordLoaders
       c => c.DisplayName,
       isBlacklisted);
 
+  public static List<LocationRecordViewModel> LoadLocations(
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    Func<ModKey, bool> isBlacklisted) =>
+    RecordLoader.LoadRecords<ILocationGetter, LocationRecordViewModel>(
+      linkCache,
+      l => new LocationRecordViewModel(LocationRecord.FromGetter(l)),
+      l => l.DisplayName,
+      isBlacklisted);
+
   public static List<IOutfitGetter> LoadOutfits(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>

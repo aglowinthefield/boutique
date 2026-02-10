@@ -133,6 +133,18 @@ public partial class DistributionEntryEditorView
     }
   }
 
+  private void RemoveLocation_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is Button button && button.Tag is LocationRecordViewModel locationVm)
+    {
+      var itemsControl = FindVisualParent<ItemsControl>(button);
+      if (itemsControl?.DataContext is DistributionEntryViewModel entryVm)
+      {
+        entryVm.RemoveLocation(locationVm);
+      }
+    }
+  }
+
   private void RemoveOutfitFilter_Click(object sender, RoutedEventArgs e)
   {
     if (sender is Button button && button.Tag is OutfitRecordViewModel outfitVm)

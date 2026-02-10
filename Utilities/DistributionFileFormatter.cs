@@ -258,6 +258,11 @@ public static class DistributionFileFormatter
       }
     }
 
+    foreach (var locationVm in entry.SelectedLocations)
+    {
+      formFilterParts.Add(FormKeyHelper.FormatForSpid(locationVm.FormKey));
+    }
+
     foreach (var outfitVm in entry.SelectedOutfitFilters)
     {
       formFilterParts.Add(FormKeyHelper.FormatForSpid(outfitVm.FormKey));

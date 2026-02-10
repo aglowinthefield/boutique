@@ -119,6 +119,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   private DistributionEntryViewModel? _lastChangedEntry;
 
+  [Reactive] private string _locationSearchText = string.Empty;
+
   [Reactive] private string _npcSearchText = string.Empty;
 
   [Reactive] private string _outfitFilterSearchText = string.Empty;
@@ -218,6 +220,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   public ReadOnlyObservableCollection<FactionRecordViewModel> FilteredFactions { get; private set; } = null!;
 
   public ReadOnlyObservableCollection<KeywordRecordViewModel> FilteredKeywords { get; private set; } = null!;
+
+  public ReadOnlyObservableCollection<LocationRecordViewModel> FilteredLocations { get; private set; } = null!;
 
   public ReadOnlyObservableCollection<NpcRecordViewModel> FilteredNpcs { get; private set; } = null!;
 
@@ -659,6 +663,13 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     _disposables.Add(
       FilterPipelineFactory.CreateSearchFilter(
+        this.WhenAnyValue(vm => vm.LocationSearchText),
+        _cache.AllLocations,
+        out var filteredLocations));
+    FilteredLocations = filteredLocations;
+
+    _disposables.Add(
+      FilterPipelineFactory.CreateSearchFilter(
         this.WhenAnyValue(vm => vm.OutfitFilterSearchText),
         _cache.AllOutfitRecords,
         out var filteredOutfitFilters));
@@ -903,6 +914,14 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       entry => entry.SelectedClasses,
       (entry, classVm) => entry.AddClass(classVm),
       "class");
+
+  [ReactiveCommand(CanExecute = nameof(_hasEntries))]
+  private void AddSelectedLocationsToEntry() =>
+    AddSelectedCriteriaToEntry(
+      FilteredLocations,
+      entry => entry.SelectedLocations,
+      (entry, location) => entry.AddLocation(location),
+      "location");
 
   [ReactiveCommand(CanExecute = nameof(_hasEntries))]
   private void AddSelectedOutfitFiltersToEntry() =>

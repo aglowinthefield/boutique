@@ -23,6 +23,10 @@ public sealed class FormIdLookupCache
                              .GroupBy(r => r.FormKey.ID)
                              .ToDictionary(g => g.Key, g => g.First().FormKey);
 
+    LocationsByFormId = linkCache.WinningOverrides<ILocationGetter>()
+                                 .GroupBy(r => r.FormKey.ID)
+                                 .ToDictionary(g => g.Key, g => g.First().FormKey);
+
     OutfitsByFormId = linkCache.WinningOverrides<IOutfitGetter>()
                                .GroupBy(r => r.FormKey.ID)
                                .ToDictionary(g => g.Key, g => g.First().FormKey);
@@ -31,6 +35,7 @@ public sealed class FormIdLookupCache
   public IReadOnlyDictionary<uint, FormKey> NpcsByFormId { get; }
   public IReadOnlyDictionary<uint, FormKey> FactionsByFormId { get; }
   public IReadOnlyDictionary<uint, FormKey> RacesByFormId { get; }
+  public IReadOnlyDictionary<uint, FormKey> LocationsByFormId { get; }
   public IReadOnlyDictionary<uint, FormKey> OutfitsByFormId { get; }
 }
 
@@ -444,6 +449,7 @@ public static class SpidFilterResolver
           npcFilters,
           factionFilters,
           raceFilters,
+          locationFormKeys,
           outfitFilterFormKeys,
           resolvedEditorIds,
           logger))
@@ -520,6 +526,7 @@ public static class SpidFilterResolver
         npcFilters,
         factionFilters,
         raceFilters,
+        locationFormKeys,
         outfitFilterFormKeys,
         resolvedEditorIds,
         logger))
@@ -543,6 +550,7 @@ public static class SpidFilterResolver
     List<FormKeyFilter> npcFilters,
     List<FormKeyFilter> factionFilters,
     List<FormKeyFilter> raceFilters,
+    List<FormKey> locationFormKeys,
     List<FormKey> outfitFilterFormKeys,
     HashSet<string>? resolvedEditorIds,
     ILogger? logger)
@@ -558,6 +566,7 @@ public static class SpidFilterResolver
         npcFilters,
         factionFilters,
         raceFilters,
+        locationFormKeys,
         outfitFilterFormKeys,
         resolvedEditorIds,
         logger);
@@ -575,6 +584,7 @@ public static class SpidFilterResolver
         npcFilters,
         factionFilters,
         raceFilters,
+        locationFormKeys,
         outfitFilterFormKeys,
         resolvedEditorIds,
         logger);
@@ -591,6 +601,7 @@ public static class SpidFilterResolver
     List<FormKeyFilter> npcFilters,
     List<FormKeyFilter> factionFilters,
     List<FormKeyFilter> raceFilters,
+    List<FormKey> locationFormKeys,
     List<FormKey> outfitFilterFormKeys,
     HashSet<string>? resolvedEditorIds,
     ILogger? logger) =>
@@ -618,6 +629,13 @@ public static class SpidFilterResolver
       raceFilters,
       resolvedEditorIds,
       logger) ||
+    TryResolveFormKeyAsFormKey<ILocationGetter>(
+      formKey,
+      originalValue,
+      linkCache,
+      locationFormKeys,
+      resolvedEditorIds,
+      logger) ||
     TryResolveFormKeyAsFormKey<IOutfitGetter>(
       formKey,
       originalValue,
@@ -635,6 +653,7 @@ public static class SpidFilterResolver
     List<FormKeyFilter> npcFilters,
     List<FormKeyFilter> factionFilters,
     List<FormKeyFilter> raceFilters,
+    List<FormKey> locationFormKeys,
     List<FormKey> outfitFilterFormKeys,
     HashSet<string>? resolvedEditorIds,
     ILogger? logger)
@@ -662,6 +681,14 @@ public static class SpidFilterResolver
         raceFilters.Add(new FormKeyFilter(raceFormKey, isNegated));
         resolvedEditorIds?.Add(originalValue);
         logger?.Debug("Resolved bare FormID {Value} as Race via cache: {FormKey}", originalValue, raceFormKey);
+        return true;
+      }
+
+      if (formIdCache.LocationsByFormId.TryGetValue(formId, out var locationFormKey))
+      {
+        locationFormKeys.Add(locationFormKey);
+        resolvedEditorIds?.Add(originalValue);
+        logger?.Debug("Resolved bare FormID {Value} as Location via cache: {FormKey}", originalValue, locationFormKey);
         return true;
       }
 
@@ -701,6 +728,13 @@ public static class SpidFilterResolver
           raceFilters,
           resolvedEditorIds,
           logger) ||
+        TryResolveBareFormIdAsFormKey<ILocationGetter>(
+          formId,
+          originalValue,
+          linkCache,
+          locationFormKeys,
+          resolvedEditorIds,
+          logger) ||
         TryResolveBareFormIdAsFormKey<IOutfitGetter>(
           formId,
           originalValue,
@@ -713,7 +747,7 @@ public static class SpidFilterResolver
     }
 
     logger?.Warning(
-      "Could not resolve bare FormID {Value} (0x{FormId:X}) as NPC, Faction, Race, or Outfit",
+      "Could not resolve bare FormID {Value} (0x{FormId:X}) as NPC, Faction, Race, Location, or Outfit",
       originalValue,
       formId);
     return false;

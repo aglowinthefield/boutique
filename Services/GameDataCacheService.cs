@@ -26,6 +26,7 @@ public class GameDataCacheService : IDisposable
   private readonly CompositeDisposable _disposables = [];
   private readonly SourceCache<DistributionFileViewModel, string> _distributionFilesSource = new(x => x.FullPath);
   private readonly SourceCache<FactionRecordViewModel, FormKey> _factionsSource = new(x => x.FormKey);
+  private readonly SourceCache<LocationRecordViewModel, FormKey> _locationsSource = new(x => x.FormKey);
   private readonly GuiSettingsService _guiSettings;
 
   private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource = new(x => x.EditorID);
@@ -101,6 +102,14 @@ public class GameDataCacheService : IDisposable
     AllClasses = allClasses;
 
     _disposables.Add(
+      _locationsSource.Connect()
+                      .SortBy(x => x.DisplayName)
+                      .ObserveOn(RxApp.MainThreadScheduler)
+                      .Bind(out var allLocations)
+                      .Subscribe());
+    AllLocations = allLocations;
+
+    _disposables.Add(
       _outfitsSource.Connect()
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Bind(out var allOutfits)
@@ -155,6 +164,7 @@ public class GameDataCacheService : IDisposable
   public ReadOnlyObservableCollection<RaceRecordViewModel> AllRaces { get; }
   public ReadOnlyObservableCollection<KeywordRecordViewModel> AllKeywords { get; }
   public ReadOnlyObservableCollection<ClassRecordViewModel> AllClasses { get; }
+  public ReadOnlyObservableCollection<LocationRecordViewModel> AllLocations { get; }
   public ReadOnlyObservableCollection<IOutfitGetter> AllOutfits { get; }
   public ReadOnlyObservableCollection<OutfitRecordViewModel> AllOutfitRecords { get; }
   public ReadOnlyObservableCollection<NpcRecordViewModel> AllNpcRecords { get; }
@@ -171,6 +181,7 @@ public class GameDataCacheService : IDisposable
     _racesSource.Dispose();
     _keywordsSource.Dispose();
     _classesSource.Dispose();
+    _locationsSource.Dispose();
     _outfitsSource.Dispose();
     _outfitRecordsSource.Dispose();
     _npcRecordsSource.Dispose();
@@ -231,35 +242,46 @@ public class GameDataCacheService : IDisposable
       List<RaceRecordViewModel>      racesList;
       List<KeywordRecordViewModel>   keywordsList;
       List<ClassRecordViewModel>     classesList;
+      List<LocationRecordViewModel>  locationsList;
       List<IOutfitGetter>            outfitsList;
       List<ContainerRecordViewModel> containersList;
 
-      var factionsTask = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
-      var racesTask    = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
-      var keywordsTask = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
-      var classesTask  = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
-      var outfitsTask  = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
+      var factionsTask  = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
+      var racesTask     = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
+      var keywordsTask  = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
+      var classesTask   = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
+      var locationsTask = Task.Run(() => RecordLoaders.LoadLocations(linkCache, IsBlacklisted));
+      var outfitsTask   = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
 
       if (_guiSettings.ShowContainersTab)
       {
         var containersTask = Task.Run(() => _containerDataBuilder.LoadContainers(linkCache, IsBlacklisted));
-        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask, containersTask)
+        await Task.WhenAll(
+                    factionsTask,
+                    racesTask,
+                    keywordsTask,
+                    classesTask,
+                    locationsTask,
+                    outfitsTask,
+                    containersTask)
                   .ContinueWith(_ => { });
         factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
         racesList      = await SafeAwaitAsync(racesTask, "Races");
         keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
         classesList    = await SafeAwaitAsync(classesTask, "Classes");
+        locationsList  = await SafeAwaitAsync(locationsTask, "Locations");
         outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
         containersList = await SafeAwaitAsync(containersTask, "Containers");
       }
       else
       {
-        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, outfitsTask)
+        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, locationsTask, outfitsTask)
                   .ContinueWith(_ => { });
         factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
         racesList      = await SafeAwaitAsync(racesTask, "Races");
         keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
         classesList    = await SafeAwaitAsync(classesTask, "Classes");
+        locationsList  = await SafeAwaitAsync(locationsTask, "Locations");
         outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
         containersList = [];
       }
@@ -396,6 +418,12 @@ public class GameDataCacheService : IDisposable
         cache.AddOrUpdate(classesList);
       });
 
+      _locationsSource.Edit(cache =>
+      {
+        cache.Clear();
+        cache.AddOrUpdate(locationsList);
+      });
+
       _outfitsSource.Edit(cache =>
       {
         cache.Clear();
@@ -418,14 +446,15 @@ public class GameDataCacheService : IDisposable
 
       IsLoaded = true;
       var logMessage = _guiSettings.ShowContainersTab
-                         ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
-                         : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
+                         ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {LocationCount} locations, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
+                         : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {LocationCount} locations, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
       _logger.Information(
         logMessage,
         npcFilterDataList.Count,
         factionsList.Count,
         racesList.Count,
         classesList.Count,
+        locationsList.Count,
         keywordsList.Count,
         outfitsList.Count,
         containersList.Count,

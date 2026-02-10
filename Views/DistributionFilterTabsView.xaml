@@ -190,6 +190,39 @@
         </Grid>
       </TabItem>
 
+      <!-- Locations Tab -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Locations}}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
+            <TextBox Text="{Binding LocationSearchText, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+          </StackPanel>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredLocations}" AutoGenerateColumns="False"
+                    CanUserAddRows="False" CanUserDeleteRows="False"
+                    SelectionMode="Extended" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                    PreviewKeyDown="DataGrid_PreviewKeyDown">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
+                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
+                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
+                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+            </DataGrid.Columns>
+          </DataGrid>
+          <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedLocations}}"
+                  Command="{Binding AddSelectedLocationsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+        </Grid>
+      </TabItem>
+
       <!-- Outfits Tab -->
       <TabItem Header="Outfits">
         <Grid>

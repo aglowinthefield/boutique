@@ -53,6 +53,13 @@ public class DistributionEntryHydrationService(
       entryVm.UpdateEntryClasses();
     }
 
+    var locationVms = ResolveLocationFormKeys(entry.LocationFormKeys);
+    if (locationVms.Count > 0)
+    {
+      entryVm.SelectedLocations = new ObservableCollection<LocationRecordViewModel>(locationVms);
+      entryVm.UpdateEntryLocations();
+    }
+
     var outfitFilterVms = ResolveOutfitFilterFormKeys(entry.OutfitFilterFormKeys);
     if (outfitFilterVms.Count > 0)
     {
@@ -270,6 +277,26 @@ public class DistributionEntryHydrationService(
     }
 
     return null;
+  }
+
+  private List<LocationRecordViewModel> ResolveLocationFormKeys(IEnumerable<FormKey> formKeys) =>
+    formKeys.Select(ResolveLocationFormKey).OfType<LocationRecordViewModel>().ToList();
+
+  public LocationRecordViewModel? ResolveLocationFormKey(FormKey formKey)
+  {
+    var existingLocation = cache.AllLocations.FirstOrDefault(l => l.FormKey == formKey);
+    if (existingLocation != null)
+    {
+      return existingLocation;
+    }
+
+    if (!mutagenService.LinkCache!.TryResolve<ILocationGetter>(formKey, out var locationGetter))
+    {
+      return null;
+    }
+
+    var locationRecord = LocationRecord.FromGetter(locationGetter);
+    return new LocationRecordViewModel(locationRecord);
   }
 
   private List<OutfitRecordViewModel> ResolveOutfitFilterFormKeys(IEnumerable<FormKey> formKeys) =>

@@ -109,6 +109,9 @@
   <data name="Tab_Classes" xml:space="preserve">
     <value>Classes</value>
   </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>Locations</value>
+  </data>
 
   <!-- Settings Panel -->
   <data name="Settings_Title" xml:space="preserve">
@@ -449,6 +452,9 @@
   <data name="Distribution_Classes" xml:space="preserve">
     <value>Classes:</value>
   </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>Locations:</value>
+  </data>
   <data name="Distribution_Traits" xml:space="preserve">
     <value>Traits:</value>
   </data>
@@ -490,6 +496,9 @@
   </data>
   <data name="Distribution_AddSelectedClasses" xml:space="preserve">
     <value>Add Selected Classes to Entry</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>Add Selected Locations to Entry</value>
   </data>
   <data name="Distribution_SelectKeywordTooltip" xml:space="preserve">
     <value>Select existing keyword or type a new EditorID for virtual keywords</value>

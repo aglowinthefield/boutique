@@ -68,9 +68,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private string _rawStringFilters = string.Empty;
 
-  private ObservableCollection<ClassRecordViewModel>   _selectedClasses  = [];
-  private ObservableCollection<FactionRecordViewModel> _selectedFactions = [];
-  private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
+  private ObservableCollection<ClassRecordViewModel>    _selectedClasses   = [];
+  private ObservableCollection<FactionRecordViewModel> _selectedFactions  = [];
+  private ObservableCollection<KeywordRecordViewModel> _selectedKeywords  = [];
+  private ObservableCollection<LocationRecordViewModel> _selectedLocations = [];
 
   [Reactive] private SkillFilterOption?                       _selectedLevelSkill;
   private            ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
@@ -366,7 +367,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   public bool HasAnyResolvedFilters =>
     _selectedNpcs.Count > 0 || _selectedFactions.Count > 0 || _selectedKeywords.Count > 0 ||
-    _selectedRaces.Count > 0 || _selectedClasses.Count > 0 || _selectedOutfitFilters.Count > 0 || HasTraitFilters;
+    _selectedRaces.Count > 0 || _selectedClasses.Count > 0 || _selectedLocations.Count > 0 ||
+    _selectedOutfitFilters.Count > 0 || HasTraitFilters;
 
   public string TargetDisplayName
   {
@@ -435,6 +437,16 @@ public partial class DistributionEntryViewModel : ReactiveObject
     {
       this.RaiseAndSetIfChanged(ref _selectedClasses, value);
       UpdateEntryClasses();
+    }
+  }
+
+  public ObservableCollection<LocationRecordViewModel> SelectedLocations
+  {
+    get => _selectedLocations;
+    set
+    {
+      this.RaiseAndSetIfChanged(ref _selectedLocations, value);
+      UpdateEntryLocations();
     }
   }
 
@@ -696,6 +708,11 @@ public partial class DistributionEntryViewModel : ReactiveObject
       parts.Add($"{_selectedClasses.Count} class(es)");
     }
 
+    if (_selectedLocations.Count > 0)
+    {
+      parts.Add($"{_selectedLocations.Count} location(s)");
+    }
+
     if (_selectedOutfitFilters.Count > 0)
     {
       parts.Add($"{_selectedOutfitFilters.Count} outfit(s)");
@@ -790,6 +807,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     RaiseEntryChanged();
   }
 
+  public void UpdateEntryLocations()
+  {
+    Entry.LocationFormKeys.Clear();
+    Entry.LocationFormKeys.AddRange(SelectedLocations.Select(l => l.FormKey));
+    RaiseFilterSummaryChanged();
+    RaiseEntryChanged();
+  }
+
   public void UpdateEntryOutfitFilters()
   {
     Entry.OutfitFilterFormKeys.Clear();
@@ -845,6 +870,12 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   public void RemoveClass(ClassRecordViewModel classVm) =>
     RemoveCriterion(classVm, _selectedClasses, UpdateEntryClasses);
+
+  public void AddLocation(LocationRecordViewModel location) =>
+    AddCriterion(location, _selectedLocations, UpdateEntryLocations);
+
+  public void RemoveLocation(LocationRecordViewModel location) =>
+    RemoveCriterion(location, _selectedLocations, UpdateEntryLocations);
 
   public void AddOutfitFilter(OutfitRecordViewModel outfit) =>
     AddCriterion(outfit, _selectedOutfitFilters, UpdateEntryOutfitFilters);

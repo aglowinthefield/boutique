@@ -390,6 +390,35 @@
             </ItemsControl>
           </StackPanel>
 
+          <!-- Locations -->
+          <StackPanel Margin="0,0,0,8"
+                      Visibility="{Binding SelectedLocations.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Locations}}"
+                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
+            <ItemsControl ItemsSource="{Binding SelectedLocations}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}" Margin="0,0,4,4">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding FormKeyString}"
+                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                 Margin="4,0,0,0" FontSize="9" />
+                      <Button Click="RemoveLocation_Click" Tag="{Binding}"
+                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                              Margin="3,0,0,0" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
           <!-- Outfit Filters -->
           <StackPanel Margin="0,0,0,8"
                       Visibility="{Binding SelectedOutfitFilters.Count, Converter={StaticResource CollectionCountToVisConverter}}">

@@ -18,6 +18,7 @@ public static class LocalizationKeys
     public const string Keywords      = "Tab_Keywords";
     public const string Races         = "Tab_Races";
     public const string Classes       = "Tab_Classes";
+    public const string Locations     = "Tab_Locations";
   }
 
   public static class Settings
@@ -160,6 +161,7 @@ public static class LocalizationKeys
     public const string Keywords             = "Distribution_Keywords";
     public const string Races                = "Distribution_Races";
     public const string Classes              = "Distribution_Classes";
+    public const string Locations            = "Distribution_Locations";
     public const string Traits               = "Distribution_Traits";
     public const string Gender               = "Distribution_Gender";
     public const string Unique               = "Distribution_Unique";
@@ -174,6 +176,7 @@ public static class LocalizationKeys
     public const string AddSelectedKeywords  = "Distribution_AddSelectedKeywords";
     public const string AddSelectedRaces     = "Distribution_AddSelectedRaces";
     public const string AddSelectedClasses   = "Distribution_AddSelectedClasses";
+    public const string AddSelectedLocations = "Distribution_AddSelectedLocations";
     public const string SelectKeywordTooltip = "Distribution_SelectKeywordTooltip";
   }
 
