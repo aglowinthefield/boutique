@@ -100,10 +100,10 @@ Copy-Item $exePath $tempZipDir
 
 # Copy satellite assemblies (translations) from build output
 # Single-file publish doesn't include these, so we get them from the intermediate build folder
-$buildOutputPath = Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows10.0.19041\$Runtime"
-if (-not (Test-Path $buildOutputPath))
+$buildOutputPath = (Resolve-Path (Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows*\$Runtime") -ErrorAction SilentlyContinue).Path
+if (-not $buildOutputPath)
 {
-  $buildOutputPath = Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows10.0.19041"
+  $buildOutputPath = (Resolve-Path (Join-Path $PSScriptRoot "..\bin\$Configuration\net8.0-windows*") -ErrorAction SilentlyContinue).Path
 }
 
 $cultureFolders = @(Get-ChildItem -Path $buildOutputPath -Directory -ErrorAction SilentlyContinue | Where-Object {

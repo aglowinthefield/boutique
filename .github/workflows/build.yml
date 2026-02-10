@@ -42,7 +42,7 @@ jobs:
 
       - name: Copy satellite assemblies (translations)
         run: |
-          $buildOutput = "bin/Release/net8.0-windows10.0.19041/win-x64"
+          $buildOutput = (Resolve-Path "bin/Release/net8.0-windows*/win-x64").Path
           $cultureFolders = Get-ChildItem $buildOutput -Directory | Where-Object { $_.Name -match '^[a-z]{2}(-[A-Za-z]+)?$' }
           foreach ($folder in $cultureFolders) {
             Copy-Item $folder.FullName -Destination "./publish/$($folder.Name)" -Recurse -Force
