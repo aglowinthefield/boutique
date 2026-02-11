@@ -167,6 +167,28 @@ public class FilterMatchingService
       parts.Add($"Outfit: {npc.DefaultOutfitEditorId ?? npc.DefaultOutfitFormKey?.ToString() ?? "?"}");
     }
 
+    if (entry.CombatStyleFormKeys.Count > 0 &&
+        (!npc.CombatStyleFormKey.HasValue || !entry.CombatStyleFormKeys.Contains(npc.CombatStyleFormKey.Value)))
+    {
+      return null;
+    }
+
+    if (entry.CombatStyleFormKeys.Count > 0)
+    {
+      parts.Add($"CombatStyle: {npc.CombatStyleEditorId ?? npc.CombatStyleFormKey?.ToString() ?? "?"}");
+    }
+
+    if (entry.VoiceTypeFormKeys.Count > 0 &&
+        (!npc.VoiceTypeFormKey.HasValue || !entry.VoiceTypeFormKeys.Contains(npc.VoiceTypeFormKey.Value)))
+    {
+      return null;
+    }
+
+    if (entry.VoiceTypeFormKeys.Count > 0)
+    {
+      parts.Add($"VoiceType: {npc.VoiceTypeEditorId ?? npc.VoiceTypeFormKey?.ToString() ?? "?"}");
+    }
+
     if (!MatchesLevelFilters(npc, entry.LevelFilters))
     {
       return null;
@@ -217,14 +239,44 @@ public class FilterMatchingService
       }
     }
 
+    if (entry.LocationFormKeys.Count > 0)
+    {
+      var locationMatches = entry.LocationLogicMode == FilterLogicMode.Or
+                              ? entry.LocationFormKeys.Any(npc.Locations.Contains)
+                              : entry.LocationFormKeys.All(npc.Locations.Contains);
+      if (!locationMatches)
+      {
+        return null;
+      }
+
+      parts.Add($"Location: ({entry.LocationFormKeys.Count} filter(s))");
+    }
+
+    var unresolvedParts = new List<string>();
+
+    if (entry.PerkFormKeys.Count > 0)
+    {
+      unresolvedParts.Add($"Perk ({entry.PerkFormKeys.Count})");
+    }
+
+    if (entry.FormListFormKeys.Count > 0)
+    {
+      unresolvedParts.Add($"FormList ({entry.FormListFormKeys.Count})");
+    }
+
     if (!string.IsNullOrWhiteSpace(entry.RawFormFilters))
+    {
+      unresolvedParts.Add($"Form: {entry.RawFormFilters}");
+    }
+
+    if (unresolvedParts.Count > 0)
     {
       if (parts.Count == 0)
       {
         return null;
       }
 
-      parts.Add($"Form (unresolved): {entry.RawFormFilters}");
+      parts.Add($"Unresolved: {string.Join(", ", unresolvedParts)}");
     }
 
     return parts.Count > 0 ? string.Join("; ", parts) : "All NPCs";

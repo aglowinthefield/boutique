@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
@@ -11,6 +12,64 @@ namespace Boutique.Services.GameData;
 
 public static class NpcDataBuilder
 {
+  public static Dictionary<FormKey, HashSet<FormKey>> BuildNpcLocationLookup(
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  {
+    var cellLocationMap = new Dictionary<FormKey, FormKey>();
+    foreach (var cell in linkCache.WinningOverrides<ICellGetter>())
+    {
+      if (!cell.Location.IsNull)
+      {
+        cellLocationMap[cell.FormKey] = cell.Location.FormKey;
+      }
+    }
+
+    var result = new Dictionary<FormKey, HashSet<FormKey>>();
+
+    foreach (var mod in linkCache.PriorityOrder)
+    {
+      foreach (var cell in mod.EnumerateMajorRecords<ICellGetter>())
+      {
+        if (!cellLocationMap.TryGetValue(cell.FormKey, out var locationFormKey))
+        {
+          continue;
+        }
+
+        ProcessPlacedRefs(cell.Persistent, locationFormKey, result);
+        ProcessPlacedRefs(cell.Temporary, locationFormKey, result);
+      }
+    }
+
+    return result;
+
+    static void ProcessPlacedRefs(
+      IReadOnlyList<IPlacedGetter>? placedList,
+      FormKey locationFormKey,
+      Dictionary<FormKey, HashSet<FormKey>> result)
+    {
+      if (placedList == null)
+      {
+        return;
+      }
+
+      foreach (var placed in placedList)
+      {
+        if (placed is not IPlacedNpcGetter placedNpc || placedNpc.Base.IsNull)
+        {
+          continue;
+        }
+
+        if (!result.TryGetValue(placedNpc.Base.FormKey, out var locations))
+        {
+          locations = [];
+          result[placedNpc.Base.FormKey] = locations;
+        }
+
+        locations.Add(locationFormKey);
+      }
+    }
+  }
+
   public static (List<NpcFilterData> FilterData, List<NpcRecordViewModel> ViewModels) LoadNpcs(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Dictionary<FormKey, string> keywordLookup,
@@ -22,6 +81,7 @@ public static class NpcDataBuilder
     Dictionary<FormKey, string> combatStyleLookup,
     Dictionary<FormKey, string> voiceTypeLookup,
     Dictionary<FormKey, HashSet<string>> raceKeywordLookup,
+    Dictionary<FormKey, HashSet<FormKey>> npcLocationLookup,
     Func<ModKey, bool> isBlacklisted)
   {
     var validNpcs = linkCache.WinningOverrides<INpcGetter>()
@@ -49,7 +109,8 @@ public static class NpcDataBuilder
             templateLookup,
             combatStyleLookup,
             voiceTypeLookup,
-            raceKeywordLookup);
+            raceKeywordLookup,
+            npcLocationLookup);
           if (filterData is not null)
           {
             filterDataBag.Add(filterData);
@@ -82,7 +143,8 @@ public static class NpcDataBuilder
     Dictionary<FormKey, string> templateLookup,
     Dictionary<FormKey, string> combatStyleLookup,
     Dictionary<FormKey, string> voiceTypeLookup,
-    Dictionary<FormKey, HashSet<string>> raceKeywordLookup)
+    Dictionary<FormKey, HashSet<string>> raceKeywordLookup,
+    Dictionary<FormKey, HashSet<FormKey>> npcLocationLookup)
   {
     try
     {
@@ -101,6 +163,8 @@ public static class NpcDataBuilder
       var isChild     = NpcDataExtractor.IsChildRace(raceEditorId);
       var level       = NpcDataExtractor.ExtractLevel(npc);
       var skillValues = NpcDataExtractor.ExtractSkillValues(npc);
+
+      npcLocationLookup.TryGetValue(npc.FormKey, out var npcLocations);
 
       var filterData = new NpcFilterData
                        {
@@ -121,6 +185,7 @@ public static class NpcDataBuilder
                          DefaultOutfitFormKey  = outfitFormKey,
                          DefaultOutfitEditorId = outfitEditorId,
                          WornArmorFormKey      = wornArmorFormKey,
+                         Locations             = (IReadOnlySet<FormKey>?)npcLocations ?? ImmutableHashSet<FormKey>.Empty,
                          IsFemale              = isFemale,
                          IsUnique              = isUnique,
                          IsSummonable          = isSummonable,

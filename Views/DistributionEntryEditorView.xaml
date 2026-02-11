@@ -595,8 +595,8 @@
                     RowBackground="{StaticResource Brush.CardBackground}"
                     AlternatingRowBackground="{StaticResource Brush.PrimaryBackground}">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="Auto" />
-              <DataGridTextColumn Header="Criteria" Binding="{Binding Criteria}" Width="*">
+              <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="2*" />
+              <DataGridTextColumn Header="Criteria" Binding="{Binding Criteria}" Width="2*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
@@ -604,7 +604,7 @@
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>
-              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="Auto">
+              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="1.5*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
@@ -612,7 +612,7 @@
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>
-              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKey}" Width="Auto">
+              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKey}" Width="1.5*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock"
                          BasedOn="{StaticResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" />

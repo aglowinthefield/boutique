@@ -28,6 +28,7 @@ public sealed class NpcFilterData
   public required bool IsChild { get; init; }
   public required bool IsLeveled { get; init; }
   public required short Level { get; init; }
+  public required IReadOnlySet<FormKey> Locations { get; init; }
   public required FormKey? TemplateFormKey { get; init; }
   public required string? TemplateEditorId { get; init; }
 

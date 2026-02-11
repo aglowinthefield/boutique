@@ -371,18 +371,26 @@ public class GameDataCacheService : IDisposable
         }
       }
 
-      var npcsResult = await Task.Run(() => NpcDataBuilder.LoadNpcs(
-                                        linkCache,
-                                        keywordLookup,
-                                        factionLookup,
-                                        raceLookup,
-                                        classLookup,
-                                        outfitLookup,
-                                        templateLookup,
-                                        combatStyleLookup,
-                                        voiceTypeLookup,
-                                        raceKeywordLookup,
-                                        IsBlacklisted));
+      var npcsResult = await Task.Run(() =>
+      {
+        var npcLocationLookup = NpcDataBuilder.BuildNpcLocationLookup(linkCache);
+        _logger.Information(
+          "NPC location lookup built: {NpcCount} NPCs mapped to locations.",
+          npcLocationLookup.Count);
+        return NpcDataBuilder.LoadNpcs(
+          linkCache,
+          keywordLookup,
+          factionLookup,
+          raceLookup,
+          classLookup,
+          outfitLookup,
+          templateLookup,
+          combatStyleLookup,
+          voiceTypeLookup,
+          raceKeywordLookup,
+          npcLocationLookup,
+          IsBlacklisted);
+      });
       var (npcFilterDataList, npcRecordsList) = npcsResult;
 
       _npcsSource.Edit(cache =>

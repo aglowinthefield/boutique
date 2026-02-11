@@ -342,6 +342,7 @@ public class FilterMatchingServiceTests
       DefaultOutfitFormKey = null,
       DefaultOutfitEditorId = null,
       WornArmorFormKey = null,
+      Locations = new HashSet<FormKey>(),
       IsFemale = false,
       IsUnique = false,
       IsSummonable = false,
