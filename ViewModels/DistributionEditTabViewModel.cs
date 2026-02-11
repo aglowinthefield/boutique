@@ -1694,7 +1694,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(_cache.AllNpcs, entry.Entry);
+      var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(_cache.AllNpcs, entry.Entry);
       _matchingNpcsForSelectedEntry = matchingNpcs;
       this.RaisePropertyChanged(nameof(MatchingNpcsForSelectedEntry));
       this.RaisePropertyChanged(nameof(MatchingNpcsCount));

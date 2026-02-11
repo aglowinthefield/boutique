@@ -53,7 +53,7 @@ public partial class App
     builder.RegisterType<DistributionFileEditorService>().SingleInstance();
     builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
     builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
-    builder.RegisterType<SpidFilterMatchingService>().SingleInstance();
+    builder.RegisterType<FilterMatchingService>().SingleInstance();
     builder.RegisterType<DistributionConflictDetectionService>().SingleInstance();
     builder.RegisterType<GameDataCacheService>().SingleInstance();
     builder.RegisterType<OutfitDraftManager>().SingleInstance();

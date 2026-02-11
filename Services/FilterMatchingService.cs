@@ -4,7 +4,7 @@ using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
 
-public class SpidFilterMatchingService
+public class FilterMatchingService
 {
   public static bool NpcMatchesFilterForBatch(
     NpcFilterData npc,
@@ -55,23 +55,27 @@ public class SpidFilterMatchingService
       return false;
     }
 
-    if (!MatchesFilters(entry.NpcFilters, f => f.FormKey, [npc.FormKey]))
+    if (!MatchesFilters(entry.NpcFilters, f => f.FormKey, [npc.FormKey], entry.NpcLogicMode))
     {
       return false;
     }
 
     var npcFactions = npc.Factions.Select(f => f.FactionFormKey).ToHashSet();
-    if (!MatchesFilters(entry.FactionFilters, f => f.FormKey, npcFactions))
+    if (!MatchesFilters(entry.FactionFilters, f => f.FormKey, npcFactions, entry.FactionLogicMode))
     {
       return false;
     }
 
-    if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, npc.Keywords))
+    if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, npc.Keywords, entry.KeywordLogicMode))
     {
       return false;
     }
 
-    if (!MatchesFilters(entry.RaceFilters, f => f.FormKey, npc.RaceFormKey.HasValue ? [npc.RaceFormKey.Value] : []))
+    if (!MatchesFilters(
+          entry.RaceFilters,
+          f => f.FormKey,
+          npc.RaceFormKey.HasValue ? [npc.RaceFormKey.Value] : [],
+          entry.RaceLogicMode))
     {
       return false;
     }
@@ -155,7 +159,8 @@ public class SpidFilterMatchingService
   private static bool MatchesFilters<TFilter, TValue>(
     IReadOnlyList<TFilter> filters,
     Func<TFilter, TValue> valueSelector,
-    IReadOnlyCollection<TValue> npcValues)
+    IReadOnlyCollection<TValue> npcValues,
+    FilterLogicMode logicMode = FilterLogicMode.And)
     where TFilter : IExcludable
   {
     if (filters.Count == 0)
@@ -171,9 +176,11 @@ public class SpidFilterMatchingService
       return false;
     }
 
-    if (included.Count > 0 && !included.All(npcValues.Contains))
+    if (included.Count > 0)
     {
-      return false;
+      return logicMode == FilterLogicMode.Or
+               ? included.Any(npcValues.Contains)
+               : included.All(npcValues.Contains);
     }
 
     return true;

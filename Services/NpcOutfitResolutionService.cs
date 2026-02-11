@@ -213,7 +213,7 @@ public class NpcOutfitResolutionService(
           foreach (var (line, filter, outfitFormKey, outfitEditorId, hasRaceTargeting, usesKeywordTargeting,
                      usesFactionTargeting, targetingDescription, hasTraitFilters) in spidLines)
           {
-            if (SpidFilterMatchingService.NpcMatchesFilterForBatch(npc, filter, virtualKeywords))
+            if (FilterMatchingService.NpcMatchesFilterForBatch(npc, filter, virtualKeywords))
             {
               var bag = localDistributions.GetOrAdd(npc.FormKey, _ => new ConcurrentBag<OutfitDistribution>());
 

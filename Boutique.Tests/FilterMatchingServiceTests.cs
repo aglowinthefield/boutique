@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Boutique.Tests;
 
-public class SpidFilterMatchingServiceTests
+public class FilterMatchingServiceTests
 {
   #region PartialMatchesNpcStrings
 
@@ -15,7 +15,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByName_ReturnsTrue()
   {
     var npc = CreateTestNpc(name: "Whiterun Guard");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
     result.Should().BeTrue();
   }
 
@@ -23,7 +23,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByNameCaseInsensitive_ReturnsTrue()
   {
     var npc = CreateTestNpc(name: "Whiterun Guard");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "guard", null);
     result.Should().BeTrue();
   }
 
@@ -31,7 +31,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByNamePartial_ReturnsTrue()
   {
     var npc = CreateTestNpc(name: "Whiterun Guard");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "run", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "run", null);
     result.Should().BeTrue();
   }
 
@@ -39,7 +39,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_NullName_ReturnsFalse()
   {
     var npc = CreateTestNpc(name: null);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
     result.Should().BeFalse();
   }
 
@@ -47,7 +47,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptyName_ReturnsFalse()
   {
     var npc = CreateTestNpc(name: "");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
     result.Should().BeFalse();
   }
 
@@ -55,7 +55,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_WhitespaceName_ReturnsFalse()
   {
     var npc = CreateTestNpc(name: "   ");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
     result.Should().BeFalse();
   }
 
@@ -63,7 +63,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByEditorId_ReturnsTrue()
   {
     var npc = CreateTestNpc(editorId: "EncBandit01");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
     result.Should().BeTrue();
   }
 
@@ -71,7 +71,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByEditorIdCaseInsensitive_ReturnsTrue()
   {
     var npc = CreateTestNpc(editorId: "EncBandit01");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "bandit", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "bandit", null);
     result.Should().BeTrue();
   }
 
@@ -79,7 +79,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_NullEditorId_ReturnsFalse()
   {
     var npc = CreateTestNpc(editorId: null);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
     result.Should().BeFalse();
   }
 
@@ -87,7 +87,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptyEditorId_ReturnsFalse()
   {
     var npc = CreateTestNpc(editorId: "");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Bandit", null);
     result.Should().BeFalse();
   }
 
@@ -95,7 +95,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByKeyword_ReturnsTrue()
   {
     var npc = CreateTestNpc(keywords: new HashSet<string> { "ActorTypeNPC", "ActorTypeHuman" });
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Human", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Human", null);
     result.Should().BeTrue();
   }
 
@@ -103,7 +103,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByKeywordCaseInsensitive_ReturnsTrue()
   {
     var npc = CreateTestNpc(keywords: new HashSet<string> { "ActorTypeNPC", "ActorTypeHuman" });
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "human", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "human", null);
     result.Should().BeTrue();
   }
 
@@ -111,7 +111,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByKeywordPartial_ReturnsTrue()
   {
     var npc = CreateTestNpc(keywords: new HashSet<string> { "ActorTypeNPC", "ActorTypeHuman" });
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Type", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Type", null);
     result.Should().BeTrue();
   }
 
@@ -119,7 +119,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptyKeywords_ReturnsFalse()
   {
     var npc = CreateTestNpc(keywords: new HashSet<string>());
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Human", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Human", null);
     result.Should().BeFalse();
   }
 
@@ -128,7 +128,7 @@ public class SpidFilterMatchingServiceTests
   {
     var npc = CreateTestNpc();
     var virtualKeywords = new HashSet<string> { "CustomKeyword1", "CustomKeyword2" };
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Keyword1", virtualKeywords);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Keyword1", virtualKeywords);
     result.Should().BeTrue();
   }
 
@@ -137,7 +137,7 @@ public class SpidFilterMatchingServiceTests
   {
     var npc = CreateTestNpc();
     var virtualKeywords = new HashSet<string> { "CustomKeyword1", "CustomKeyword2" };
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "keyword1", virtualKeywords);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "keyword1", virtualKeywords);
     result.Should().BeTrue();
   }
 
@@ -145,7 +145,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_NullVirtualKeywords_ReturnsFalse()
   {
     var npc = CreateTestNpc();
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", null);
     result.Should().BeFalse();
   }
 
@@ -154,7 +154,7 @@ public class SpidFilterMatchingServiceTests
   {
     var npc = CreateTestNpc();
     var virtualKeywords = new HashSet<string>();
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", virtualKeywords);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", virtualKeywords);
     result.Should().BeFalse();
   }
 
@@ -162,7 +162,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByTemplateEditorId_ReturnsTrue()
   {
     var npc = CreateTestNpc(templateEditorId: "LvlBanditTemplate");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
     result.Should().BeTrue();
   }
 
@@ -170,7 +170,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchByTemplateEditorIdCaseInsensitive_ReturnsTrue()
   {
     var npc = CreateTestNpc(templateEditorId: "LvlBanditTemplate");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "template", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "template", null);
     result.Should().BeTrue();
   }
 
@@ -178,7 +178,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_NullTemplateEditorId_ReturnsFalse()
   {
     var npc = CreateTestNpc(templateEditorId: null);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
     result.Should().BeFalse();
   }
 
@@ -186,7 +186,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptyTemplateEditorId_ReturnsFalse()
   {
     var npc = CreateTestNpc(templateEditorId: "");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Template", null);
     result.Should().BeFalse();
   }
 
@@ -198,7 +198,7 @@ public class SpidFilterMatchingServiceTests
       editorId: "Housecarl",
       keywords: new HashSet<string> { "ActorTypeNPC" },
       templateEditorId: null);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Dragon", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Dragon", null);
     result.Should().BeFalse();
   }
 
@@ -209,7 +209,7 @@ public class SpidFilterMatchingServiceTests
       name: "Guard",
       editorId: "WhiterunGuard",
       keywords: new HashSet<string> { "GuardKeyword" });
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Guard", null);
     result.Should().BeTrue();
   }
 
@@ -217,16 +217,16 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_MatchInDifferentFields_ReturnsTrue()
   {
     var npc1 = CreateTestNpc(name: "Bandit");
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc1, "Bandit", null).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc1, "Bandit", null).Should().BeTrue();
 
     var npc2 = CreateTestNpc(editorId: "Bandit");
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc2, "Bandit", null).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc2, "Bandit", null).Should().BeTrue();
 
     var npc3 = CreateTestNpc(keywords: new HashSet<string> { "Bandit" });
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc3, "Bandit", null).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc3, "Bandit", null).Should().BeTrue();
 
     var npc4 = CreateTestNpc(templateEditorId: "Bandit");
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc4, "Bandit", null).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc4, "Bandit", null).Should().BeTrue();
   }
 
   [Theory]
@@ -238,7 +238,7 @@ public class SpidFilterMatchingServiceTests
     string searchValue)
   {
     var npc = CreateTestNpc(name: npcValue);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, searchValue, null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, searchValue, null);
     result.Should().BeTrue();
   }
 
@@ -252,7 +252,7 @@ public class SpidFilterMatchingServiceTests
     string searchValue)
   {
     var npc = CreateTestNpc(name: npcName);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, searchValue, null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, searchValue, null);
     result.Should().BeTrue();
   }
 
@@ -262,8 +262,8 @@ public class SpidFilterMatchingServiceTests
     var npc = CreateTestNpc(keywords: new HashSet<string> { "Keyword1", "Keyword2" });
     var virtualKeywords = new HashSet<string> { "VirtualKeyword1", "VirtualKeyword2" };
 
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Keyword1", virtualKeywords).Should().BeTrue();
-    SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "VirtualKeyword1", virtualKeywords).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc, "Keyword1", virtualKeywords).Should().BeTrue();
+    FilterMatchingService.PartialMatchesNpcStrings(npc, "VirtualKeyword1", virtualKeywords).Should().BeTrue();
   }
 
   [Fact]
@@ -274,7 +274,7 @@ public class SpidFilterMatchingServiceTests
       editorId: null,
       keywords: new HashSet<string>(),
       templateEditorId: null);
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Anything", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Anything", null);
     result.Should().BeFalse();
   }
 
@@ -282,7 +282,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptySearchValue_ReturnsTrue()
   {
     var npc = CreateTestNpc(name: "Guard");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "", null);
     result.Should().BeTrue();
   }
 
@@ -290,7 +290,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_WhitespaceSearchValue_ReturnsFalse()
   {
     var npc = CreateTestNpc(name: "Guard");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "   ", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "   ", null);
     result.Should().BeFalse();
   }
 
@@ -298,7 +298,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_SpecialCharacters_MatchesCorrectly()
   {
     var npc = CreateTestNpc(name: "Guard (Whiterun)");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "(Whiterun)", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "(Whiterun)", null);
     result.Should().BeTrue();
   }
 
@@ -306,7 +306,7 @@ public class SpidFilterMatchingServiceTests
   public void PartialMatchesNpcStrings_UnicodeCharacters_MatchesCorrectly()
   {
     var npc = CreateTestNpc(name: "Jarl Balgruuf");
-    var result = SpidFilterMatchingService.PartialMatchesNpcStrings(npc, "Balgruuf", null);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "Balgruuf", null);
     result.Should().BeTrue();
   }
 

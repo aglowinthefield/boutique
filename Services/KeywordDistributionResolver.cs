@@ -182,7 +182,7 @@ public class KeywordDistributionResolver(ILogger logger)
                    RawLine        = entry.RawLine
                  };
 
-    return SpidFilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
+    return FilterMatchingService.GetMatchingNpcsWithVirtualKeywords(allNpcs, filter, currentKeywords);
   }
 
   private static bool ShouldApplyChance(int chance, FormKey npcFormKey)

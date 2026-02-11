@@ -26,7 +26,7 @@ public static class IntraFileConflictDetectionService
         }
 
         var outfitName   = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
-        var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
+        var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
 
         foreach (var npc in matchingNpcs)
         {
