@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:models="clr-namespace:Boutique.Models"
              xmlns:controls="clr-namespace:Boutique.Controls"
              xmlns:themes="clr-namespace:Boutique.Themes"
              xmlns:util="clr-namespace:Boutique.Utilities"
@@ -234,9 +235,11 @@
               <DockPanel Margin="0,0,0,6">
                 <TextBlock Text="Factions" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          SelectedValue="{Binding FactionLogicMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
                           ToolTip="AND: All factions must match | OR: At least one faction must match">
-                  <ComboBoxItem Content="AND" IsSelected="True" />
-                  <ComboBoxItem Content="OR" />
+                  <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
+                  <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedFactions}">
@@ -292,9 +295,11 @@
               <DockPanel Margin="0,0,0,6">
                 <TextBlock Text="Keywords" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          SelectedValue="{Binding KeywordLogicMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
                           ToolTip="AND: All keywords must match | OR: At least one keyword must match">
-                  <ComboBoxItem Content="AND" IsSelected="True" />
-                  <ComboBoxItem Content="OR" />
+                  <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
+                  <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedKeywords}">
@@ -350,9 +355,11 @@
               <DockPanel Margin="0,0,0,6">
                 <TextBlock Text="Races" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          SelectedValue="{Binding RaceLogicMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
                           ToolTip="AND: All races must match | OR: At least one race must match">
-                  <ComboBoxItem Content="AND" IsSelected="True" />
-                  <ComboBoxItem Content="OR" />
+                  <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
+                  <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedRaces}">
@@ -408,9 +415,11 @@
               <DockPanel Margin="0,0,0,6">
                 <TextBlock Text="Classes" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          SelectedValue="{Binding ClassLogicMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
                           ToolTip="AND: All classes must match | OR: At least one class must match">
-                  <ComboBoxItem Content="AND" IsSelected="True" />
-                  <ComboBoxItem Content="OR" />
+                  <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
+                  <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedClasses}">
@@ -449,9 +458,11 @@
               <DockPanel Margin="0,0,0,6">
                 <TextBlock Text="Locations" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          SelectedValue="{Binding LocationLogicMode, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
                           ToolTip="AND: All locations must match | OR: At least one location must match">
-                  <ComboBoxItem Content="AND" IsSelected="True" />
-                  <ComboBoxItem Content="OR" />
+                  <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
+                  <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedLocations}">

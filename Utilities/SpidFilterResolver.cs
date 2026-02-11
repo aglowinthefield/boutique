@@ -133,7 +133,14 @@ public static class SpidFilterResolver
                     TraitFilters         = filter.TraitFilters,
                     LevelFilters         = filter.LevelFilters,
                     RawStringFilters     = rawStringFilters,
-                    RawFormFilters       = rawFormFilters
+                    RawFormFilters       = rawFormFilters,
+                    NpcLogicMode         = DetectLogicMode(filter.StringFilters, npcFilters.Count),
+                    KeywordLogicMode     = DetectLogicMode(filter.StringFilters, keywordFilters.Count),
+                    FactionLogicMode     = DetectLogicMode(filter.FormFilters, factionFilters.Count),
+                    RaceLogicMode        = DetectLogicMode(filter.FormFilters, raceFilters.Count),
+                    ClassLogicMode       = DetectLogicMode(filter.FormFilters, classFormKeys.Count),
+                    LocationLogicMode    = DetectLogicMode(filter.FormFilters, locationFormKeys.Count),
+                    OutfitFilterLogicMode = DetectLogicMode(filter.FormFilters, outfitFilterFormKeys.Count)
                   };
 
       if (outfitFilterFormKeys.Count > 0)
@@ -237,7 +244,14 @@ public static class SpidFilterResolver
                     TraitFilters         = filter.TraitFilters,
                     LevelFilters         = filter.LevelFilters,
                     RawStringFilters     = rawStringFilters,
-                    RawFormFilters       = rawFormFilters
+                    RawFormFilters       = rawFormFilters,
+                    NpcLogicMode         = DetectLogicMode(filter.StringFilters, npcFilters.Count),
+                    KeywordLogicMode     = DetectLogicMode(filter.StringFilters, keywordFilters.Count),
+                    FactionLogicMode     = DetectLogicMode(filter.FormFilters, factionFilters.Count),
+                    RaceLogicMode        = DetectLogicMode(filter.FormFilters, raceFilters.Count),
+                    ClassLogicMode       = DetectLogicMode(filter.FormFilters, classFormKeys.Count),
+                    LocationLogicMode    = DetectLogicMode(filter.FormFilters, locationFormKeys.Count),
+                    OutfitFilterLogicMode = DetectLogicMode(filter.FormFilters, outfitFilterFormKeys.Count)
                   };
 
       if (filter.Chance != 100)
@@ -978,5 +992,32 @@ public static class SpidFilterResolver
     }
 
     return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
+  }
+
+  /// <summary>
+  ///   Detects the logic mode (AND/OR) from a SPID filter section.
+  ///   AND mode: All values in a single expression joined with + (e.g., "Faction1+Faction2")
+  ///   OR mode: Values split across multiple expressions with , (e.g., "Faction1,Faction2")
+  /// </summary>
+  private static FilterLogicMode DetectLogicMode(SpidFilterSection section, int resolvedCount)
+  {
+    if (resolvedCount <= 1)
+    {
+      return FilterLogicMode.And;
+    }
+
+    var expressionsWithMultipleParts = section.Expressions.Count(e => e.Parts.Count > 1);
+
+    if (expressionsWithMultipleParts > 0 && section.Expressions.Count == 1)
+    {
+      return FilterLogicMode.And;
+    }
+
+    if (section.Expressions.Count > 1)
+    {
+      return FilterLogicMode.Or;
+    }
+
+    return FilterLogicMode.And;
   }
 }

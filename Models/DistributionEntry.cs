@@ -15,6 +15,12 @@ public enum DistributionType
   ExclusiveGroup
 }
 
+public enum FilterLogicMode
+{
+  And,
+  Or
+}
+
 public readonly record struct KeywordFilter(string EditorId, bool IsExcluded = false) : IExcludable;
 
 public readonly record struct FormKeyFilter(FormKey FormKey, bool IsExcluded = false) : IExcludable;
@@ -65,6 +71,41 @@ public sealed class DistributionEntry
   public string? LevelFilters { get; set; }
 
   public int? Chance { get; set; }
+
+  /// <summary>
+  ///   Logic mode for NPC filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode NpcLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Faction filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode FactionLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Keyword filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode KeywordLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Race filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode RaceLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Class filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode ClassLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Location filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode LocationLogicMode { get; set; } = FilterLogicMode.And;
+
+  /// <summary>
+  ///   Logic mode for Outfit filter filters (AND = all must match, OR = at least one must match).
+  /// </summary>
+  public FilterLogicMode OutfitFilterLogicMode { get; set; } = FilterLogicMode.And;
 
   /// <summary>
   ///   Raw/advanced string filters that can't be represented by dropdowns.

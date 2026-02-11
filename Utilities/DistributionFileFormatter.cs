@@ -216,7 +216,8 @@ public static class DistributionFileFormatter
                                 .ToList();
     if (includedNpcNames.Count > 0)
     {
-      stringFilterParts.Add(string.Join(",", includedNpcNames));
+      var npcSeparator = entry.NpcLogicMode == FilterLogicMode.Or ? "," : "+";
+      stringFilterParts.Add(string.Join(npcSeparator, includedNpcNames));
     }
 
     var includedKeywords = entry.SelectedKeywords
@@ -226,7 +227,8 @@ public static class DistributionFileFormatter
                                 .ToList();
     if (includedKeywords.Count > 0)
     {
-      stringFilterParts.Add(string.Join("+", includedKeywords));
+      var keywordSeparator = entry.KeywordLogicMode == FilterLogicMode.Or ? "," : "+";
+      stringFilterParts.Add(string.Join(keywordSeparator, includedKeywords));
     }
 
     var excludedKeywords = entry.SelectedKeywords
@@ -243,29 +245,101 @@ public static class DistributionFileFormatter
 
     var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
 
-    var formFilterParts = new List<string>();
-    var formExclusions  = new List<string>();
+    var formFilterTerms    = new List<List<string>>();
+    var formExclusions = new List<string>();
 
-    AddFormFiltersWithExclusions(entry.SelectedFactions, formFilterParts, formExclusions);
-    AddFormFiltersWithExclusions(entry.SelectedRaces, formFilterParts, formExclusions);
-
-    foreach (var classVm in entry.SelectedClasses)
+    var includedFactions = entry.SelectedFactions
+                                .Where(f => !f.IsExcluded && !string.IsNullOrWhiteSpace(f.EditorID) &&
+                                            f.EditorID != "(No EditorID)")
+                                .Select(f => f.EditorID!)
+                                .ToList();
+    if (includedFactions.Count > 0)
     {
-      var editorId = classVm.EditorID;
-      if (!string.IsNullOrWhiteSpace(editorId) && editorId != "(No EditorID)")
+      if (entry.FactionLogicMode == FilterLogicMode.Or)
       {
-        formFilterParts.Add(editorId);
+        formFilterTerms.Add(includedFactions);
+      }
+      else
+      {
+        formFilterTerms.Add([string.Join("+", includedFactions)]);
       }
     }
 
-    foreach (var locationVm in entry.SelectedLocations)
+    var excludedFactions = entry.SelectedFactions
+                                .Where(f => f.IsExcluded && !string.IsNullOrWhiteSpace(f.EditorID) &&
+                                            f.EditorID != "(No EditorID)")
+                                .Select(f => $"-{f.EditorID}")
+                                .ToList();
+    formExclusions.AddRange(excludedFactions);
+
+    var includedRaces = entry.SelectedRaces
+                             .Where(r => !r.IsExcluded && !string.IsNullOrWhiteSpace(r.EditorID) &&
+                                         r.EditorID != "(No EditorID)")
+                             .Select(r => r.EditorID!)
+                             .ToList();
+    if (includedRaces.Count > 0)
     {
-      formFilterParts.Add(FormKeyHelper.FormatForSpid(locationVm.FormKey));
+      if (entry.RaceLogicMode == FilterLogicMode.Or)
+      {
+        formFilterTerms.Add(includedRaces);
+      }
+      else
+      {
+        formFilterTerms.Add([string.Join("+", includedRaces)]);
+      }
     }
 
-    foreach (var outfitVm in entry.SelectedOutfitFilters)
+    var excludedRaces = entry.SelectedRaces
+                             .Where(r => r.IsExcluded && !string.IsNullOrWhiteSpace(r.EditorID) &&
+                                         r.EditorID != "(No EditorID)")
+                             .Select(r => $"-{r.EditorID}")
+                             .ToList();
+    formExclusions.AddRange(excludedRaces);
+
+    var includedClasses = entry.SelectedClasses
+                               .Where(c => !string.IsNullOrWhiteSpace(c.EditorID) && c.EditorID != "(No EditorID)")
+                               .Select(c => c.EditorID!)
+                               .ToList();
+    if (includedClasses.Count > 0)
     {
-      formFilterParts.Add(FormKeyHelper.FormatForSpid(outfitVm.FormKey));
+      if (entry.ClassLogicMode == FilterLogicMode.Or)
+      {
+        formFilterTerms.Add(includedClasses);
+      }
+      else
+      {
+        formFilterTerms.Add([string.Join("+", includedClasses)]);
+      }
+    }
+
+    var includedLocations = entry.SelectedLocations
+                                 .Select(loc => FormKeyHelper.FormatForSpid(loc.FormKey))
+                                 .ToList();
+    if (includedLocations.Count > 0)
+    {
+      if (entry.LocationLogicMode == FilterLogicMode.Or)
+      {
+        formFilterTerms.Add(includedLocations);
+      }
+      else
+      {
+        formFilterTerms.Add([string.Join("+", includedLocations)]);
+      }
+    }
+
+    var includedOutfitFilters = entry.SelectedOutfitFilters
+                                     .Select(o => FormKeyHelper.FormatForSpid(o.FormKey))
+                                     .ToList();
+    if (includedOutfitFilters.Count > 0)
+    {
+      if (entry.OutfitFilterLogicMode == FilterLogicMode.Or)
+      {
+        formFilterTerms.Add(includedOutfitFilters);
+      }
+      else
+      {
+        formFilterTerms.Add([string.Join("+", includedOutfitFilters)]);
+      }
     }
 
     foreach (var npc in entry.SelectedNpcs.Where(n => n.IsExcluded))
@@ -274,9 +348,13 @@ public static class DistributionFileFormatter
     }
 
     var formFilterResult = new List<string>();
-    if (formFilterParts.Count > 0)
+    if (formFilterTerms.Count > 0)
     {
-      formFilterResult.Add(string.Join("+", formFilterParts));
+      var combinations = CartesianProduct(formFilterTerms);
+      foreach (var combo in combinations)
+      {
+        formFilterResult.Add(string.Join("+", combo));
+      }
     }
 
     formFilterResult.AddRange(formExclusions);
@@ -291,26 +369,34 @@ public static class DistributionFileFormatter
     return (stringFiltersPart, formFiltersPart);
   }
 
-  private static void AddFormFiltersWithExclusions(
-    IEnumerable<ISelectableRecordViewModel> items,
-    List<string> formFilterParts,
-    List<string> formExclusions)
+  private static IEnumerable<List<string>> CartesianProduct(List<List<string>> sequences)
   {
-    foreach (var item in items)
+    if (sequences.Count == 0)
     {
-      var editorId = item.EditorID;
-      if (string.IsNullOrWhiteSpace(editorId) || editorId == "(No EditorID)")
+      yield return [];
+      yield break;
+    }
+
+    if (sequences.Count == 1)
+    {
+      foreach (var item in sequences[0])
       {
-        continue;
+        yield return [item];
       }
 
-      if (item.IsExcluded)
+      yield break;
+    }
+
+    var first = sequences[0];
+    var rest  = sequences.Skip(1).ToList();
+
+    foreach (var item in first)
+    {
+      foreach (var restProduct in CartesianProduct(rest))
       {
-        formExclusions.Add($"-{editorId}");
-      }
-      else
-      {
-        formFilterParts.Add(editorId);
+        var result = new List<string> { item };
+        result.AddRange(restProduct);
+        yield return result;
       }
     }
   }

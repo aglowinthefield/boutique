@@ -87,6 +87,20 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private bool _useChance;
 
+  [Reactive] private FilterLogicMode _npcLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _factionLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _keywordLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _raceLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _classLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _locationLogicMode = FilterLogicMode.And;
+
+  [Reactive] private FilterLogicMode _outfitFilterLogicMode = FilterLogicMode.And;
+
   public DistributionEntryViewModel(
     DistributionEntry entry,
     Action<DistributionEntryViewModel>? removeAction = null,
@@ -100,13 +114,20 @@ public partial class DistributionEntryViewModel : ReactiveObject
     ExclusiveGroupFormsText = entry.ExclusiveGroupForms.Count > 0
                                 ? string.Join(",", entry.ExclusiveGroupForms)
                                 : string.Empty;
-    UseChance          = entry.Chance.HasValue;
-    Chance             = entry.Chance ?? 100;
-    LevelFilters       = entry.LevelFilters ?? string.Empty;
-    SelectedLevelSkill = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
+    UseChance              = entry.Chance.HasValue;
+    Chance                 = entry.Chance ?? 100;
+    LevelFilters           = entry.LevelFilters ?? string.Empty;
+    SelectedLevelSkill     = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
     ParseLevelFiltersToUi(LevelFilters);
-    RawStringFilters = entry.RawStringFilters ?? string.Empty;
-    RawFormFilters   = entry.RawFormFilters ?? string.Empty;
+    RawStringFilters       = entry.RawStringFilters ?? string.Empty;
+    RawFormFilters         = entry.RawFormFilters ?? string.Empty;
+    NpcLogicMode           = entry.NpcLogicMode;
+    FactionLogicMode       = entry.FactionLogicMode;
+    KeywordLogicMode       = entry.KeywordLogicMode;
+    RaceLogicMode          = entry.RaceLogicMode;
+    ClassLogicMode         = entry.ClassLogicMode;
+    LocationLogicMode      = entry.LocationLogicMode;
+    OutfitFilterLogicMode  = entry.OutfitFilterLogicMode;
 
     Gender = entry.TraitFilters.IsFemale switch
     {
@@ -261,6 +282,62 @@ public partial class DistributionEntryViewModel : ReactiveObject
             RaiseFilterSummaryChanged();
             RaiseEntryChanged();
           }
+        });
+
+    this.WhenAnyValue(x => x.NpcLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.NpcLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.FactionLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.FactionLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.KeywordLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.KeywordLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.RaceLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.RaceLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.ClassLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.ClassLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.LocationLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.LocationLogicMode = mode;
+          RaiseEntryChanged();
+        });
+
+    this.WhenAnyValue(x => x.OutfitFilterLogicMode)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          Entry.OutfitFilterLogicMode = mode;
+          RaiseEntryChanged();
         });
 
     this.WhenAnyValue(x => x.LevelFilters)
