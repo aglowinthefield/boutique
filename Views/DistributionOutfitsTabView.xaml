@@ -55,7 +55,7 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="200" MinHeight="100" />
+        <RowDefinition Height="280" MinHeight="100" />
       </Grid.RowDefinitions>
 
       <!-- Outfits DataGrid -->
@@ -78,12 +78,12 @@
         </DataGrid.RowStyle>
         <DataGrid.Columns>
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                              Binding="{Binding EditorID}" Width="*" CanUserSort="True" />
+                              Binding="{Binding EditorID}" Width="2*" CanUserSort="True" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                              Binding="{Binding FormKeyString}" Width="150" CanUserSort="True"
+                              Binding="{Binding FormKeyString}" Width="1.5*" CanUserSort="True"
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
-                              Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                              Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.NPCs}}"
                               Binding="{Binding NpcCount}" Width="60" CanUserSort="True" SortDirection="Descending">
@@ -124,7 +124,7 @@
         </DataGrid.Columns>
       </DataGrid>
 
-      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="LightGray" Margin="0,2"
+      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent" Margin="0,2"
                     utilities:GridSplitterBehavior.PersistKey="DistributionOutfits.DetailRow" />
 
       <!-- Detail Panel -->
@@ -147,14 +147,14 @@
                     EnableRowVirtualization="True" EnableColumnVirtualization="True">
             <DataGrid.Columns>
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
+                                  Binding="{Binding EditorId}" Width="1.5*" CanUserSort="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="130" CanUserSort="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" CanUserSort="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
-                                  Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                                  Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>

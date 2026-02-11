@@ -40,11 +40,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -78,11 +78,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -111,11 +111,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
-                                  Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding ModDisplayName}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -144,11 +144,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -177,11 +177,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -210,11 +210,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                                  Binding="{Binding DisplayName}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding DisplayName}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>
@@ -245,11 +245,11 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" CellTemplate="{StaticResource CheckBoxCellTemplate}" Width="Auto" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                                  Binding="{Binding EditorID}" Width="*" IsReadOnly="True" />
+                                  Binding="{Binding EditorID}" Width="2*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
-                                  Binding="{Binding ModDisplayName}" Width="150" IsReadOnly="True" />
+                                  Binding="{Binding ModDisplayName}" Width="1.5*" IsReadOnly="True" />
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
-                                  Binding="{Binding FormKeyString}" Width="120" IsReadOnly="True"
+                                  Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
             </DataGrid.Columns>
           </DataGrid>

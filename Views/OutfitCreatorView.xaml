@@ -448,17 +448,17 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Width="2*"
                                   IsReadOnly="True" Binding="{Binding DisplayName, Mode=OneWay}" />
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Width="2*"
                                   IsReadOnly="True" Binding="{Binding EditorID, Mode=OneWay}" />
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Type}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Type}}" Width="1*"
                                   IsReadOnly="True" Binding="{Binding ArmorType, Mode=OneWay}" />
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Slots}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Slots}}" Width="1.5*"
                                   IsReadOnly="True" Binding="{Binding SlotSummary, Mode=OneWay}" />
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" Width="1.5*"
                                   IsReadOnly="True" Binding="{Binding ModDisplayName, Mode=OneWay}" />
-              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormID}}" Width="Auto"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormID}}" Width="1*"
                                   IsReadOnly="True" SortMemberPath="FormIdSortable"
                                   Binding="{Binding FormIdDisplay, Mode=OneWay}" />
             </DataGrid.Columns>

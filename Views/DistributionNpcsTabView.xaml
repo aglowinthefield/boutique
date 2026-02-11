@@ -164,7 +164,7 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="200" MinHeight="100" />
+        <RowDefinition Height="280" MinHeight="100" />
       </Grid.RowDefinitions>
 
       <!-- NPC Outfit Assignments DataGrid -->
@@ -189,16 +189,16 @@
         </DataGrid.RowStyle>
         <DataGrid.Columns>
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
-                              Binding="{Binding DisplayName}" Width="*" CanUserSort="True" />
+                              Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
-                              Binding="{Binding EditorId}" Width="180" CanUserSort="True" />
+                              Binding="{Binding EditorId}" Width="1.5*" CanUserSort="True" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FinalOutfit}}"
-                              Binding="{Binding FinalOutfitDisplay}" Width="200" CanUserSort="True" />
+                              Binding="{Binding FinalOutfitDisplay}" Width="2*" CanUserSort="True" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
-                              Binding="{Binding ModDisplayName}" Width="150" CanUserSort="True"
+                              Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Distributor}}"
-                              Binding="{Binding WinningFileName}" Width="150" CanUserSort="True"
+                              Binding="{Binding WinningFileName}" Width="1.5*" CanUserSort="True"
                               ToolTipService.ToolTip="The distribution file determining this NPC's outfit">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
@@ -208,7 +208,7 @@
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Targeting}}"
-                              Binding="{Binding TargetingType}" Width="100" CanUserSort="True">
+                              Binding="{Binding TargetingType}" Width="1*" CanUserSort="True">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="FontSize" Value="10" />
@@ -237,7 +237,7 @@
         </DataGrid.Columns>
       </DataGrid>
 
-      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="LightGray" Margin="0,2"
+      <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="Transparent" Margin="0,2"
                     utilities:GridSplitterBehavior.PersistKey="DistributionNpcs.DetailRow" />
 
       <!-- Detail Panel -->

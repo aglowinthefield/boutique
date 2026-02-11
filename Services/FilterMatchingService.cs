@@ -4,7 +4,7 @@ using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
 
-public class FilterMatchingService
+public static class FilterMatchingService
 {
   public static bool NpcMatchesFilterForBatch(
     NpcFilterData npc,
