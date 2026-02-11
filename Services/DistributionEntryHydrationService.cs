@@ -314,4 +314,68 @@ public class DistributionEntryHydrationService(
 
     return null;
   }
+
+  public List<string> ApplyFilter(DistributionEntryViewModel entry, CopiedNpcFilter filter)
+  {
+    var addedItems = new List<string>();
+
+    foreach (var factionFormKey in filter.Factions)
+    {
+      var factionVm = ResolveFactionFormKey(factionFormKey);
+      if (factionVm != null && entry.AddFaction(factionVm))
+      {
+        addedItems.Add($"faction:{factionVm.DisplayName}");
+      }
+    }
+
+    foreach (var raceFormKey in filter.Races)
+    {
+      var raceVm = ResolveRaceFormKey(raceFormKey);
+      if (raceVm != null && entry.AddRace(raceVm))
+      {
+        addedItems.Add($"race:{raceVm.DisplayName}");
+      }
+    }
+
+    foreach (var keywordFormKey in filter.Keywords)
+    {
+      var keywordVm = ResolveKeywordByFormKey(keywordFormKey);
+      if (keywordVm != null && entry.AddKeyword(keywordVm))
+      {
+        addedItems.Add($"keyword:{keywordVm.DisplayName}");
+      }
+    }
+
+    foreach (var classFormKey in filter.Classes)
+    {
+      var classVm = ResolveClassFormKey(classFormKey);
+      if (classVm != null && entry.AddClass(classVm))
+      {
+        addedItems.Add($"class:{classVm.DisplayName}");
+      }
+    }
+
+    if (filter.HasTraitFilters)
+    {
+      if (filter.IsFemale.HasValue)
+      {
+        entry.Gender = filter.IsFemale.Value ? GenderFilter.Female : GenderFilter.Male;
+        addedItems.Add(filter.IsFemale.Value ? "trait:Female" : "trait:Male");
+      }
+
+      if (filter.IsUnique.HasValue)
+      {
+        entry.Unique = filter.IsUnique.Value ? UniqueFilter.UniqueOnly : UniqueFilter.NonUniqueOnly;
+        addedItems.Add(filter.IsUnique.Value ? "trait:Unique" : "trait:Non-Unique");
+      }
+
+      if (filter.IsChild.HasValue)
+      {
+        entry.IsChild = filter.IsChild.Value;
+        addedItems.Add(filter.IsChild.Value ? "trait:Child" : "trait:Adult");
+      }
+    }
+
+    return addedItems;
+  }
 }

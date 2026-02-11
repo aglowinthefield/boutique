@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
@@ -286,61 +287,13 @@ public partial class DistributionEntryViewModel : ReactiveObject
           }
         });
 
-    this.WhenAnyValue(x => x.NpcLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.NpcLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.FactionLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.FactionLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.KeywordLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.KeywordLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.RaceLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.RaceLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.ClassLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.ClassLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.LocationLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.LocationLogicMode = mode;
-          RaiseEntryChanged();
-        });
-
-    this.WhenAnyValue(x => x.OutfitFilterLogicMode)
-        .Skip(1)
-        .Subscribe(mode =>
-        {
-          Entry.OutfitFilterLogicMode = mode;
-          RaiseEntryChanged();
-        });
+    SubscribeLogicMode(x => x.NpcLogicMode, m => Entry.NpcLogicMode = m);
+    SubscribeLogicMode(x => x.FactionLogicMode, m => Entry.FactionLogicMode = m);
+    SubscribeLogicMode(x => x.KeywordLogicMode, m => Entry.KeywordLogicMode = m);
+    SubscribeLogicMode(x => x.RaceLogicMode, m => Entry.RaceLogicMode = m);
+    SubscribeLogicMode(x => x.ClassLogicMode, m => Entry.ClassLogicMode = m);
+    SubscribeLogicMode(x => x.LocationLogicMode, m => Entry.LocationLogicMode = m);
+    SubscribeLogicMode(x => x.OutfitFilterLogicMode, m => Entry.OutfitFilterLogicMode = m);
 
     this.WhenAnyValue(x => x.LevelFilters)
         .Skip(1)
@@ -544,6 +497,25 @@ public partial class DistributionEntryViewModel : ReactiveObject
   public event EventHandler? EntryChanged;
 
   private void RaiseEntryChanged() => EntryChanged?.Invoke(this, EventArgs.Empty);
+
+  private void SubscribeLogicMode(
+    Expression<Func<DistributionEntryViewModel, FilterLogicMode>> property,
+    Action<FilterLogicMode> setter) =>
+    this.WhenAnyValue(property)
+        .Skip(1)
+        .Subscribe(mode =>
+        {
+          setter(mode);
+          RaiseEntryChanged();
+        });
+
+  private void SyncEntryList<T>(List<T> target, IEnumerable<T> items)
+  {
+    target.Clear();
+    target.AddRange(items);
+    RaiseFilterSummaryChanged();
+    RaiseEntryChanged();
+  }
 
   private void ParseLevelFiltersToUi(string? levelFiltersText)
   {
@@ -762,39 +734,23 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     var parts = new List<string>();
 
-    if (_selectedNpcs.Count > 0)
-    {
-      parts.Add($"{_selectedNpcs.Count} NPC(s)");
-    }
+    (int Count, string Label)[] filters =
+    [
+      (_selectedNpcs.Count, "NPC(s)"),
+      (_selectedFactions.Count, "faction(s)"),
+      (_selectedKeywords.Count, "keyword(s)"),
+      (_selectedRaces.Count, "race(s)"),
+      (_selectedClasses.Count, "class(es)"),
+      (_selectedLocations.Count, "location(s)"),
+      (_selectedOutfitFilters.Count, "outfit(s)")
+    ];
 
-    if (_selectedFactions.Count > 0)
+    foreach (var (count, label) in filters)
     {
-      parts.Add($"{_selectedFactions.Count} faction(s)");
-    }
-
-    if (_selectedKeywords.Count > 0)
-    {
-      parts.Add($"{_selectedKeywords.Count} keyword(s)");
-    }
-
-    if (_selectedRaces.Count > 0)
-    {
-      parts.Add($"{_selectedRaces.Count} race(s)");
-    }
-
-    if (_selectedClasses.Count > 0)
-    {
-      parts.Add($"{_selectedClasses.Count} class(es)");
-    }
-
-    if (_selectedLocations.Count > 0)
-    {
-      parts.Add($"{_selectedLocations.Count} location(s)");
-    }
-
-    if (_selectedOutfitFilters.Count > 0)
-    {
-      parts.Add($"{_selectedOutfitFilters.Count} outfit(s)");
+      if (count > 0)
+      {
+        parts.Add($"{count} {label}");
+      }
     }
 
     if (Gender != GenderFilter.Any)
@@ -838,69 +794,30 @@ public partial class DistributionEntryViewModel : ReactiveObject
     this.RaisePropertyChanged(nameof(HasAnyResolvedFilters));
   }
 
-  public void UpdateEntryNpcs()
-  {
-    Entry.NpcFilters.Clear();
-    Entry.NpcFilters.AddRange(SelectedNpcs.Select(npc => new FormKeyFilter(npc.FormKey, npc.IsExcluded)));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryNpcs() =>
+    SyncEntryList(Entry.NpcFilters, _selectedNpcs.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
-  public void UpdateEntryFactions()
-  {
-    Entry.FactionFilters.Clear();
-    Entry.FactionFilters.AddRange(SelectedFactions.Select(f => new FormKeyFilter(f.FormKey, f.IsExcluded)));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryFactions() =>
+    SyncEntryList(Entry.FactionFilters, _selectedFactions.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
-  public void UpdateEntryKeywords()
-  {
-    Entry.KeywordFilters.Clear();
-    foreach (var keyword in SelectedKeywords)
-    {
-      var editorId = keyword.KeywordRecord.EditorID;
-      if (!string.IsNullOrWhiteSpace(editorId))
-      {
-        Entry.KeywordFilters.Add(new KeywordFilter(editorId, keyword.IsExcluded));
-      }
-    }
+  public void UpdateEntryKeywords() =>
+    SyncEntryList(
+      Entry.KeywordFilters,
+      _selectedKeywords
+        .Where(k => !string.IsNullOrWhiteSpace(k.KeywordRecord.EditorID))
+        .Select(k => new KeywordFilter(k.KeywordRecord.EditorID!, k.IsExcluded)));
 
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryRaces() =>
+    SyncEntryList(Entry.RaceFilters, _selectedRaces.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
-  public void UpdateEntryRaces()
-  {
-    Entry.RaceFilters.Clear();
-    Entry.RaceFilters.AddRange(SelectedRaces.Select(r => new FormKeyFilter(r.FormKey, r.IsExcluded)));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryClasses() =>
+    SyncEntryList(Entry.ClassFormKeys, _selectedClasses.Select(x => x.FormKey));
 
-  public void UpdateEntryClasses()
-  {
-    Entry.ClassFormKeys.Clear();
-    Entry.ClassFormKeys.AddRange(SelectedClasses.Select(c => c.FormKey));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryLocations() =>
+    SyncEntryList(Entry.LocationFormKeys, _selectedLocations.Select(x => x.FormKey));
 
-  public void UpdateEntryLocations()
-  {
-    Entry.LocationFormKeys.Clear();
-    Entry.LocationFormKeys.AddRange(SelectedLocations.Select(l => l.FormKey));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
-
-  public void UpdateEntryOutfitFilters()
-  {
-    Entry.OutfitFilterFormKeys.Clear();
-    Entry.OutfitFilterFormKeys.AddRange(SelectedOutfitFilters.Select(o => o.FormKey));
-    RaiseFilterSummaryChanged();
-    RaiseEntryChanged();
-  }
+  public void UpdateEntryOutfitFilters() =>
+    SyncEntryList(Entry.OutfitFilterFormKeys, _selectedOutfitFilters.Select(x => x.FormKey));
 
   public static bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
     where T : ISelectableRecordViewModel
