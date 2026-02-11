@@ -42,9 +42,19 @@ public class FilterMatchingService
   public static IReadOnlyList<NpcMatchResult> GetMatchingNpcsForEntry(
     IReadOnlyList<NpcFilterData> allNpcs,
     DistributionEntry entry,
-    IReadOnlySet<string>? virtualKeywords = null) =>
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc = null) =>
     allNpcs.AsParallel()
-           .Select(npc => (Npc: npc, Criteria: BuildMatchCriteria(npc, entry, virtualKeywords)))
+           .Select(npc =>
+           {
+             IReadOnlySet<string>? virtualKeywords = null;
+             if (virtualKeywordsByNpc != null)
+             {
+               virtualKeywordsByNpc.TryGetValue(npc.FormKey, out var kw);
+               virtualKeywords = kw;
+             }
+
+             return (Npc: npc, Criteria: BuildMatchCriteria(npc, entry, virtualKeywords));
+           })
            .Where(x => x.Criteria != null)
            .Select(x => new NpcMatchResult(x.Npc, x.Criteria!))
            .ToList();
@@ -96,7 +106,15 @@ public class FilterMatchingService
       }
     }
 
-    if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, npc.Keywords, entry.KeywordLogicMode))
+    IReadOnlyCollection<string> effectiveKeywords = npc.Keywords;
+    if (virtualKeywords != null && entry.KeywordFilters.Count > 0)
+    {
+      var augmented = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
+      augmented.UnionWith(virtualKeywords);
+      effectiveKeywords = augmented;
+    }
+
+    if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, effectiveKeywords, entry.KeywordLogicMode))
     {
       return null;
     }
@@ -104,7 +122,7 @@ public class FilterMatchingService
     if (entry.KeywordFilters.Any(f => !f.IsExcluded))
     {
       var matched = entry.KeywordFilters
-                         .Where(f => !f.IsExcluded && npc.Keywords.Contains(f.EditorId))
+                         .Where(f => !f.IsExcluded && effectiveKeywords.Contains(f.EditorId))
                          .Select(f => f.EditorId);
       var str = string.Join(" + ", matched);
       if (!string.IsNullOrEmpty(str))
@@ -515,18 +533,7 @@ public class FilterMatchingService
     }
 
     var skillValue = npc.SkillValues[skillIndex];
-
-    if (skillValue < minSkill)
-    {
-      return false;
-    }
-
-    if (maxSkill.HasValue && skillValue > maxSkill.Value)
-    {
-      return false;
-    }
-
-    return true;
+    return skillValue >= minSkill && !(skillValue > maxSkill);
   }
 
   private static bool ParseLevelRange(string value, out int minLevel, out int? maxLevel)

@@ -542,7 +542,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var result = IntraFileConflictDetectionService.Detect(outfitEntries, _cache.AllNpcs.ToList());
+    var result = IntraFileConflictDetectionService.Detect(
+                   outfitEntries,
+                   _cache.AllNpcs.ToList(),
+                   _cache.SimulatedKeywordsByNpc);
     HasIntraFileConflicts    = result.HasConflicts;
     IntraFileConflictSummary = result.ConflictSummary;
     HasIntraFileOverlaps     = result.HasOverlaps;
@@ -1706,7 +1709,10 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     try
     {
-      var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(_cache.AllNpcs, entry.Entry);
+      var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(
+                            _cache.AllNpcs,
+                            entry.Entry,
+                            _cache.SimulatedKeywordsByNpc);
       _matchingNpcsForSelectedEntry = matchingNpcs;
       this.RaisePropertyChanged(nameof(MatchingNpcsForSelectedEntry));
       this.RaisePropertyChanged(nameof(MatchingNpcsCount));

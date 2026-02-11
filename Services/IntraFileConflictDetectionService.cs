@@ -10,7 +10,8 @@ public static class IntraFileConflictDetectionService
 {
   public static IntraFileConflictResult Detect(
     IReadOnlyList<DistributionEntryViewModel> outfitEntries,
-    IReadOnlyList<NpcFilterData> allNpcs)
+    IReadOnlyList<NpcFilterData> allNpcs,
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc = null)
   {
     List<(string NpcName, int EntryCount, List<string> Outfits, bool IsHardConflict)> issues;
 
@@ -26,7 +27,7 @@ public static class IntraFileConflictDetectionService
         }
 
         var outfitName   = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
-        var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry);
+        var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry, virtualKeywordsByNpc);
 
         foreach (var npc in matchingNpcs)
         {

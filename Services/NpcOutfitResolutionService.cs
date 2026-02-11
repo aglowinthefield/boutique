@@ -15,7 +15,7 @@ public class NpcOutfitResolutionService(
 {
   private readonly ILogger _logger = logger.ForContext<NpcOutfitResolutionService>();
 
-  public async Task<IReadOnlyList<NpcOutfitAssignment>> ResolveNpcOutfitsWithFiltersAsync(
+  public async Task<NpcOutfitResolutionResult> ResolveNpcOutfitsWithFiltersAsync(
     IReadOnlyList<DistributionFile> distributionFiles,
     IReadOnlyList<NpcFilterData> npcFilterData,
     CancellationToken cancellationToken = default)
@@ -25,13 +25,13 @@ public class NpcOutfitResolutionService(
       distributionFiles.Count,
       npcFilterData.Count);
 
-    return await Task.Run<IReadOnlyList<NpcOutfitAssignment>>(
+    return await Task.Run(
              () =>
              {
                if (mutagenService.LinkCache is not { } linkCache)
                {
                  _logger.Warning("LinkCache not available for NPC outfit resolution.");
-                 return [];
+                 return NpcOutfitResolutionResult.Empty;
                }
 
                try
@@ -120,17 +120,17 @@ public class NpcOutfitResolutionService(
                  _logger.Information(
                    "Resolved outfit assignments for {Count} NPCs using full filter matching",
                    assignments.Count);
-                 return assignments;
+                 return new NpcOutfitResolutionResult(assignments, simulatedKeywords);
                }
                catch (OperationCanceledException)
                {
                  _logger.Information("NPC outfit resolution cancelled.");
-                 return [];
+                 return NpcOutfitResolutionResult.Empty;
                }
                catch (Exception ex)
                {
                  _logger.Error(ex, "Failed to resolve NPC outfit assignments.");
-                 return [];
+                 return NpcOutfitResolutionResult.Empty;
                }
              },
              cancellationToken);
@@ -522,4 +522,12 @@ public class NpcOutfitResolutionService(
   }
 
   private record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
+}
+
+public record NpcOutfitResolutionResult(
+  IReadOnlyList<NpcOutfitAssignment> Assignments,
+  IReadOnlyDictionary<FormKey, HashSet<string>> SimulatedKeywordsByNpc)
+{
+  public static readonly NpcOutfitResolutionResult Empty =
+    new([], new Dictionary<FormKey, HashSet<string>>());
 }

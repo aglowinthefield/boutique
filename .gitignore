@@ -94,6 +94,7 @@ UpgradeLog*.XML
 UpgradeLog*.htm
 
 .claude/
+plans/
 .dotnet/
 .idea/
 .vscode/

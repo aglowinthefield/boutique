@@ -172,6 +172,9 @@ public class GameDataCacheService : IDisposable
   public ReadOnlyObservableCollection<DistributionFileViewModel> AllDistributionFiles { get; }
   public ReadOnlyObservableCollection<NpcOutfitAssignmentViewModel> AllNpcOutfitAssignments { get; }
 
+  public IReadOnlyDictionary<FormKey, HashSet<string>> SimulatedKeywordsByNpc { get; private set; } =
+    new Dictionary<FormKey, HashSet<string>>();
+
   public void Dispose()
   {
     _mutagenService.Initialized -= OnMutagenInitialized;
@@ -561,9 +564,11 @@ public class GameDataCacheService : IDisposable
                               .ToList();
 
       _logger.Debug("Resolving NPC outfit assignments...");
-      var assignments = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
-                          outfitFiles,
-                          npcFilterDataList);
+      var resolutionResult = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
+                               outfitFiles,
+                               npcFilterDataList);
+      var assignments = resolutionResult.Assignments;
+      SimulatedKeywordsByNpc = resolutionResult.SimulatedKeywordsByNpc;
       _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
 
       _distributionFilesSource.Edit(cache =>
