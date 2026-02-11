@@ -85,7 +85,7 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
     var cells = _cacheService.AllContainers
                              .SelectMany(c => c.CellPlacements)
                              .Distinct()
-                             .OrderBy(c => c)
+                             .Order()
                              .ToList();
 
     foreach (var cell in cells)
@@ -112,14 +112,11 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
         return false;
       }
 
-      if (respawns == "Yes" && !container.Respawns)
+      switch (respawns)
       {
-        return false;
-      }
-
-      if (respawns == "No" && container.Respawns)
-      {
-        return false;
+        case "Yes" when !container.Respawns:
+        case "No" when container.Respawns:
+          return false;
       }
 
       if (string.IsNullOrEmpty(searchLower))

@@ -14,7 +14,6 @@ using Boutique.Utilities;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Win32;
-using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -1024,7 +1023,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     _logger.Debug(
       "LoadDistributionFileAsync called. DistributionFilePath: {Path}, Exists: {Exists}",
       DistributionFilePath,
-      File.Exists(DistributionFilePath ?? string.Empty));
+      File.Exists(DistributionFilePath));
 
     if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
     {
@@ -1126,7 +1125,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         this.RaisePropertyChanged(nameof(IsInitialized));
       }
 
-      if (!_cache.IsLoaded && !_cache.IsLoading)
+      if (_cache is { IsLoaded: false, IsLoading: false })
       {
         StatusMessage = "Loading game data (NPCs, factions, keywords, races, classes)...";
         await _cache.LoadAsync();
@@ -1181,14 +1180,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     if (!string.IsNullOrWhiteSpace(targetDirectory) && Directory.Exists(targetDirectory))
     {
       var defaultDir = PathUtilities.GetSkyPatcherNpcPath(targetDirectory);
-      if (Directory.Exists(defaultDir))
-      {
-        dialog.InitialDirectory = defaultDir;
-      }
-      else
-      {
-        dialog.InitialDirectory = targetDirectory;
-      }
+      dialog.InitialDirectory = Directory.Exists(defaultDir) ? defaultDir : targetDirectory;
     }
 
     if (dialog.ShowDialog() == true)
@@ -1392,7 +1384,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    if (_mutagenService.LinkCache is not { } linkCache)
     {
       if (AvailableOutfits.Count > 0)
       {
@@ -1571,7 +1563,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
 
     if (!_mutagenService.IsInitialized ||
-        _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+        _mutagenService.LinkCache is not { } linkCache)
     {
       StatusMessage = "Initialize Skyrim data path before previewing outfits.";
       return;
@@ -1631,25 +1623,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// </summary>
   private void DetectConflicts()
   {
-    if (!IsCreatingNewFile)
-    {
-      ResetConflictState(NewFileName);
-      return;
-    }
-
-    if (DistributionEntries.Count == 0)
-    {
-      ResetConflictState(NewFileName);
-      return;
-    }
-
-    if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-    {
-      ResetConflictState(NewFileName);
-      return;
-    }
-
-    if (DistributionFiles.Count == 0)
+    if (!IsCreatingNewFile || DistributionEntries.Count == 0 || _mutagenService.LinkCache is not { } linkCache || DistributionFiles.Count == 0)
     {
       ResetConflictState(NewFileName);
       return;
