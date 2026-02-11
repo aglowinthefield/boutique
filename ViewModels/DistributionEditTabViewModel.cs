@@ -902,7 +902,22 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     var addedCount       = 0;
     foreach (var item in selectedItems)
     {
-      if (!targetCollection.Any(existing => existing.FormKey == item.FormKey))
+      bool isDuplicate;
+      if (item is KeywordRecordViewModel keywordVm)
+      {
+        isDuplicate = targetCollection.OfType<KeywordRecordViewModel>()
+                                      .Any(existing =>
+                                             string.Equals(
+                                               existing.EditorID,
+                                               keywordVm.EditorID,
+                                               StringComparison.OrdinalIgnoreCase));
+      }
+      else
+      {
+        isDuplicate = targetCollection.Any(existing => existing.FormKey == item.FormKey);
+      }
+
+      if (!isDuplicate)
       {
         addToEntry(SelectedEntry, item);
         addedCount++;
