@@ -868,13 +868,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   /// <typeparam name="T">The type of record view model.</typeparam>
   /// <param name="filteredItems">The filtered collection to get selected items from.</param>
-  /// <param name="getTargetCollection">Function to get the target collection from the entry.</param>
-  /// <param name="addToEntry">Action to add an item to the entry.</param>
+  /// <param name="addToEntry">Function to add an item to the entry, returns true if added.</param>
   /// <param name="itemTypeName">The display name for the item type (e.g., "NPC", "faction").</param>
   private void AddSelectedCriteriaToEntry<T>(
     IEnumerable<T> filteredItems,
-    Func<DistributionEntryViewModel, ObservableCollection<T>> getTargetCollection,
-    Action<DistributionEntryViewModel, T> addToEntry,
+    Func<DistributionEntryViewModel, T, bool> addToEntry,
     string itemTypeName)
     where T : ISelectableRecordViewModel
   {
@@ -898,28 +896,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var targetCollection = getTargetCollection(SelectedEntry);
-    var addedCount       = 0;
+    var addedCount = 0;
     foreach (var item in selectedItems)
     {
-      bool isDuplicate;
-      if (item is KeywordRecordViewModel keywordVm)
+      if (addToEntry(SelectedEntry, item))
       {
-        isDuplicate = targetCollection.OfType<KeywordRecordViewModel>()
-                                      .Any(existing =>
-                                             string.Equals(
-                                               existing.EditorID,
-                                               keywordVm.EditorID,
-                                               StringComparison.OrdinalIgnoreCase));
-      }
-      else
-      {
-        isDuplicate = targetCollection.Any(existing => existing.FormKey == item.FormKey);
-      }
-
-      if (!isDuplicate)
-      {
-        addToEntry(SelectedEntry, item);
         addedCount++;
       }
     }
@@ -945,7 +926,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedNpcsToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredNpcs,
-      entry => entry.SelectedNpcs,
       (entry, npc) => entry.AddNpc(npc),
       "NPC");
 
@@ -953,7 +933,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedFactionsToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredFactions,
-      entry => entry.SelectedFactions,
       (entry, faction) => entry.AddFaction(faction),
       "faction");
 
@@ -961,7 +940,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedKeywordsToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredKeywords,
-      entry => entry.SelectedKeywords,
       (entry, keyword) => entry.AddKeyword(keyword),
       "keyword");
 
@@ -969,7 +947,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedRacesToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredRaces,
-      entry => entry.SelectedRaces,
       (entry, race) => entry.AddRace(race),
       "race");
 
@@ -977,7 +954,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedClassesToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredClasses,
-      entry => entry.SelectedClasses,
       (entry, classVm) => entry.AddClass(classVm),
       "class");
 
@@ -985,7 +961,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedLocationsToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredLocations,
-      entry => entry.SelectedLocations,
       (entry, location) => entry.AddLocation(location),
       "location");
 
@@ -993,7 +968,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   private void AddSelectedOutfitFiltersToEntry() =>
     AddSelectedCriteriaToEntry(
       FilteredOutfitFilters,
-      entry => entry.SelectedOutfitFilters,
       (entry, outfit) => entry.AddOutfitFilter(outfit),
       "outfit");
 
@@ -1035,9 +1009,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     foreach (var factionFormKey in filter.Factions)
     {
       var factionVm = _hydrationService.ResolveFactionFormKey(factionFormKey);
-      if (factionVm != null && !entry.SelectedFactions.Any(f => f.FormKey == factionFormKey))
+      if (factionVm != null && entry.AddFaction(factionVm))
       {
-        entry.AddFaction(factionVm);
         addedItems.Add($"faction:{factionVm.DisplayName}");
       }
     }
@@ -1045,9 +1018,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     foreach (var raceFormKey in filter.Races)
     {
       var raceVm = _hydrationService.ResolveRaceFormKey(raceFormKey);
-      if (raceVm != null && !entry.SelectedRaces.Any(r => r.FormKey == raceFormKey))
+      if (raceVm != null && entry.AddRace(raceVm))
       {
-        entry.AddRace(raceVm);
         addedItems.Add($"race:{raceVm.DisplayName}");
       }
     }
@@ -1055,13 +1027,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     foreach (var keywordFormKey in filter.Keywords)
     {
       var keywordVm = _hydrationService.ResolveKeywordByFormKey(keywordFormKey);
-      if (keywordVm != null && !entry.SelectedKeywords.Any(k =>
-                                                             string.Equals(
-                                                               k.KeywordRecord.EditorID,
-                                                               keywordVm.KeywordRecord.EditorID,
-                                                               StringComparison.OrdinalIgnoreCase)))
+      if (keywordVm != null && entry.AddKeyword(keywordVm))
       {
-        entry.AddKeyword(keywordVm);
         addedItems.Add($"keyword:{keywordVm.DisplayName}");
       }
     }
@@ -1069,9 +1036,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     foreach (var classFormKey in filter.Classes)
     {
       var classVm = _hydrationService.ResolveClassFormKey(classFormKey);
-      if (classVm != null && !entry.SelectedClasses.Any(c => c.FormKey == classFormKey))
+      if (classVm != null && entry.AddClass(classVm))
       {
-        entry.AddClass(classVm);
         addedItems.Add($"class:{classVm.DisplayName}");
       }
     }

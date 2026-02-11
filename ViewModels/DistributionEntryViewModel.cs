@@ -903,7 +903,22 @@ public partial class DistributionEntryViewModel : ReactiveObject
   public static bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
     where T : ISelectableRecordViewModel
   {
-    if (collection.Any(existing => existing.FormKey == item.FormKey))
+    bool isDuplicate;
+    if (item is KeywordRecordViewModel keywordVm)
+    {
+      isDuplicate = collection.OfType<KeywordRecordViewModel>()
+                              .Any(existing =>
+                                     string.Equals(
+                                       existing.EditorID,
+                                       keywordVm.EditorID,
+                                       StringComparison.OrdinalIgnoreCase));
+    }
+    else
+    {
+      isDuplicate = collection.Any(existing => existing.FormKey == item.FormKey);
+    }
+
+    if (isDuplicate)
     {
       return false;
     }
@@ -925,36 +940,36 @@ public partial class DistributionEntryViewModel : ReactiveObject
     return true;
   }
 
-  public void AddNpc(NpcRecordViewModel npc) => AddCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
+  public bool AddNpc(NpcRecordViewModel npc) => AddCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
   public void RemoveNpc(NpcRecordViewModel npc) => RemoveCriterion(npc, _selectedNpcs, UpdateEntryNpcs);
 
-  public void AddFaction(FactionRecordViewModel faction) =>
+  public bool AddFaction(FactionRecordViewModel faction) =>
     AddCriterion(faction, _selectedFactions, UpdateEntryFactions);
 
   public void RemoveFaction(FactionRecordViewModel faction) =>
     RemoveCriterion(faction, _selectedFactions, UpdateEntryFactions);
 
-  public void AddKeyword(KeywordRecordViewModel keyword) =>
+  public bool AddKeyword(KeywordRecordViewModel keyword) =>
     AddCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
 
   public void RemoveKeyword(KeywordRecordViewModel keyword) =>
     RemoveCriterion(keyword, _selectedKeywords, UpdateEntryKeywords);
 
-  public void AddRace(RaceRecordViewModel race) => AddCriterion(race, _selectedRaces, UpdateEntryRaces);
+  public bool AddRace(RaceRecordViewModel race) => AddCriterion(race, _selectedRaces, UpdateEntryRaces);
   public void RemoveRace(RaceRecordViewModel race) => RemoveCriterion(race, _selectedRaces, UpdateEntryRaces);
 
-  public void AddClass(ClassRecordViewModel classVm) => AddCriterion(classVm, _selectedClasses, UpdateEntryClasses);
+  public bool AddClass(ClassRecordViewModel classVm) => AddCriterion(classVm, _selectedClasses, UpdateEntryClasses);
 
   public void RemoveClass(ClassRecordViewModel classVm) =>
     RemoveCriterion(classVm, _selectedClasses, UpdateEntryClasses);
 
-  public void AddLocation(LocationRecordViewModel location) =>
+  public bool AddLocation(LocationRecordViewModel location) =>
     AddCriterion(location, _selectedLocations, UpdateEntryLocations);
 
   public void RemoveLocation(LocationRecordViewModel location) =>
     RemoveCriterion(location, _selectedLocations, UpdateEntryLocations);
 
-  public void AddOutfitFilter(OutfitRecordViewModel outfit) =>
+  public bool AddOutfitFilter(OutfitRecordViewModel outfit) =>
     AddCriterion(outfit, _selectedOutfitFilters, UpdateEntryOutfitFilters);
 
   public void RemoveOutfitFilter(OutfitRecordViewModel outfit) =>
