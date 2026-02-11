@@ -723,7 +723,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
       var collection = new ArmorPreviewSceneCollection(
         1,
         0,
-        new[] { metadata },
+        [metadata],
         async (_, gender) =>
         {
           var scene = await _previewService.BuildPreviewAsync([armor], gender);

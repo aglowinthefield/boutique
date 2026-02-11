@@ -216,6 +216,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
     catch
     {
+      // ignored
     }
 
     return meshes;
@@ -312,12 +313,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     var shapeName = shape.Name?.String ?? shape.Name?.ToString() ?? "<unnamed>";
 
     var alternateTexture = TryGetAlternateTexture(addon, variant, linkCache, shapeName);
-    if (alternateTexture != null)
-    {
-      return alternateTexture;
-    }
-
-    return ExtractTextureFromNif(nif, shape, ownerModKey, shapeName);
+    return alternateTexture ?? ExtractTextureFromNif(nif, shape, ownerModKey, shapeName);
   }
 
   private string? TryGetAlternateTexture(

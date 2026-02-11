@@ -585,7 +585,7 @@ public class GameDataCacheService : IDisposable
                                      .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var newKeywords = virtualKeywords
-                          .Where(k => !existingEditorIds.Contains(k.EditorID ?? string.Empty))
+                          .Where(k => !existingEditorIds.Contains(k.EditorID))
                           .ToList();
 
         cache.AddOrUpdate(newKeywords);

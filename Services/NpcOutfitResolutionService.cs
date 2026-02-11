@@ -320,7 +320,7 @@ public class NpcOutfitResolutionService(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var npcFormKeys    = new List<FormKey>();
-    var npcIdentifiers = SkyPatcherSyntax.ExtractFilterValues(lineText, "filterByNpcs");
+    var npcIdentifiers = SkyPatcherSyntax.ExtractFilterValuesWithVariants(lineText, "filterByNpcs");
 
     foreach (var npcIdentifier in npcIdentifiers)
     {
@@ -385,7 +385,7 @@ public class NpcOutfitResolutionService(
   {
     var npcLookup = allNpcs.ToDictionary(
       n => n.FormKey,
-      n => new NpcBasicInfo(n.FormKey, n.EditorId, n.Name, n.SourceMod));
+      n => new NpcBasicInfo(n.EditorId, n.Name, n.SourceMod));
     return BuildNpcOutfitAssignmentsCore(npcDistributions, npcLookup);
   }
 
@@ -521,5 +521,5 @@ public class NpcOutfitResolutionService(
     _logger.Debug("Found {Count} NPCs with ESP-provided default outfits", espOutfitCount);
   }
 
-  private record NpcBasicInfo(FormKey FormKey, string? EditorId, string? Name, ModKey SourceMod);
+  private record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
 }

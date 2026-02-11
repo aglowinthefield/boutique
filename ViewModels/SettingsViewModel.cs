@@ -374,7 +374,7 @@ public partial class SettingsViewModel : ReactiveObject
   {
     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
     {
-      return path ?? string.Empty;
+      return path;
     }
 
     var hasPlugins = PathUtilities.HasPluginFiles(path);

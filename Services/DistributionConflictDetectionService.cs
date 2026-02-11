@@ -60,8 +60,6 @@ public class DistributionConflictDetectionService
             npcVm.FormKey,
             npcVm.DisplayName,
             existing.FileName,
-            existing.OutfitName,
-            newOutfitName,
             existing.Chance,
             newChance);
 
@@ -84,8 +82,6 @@ public class DistributionConflictDetectionService
             npcVm.FormKey,
             npcVm.DisplayName,
             allNpcsDist.FileName,
-            allNpcsDist.OutfitName,
-            newOutfitName,
             allNpcsDist.Chance,
             newChance);
 
@@ -375,5 +371,61 @@ public class DistributionConflictDetectionService
     var baseName = newFileName.TrimStart('Z', 'z');
 
     return zPrefix + baseName;
+  }
+
+  public static void ApplyConflictIndicators(
+    ConflictDetectionResult result,
+    IEnumerable<DistributionEntryViewModel> entries)
+  {
+    var conflictNpcFormKeys = result.Conflicts
+                                    .Select(c => c.NpcFormKey)
+                                    .ToHashSet();
+    var overlapNpcFormKeys = result.Overlaps
+                                   .Select(o => o.NpcFormKey)
+                                   .ToHashSet();
+
+    foreach (var entry in entries)
+    {
+      foreach (var npcVm in entry.SelectedNpcs)
+      {
+        if (conflictNpcFormKeys.Contains(npcVm.FormKey))
+        {
+          var conflict = result.Conflicts.First(c => c.NpcFormKey == npcVm.FormKey);
+          npcVm.HasConflict         = !result.ConflictsResolvedByFilename;
+          npcVm.ConflictingFileName = conflict.ExistingFileName;
+        }
+        else
+        {
+          npcVm.HasConflict         = false;
+          npcVm.ConflictingFileName = null;
+        }
+
+        if (overlapNpcFormKeys.Contains(npcVm.FormKey))
+        {
+          var overlap = result.Overlaps.First(o => o.NpcFormKey == npcVm.FormKey);
+          npcVm.HasOverlap         = !result.OverlapsResolvedByFilename;
+          npcVm.OverlappingFileName = overlap.ExistingFileName;
+        }
+        else
+        {
+          npcVm.HasOverlap         = false;
+          npcVm.OverlappingFileName = null;
+        }
+      }
+    }
+  }
+
+  public static void ClearConflictIndicators(IEnumerable<DistributionEntryViewModel> entries)
+  {
+    foreach (var entry in entries)
+    {
+      foreach (var npc in entry.SelectedNpcs)
+      {
+        npc.HasConflict         = false;
+        npc.ConflictingFileName = null;
+        npc.HasOverlap          = false;
+        npc.OverlappingFileName = null;
+      }
+    }
   }
 }

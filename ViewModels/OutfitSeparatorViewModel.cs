@@ -12,7 +12,7 @@ public partial class OutfitSeparatorViewModel : ReactiveObject, IOutfitQueueItem
   [Reactive] private bool                                       _isExpanded = true;
   [Reactive] private bool                                       _isVisible  = true;
 
-  [Reactive] private string _name = "Group";
+  [Reactive] private string _name;
 
   public OutfitSeparatorViewModel(
     string name,

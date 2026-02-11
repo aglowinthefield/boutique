@@ -41,19 +41,16 @@ public class SpidFilterMatchingService
 
   public static IReadOnlyList<NpcFilterData> GetMatchingNpcsForEntry(
     IReadOnlyList<NpcFilterData> allNpcs,
-    DistributionEntry entry) =>
-    allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry)).ToList();
+    DistributionEntry entry,
+    IReadOnlySet<string>? virtualKeywords = null) =>
+    allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry, virtualKeywords)).ToList();
 
-  private static bool NpcMatchesEntry(NpcFilterData npc, DistributionEntry entry)
+  private static bool NpcMatchesEntry(
+    NpcFilterData npc,
+    DistributionEntry entry,
+    IReadOnlySet<string>? virtualKeywords)
   {
-    var hasResolvedFilters = entry.NpcFilters.Count > 0 || entry.FactionFilters.Count > 0 ||
-                             entry.KeywordFilters.Count > 0 || entry.RaceFilters.Count > 0 ||
-                             entry.ClassFormKeys.Count > 0 || entry.OutfitFilterFormKeys.Count > 0 ||
-                             !entry.TraitFilters.IsEmpty;
-    var hasUnresolvedFilters = !string.IsNullOrWhiteSpace(entry.RawStringFilters) ||
-                               !string.IsNullOrWhiteSpace(entry.RawFormFilters);
-
-    if (!hasResolvedFilters && hasUnresolvedFilters)
+    if (!MatchesRawStringFilters(npc, entry.RawStringFilters, virtualKeywords))
     {
       return false;
     }
@@ -92,6 +89,67 @@ public class SpidFilterMatchingService
     }
 
     return MatchesTraitFilters(npc, entry.TraitFilters);
+  }
+
+  private static bool MatchesRawStringFilters(
+    NpcFilterData npc,
+    string? rawStringFilters,
+    IReadOnlySet<string>? virtualKeywords)
+  {
+    if (string.IsNullOrWhiteSpace(rawStringFilters))
+    {
+      return true;
+    }
+
+    var expressions = rawStringFilters.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    if (expressions.Length == 0)
+    {
+      return true;
+    }
+
+    foreach (var expression in expressions)
+    {
+      var parts = expression.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+      var allPartsMatch = true;
+
+      foreach (var part in parts)
+      {
+        var trimmedPart = part.Trim();
+        var isNegated = trimmedPart.StartsWith('-');
+        var value = isNegated ? trimmedPart[1..] : trimmedPart;
+        var hasWildcard = value.Contains('*');
+
+        bool matches;
+        if (hasWildcard)
+        {
+          var searchValue = value.Replace("*", string.Empty);
+          matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords);
+        }
+        else
+        {
+          matches = ExactMatchesNpcStrings(npc, value, virtualKeywords);
+        }
+
+        if (isNegated)
+        {
+          matches = !matches;
+        }
+
+        if (!matches)
+        {
+          allPartsMatch = false;
+          break;
+        }
+      }
+
+      if (allPartsMatch)
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static bool MatchesFilters<TFilter, TValue>(

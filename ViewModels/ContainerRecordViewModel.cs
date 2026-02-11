@@ -6,32 +6,20 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.ViewModels;
 
-public sealed class ContainerRecordViewModel
+public sealed class ContainerRecordViewModel(
+  IContainerGetter container,
+  ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+  string? merchantFaction = null,
+  IReadOnlyList<string>? cellPlacements = null)
 {
-  public ContainerRecordViewModel(
-    IContainerGetter container,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    string? merchantFaction = null,
-    IReadOnlyList<string>? cellPlacements = null)
-  {
-    FormKey         = container.FormKey;
-    EditorId        = container.EditorID ?? string.Empty;
-    Name            = container.Name?.String ?? container.EditorID ?? container.FormKey.ToString();
-    ModName         = container.FormKey.ModKey.FileName;
-    Respawns        = container.Flags.HasFlag(Container.Flag.Respawns);
-    Items           = ResolveItems(container, linkCache);
-    MerchantFaction = merchantFaction;
-    CellPlacements  = cellPlacements ?? [];
-  }
-
-  public FormKey FormKey { get; }
-  public string EditorId { get; }
-  public string Name { get; }
-  public string ModName { get; }
-  public bool Respawns { get; }
-  public IReadOnlyList<ContainerContentItem> Items { get; }
-  public string? MerchantFaction { get; }
-  public IReadOnlyList<string> CellPlacements { get; }
+  public FormKey FormKey { get; } = container.FormKey;
+  public string EditorId { get; } = container.EditorID ?? string.Empty;
+  public string Name { get; } = container.Name?.String ?? container.EditorID ?? container.FormKey.ToString();
+  public string ModName { get; } = container.FormKey.ModKey.FileName;
+  public bool Respawns { get; } = container.Flags.HasFlag(Container.Flag.Respawns);
+  public IReadOnlyList<ContainerContentItem> Items { get; } = ResolveItems(container, linkCache);
+  public string? MerchantFaction { get; } = merchantFaction;
+  public IReadOnlyList<string> CellPlacements { get; } = cellPlacements ?? [];
 
   public int ItemCount => Items.Count;
   public string DisplayName => string.IsNullOrEmpty(Name) ? EditorId : Name;

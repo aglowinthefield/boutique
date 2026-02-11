@@ -19,7 +19,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 {
   private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;
-  private readonly CompositeDisposable  _disposables = new();
+  private readonly CompositeDisposable  _disposables = [];
 
   private readonly IObservable<bool> _hasFilters;
   private readonly ILogger           _logger;

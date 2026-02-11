@@ -58,21 +58,22 @@ public static class OutfitResolver
       return;
     }
 
-    if (linkCache.TryResolve<IArmorGetter>(itemFormKey, out var armor))
+    if (!linkCache.TryResolve<ISkyrimMajorRecordGetter>(itemFormKey, out var record))
     {
-      pieces.Add(new ArmorRecordViewModel(armor, linkCache));
       return;
     }
 
-    if (linkCache.TryResolve<ILeveledItemGetter>(itemFormKey, out var leveledItem))
+    switch (record)
     {
-      GatherArmorsFromLeveledItem(leveledItem, linkCache, pieces, visited, random, ref containsLeveledItems);
-      return;
-    }
-
-    if (linkCache.TryResolve<IFormListGetter>(itemFormKey, out var formList))
-    {
-      GatherArmorsFromFormList(formList, linkCache, pieces, visited, random, ref containsLeveledItems);
+      case IArmorGetter armor:
+        pieces.Add(new ArmorRecordViewModel(armor, linkCache));
+        break;
+      case ILeveledItemGetter leveledItem:
+        GatherArmorsFromLeveledItem(leveledItem, linkCache, pieces, visited, random, ref containsLeveledItems);
+        break;
+      case IFormListGetter formList:
+        GatherArmorsFromFormList(formList, linkCache, pieces, visited, random, ref containsLeveledItems);
+        break;
     }
   }
 
@@ -130,7 +131,7 @@ public static class OutfitResolver
           continue;
         }
 
-        var count = entry?.Data?.Count ?? 1;
+        var count = entry.Data?.Count ?? 1;
         if (calculateEach && count > 1)
         {
           containsLeveledItems = true;
@@ -186,12 +187,8 @@ public static class OutfitResolver
     formKey = FormKey.Null;
 
     var data = entry?.Data;
-    if (data == null)
-    {
-      return false;
-    }
 
-    var refFormKey = data.Reference.FormKeyNullable;
+    var refFormKey = data?.Reference.FormKeyNullable;
     if (!refFormKey.HasValue || refFormKey.Value == FormKey.Null)
     {
       return false;
@@ -241,80 +238,86 @@ public static class OutfitResolver
       return null;
     }
 
-    if (linkCache.TryResolve<IArmorGetter>(formKey, out var armor))
+    if (!linkCache.TryResolve<ISkyrimMajorRecordGetter>(formKey, out var record))
     {
-      return new OutfitTreeNode(
-        armor.EditorID ?? armor.FormKey.ToString(),
-        OutfitTreeNodeType.Armor,
-        armor.FormKey);
+      return null;
     }
 
-    if (linkCache.TryResolve<ILeveledItemGetter>(formKey, out var leveledItem))
+    switch (record)
     {
-      var flags = BuildLeveledItemFlagsString(leveledItem.Flags);
-      var node = new OutfitTreeNode(
-        leveledItem.EditorID ?? leveledItem.FormKey.ToString(),
-        OutfitTreeNodeType.LeveledList,
-        leveledItem.FormKey,
-        flags);
+      case IArmorGetter armor:
+        return new OutfitTreeNode(
+          armor.EditorID ?? armor.FormKey.ToString(),
+          OutfitTreeNodeType.Armor,
+          armor.FormKey);
 
-      var entries = leveledItem.Entries;
-      if (entries == null)
+      case ILeveledItemGetter leveledItem:
       {
+        var flags = BuildLeveledItemFlagsString(leveledItem.Flags);
+        var node = new OutfitTreeNode(
+          leveledItem.EditorID ?? leveledItem.FormKey.ToString(),
+          OutfitTreeNodeType.LeveledList,
+          leveledItem.FormKey,
+          flags);
+
+        var entries = leveledItem.Entries;
+        if (entries == null)
+        {
+          return node;
+        }
+
+        foreach (var entry in entries)
+        {
+          if (!TryGetEntryFormKey(entry, out var entryFormKey))
+          {
+            continue;
+          }
+
+          var childNode = BuildTreeNode(entryFormKey, linkCache, visited);
+          if (childNode != null)
+          {
+            node.Children.Add(childNode);
+          }
+        }
+
         return node;
       }
 
-      foreach (var entry in entries)
+      case IFormListGetter formList:
       {
-        if (!TryGetEntryFormKey(entry, out var entryFormKey))
+        var node = new OutfitTreeNode(
+          formList.EditorID ?? formList.FormKey.ToString(),
+          OutfitTreeNodeType.FormList,
+          formList.FormKey);
+
+        foreach (var itemLink in formList.Items)
         {
-          continue;
+          var itemFormKey = itemLink.FormKeyNullable;
+          if (!itemFormKey.HasValue || itemFormKey.Value.IsNull)
+          {
+            continue;
+          }
+
+          var childNode = BuildTreeNode(itemFormKey.Value, linkCache, visited);
+          if (childNode != null)
+          {
+            node.Children.Add(childNode);
+          }
         }
 
-        var childNode = BuildTreeNode(entryFormKey, linkCache, visited);
-        if (childNode != null)
-        {
-          node.Children.Add(childNode);
-        }
+        return node;
       }
 
-      return node;
+      default:
+        return null;
     }
-
-    if (linkCache.TryResolve<IFormListGetter>(formKey, out var formList))
-    {
-      var node = new OutfitTreeNode(
-        formList.EditorID ?? formList.FormKey.ToString(),
-        OutfitTreeNodeType.FormList,
-        formList.FormKey);
-
-      var items = formList.Items;
-      foreach (var itemLink in items)
-      {
-        var itemFormKey = itemLink.FormKeyNullable;
-        if (!itemFormKey.HasValue || itemFormKey.Value.IsNull)
-        {
-          continue;
-        }
-
-        var childNode = BuildTreeNode(itemFormKey.Value, linkCache, visited);
-        if (childNode != null)
-        {
-          node.Children.Add(childNode);
-        }
-      }
-
-      return node;
-    }
-
-    return null;
   }
 
   public static string RenderOutfitTreeAsText(OutfitTreeNode root)
   {
     var sb = new StringBuilder();
-    sb.AppendLine($"Outfit: {root.Name}");
-    sb.AppendLine();
+    sb.AppendLine($"Outfit: {root.Name}")
+      .AppendLine();
 
     if (root.Children.Count == 0)
     {
@@ -389,20 +392,12 @@ public enum OutfitTreeNodeType
   FormList
 }
 
-public sealed class OutfitTreeNode
+public sealed class OutfitTreeNode(string name, OutfitTreeNodeType nodeType, FormKey formKey, string? flags = null)
 {
-  public OutfitTreeNode(string name, OutfitTreeNodeType nodeType, FormKey formKey, string? flags = null)
-  {
-    Name     = name;
-    NodeType = nodeType;
-    FormKey  = formKey;
-    Flags    = flags;
-  }
-
-  public string Name { get; }
-  public OutfitTreeNodeType NodeType { get; }
-  public FormKey FormKey { get; }
-  public string? Flags { get; }
+  public string Name { get; } = name;
+  public OutfitTreeNodeType NodeType { get; } = nodeType;
+  public FormKey FormKey { get; } = formKey;
+  public string? Flags { get; } = flags;
   public List<OutfitTreeNode> Children { get; } = [];
 }
 

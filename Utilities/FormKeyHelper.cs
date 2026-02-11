@@ -13,14 +13,9 @@ public static class FormKeyHelper
 
   public static bool IsModKeyFileName(string text)
   {
-    if (string.IsNullOrWhiteSpace(text))
-    {
-      return false;
-    }
-
-    return text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
-           text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
-           text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase);
+    return !string.IsNullOrWhiteSpace(text) && (text.EndsWith(".esp", StringComparison.OrdinalIgnoreCase) ||
+                                                text.EndsWith(".esm", StringComparison.OrdinalIgnoreCase) ||
+                                                text.EndsWith(".esl", StringComparison.OrdinalIgnoreCase));
   }
 
   public static bool LooksLikeFormId(string text)
@@ -57,7 +52,7 @@ public static class FormKeyHelper
   {
     if (string.IsNullOrWhiteSpace(text))
     {
-      return text ?? string.Empty;
+      return text;
     }
 
     var trimmed = text.Trim();
