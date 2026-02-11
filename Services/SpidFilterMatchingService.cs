@@ -41,12 +41,16 @@ public class SpidFilterMatchingService
 
   public static IReadOnlyList<NpcFilterData> GetMatchingNpcsForEntry(
     IReadOnlyList<NpcFilterData> allNpcs,
-    DistributionEntry entry) =>
-    allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry)).ToList();
+    DistributionEntry entry,
+    IReadOnlySet<string>? virtualKeywords = null) =>
+    allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry, virtualKeywords)).ToList();
 
-  private static bool NpcMatchesEntry(NpcFilterData npc, DistributionEntry entry)
+  private static bool NpcMatchesEntry(
+    NpcFilterData npc,
+    DistributionEntry entry,
+    IReadOnlySet<string>? virtualKeywords)
   {
-    if (!MatchesRawStringFilters(npc, entry.RawStringFilters))
+    if (!MatchesRawStringFilters(npc, entry.RawStringFilters, virtualKeywords))
     {
       return false;
     }
@@ -87,7 +91,10 @@ public class SpidFilterMatchingService
     return MatchesTraitFilters(npc, entry.TraitFilters);
   }
 
-  private static bool MatchesRawStringFilters(NpcFilterData npc, string? rawStringFilters)
+  private static bool MatchesRawStringFilters(
+    NpcFilterData npc,
+    string? rawStringFilters,
+    IReadOnlySet<string>? virtualKeywords)
   {
     if (string.IsNullOrWhiteSpace(rawStringFilters))
     {
@@ -117,11 +124,11 @@ public class SpidFilterMatchingService
         if (hasWildcard)
         {
           var searchValue = value.Replace("*", string.Empty);
-          matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords: null);
+          matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords);
         }
         else
         {
-          matches = ExactMatchesNpcStrings(npc, value, virtualKeywords: null);
+          matches = ExactMatchesNpcStrings(npc, value, virtualKeywords);
         }
 
         if (isNegated)

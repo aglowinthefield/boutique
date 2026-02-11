@@ -585,33 +585,35 @@
 
             <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
                     Background="{StaticResource Brush.PrimaryBackground}"
-                    CornerRadius="4" Padding="6">
-              <ItemsControl ItemsSource="{Binding MatchingNpcsForSelectedEntry}" MaxHeight="400">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Border Padding="4,2" Margin="0,0,0,2"
-                            Background="{StaticResource Brush.CardBackground}"
-                            BorderBrush="{StaticResource Brush.Border}"
-                            BorderThickness="1" CornerRadius="2">
-                      <Grid>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="*" />
-                          <ColumnDefinition Width="Auto" />
-                          <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    CornerRadius="4" MaxHeight="400">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding MatchingNpcsForSelectedEntry}" Padding="6">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Padding="4,2" Margin="0,0,0,2"
+                              Background="{StaticResource Brush.CardBackground}"
+                              BorderBrush="{StaticResource Brush.Border}"
+                              BorderThickness="1" CornerRadius="2">
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                          </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Text="{Binding EditorID}"
-                                   Foreground="{StaticResource Brush.TextSecondary}"
-                                   FontSize="10" Margin="8,0,0,0" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="2" Text="{Binding FormKey}"
-                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="8,0,0,0" FontSize="9" VerticalAlignment="Center" />
-                      </Grid>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                          <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Text="{Binding EditorId}"
+                                     Foreground="{StaticResource Brush.TextSecondary}"
+                                     FontSize="10" Margin="8,0,0,0" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="2" Text="{Binding FormKey}"
+                                     Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                     Margin="8,0,0,0" FontSize="9" VerticalAlignment="Center" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
             </Border>
 
             <TextBlock Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"

@@ -186,11 +186,13 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(formsText =>
         {
-          Entry.ExclusiveGroupForms = formsText
-                                      .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                      .Select(f => f.Trim())
-                                      .Where(f => !string.IsNullOrWhiteSpace(f))
-                                      .ToList();
+          Entry.ExclusiveGroupForms =
+          [
+            .. formsText
+               .Split(',', StringSplitOptions.RemoveEmptyEntries)
+               .Select(f => f.Trim())
+               .Where(f => !string.IsNullOrWhiteSpace(f))
+          ];
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });

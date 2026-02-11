@@ -219,7 +219,7 @@ public static class SpidLineParser
            value.Equals("NONE", StringComparison.OrdinalIgnoreCase);
   }
 
-  private static SpidFilterSection ParseFilterSection(string? sectionText)
+  public static SpidFilterSection ParseFilterSection(string? sectionText)
   {
     var section = new SpidFilterSection();
 
