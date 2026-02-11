@@ -250,7 +250,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, "SkyPatcher distribution (preserved)");
       }
 
-      var npcLogicMode     = npcOrStrings.Count > 0 ? FilterLogicMode.Or : FilterLogicMode.And;
+      var npcLogicMode     = npcOrStrings.Count > 0 || npcAndStrings.Count > 1 ? FilterLogicMode.Or : FilterLogicMode.And;
       var factionLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByFactionsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
       var keywordLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByKeywordsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
       var raceLogicMode    = SkyPatcherSyntax.HasFilter(line, "filterByRacesOr") ? FilterLogicMode.Or : FilterLogicMode.And;
