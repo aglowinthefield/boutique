@@ -39,36 +39,78 @@ public class FilterMatchingService
     }).ToList();
   }
 
-  public static IReadOnlyList<NpcFilterData> GetMatchingNpcsForEntry(
+  public static IReadOnlyList<NpcMatchResult> GetMatchingNpcsForEntry(
     IReadOnlyList<NpcFilterData> allNpcs,
     DistributionEntry entry,
     IReadOnlySet<string>? virtualKeywords = null) =>
-    allNpcs.AsParallel().Where(npc => NpcMatchesEntry(npc, entry, virtualKeywords)).ToList();
+    allNpcs.AsParallel()
+           .Select(npc => (Npc: npc, Criteria: BuildMatchCriteria(npc, entry, virtualKeywords)))
+           .Where(x => x.Criteria != null)
+           .Select(x => new NpcMatchResult(x.Npc, x.Criteria!))
+           .ToList();
 
-  private static bool NpcMatchesEntry(
+  private static string? BuildMatchCriteria(
     NpcFilterData npc,
     DistributionEntry entry,
     IReadOnlySet<string>? virtualKeywords)
   {
+    var parts = new List<string>();
+
     if (!MatchesRawStringFilters(npc, entry.RawStringFilters, virtualKeywords))
     {
-      return false;
+      return null;
+    }
+
+    if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
+    {
+      parts.Add($"String: {entry.RawStringFilters}");
     }
 
     if (!MatchesFilters(entry.NpcFilters, f => f.FormKey, [npc.FormKey], entry.NpcLogicMode))
     {
-      return false;
+      return null;
+    }
+
+    if (entry.NpcFilters.Any(f => !f.IsExcluded))
+    {
+      parts.Add($"NPC: {npc.DisplayName}");
     }
 
     var npcFactions = npc.Factions.Select(f => f.FactionFormKey).ToHashSet();
     if (!MatchesFilters(entry.FactionFilters, f => f.FormKey, npcFactions, entry.FactionLogicMode))
     {
-      return false;
+      return null;
+    }
+
+    if (entry.FactionFilters.Any(f => !f.IsExcluded))
+    {
+      var matched = entry.FactionFilters
+                         .Where(f => !f.IsExcluded && npcFactions.Contains(f.FormKey))
+                         .Select(f =>
+                                   npc.Factions.FirstOrDefault(nf => nf.FactionFormKey == f.FormKey)?.FactionEditorId ??
+                                   f.FormKey.ToString());
+      var str = string.Join(" + ", matched);
+      if (!string.IsNullOrEmpty(str))
+      {
+        parts.Add($"Faction: {str}");
+      }
     }
 
     if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, npc.Keywords, entry.KeywordLogicMode))
     {
-      return false;
+      return null;
+    }
+
+    if (entry.KeywordFilters.Any(f => !f.IsExcluded))
+    {
+      var matched = entry.KeywordFilters
+                         .Where(f => !f.IsExcluded && npc.Keywords.Contains(f.EditorId))
+                         .Select(f => f.EditorId);
+      var str = string.Join(" + ", matched);
+      if (!string.IsNullOrEmpty(str))
+      {
+        parts.Add($"Keyword: {str}");
+      }
     }
 
     if (!MatchesFilters(
@@ -77,22 +119,87 @@ public class FilterMatchingService
           npc.RaceFormKey.HasValue ? [npc.RaceFormKey.Value] : [],
           entry.RaceLogicMode))
     {
-      return false;
+      return null;
+    }
+
+    if (entry.RaceFilters.Any(f => !f.IsExcluded))
+    {
+      parts.Add($"Race: {npc.RaceEditorId ?? npc.RaceFormKey?.ToString() ?? "?"}");
     }
 
     if (entry.ClassFormKeys.Count > 0 &&
         (!npc.ClassFormKey.HasValue || !entry.ClassFormKeys.Contains(npc.ClassFormKey.Value)))
     {
-      return false;
+      return null;
+    }
+
+    if (entry.ClassFormKeys.Count > 0)
+    {
+      parts.Add($"Class: {npc.ClassEditorId ?? npc.ClassFormKey?.ToString() ?? "?"}");
     }
 
     if (entry.OutfitFilterFormKeys.Count > 0 &&
         (!npc.DefaultOutfitFormKey.HasValue || !entry.OutfitFilterFormKeys.Contains(npc.DefaultOutfitFormKey.Value)))
     {
-      return false;
+      return null;
     }
 
-    return MatchesTraitFilters(npc, entry.TraitFilters);
+    if (entry.OutfitFilterFormKeys.Count > 0)
+    {
+      parts.Add($"Outfit: {npc.DefaultOutfitEditorId ?? npc.DefaultOutfitFormKey?.ToString() ?? "?"}");
+    }
+
+    if (!MatchesLevelFilters(npc, entry.LevelFilters))
+    {
+      return null;
+    }
+
+    if (!string.IsNullOrWhiteSpace(entry.LevelFilters) &&
+        !entry.LevelFilters.Equals("NONE", StringComparison.OrdinalIgnoreCase))
+    {
+      parts.Add($"Level: {entry.LevelFilters}");
+    }
+
+    if (!MatchesTraitFilters(npc, entry.TraitFilters))
+    {
+      return null;
+    }
+
+    if (!entry.TraitFilters.IsEmpty)
+    {
+      var traits = new List<string>();
+      if (entry.TraitFilters.IsFemale.HasValue)
+      {
+        traits.Add(entry.TraitFilters.IsFemale.Value ? "Female" : "Male");
+      }
+
+      if (entry.TraitFilters.IsUnique.HasValue)
+      {
+        traits.Add(entry.TraitFilters.IsUnique.Value ? "Unique" : "Not Unique");
+      }
+
+      if (entry.TraitFilters.IsSummonable.HasValue)
+      {
+        traits.Add(entry.TraitFilters.IsSummonable.Value ? "Summonable" : "Not Summonable");
+      }
+
+      if (entry.TraitFilters.IsChild.HasValue)
+      {
+        traits.Add(entry.TraitFilters.IsChild.Value ? "Child" : "Not Child");
+      }
+
+      if (entry.TraitFilters.IsLeveled.HasValue)
+      {
+        traits.Add(entry.TraitFilters.IsLeveled.Value ? "Leveled" : "Not Leveled");
+      }
+
+      if (traits.Count > 0)
+      {
+        parts.Add(string.Join(", ", traits));
+      }
+    }
+
+    return parts.Count > 0 ? string.Join("; ", parts) : "All NPCs";
   }
 
   private static bool MatchesRawStringFilters(

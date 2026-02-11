@@ -568,60 +568,59 @@
             <TextBlock Text="{Binding MatchingNpcsCount, StringFormat=' ({0})'}" />
           </StackPanel>
         </TabItem.Header>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <StackPanel Margin="6">
-            <StackPanel.Style>
-              <Style TargetType="StackPanel">
-                <Setter Property="IsEnabled" Value="True" />
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
-                    <Setter Property="IsEnabled" Value="False" />
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </StackPanel.Style>
+        <DockPanel Margin="6">
+          <DockPanel.Style>
+            <Style TargetType="DockPanel">
+              <Setter Property="IsEnabled" Value="True" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                  <Setter Property="IsEnabled" Value="False" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </DockPanel.Style>
 
-            <TextBlock Text="NPCs matching the current filters:" FontWeight="SemiBold" Margin="0,0,0,6" />
+          <TextBlock DockPanel.Dock="Bottom"
+                     Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"
+                     Margin="0,6,0,0" FontSize="11"
+                     Foreground="{StaticResource Brush.TextSecondary}" />
 
-            <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+          <DataGrid ItemsSource="{Binding MatchingNpcsForSelectedEntry}"
+                    AutoGenerateColumns="False" IsReadOnly="True"
+                    HeadersVisibility="Column" GridLinesVisibility="None"
+                    SelectionMode="Single" CanUserReorderColumns="False"
+                    CanUserResizeRows="False" CanUserSortColumns="True"
+                    BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
                     Background="{StaticResource Brush.PrimaryBackground}"
-                    CornerRadius="4" MaxHeight="400">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding MatchingNpcsForSelectedEntry}" Padding="6">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border Padding="4,2" Margin="0,0,0,2"
-                              Background="{StaticResource Brush.CardBackground}"
-                              BorderBrush="{StaticResource Brush.Border}"
-                              BorderThickness="1" CornerRadius="2">
-                        <Grid>
-                          <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                          </Grid.ColumnDefinitions>
-
-                          <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                          <TextBlock Grid.Column="1" Text="{Binding EditorId}"
-                                     Foreground="{StaticResource Brush.TextSecondary}"
-                                     FontSize="10" Margin="8,0,0,0" VerticalAlignment="Center" />
-                          <TextBlock Grid.Column="2" Text="{Binding FormKey}"
-                                     Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                     Margin="8,0,0,0" FontSize="9" VerticalAlignment="Center" />
-                        </Grid>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </ScrollViewer>
-            </Border>
-
-            <TextBlock Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"
-                       Margin="0,6,0,0"
-                       FontSize="11"
-                       Foreground="{StaticResource Brush.TextSecondary}" />
-          </StackPanel>
-        </ScrollViewer>
+                    RowBackground="{StaticResource Brush.CardBackground}"
+                    AlternatingRowBackground="{StaticResource Brush.PrimaryBackground}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="Auto" />
+              <DataGridTextColumn Header="Criteria" Binding="{Binding Criteria}" Width="*">
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+                    <Setter Property="FontSize" Value="11" />
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="Auto">
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+                    <Setter Property="FontSize" Value="11" />
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKey}" Width="Auto">
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="TextBlock"
+                         BasedOn="{StaticResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" />
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
       </TabItem>
     </TabControl>
   </GroupBox>

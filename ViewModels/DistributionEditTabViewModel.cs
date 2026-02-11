@@ -281,11 +281,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     }
   }
 
-  private IReadOnlyList<NpcFilterData> _matchingNpcsForSelectedEntry = [];
+  private IReadOnlyList<NpcMatchResult> _matchingNpcsForSelectedEntry = [];
 
   public int MatchingNpcsCount => _matchingNpcsForSelectedEntry.Count;
 
-  public IReadOnlyList<NpcFilterData> MatchingNpcsForSelectedEntry => _matchingNpcsForSelectedEntry;
+  public IReadOnlyList<NpcMatchResult> MatchingNpcsForSelectedEntry => _matchingNpcsForSelectedEntry;
 
   /// <summary>Available NPCs for distribution entry selection (from cache).</summary>
   public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
@@ -650,6 +650,18 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                 .Throttle(TimeSpan.FromMilliseconds(300))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => UpdateFileContent()));
+
+    composite.Add(
+      Observable.FromEventPattern(entry, nameof(entry.EntryChanged))
+                .Throttle(TimeSpan.FromMilliseconds(300))
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Subscribe(_ =>
+                {
+                  if (SelectedEntry == entry)
+                  {
+                    UpdateMatchingNpcsForEntry(entry);
+                  }
+                }));
 
     composite.Add(
       entry.WhenAnyValue(e => e.UseChance)
