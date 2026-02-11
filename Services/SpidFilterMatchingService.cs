@@ -46,14 +46,7 @@ public class SpidFilterMatchingService
 
   private static bool NpcMatchesEntry(NpcFilterData npc, DistributionEntry entry)
   {
-    var hasResolvedFilters = entry.NpcFilters.Count > 0 || entry.FactionFilters.Count > 0 ||
-                             entry.KeywordFilters.Count > 0 || entry.RaceFilters.Count > 0 ||
-                             entry.ClassFormKeys.Count > 0 || entry.OutfitFilterFormKeys.Count > 0 ||
-                             !entry.TraitFilters.IsEmpty;
-    var hasUnresolvedFilters = !string.IsNullOrWhiteSpace(entry.RawStringFilters) ||
-                               !string.IsNullOrWhiteSpace(entry.RawFormFilters);
-
-    if (!hasResolvedFilters && hasUnresolvedFilters)
+    if (!MatchesRawStringFilters(npc, entry.RawStringFilters))
     {
       return false;
     }
@@ -92,6 +85,64 @@ public class SpidFilterMatchingService
     }
 
     return MatchesTraitFilters(npc, entry.TraitFilters);
+  }
+
+  private static bool MatchesRawStringFilters(NpcFilterData npc, string? rawStringFilters)
+  {
+    if (string.IsNullOrWhiteSpace(rawStringFilters))
+    {
+      return true;
+    }
+
+    var expressions = rawStringFilters.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    if (expressions.Length == 0)
+    {
+      return true;
+    }
+
+    foreach (var expression in expressions)
+    {
+      var parts = expression.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+      var allPartsMatch = true;
+
+      foreach (var part in parts)
+      {
+        var trimmedPart = part.Trim();
+        var isNegated = trimmedPart.StartsWith('-');
+        var value = isNegated ? trimmedPart[1..] : trimmedPart;
+        var hasWildcard = value.Contains('*');
+
+        bool matches;
+        if (hasWildcard)
+        {
+          var searchValue = value.Replace("*", string.Empty);
+          matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords: null);
+        }
+        else
+        {
+          matches = ExactMatchesNpcStrings(npc, value, virtualKeywords: null);
+        }
+
+        if (isNegated)
+        {
+          matches = !matches;
+        }
+
+        if (!matches)
+        {
+          allPartsMatch = false;
+          break;
+        }
+      }
+
+      if (allPartsMatch)
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static bool MatchesFilters<TFilter, TValue>(
