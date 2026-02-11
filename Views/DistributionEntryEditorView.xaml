@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:controls="clr-namespace:Boutique.Controls"
              xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:util="clr-namespace:Boutique.Utilities"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
@@ -36,417 +37,483 @@
         <!-- Entry editor content -->
         <StackPanel
           Visibility="{Binding DataContext.SelectedEntry, ElementName=Root, Converter={StaticResource NullToVisConverter}}">
-          <!-- Type + Target Selection -->
-          <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Type:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}"
-                       Width="60" />
-            <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.TypeOptions}"
+
+          <!-- Type → Target | Chance -->
+          <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Type dropdown -->
+            <ComboBox Grid.Column="0" ItemsSource="{x:Static vm:DistributionEntryViewModel.TypeOptions}"
                       SelectedItem="{Binding Type, Mode=TwoWay}"
-                      MinWidth="90" Height="26" VerticalContentAlignment="Center" Margin="0,0,12,0" />
+                      MinWidth="90" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0" />
 
-            <!-- Outfit selector -->
-            <StackPanel Orientation="Horizontal"
-                        Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
-              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Outfit}}"
-                         VerticalAlignment="Center" Margin="0,0,6,0" />
-              <controls:FilterableSelector
-                ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
-                SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
-                DisplayMemberPath="EditorID"
-                FilterPath="EditorID"
-                MinWidth="200"
-                MaxDropDownHeight="300"
-                DropDownOpened="FilterableSelector_DropDownOpened" />
-              <Button ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}"
-                      Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                      Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}"
-                      CommandParameter="{Binding}"
-                      Margin="6,0,0,0">
-                <Image Source="pack://application:,,,/Assets/eye.png" Width="14" Height="14" />
-              </Button>
-            </StackPanel>
+            <!-- Arrow -->
+            <TextBlock Grid.Column="1" Text="→" VerticalAlignment="Center" FontSize="16" Margin="0,0,8,0" />
 
-            <!-- Keyword selector -->
-            <StackPanel Orientation="Horizontal"
-                        Visibility="{Binding IsKeywordDistribution, Converter={StaticResource BoolToVisConverter}}">
-              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keyword}}"
-                         VerticalAlignment="Center" Margin="0,0,6,0" />
-              <ComboBox ItemsSource="{Binding DataContext.AvailableKeywords, ElementName=Root}"
+            <!-- Target selector (Outfit/Keyword/ExclusiveGroup) -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+              <!-- Outfit selector -->
+              <StackPanel Orientation="Horizontal"
+                          Visibility="{Binding IsOutfitDistribution, Converter={StaticResource BoolToVisConverter}}">
+                <controls:FilterableSelector
+                  ItemsSource="{Binding DataContext.AvailableOutfits, ElementName=Root}"
+                  SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
+                  DisplayMemberPath="EditorID"
+                  FilterPath="EditorID"
+                  MinWidth="200"
+                  MaxDropDownHeight="300"
+                  DropDownOpened="FilterableSelector_DropDownOpened" />
+                <Button ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}"
+                        Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
+                        Command="{Binding DataContext.PreviewEntryCommand, ElementName=Root}"
+                        CommandParameter="{Binding}"
+                        Margin="6,0,0,0">
+                  <Image Source="pack://application:,,,/Assets/eye.png" Width="14" Height="14" />
+                </Button>
+              </StackPanel>
+
+              <!-- Keyword selector -->
+              <ComboBox Visibility="{Binding IsKeywordDistribution, Converter={StaticResource BoolToVisConverter}}"
+                        ItemsSource="{Binding DataContext.AvailableKeywords, ElementName=Root}"
                         Text="{Binding KeywordToDistribute, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         DisplayMemberPath="EditorID"
                         IsEditable="True"
                         MinWidth="200" Height="26" VerticalContentAlignment="Center"
                         ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SelectKeywordTooltip}}" />
+
+              <!-- Exclusive group selector -->
+              <StackPanel Orientation="Horizontal"
+                          Visibility="{Binding IsExclusiveGroupDistribution, Converter={StaticResource BoolToVisConverter}}">
+                <TextBox Text="{Binding ExclusiveGroupName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MinWidth="140" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0"
+                         ToolTip="ExclusiveGroup name." />
+                <TextBlock Text="Forms:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Text="{Binding ExclusiveGroupFormsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MinWidth="180" Height="26" VerticalContentAlignment="Center"
+                         ToolTip="Comma-separated forms list." />
+              </StackPanel>
             </StackPanel>
 
-            <!-- Exclusive group selector -->
-            <StackPanel Orientation="Horizontal"
-                        Visibility="{Binding IsExclusiveGroupDistribution, Converter={StaticResource BoolToVisConverter}}">
-              <TextBlock Text="Group" VerticalAlignment="Center" Margin="0,0,6,0" />
-              <TextBox Text="{Binding ExclusiveGroupName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                       MinWidth="140" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0"
-                       ToolTip="ExclusiveGroup name." />
-              <TextBlock Text="Forms" VerticalAlignment="Center" Margin="0,0,6,0" />
-              <TextBox Text="{Binding ExclusiveGroupFormsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                       MinWidth="220" Height="26" VerticalContentAlignment="Center"
-                       ToolTip="Comma-separated forms list. Prefix with '-' to remove a form from an existing group." />
+            <!-- Chance -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="12,0,0,0">
+              <TextBlock Text="Chance:" VerticalAlignment="Center" Margin="0,0,6,0" />
+              <CheckBox Content="☑" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center"
+                        Margin="0,0,4,0" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.UseChance}}" />
+              <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="40" Height="26"
+                       IsEnabled="{Binding UseChance}" VerticalContentAlignment="Center" Padding="4,0" />
+              <TextBlock Text="%" VerticalAlignment="Center" Margin="2,0,0,0" />
             </StackPanel>
-          </StackPanel>
+          </Grid>
 
-          <!-- Chance -->
-          <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Chance:" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}"
-                       Width="60" />
-            <CheckBox Content="Enable" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center"
-                      Margin="0,0,8,0"
-                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.UseChance}}" />
-            <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="50" Height="26"
-                     IsEnabled="{Binding UseChance}" VerticalContentAlignment="Center" Padding="4,0"
-                     ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.ChanceTooltip}}" />
-            <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0" />
-          </StackPanel>
+          <!-- Traits Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8">
+            <StackPanel>
+              <TextBlock Text="Traits" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,6" />
+              <WrapPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                  <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
+                            SelectedItem="{Binding Gender, Mode=TwoWay}"
+                            MinWidth="80" Height="24" VerticalContentAlignment="Center" FontSize="11" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                  <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
+                            SelectedItem="{Binding Unique, Mode=TwoWay}"
+                            MinWidth="100" Height="24" VerticalContentAlignment="Center" FontSize="11" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Level:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <ComboBox SelectedValue="{Binding LevelFilterMode, Mode=TwoWay}"
+                            SelectedValuePath="Tag"
+                            Width="110" Height="24" VerticalContentAlignment="Center"
+                            Margin="0,0,6,0" FontSize="11"
+                            ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}">
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="None" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="Level" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillLevel}" Content="Skill Level" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillWeight}" Content="Skill Weight" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Raw}" Content="Raw" />
+                  </ComboBox>
+                  <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.SkillFilterOptions}"
+                            SelectedItem="{Binding SelectedLevelSkill, Mode=TwoWay}"
+                            DisplayMemberPath="DisplayText"
+                            Width="120" Height="24" VerticalContentAlignment="Center"
+                            Margin="0,0,6,0" FontSize="11"
+                            Visibility="{Binding IsSkillLevelMode, Converter={StaticResource BoolToVisConverter}}" />
+                  <TextBlock Text="Min"
+                             VerticalAlignment="Center" FontSize="11"
+                             Margin="0,0,4,0"
+                             Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                  <TextBox Text="{Binding LevelFilterMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Margin="0,0,6,0"
+                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                  <TextBlock Text="Max"
+                             VerticalAlignment="Center" FontSize="11"
+                             Margin="0,0,4,0"
+                             Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                  <TextBox Text="{Binding LevelFilterMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
+                  <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Width="150" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Visibility="{Binding IsRawLevelFilterMode, Converter={StaticResource BoolToVisConverter}}"
+                           ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}" />
+                </StackPanel>
+              </WrapPanel>
+            </StackPanel>
+          </Border>
 
-          <!-- Traits -->
-          <StackPanel Margin="0,0,0,8">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Traits}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <WrapPanel>
-              <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
-                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Gender}}"
-                           VerticalAlignment="Center" Margin="0,0,6,0" />
-                <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
-                          SelectedItem="{Binding Gender, Mode=TwoWay}"
-                          MinWidth="80" Height="26" VerticalContentAlignment="Center" />
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
-                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Unique}}"
-                           VerticalAlignment="Center" Margin="0,0,6,0" />
-                <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
-                          SelectedItem="{Binding Unique, Mode=TwoWay}"
-                          MinWidth="110" Height="26" VerticalContentAlignment="Center" />
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkill}}"
-                           VerticalAlignment="Center" Margin="0,0,6,0" />
-                <ComboBox SelectedValue="{Binding LevelFilterMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          Width="120" Height="26" VerticalContentAlignment="Center"
-                          Margin="0,0,6,0"
-                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}">
-                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="None" />
-                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="Level" />
-                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillLevel}" Content="Skill Level" />
-                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillWeight}" Content="Skill Weight" />
-                  <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Raw}" Content="Raw" />
+          <!-- NPCs Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="NPCs" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedNpcs}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExcluded}" Value="True">
+                              <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Cursor="Hand"
+                                    MouseLeftButtonDown="ToggleNpcNegation_Click" Tag="{Binding}"
+                                    ToolTip="Click to toggle negation">
+                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                                     Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
+                            -
+                          </TextBlock>
+                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveNpc_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Factions Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="Factions" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          ToolTip="AND: All factions must match | OR: At least one faction must match">
+                  <ComboBoxItem Content="AND" IsSelected="True" />
+                  <ComboBoxItem Content="OR" />
                 </ComboBox>
-                <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.SkillFilterOptions}"
-                          SelectedItem="{Binding SelectedLevelSkill, Mode=TwoWay}"
-                          DisplayMemberPath="DisplayText"
-                          Width="150" Height="26" VerticalContentAlignment="Center"
-                          Margin="0,0,6,0"
-                          Visibility="{Binding IsSkillLevelMode, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBlock Text="Min"
-                           VerticalAlignment="Center"
-                           Margin="0,0,4,0"
-                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBox Text="{Binding LevelFilterMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Width="48" Height="26" VerticalContentAlignment="Center"
-                         Margin="0,0,6,0"
-                         Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBlock Text="Max"
-                           VerticalAlignment="Center"
-                           Margin="0,0,4,0"
-                           Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBox Text="{Binding LevelFilterMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Width="48" Height="26" VerticalContentAlignment="Center"
-                         Margin="0,0,6,0"
-                         Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
-                <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Width="210" Height="26" VerticalContentAlignment="Center"
-                         Visibility="{Binding IsRawLevelFilterMode, Converter={StaticResource BoolToVisConverter}}"
-                         ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}" />
-              </StackPanel>
-            </WrapPanel>
-          </StackPanel>
-
-          <!-- NPCs -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.NPCs}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedNpcs}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
-                          Background="{StaticResource Brush.CardBackground}" BorderThickness="1">
-                    <Border.Style>
-                      <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsExcluded}" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Horizontal">
-                      <StackPanel Orientation="Horizontal" Cursor="Hand"
-                                  MouseLeftButtonDown="ToggleNpcNegation_Click" Tag="{Binding}"
-                                  ToolTip="Click to toggle negation">
-                        <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
-                                   Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
-                          -
-                        </TextBlock>
-                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedFactions}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExcluded}" Value="True">
+                              <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Cursor="Hand"
+                                    MouseLeftButtonDown="ToggleFactionNegation_Click" Tag="{Binding}"
+                                    ToolTip="Click to toggle negation">
+                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                                     Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
+                            -
+                          </TextBlock>
+                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveFaction_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
                       </StackPanel>
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveNpc_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
-          <!-- Factions -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Factions}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedFactions}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
-                          Background="{StaticResource Brush.CardBackground}" BorderThickness="1">
-                    <Border.Style>
-                      <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsExcluded}" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Horizontal">
-                      <StackPanel Orientation="Horizontal" Cursor="Hand"
-                                  MouseLeftButtonDown="ToggleFactionNegation_Click" Tag="{Binding}"
-                                  ToolTip="Click to toggle negation">
-                        <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
-                                   Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
-                          -
-                        </TextBlock>
-                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+          <!-- Keywords Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="Keywords" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          ToolTip="AND: All keywords must match | OR: At least one keyword must match">
+                  <ComboBoxItem Content="AND" IsSelected="True" />
+                  <ComboBoxItem Content="OR" />
+                </ComboBox>
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedKeywords}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExcluded}" Value="True">
+                              <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Cursor="Hand"
+                                    MouseLeftButtonDown="ToggleKeywordNegation_Click" Tag="{Binding}"
+                                    ToolTip="Click to toggle negation">
+                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                                     Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
+                            -
+                          </TextBlock>
+                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveKeyword_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
                       </StackPanel>
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveFaction_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
-          <!-- Keywords -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keywords}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedKeywords}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
-                          Background="{StaticResource Brush.CardBackground}" BorderThickness="1">
-                    <Border.Style>
-                      <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsExcluded}" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Horizontal">
-                      <StackPanel Orientation="Horizontal" Cursor="Hand"
-                                  MouseLeftButtonDown="ToggleKeywordNegation_Click" Tag="{Binding}"
-                                  ToolTip="Click to toggle negation">
-                        <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
-                                   Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
-                          -
-                        </TextBlock>
-                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+          <!-- Races Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="Races" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          ToolTip="AND: All races must match | OR: At least one race must match">
+                  <ComboBoxItem Content="AND" IsSelected="True" />
+                  <ComboBoxItem Content="OR" />
+                </ComboBox>
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedRaces}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsExcluded}" Value="True">
+                              <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Cursor="Hand"
+                                    MouseLeftButtonDown="ToggleRaceNegation_Click" Tag="{Binding}"
+                                    ToolTip="Click to toggle negation">
+                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                                     Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
+                            -
+                          </TextBlock>
+                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveRace_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
                       </StackPanel>
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveKeyword_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
-          <!-- Races -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Races}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedRaces}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
-                          Background="{StaticResource Brush.CardBackground}" BorderThickness="1">
-                    <Border.Style>
-                      <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsExcluded}" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Horizontal">
-                      <StackPanel Orientation="Horizontal" Cursor="Hand"
-                                  MouseLeftButtonDown="ToggleRaceNegation_Click" Tag="{Binding}"
-                                  ToolTip="Click to toggle negation">
-                        <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
-                                   Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
-                          -
-                        </TextBlock>
+          <!-- Classes Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="Classes" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          ToolTip="AND: All classes must match | OR: At least one class must match">
+                  <ComboBoxItem Content="AND" IsSelected="True" />
+                  <ComboBoxItem Content="OR" />
+                </ComboBox>
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedClasses}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
+                            BorderBrush="{StaticResource Brush.Border}">
+                      <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveClass_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
                       </StackPanel>
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveRace_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
-          <!-- Classes -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Classes}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedClasses}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}" Margin="0,0,4,4">
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveClass_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+          <!-- Locations Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedLocations.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="Locations" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                          ToolTip="AND: All locations must match | OR: At least one location must match">
+                  <ComboBoxItem Content="AND" IsSelected="True" />
+                  <ComboBoxItem Content="OR" />
+                </ComboBox>
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding SelectedLocations}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
+                            BorderBrush="{StaticResource Brush.Border}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveLocation_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
-          <!-- Locations -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedLocations.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Locations}}"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedLocations}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}" Margin="0,0,4,4">
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveLocation_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-
-          <!-- Outfit Filters -->
-          <StackPanel Margin="0,0,0,8"
-                      Visibility="{Binding SelectedOutfitFilters.Count, Converter={StaticResource CollectionCountToVisConverter}}">
-            <TextBlock Text="Outfit Filters"
-                       Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" Margin="0,0,0,4" />
-            <ItemsControl ItemsSource="{Binding SelectedOutfitFilters}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Style="{DynamicResource {x:Static themes:ResourceKeys.FilterChipStyleKey}}" Margin="0,0,4,4">
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding EditorID}" FontSize="11" VerticalAlignment="Center" />
-                      <TextBlock Text="{Binding FormKeyString}"
-                                 Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                 Margin="4,0,0,0" FontSize="9" />
-                      <Button Click="RemoveOutfitFilter_Click" Tag="{Binding}"
-                              Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Margin="3,0,0,0" />
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+          <!-- Outfit Filters Box -->
+          <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                  Background="{StaticResource Brush.CardBackground}"
+                  CornerRadius="4" Padding="8" Margin="0,0,0,8"
+                  Visibility="{Binding SelectedOutfitFilters.Count, Converter={StaticResource CollectionCountToVisConverter}}">
+            <StackPanel>
+              <TextBlock Text="Outfit Filters" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,6" />
+              <ItemsControl ItemsSource="{Binding SelectedOutfitFilters}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,4,4" Padding="4,1" CornerRadius="2"
+                            Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
+                            BorderBrush="{StaticResource Brush.Border}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding EditorID}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding FormKeyString}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="4,0,0,0" FontSize="9" />
+                        <Button Click="RemoveOutfitFilter_Click" Tag="{Binding}"
+                                Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                Margin="3,0,0,0" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
 
           <!-- Raw Filters -->
           <StackPanel Margin="0,0,0,8">
