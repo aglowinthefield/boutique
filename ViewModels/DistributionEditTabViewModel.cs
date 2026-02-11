@@ -423,7 +423,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     get => field ?? string.Empty;
     set
     {
-      this.RaiseAndSetIfChanged(ref field, value ?? string.Empty);
+      this.RaiseAndSetIfChanged(ref field, value);
       if (IsCreatingNewFile)
       {
         var newPath = _filePathService.BuildPathFromNewFileName(value, DistributionFormat);

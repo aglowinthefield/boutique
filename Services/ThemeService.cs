@@ -15,10 +15,14 @@ public enum AppTheme
   Dark
 }
 
-public class ThemeService
+public class ThemeService(ILogger logger)
 {
   private const string ThemeConfigFileName       = "theme.json";
+
+  // ReSharper disable once InconsistentNaming
   private const int    DWMWAUSEIMMERSIVEDARKMODE = 20;
+
+  // ReSharper disable once InconsistentNaming
   private const int    DWMWABORDERCOLOR          = 34;
 
   private static readonly string ConfigPath = Path.Combine(
@@ -35,18 +39,11 @@ public class ThemeService
     "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading"
   };
 
-  private readonly ILogger _logger;
-
-  public ThemeService(ILogger logger)
-  {
-    _logger = logger;
-  }
-
   public static ThemeService? Current { get; private set; }
 
   public AppTheme CurrentThemeSetting { get; private set; } = AppTheme.System;
 
-  public bool IsCurrentlyDark { get; private set; } = true;
+  private bool IsCurrentlyDark { get; set; } = true;
 
   public double CurrentFontScale { get; private set; } = 1.0;
 
@@ -83,7 +80,7 @@ public class ThemeService
     ApplyFontScale(scale);
     SaveSettings(CurrentThemeSetting, CurrentFontScale);
     FontScaleChanged?.Invoke(this, scale);
-    _logger.Information("Applied font scale: {Scale}x", scale);
+    logger.Information("Applied font scale: {Scale}x", scale);
   }
 
   private void ApplyTheme(AppTheme theme)
@@ -127,11 +124,11 @@ public class ThemeService
       // Notify subscribers (like windows that need to update title bars)
       ThemeChanged?.Invoke(this, isDark);
 
-      _logger.Information("Applied {Theme} theme (dark: {IsDark})", theme, isDark);
+      logger.Information("Applied {Theme} theme (dark: {IsDark})", theme, isDark);
     }
     catch (Exception ex)
     {
-      _logger.Warning(ex, "Failed to apply theme {Theme}", theme);
+      logger.Warning(ex, "Failed to apply theme {Theme}", theme);
     }
   }
 
@@ -152,7 +149,7 @@ public class ThemeService
     }
     catch (Exception ex)
     {
-      _logger.Warning(ex, "Failed to apply font scale {Scale}", scale);
+      logger.Warning(ex, "Failed to apply font scale {Scale}", scale);
     }
   }
 
@@ -274,7 +271,7 @@ public class ThemeService
     }
     catch (Exception ex)
     {
-      _logger.Warning(ex, "Failed to load settings");
+      logger.Warning(ex, "Failed to load settings");
     }
 
     return (AppTheme.System, 1.0);
@@ -294,11 +291,11 @@ public class ThemeService
       var json     = JsonSerializer.Serialize(settings, JsonOptions);
       File.WriteAllText(ConfigPath, json);
 
-      _logger.Information("Saved settings: Theme={Theme}, FontScale={FontScale}", theme, fontScale);
+      logger.Information("Saved settings: Theme={Theme}, FontScale={FontScale}", theme, fontScale);
     }
     catch (Exception ex)
     {
-      _logger.Warning(ex, "Failed to save settings");
+      logger.Warning(ex, "Failed to save settings");
     }
   }
 }

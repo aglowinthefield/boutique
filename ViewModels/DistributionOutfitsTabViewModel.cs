@@ -249,7 +249,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
       var collection = new ArmorPreviewSceneCollection(
         1,
         0,
-        new[] { metadata },
+        [metadata],
         async (_, gender) =>
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);

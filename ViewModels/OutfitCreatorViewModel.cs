@@ -166,7 +166,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   public string? SelectedOutfitPlugin
   {
-    get => field;
+    get;
     set
     {
       if (string.Equals(value, field, StringComparison.Ordinal))
@@ -499,7 +499,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     var collection = new ArmorPreviewSceneCollection(
       1,
       0,
-      new[] { metadata },
+      [metadata],
       async (_, gender) =>
       {
         var scene = await _previewService.BuildPreviewAsync(pieces, gender);
@@ -530,7 +530,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       var collection = new ArmorPreviewSceneCollection(
         1,
         0,
-        new[] { metadata },
+        [metadata],
         async (_, gender) =>
         {
           var scene = await _previewService.BuildPreviewAsync([armor], gender);

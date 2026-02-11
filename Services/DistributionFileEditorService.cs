@@ -189,8 +189,10 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, null);
       }
 
-      var npcStrings             = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
+      var npcAndStrings          = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
+      var npcOrStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsOr");
       var excludedNpcStrings     = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
+      var npcStrings             = npcAndStrings.Concat(npcOrStrings).ToList();
       var factionStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
       var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
       var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
@@ -212,14 +214,13 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                                genderFilter.HasValue;
 
       var hasAnyFilterInLine =
-        SkyPatcherSyntax.HasFilter(line, "filterByNpcs") ||
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByNpcs") ||
         SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions") ||
         SkyPatcherSyntax.HasAnyVariant(line, "filterByKeywords") ||
         SkyPatcherSyntax.HasAnyVariant(line, "filterByRaces") ||
         SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
         SkyPatcherSyntax.HasFilter(line, "filterByGender") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByEditorIdContains") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByEditorIdContainsOr") ||
+        SkyPatcherSyntax.HasAnyVariant(line, "filterByEditorIdContains") ||
         SkyPatcherSyntax.HasFilter(line, "filterByModNames") ||
         SkyPatcherSyntax.HasFilter(line, "filterByDefaultOutfits");
 
@@ -249,16 +250,25 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, "SkyPatcher distribution (preserved)");
       }
 
+      var npcLogicMode     = npcOrStrings.Count > 0 ? FilterLogicMode.Or : FilterLogicMode.And;
+      var factionLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByFactionsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
+      var keywordLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByKeywordsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
+      var raceLogicMode    = SkyPatcherSyntax.HasFilter(line, "filterByRacesOr") ? FilterLogicMode.Or : FilterLogicMode.And;
+
       return (
                new DistributionEntry
                {
-                 Outfit         = outfit,
-                 NpcFilters     = npcFilters,
-                 FactionFilters = factionFilters,
-                 KeywordFilters = keywordFilters,
-                 RaceFilters    = raceFilters,
-                 ClassFormKeys  = classFormKeys,
-                 TraitFilters   = new SpidTraitFilters { IsFemale = genderFilter }
+                 Outfit           = outfit,
+                 NpcFilters       = npcFilters,
+                 FactionFilters   = factionFilters,
+                 KeywordFilters   = keywordFilters,
+                 RaceFilters      = raceFilters,
+                 ClassFormKeys    = classFormKeys,
+                 TraitFilters     = new SpidTraitFilters { IsFemale = genderFilter },
+                 NpcLogicMode     = npcLogicMode,
+                 FactionLogicMode = factionLogicMode,
+                 KeywordLogicMode = keywordLogicMode,
+                 RaceLogicMode    = raceLogicMode
                }, null);
     }
     catch (Exception ex)

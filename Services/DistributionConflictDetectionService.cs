@@ -60,8 +60,6 @@ public class DistributionConflictDetectionService
             npcVm.FormKey,
             npcVm.DisplayName,
             existing.FileName,
-            existing.OutfitName,
-            newOutfitName,
             existing.Chance,
             newChance);
 
@@ -84,8 +82,6 @@ public class DistributionConflictDetectionService
             npcVm.FormKey,
             npcVm.DisplayName,
             allNpcsDist.FileName,
-            allNpcsDist.OutfitName,
-            newOutfitName,
             allNpcsDist.Chance,
             newChance);
 

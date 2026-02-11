@@ -414,49 +414,41 @@ public static class DistributionFileFormatter
 
     var filterParts = new List<string>();
 
-    if (entry.SelectedNpcs.Count > 0)
-    {
-      var npcFormKeys = entry.SelectedNpcs
-                             .Select(npc => FormKeyHelper.Format(npc.FormKey))
-                             .ToList();
-      var npcList = string.Join(",", npcFormKeys);
-      filterParts.Add($"filterByNpcs={npcList}");
-    }
+    AddSkyPatcherFilterParts(
+      filterParts,
+      entry.SelectedNpcs,
+      "filterByNpcs",
+      entry.NpcLogicMode);
 
-    if (entry.SelectedFactions.Count > 0)
-    {
-      var factionFormKeys = entry.SelectedFactions
-                                 .Select(faction => FormKeyHelper.Format(faction.FormKey))
-                                 .ToList();
-      var factionList = string.Join(",", factionFormKeys);
-      filterParts.Add($"filterByFactions={factionList}");
-    }
+    AddSkyPatcherFilterParts(
+      filterParts,
+      entry.SelectedFactions,
+      "filterByFactions",
+      entry.FactionLogicMode);
 
-    if (entry.SelectedKeywords.Count > 0)
-    {
-      var keywordFormKeys = entry.SelectedKeywords
-                                 .Select(keyword => FormKeyHelper.Format(keyword.FormKey))
-                                 .ToList();
-      var keywordList = string.Join(",", keywordFormKeys);
-      filterParts.Add($"filterByKeywords={keywordList}");
-    }
+    AddSkyPatcherFilterParts(
+      filterParts,
+      entry.SelectedKeywords,
+      "filterByKeywords",
+      entry.KeywordLogicMode);
 
-    if (entry.SelectedRaces.Count > 0)
-    {
-      var raceFormKeys = entry.SelectedRaces
-                              .Select(race => FormKeyHelper.Format(race.FormKey))
-                              .ToList();
-      var raceList = string.Join(",", raceFormKeys);
-      filterParts.Add($"filterByRaces={raceList}");
-    }
+    AddSkyPatcherFilterParts(
+      filterParts,
+      entry.SelectedRaces,
+      "filterByRaces",
+      entry.RaceLogicMode);
 
     if (entry.SelectedClasses.Count > 0)
     {
       var classFormKeys = entry.SelectedClasses
+                               .Where(c => !c.IsExcluded)
                                .Select(c => FormKeyHelper.Format(c.FormKey))
                                .ToList();
-      var classList = string.Join(",", classFormKeys);
-      filterParts.Add($"filterByClass={classList}");
+      if (classFormKeys.Count > 0)
+      {
+        var classList = string.Join(",", classFormKeys);
+        filterParts.Add($"filterByClass={classList}");
+      }
     }
 
     if (entry.Gender != GenderFilter.Any)
@@ -596,5 +588,32 @@ public static class DistributionFileFormatter
                 .ToList();
 
     return parts.Count > 0 ? string.Join("/", parts) : null;
+  }
+
+  private static void AddSkyPatcherFilterParts<T>(
+    List<string> filterParts,
+    IReadOnlyList<T> items,
+    string baseFilterName,
+    FilterLogicMode logicMode)
+    where T : ISelectableRecordViewModel
+  {
+    if (items.Count == 0)
+    {
+      return;
+    }
+
+    var included = items.Where(i => !i.IsExcluded).Select(i => FormKeyHelper.Format(i.FormKey)).ToList();
+    var excluded = items.Where(i => i.IsExcluded).Select(i => FormKeyHelper.Format(i.FormKey)).ToList();
+
+    if (included.Count > 0)
+    {
+      var filterName = logicMode == FilterLogicMode.Or ? $"{baseFilterName}Or" : baseFilterName;
+      filterParts.Add($"{filterName}={string.Join(",", included)}");
+    }
+
+    if (excluded.Count > 0)
+    {
+      filterParts.Add($"{baseFilterName}Excluded={string.Join(",", excluded)}");
+    }
   }
 }

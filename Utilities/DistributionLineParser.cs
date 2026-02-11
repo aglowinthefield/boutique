@@ -23,8 +23,12 @@ public static class DistributionLineParser
     };
   }
 
-  private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText) =>
-    SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
+  private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText)
+  {
+    var results = SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
+    results.AddRange(SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcsOr"));
+    return results;
+  }
 
   private static List<FormKey> ExtractNpcFormKeysFromSpidLine(
     string rawText,
@@ -112,12 +116,11 @@ public static class DistributionLineParser
     }
 
     var hasAnyNpcFilter =
-      SkyPatcherSyntax.HasFilter(rawText, "filterByNpcs") ||
-      SkyPatcherSyntax.HasFilter(rawText, "filterByNpcsExcluded") ||
-      SkyPatcherSyntax.HasFilter(rawText, "filterByFactions") ||
-      SkyPatcherSyntax.HasFilter(rawText, "filterByRaces") ||
-      SkyPatcherSyntax.HasFilter(rawText, "filterByKeywords") ||
-      SkyPatcherSyntax.HasFilter(rawText, "filterByEditorIdContains") ||
+      SkyPatcherSyntax.HasAnyVariant(rawText, "filterByNpcs") ||
+      SkyPatcherSyntax.HasAnyVariant(rawText, "filterByFactions") ||
+      SkyPatcherSyntax.HasAnyVariant(rawText, "filterByRaces") ||
+      SkyPatcherSyntax.HasAnyVariant(rawText, "filterByKeywords") ||
+      SkyPatcherSyntax.HasAnyVariant(rawText, "filterByEditorIdContains") ||
       SkyPatcherSyntax.HasFilter(rawText, "filterByGender") ||
       SkyPatcherSyntax.HasFilter(rawText, "filterByDefaultOutfits") ||
       SkyPatcherSyntax.HasFilter(rawText, "filterByModNames");

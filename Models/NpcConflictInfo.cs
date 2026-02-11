@@ -16,12 +16,6 @@ public sealed record NpcConflictInfo(
   /// <summary>The existing distribution file that targets this NPC</summary>
   string ExistingFileName,
 
-  /// <summary>The outfit currently assigned by the existing distribution</summary>
-  string? ExistingOutfitName,
-
-  /// <summary>The outfit that will be assigned by the new distribution</summary>
-  string? NewOutfitName,
-
   /// <summary>The chance percentage of the existing distribution (0-100)</summary>
   int ExistingChance = 100,
 

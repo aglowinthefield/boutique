@@ -5,7 +5,7 @@ using ReactiveUI.SourceGenerators;
 
 namespace Boutique.ViewModels;
 
-public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelectableRecordViewModel
+public partial class SelectableRecordViewModel<TRecord>(TRecord record) : ReactiveObject, ISelectableRecordViewModel
   where TRecord : IGameRecord
 {
   [Reactive] private bool _isExcluded;
@@ -13,12 +13,7 @@ public partial class SelectableRecordViewModel<TRecord> : ReactiveObject, ISelec
   [Reactive] private bool    _isSelected;
   private            string? _searchCache;
 
-  public SelectableRecordViewModel(TRecord record)
-  {
-    Record = record;
-  }
-
-  public TRecord Record { get; }
+  protected TRecord Record { get; } = record;
 
   public string EditorID => Record.EditorID ?? "(No EditorID)";
   public string DisplayName => Record.DisplayName;
