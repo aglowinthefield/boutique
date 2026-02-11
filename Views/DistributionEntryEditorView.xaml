@@ -16,18 +16,23 @@
              d:DesignHeight="400"
              d:DesignWidth="500">
   <GroupBox Header="Entry Details" Padding="6">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel DataContext="{Binding SelectedEntry}">
-        <StackPanel.Style>
-          <Style TargetType="StackPanel">
-            <Setter Property="IsEnabled" Value="True" />
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding}" Value="{x:Null}">
-                <Setter Property="IsEnabled" Value="False" />
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </StackPanel.Style>
+    <TabControl>
+      <TabItem>
+        <TabItem.Header>
+          <TextBlock Text="Filters" />
+        </TabItem.Header>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel DataContext="{Binding SelectedEntry}">
+            <StackPanel.Style>
+              <Style TargetType="StackPanel">
+                <Setter Property="IsEnabled" Value="True" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </StackPanel.Style>
 
         <!-- No entry selected message -->
         <TextBlock Text="Select an entry from the list to edit its details"
@@ -554,5 +559,68 @@
         </StackPanel>
       </StackPanel>
     </ScrollViewer>
+      </TabItem>
+
+      <TabItem>
+        <TabItem.Header>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Results" />
+            <TextBlock Text="{Binding MatchingNpcsCount, StringFormat=' ({0})'}" />
+          </StackPanel>
+        </TabItem.Header>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="6">
+            <StackPanel.Style>
+              <Style TargetType="StackPanel">
+                <Setter Property="IsEnabled" Value="True" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                    <Setter Property="IsEnabled" Value="False" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </StackPanel.Style>
+
+            <TextBlock Text="NPCs matching the current filters:" FontWeight="SemiBold" Margin="0,0,0,6" />
+
+            <Border BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
+                    Background="{StaticResource Brush.PrimaryBackground}"
+                    CornerRadius="4" Padding="6">
+              <ItemsControl ItemsSource="{Binding MatchingNpcsForSelectedEntry}" MaxHeight="400">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Padding="4,2" Margin="0,0,0,2"
+                            Background="{StaticResource Brush.CardBackground}"
+                            BorderBrush="{StaticResource Brush.Border}"
+                            BorderThickness="1" CornerRadius="2">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*" />
+                          <ColumnDefinition Width="Auto" />
+                          <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding EditorID}"
+                                   Foreground="{StaticResource Brush.TextSecondary}"
+                                   FontSize="10" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding FormKey}"
+                                   Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
+                                   Margin="8,0,0,0" FontSize="9" VerticalAlignment="Center" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+
+            <TextBlock Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"
+                       Margin="0,6,0,0"
+                       FontSize="11"
+                       Foreground="{StaticResource Brush.TextSecondary}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
   </GroupBox>
 </UserControl>

@@ -223,6 +223,11 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         .Throttle(TimeSpan.FromMilliseconds(50))
         .ObserveOn(RxApp.MainThreadScheduler)
         .Subscribe(entry => RaiseHighlightForEntry(entry!));
+
+    this.WhenAnyValue(vm => vm.SelectedEntry)
+        .Throttle(TimeSpan.FromMilliseconds(100))
+        .ObserveOn(RxApp.TaskpoolScheduler)
+        .Subscribe(entry => UpdateMatchingNpcsForEntry(entry));
   }
 
   public ReadOnlyObservableCollection<ClassRecordViewModel> FilteredClasses { get; private set; } = null!;
@@ -279,6 +284,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       value?.IsSelected = true;
     }
   }
+
+  private IReadOnlyList<NpcFilterData> _matchingNpcsForSelectedEntry = [];
+
+  public int MatchingNpcsCount => _matchingNpcsForSelectedEntry.Count;
+
+  public IReadOnlyList<NpcFilterData> MatchingNpcsForSelectedEntry => _matchingNpcsForSelectedEntry;
 
   /// <summary>Available NPCs for distribution entry selection (from cache).</summary>
   public ReadOnlyObservableCollection<NpcRecordViewModel> AvailableNpcs => _cache.AllNpcRecords;
@@ -2058,6 +2069,32 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         npc.HasConflict         = false;
         npc.ConflictingFileName = null;
       }
+    }
+  }
+
+  private void UpdateMatchingNpcsForEntry(DistributionEntryViewModel? entry)
+  {
+    if (entry == null || _cache.AllNpcs.Count == 0)
+    {
+      _matchingNpcsForSelectedEntry = [];
+      this.RaisePropertyChanged(nameof(MatchingNpcsForSelectedEntry));
+      this.RaisePropertyChanged(nameof(MatchingNpcsCount));
+      return;
+    }
+
+    try
+    {
+      var matchingNpcs = SpidFilterMatchingService.GetMatchingNpcsForEntry(_cache.AllNpcs, entry.Entry);
+      _matchingNpcsForSelectedEntry = matchingNpcs;
+      this.RaisePropertyChanged(nameof(MatchingNpcsForSelectedEntry));
+      this.RaisePropertyChanged(nameof(MatchingNpcsCount));
+    }
+    catch (Exception ex)
+    {
+      _logger.Warning(ex, "Failed to compute matching NPCs for entry");
+      _matchingNpcsForSelectedEntry = [];
+      this.RaisePropertyChanged(nameof(MatchingNpcsForSelectedEntry));
+      this.RaisePropertyChanged(nameof(MatchingNpcsCount));
     }
   }
 
