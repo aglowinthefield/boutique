@@ -217,6 +217,16 @@ public class FilterMatchingService
       }
     }
 
+    if (!string.IsNullOrWhiteSpace(entry.RawFormFilters))
+    {
+      if (parts.Count == 0)
+      {
+        return null;
+      }
+
+      parts.Add($"Form (unresolved): {entry.RawFormFilters}");
+    }
+
     return parts.Count > 0 ? string.Join("; ", parts) : "All NPCs";
   }
 
