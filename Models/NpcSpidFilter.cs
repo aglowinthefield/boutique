@@ -40,6 +40,16 @@ public class NpcSpidFilter
   public bool? IsLeveled { get; set; }
 
   /// <summary>
+  ///   Teammate NPC filter: null = any, true = teammate only, false = non-teammate only
+  /// </summary>
+  public bool? IsTeammate { get; set; }
+
+  /// <summary>
+  ///   Dead NPC filter: null = any, true = dead only, false = alive only
+  /// </summary>
+  public bool? IsDead { get; set; }
+
+  /// <summary>
   ///   Factions to filter by (AND logic - NPC must be in ALL selected factions).
   /// </summary>
   public List<FormKey> Factions { get; set; } = [];
@@ -69,7 +79,20 @@ public class NpcSpidFilter
   /// </summary>
   public int? MaxLevel { get; set; }
 
-  private IEnumerable<bool?> TraitValues => [IsFemale, IsUnique, IsTemplated, IsChild, IsSummonable, IsLeveled];
+  private IEnumerable<bool?> TraitValues =>
+    [IsFemale, IsUnique, IsTemplated, IsChild, IsSummonable, IsLeveled, IsTeammate, IsDead];
+
+  public SpidTraitFilters ToSpidTraitFilters() => new()
+  {
+    IsFemale     = IsFemale,
+    IsUnique     = IsUnique,
+    IsTemplated  = IsTemplated,
+    IsChild      = IsChild,
+    IsSummonable = IsSummonable,
+    IsLeveled    = IsLeveled,
+    IsTeammate   = IsTeammate,
+    IsDead       = IsDead,
+  };
 
   /// <summary>
   ///   Returns true if no filters are active.
@@ -99,6 +122,8 @@ public class NpcSpidFilter
     IsChild      = null;
     IsSummonable = null;
     IsLeveled    = null;
+    IsTeammate   = null;
+    IsDead       = null;
     Factions.Clear();
     Races.Clear();
     Keywords.Clear();
@@ -112,24 +137,7 @@ public class NpcSpidFilter
   /// </summary>
   public bool Matches(NpcFilterData npc)
   {
-    ReadOnlySpan<(bool? filter, bool actual)> traits =
-    [
-      (IsFemale, npc.IsFemale),
-      (IsUnique, npc.IsUnique),
-      (IsChild, npc.IsChild),
-      (IsSummonable, npc.IsSummonable),
-      (IsLeveled, npc.IsLeveled),
-    ];
-
-    foreach (var (filter, actual) in traits)
-    {
-      if (filter.HasValue && actual != filter.Value)
-      {
-        return false;
-      }
-    }
-
-    if (IsTemplated.HasValue && npc.TemplateFormKey.HasValue != IsTemplated.Value)
+    if (!ToSpidTraitFilters().MatchesNpc(npc))
     {
       return false;
     }

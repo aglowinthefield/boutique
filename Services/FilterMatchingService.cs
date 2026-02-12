@@ -214,6 +214,9 @@ public static class FilterMatchingService
         (entry.TraitFilters.IsSummonable, "Summonable", "Not Summonable"),
         (entry.TraitFilters.IsChild, "Child", "Not Child"),
         (entry.TraitFilters.IsLeveled, "Leveled", "Not Leveled"),
+        (entry.TraitFilters.IsTemplated, "Templated", "Not Templated"),
+        (entry.TraitFilters.IsTeammate, "Teammate", "Not Teammate"),
+        (entry.TraitFilters.IsDead, "Dead", "Not Dead"),
       ];
 
       var traits = new List<string>();

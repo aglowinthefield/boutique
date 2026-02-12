@@ -27,6 +27,7 @@ public sealed class NpcFilterData
   public required bool IsSummonable { get; init; }
   public required bool IsChild { get; init; }
   public required bool IsLeveled { get; init; }
+  public bool IsTemplated => TemplateFormKey.HasValue;
   public required short Level { get; init; }
   public required IReadOnlySet<FormKey> Locations { get; init; }
   public required FormKey? TemplateFormKey { get; init; }

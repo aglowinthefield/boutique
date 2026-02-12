@@ -244,9 +244,16 @@ public sealed record SpidTraitFilters
   /// </summary>
   public bool? IsDead { get; init; }
 
+  /// <summary>
+  ///   Templated NPC filter: null = any, true = templated only, false = non-templated only.
+  ///   NPCs with a TemplateFormKey are considered templated.
+  /// </summary>
+  public bool? IsTemplated { get; init; }
+
   public bool IsEmpty =>
     IsFemale == null && IsUnique == null && IsSummonable == null &&
-    IsChild == null && IsLeveled == null && IsTeammate == null && IsDead == null;
+    IsChild == null && IsLeveled == null && IsTeammate == null &&
+    IsDead == null && IsTemplated == null;
 
   public bool MatchesNpc(NpcFilterData npc)
   {
@@ -257,6 +264,7 @@ public sealed record SpidTraitFilters
       (IsSummonable, npc.IsSummonable),
       (IsChild, npc.IsChild),
       (IsLeveled, npc.IsLeveled),
+      (IsTemplated, npc.IsTemplated),
     ];
 
     foreach (var (filter, actual) in traits)
@@ -272,44 +280,29 @@ public sealed record SpidTraitFilters
 
   public override string ToString()
   {
-    var parts = new List<string> { IsFemale == true ? "Female" : "Male" };
+    ReadOnlySpan<(bool? value, string trueName, string falseName)> traitLabels =
+    [
+      (IsFemale, "Female", "Male"),
+      (IsUnique, "Unique", "Non-Unique"),
+      (IsSummonable, "Summonable", ""),
+      (IsChild, "Child", "Adult"),
+      (IsLeveled, "Leveled", ""),
+      (IsTemplated, "Templated", "Non-Templated"),
+      (IsTeammate, "Teammate", ""),
+      (IsDead, "Dead", ""),
+    ];
 
-    if (IsUnique == true)
+    var parts = new List<string>();
+    foreach (var (value, trueName, falseName) in traitLabels)
     {
-      parts.Add("Unique");
-    }
-    else if (IsUnique == false)
-    {
-      parts.Add("Non-Unique");
-    }
-
-    if (IsSummonable == true)
-    {
-      parts.Add("Summonable");
-    }
-
-    if (IsChild == true)
-    {
-      parts.Add("Child");
-    }
-    else if (IsChild == false)
-    {
-      parts.Add("Adult");
-    }
-
-    if (IsLeveled == true)
-    {
-      parts.Add("Leveled");
-    }
-
-    if (IsTeammate == true)
-    {
-      parts.Add("Teammate");
-    }
-
-    if (IsDead == true)
-    {
-      parts.Add("Dead");
+      if (value == true)
+      {
+        parts.Add(trueName);
+      }
+      else if (value == false && falseName.Length > 0)
+      {
+        parts.Add(falseName);
+      }
     }
 
     return parts.Count > 0 ? string.Join(", ", parts) : string.Empty;

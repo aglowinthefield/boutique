@@ -264,6 +264,8 @@ public static class NpcSpidSyntaxGenerator
       (filter.IsSummonable, "S", "-S"),
       (filter.IsChild, "C", "-C"),
       (filter.IsLeveled, "L", "-L"),
+      (filter.IsTeammate, "T", "-T"),
+      (filter.IsDead, "D", "-D"),
     ];
 
     var parts = new List<string>();
@@ -298,6 +300,8 @@ public static class NpcSpidSyntaxGenerator
       (filter.IsChild, "Child", "Adult"),
       (filter.IsSummonable, "Summonable", "Non-Summonable"),
       (filter.IsLeveled, "Leveled", "Non-Leveled"),
+      (filter.IsTeammate, "Teammate", "Non-Teammate"),
+      (filter.IsDead, "Dead", "Non-Dead"),
     ];
 
     foreach (var (value, trueName, falseName) in traitLabels)

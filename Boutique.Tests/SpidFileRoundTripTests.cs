@@ -150,7 +150,7 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
             }
         }
 
-        return (successCount, failures.Count, failures);
+        return (successCount, failures);
     }
 
     private static RoundTripResult TestSemanticRoundTrip(string line)
@@ -289,7 +289,8 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
         a.IsChild == b.IsChild &&
         a.IsLeveled == b.IsLeveled &&
         a.IsTeammate == b.IsTeammate &&
-        a.IsDead == b.IsDead;
+        a.IsDead == b.IsDead &&
+        a.IsTemplated == b.IsTemplated;
 
     #endregion
 
