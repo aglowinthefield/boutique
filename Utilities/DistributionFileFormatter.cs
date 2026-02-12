@@ -438,19 +438,6 @@ public static class DistributionFileFormatter
       "filterByRaces",
       entry.RaceLogicMode);
 
-    if (entry.SelectedClasses.Count > 0)
-    {
-      var classFormKeys = entry.SelectedClasses
-                               .Where(c => !c.IsExcluded)
-                               .Select(c => FormKeyHelper.Format(c.FormKey))
-                               .ToList();
-      if (classFormKeys.Count > 0)
-      {
-        var classList = string.Join(",", classFormKeys);
-        filterParts.Add($"filterByClass={classList}");
-      }
-    }
-
     if (entry.Gender != GenderFilter.Any)
     {
       var genderValue = entry.Gender == GenderFilter.Female ? "female" : "male";

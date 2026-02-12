@@ -188,15 +188,6 @@ public static class NpcSpidSyntaxGenerator
       filterParts.Add($"filterByRaces={string.Join(",", raceFormKeys)}");
     }
 
-    // Class filter
-    if (filter.Classes.Count > 0)
-    {
-      var classFormKeys = filter.Classes
-                                .Select(FormKeyHelper.Format)
-                                .ToList();
-      filterParts.Add($"filterByClass={string.Join(",", classFormKeys)}");
-    }
-
     // Gender filter
     if (filter.IsFemale.HasValue)
     {
