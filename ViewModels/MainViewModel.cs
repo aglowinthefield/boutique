@@ -729,7 +729,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
           var scene = await _previewService.BuildPreviewAsync([armor], gender);
           return scene with
                  {
-                   OutfitLabel = armor.DisplayName, SourceFile = armor.Armor.FormKey.ModKey.FileName.String
                  };
         });
 

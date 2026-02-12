@@ -503,7 +503,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       async (_, gender) =>
       {
         var scene = await _previewService.BuildPreviewAsync(pieces, gender);
-        return scene with { OutfitLabel = draft.Name, SourceFile = draft.EditorId };
+        return scene with { };
       });
 
     await ShowPreview.Handle(collection);
@@ -536,7 +536,6 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
           var scene = await _previewService.BuildPreviewAsync([armor], gender);
           return scene with
                  {
-                   OutfitLabel = armor.DisplayName, SourceFile = armor.Armor.FormKey.ModKey.FileName.String
                  };
         });
 

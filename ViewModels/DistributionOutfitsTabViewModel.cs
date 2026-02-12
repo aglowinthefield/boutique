@@ -254,7 +254,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
           var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-          return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
+          return scene with { };
         });
 
       await ShowPreview.Handle(collection);
@@ -324,10 +324,6 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
           var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
           return scene with
                  {
-                   OutfitLabel =
-                   clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
-                   SourceFile = clickedDistribution.FileName,
-                   IsWinner = clickedDistribution.IsWinner
                  };
         },
         initialGender);

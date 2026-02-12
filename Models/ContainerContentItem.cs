@@ -18,12 +18,7 @@ public sealed record ContainerContentItem(
         return Name;
       }
 
-      if (!string.IsNullOrEmpty(EditorId))
-      {
-        return EditorId;
-      }
-
-      return FormKey.ToString();
+      return !string.IsNullOrEmpty(EditorId) ? EditorId : FormKey.ToString();
     }
   }
 }

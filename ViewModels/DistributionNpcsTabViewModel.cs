@@ -308,7 +308,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
           var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-          return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
+          return scene with { };
         },
         npcGender);
 
@@ -400,9 +400,6 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
           var scene = await _armorPreviewService.BuildPreviewAsync(outfitResult.ArmorPieces, gender);
           return scene with
                  {
-                   OutfitLabel = distribution.OutfitEditorId ?? distribution.OutfitFormKey.ToString(),
-                   SourceFile = distribution.FileName,
-                   IsWinner = distribution.IsWinner
                  };
         },
         npcGender);

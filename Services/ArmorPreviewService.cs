@@ -146,7 +146,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       }
     }
 
-    return new ArmorPreviewScene(preferredGender, meshes, missingAssets);
+    return new ArmorPreviewScene(meshes, missingAssets);
   }
 
   private List<PreviewMeshShape> LoadMeshesFromNif(
@@ -205,7 +205,6 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
           new PreviewMeshShape(
             name,
             meshPath,
-            variant,
             meshData.Vertices,
             meshData.Normals,
             meshData.TextureCoordinates,

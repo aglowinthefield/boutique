@@ -11,12 +11,12 @@ public class CopiedNpcFilter
   /// <summary>
   ///   Gets the gender filter: null = any, true = female, false = male.
   /// </summary>
-  public bool? IsFemale { get; init; }
+  public bool? IsFemale { get; private init; }
 
   /// <summary>
   ///   Gets the unique NPC filter: null = any, true = unique only, false = non-unique only.
   /// </summary>
-  public bool? IsUnique { get; init; }
+  public bool? IsUnique { get; private init; }
 
   /// <summary>
   ///   Gets the templated NPC filter: null = any, true = templated only, false = non-templated only.
@@ -26,32 +26,32 @@ public class CopiedNpcFilter
   /// <summary>
   ///   Gets the child NPC filter: null = any, true = children only, false = adults only.
   /// </summary>
-  public bool? IsChild { get; init; }
+  public bool? IsChild { get; private init; }
 
   /// <summary>
   ///   Gets the factions to filter by.
   /// </summary>
-  public IReadOnlyList<FormKey> Factions { get; init; } = [];
+  public IReadOnlyList<FormKey> Factions { get; private init; } = [];
 
   /// <summary>
   ///   Gets the races to filter by.
   /// </summary>
-  public IReadOnlyList<FormKey> Races { get; init; } = [];
+  public IReadOnlyList<FormKey> Races { get; private init; } = [];
 
   /// <summary>
   ///   Gets the keywords to filter by.
   /// </summary>
-  public IReadOnlyList<FormKey> Keywords { get; init; } = [];
+  public IReadOnlyList<FormKey> Keywords { get; private init; } = [];
 
   /// <summary>
   ///   Gets the classes to filter by.
   /// </summary>
-  public IReadOnlyList<FormKey> Classes { get; init; } = [];
+  public IReadOnlyList<FormKey> Classes { get; private init; } = [];
 
   /// <summary>
   ///   Gets the human-readable description of the filter for display purposes.
   /// </summary>
-  public string Description { get; init; } = string.Empty;
+  public string Description { get; private init; } = string.Empty;
 
   /// <summary>
   ///   Gets a value indicating whether this filter has trait filters (gender, unique, child, etc.)

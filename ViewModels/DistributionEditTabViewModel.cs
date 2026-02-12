@@ -1618,7 +1618,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
           var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
-          return scene with { OutfitLabel = label, SourceFile = outfit.FormKey.ModKey.FileName.String };
+          return scene with { };
         },
         initialGender);
 

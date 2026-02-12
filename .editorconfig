@@ -368,3 +368,26 @@ dotnet_diagnostic.RCS1181.severity = none
 dotnet_diagnostic.SA1316.severity = none
 dotnet_diagnostic.CA1305.severity = none
 dotnet_diagnostic.SA1025.severity = none
+
+###############################
+# Complexity Analysis Rules   #
+###############################
+
+# Microsoft Code Quality - complexity guardrails
+dotnet_diagnostic.CA1501.severity = warning  # Depth of inheritance > 5
+dotnet_diagnostic.CA1502.severity = warning  # Cyclomatic complexity > 25
+dotnet_diagnostic.CA1505.severity = warning  # Maintainability index < 10
+dotnet_diagnostic.CA1506.severity = warning  # Class coupling > 95 (class) / 40 (method)
+
+# SonarAnalyzer - cognitive complexity + code smells
+dotnet_diagnostic.S3776.severity = warning   # Cognitive complexity > 15
+dotnet_diagnostic.S1541.severity = warning   # Cyclomatic complexity > 10
+dotnet_diagnostic.S107.severity = warning    # Too many parameters > 7
+dotnet_diagnostic.S138.severity = warning    # Method too long > 75 lines
+dotnet_diagnostic.S104.severity = warning    # File too long > 1000 lines
+dotnet_diagnostic.S1200.severity = suggestion # Class coupling (too many dependencies)
+
+# Disable noisy Sonar rules that overlap with existing analyzers
+dotnet_diagnostic.S1135.severity = none      # Track uses of "TODO" tags (noise)
+dotnet_diagnostic.S3925.severity = none      # ISerializable pattern (not relevant for WPF app)
+dotnet_diagnostic.S2094.severity = none      # Remove empty class (conflicts with model records)

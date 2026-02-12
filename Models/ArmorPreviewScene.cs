@@ -12,7 +12,6 @@ public enum GenderedModelVariant
 public sealed record PreviewMeshShape(
   string Name,
   string SourcePath,
-  GenderedModelVariant Variant,
   IReadOnlyList<Vector3> Vertices,
   IReadOnlyList<Vector3> Normals,
   IReadOnlyList<Vector2>? TextureCoordinates,
@@ -21,12 +20,8 @@ public sealed record PreviewMeshShape(
   string? DiffuseTexturePath);
 
 public sealed record ArmorPreviewScene(
-  GenderedModelVariant Gender,
   IReadOnlyList<PreviewMeshShape> Meshes,
-  IReadOnlyList<string> MissingAssets,
-  string? OutfitLabel = null,
-  string? SourceFile = null,
-  bool IsWinner = false);
+  IReadOnlyList<string> MissingAssets);
 
 public sealed record OutfitMetadata(
   string? OutfitLabel,

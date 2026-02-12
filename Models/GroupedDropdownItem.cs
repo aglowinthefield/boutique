@@ -14,8 +14,8 @@ public enum DropdownItemKind
 public abstract record GroupedDropdownItem
 {
   public abstract string DisplayText { get; }
-  public abstract bool IsSelectable { get; }
   public abstract DropdownItemKind Kind { get; }
+  public bool IsSelectable => Kind != DropdownItemKind.Header;
 }
 
 /// <summary>
@@ -24,7 +24,6 @@ public abstract record GroupedDropdownItem
 public sealed record GroupedDropdownHeader(string GroupName) : GroupedDropdownItem
 {
   public override string DisplayText => GroupName;
-  public override bool IsSelectable => false;
   public override DropdownItemKind Kind => DropdownItemKind.Header;
 }
 
@@ -38,7 +37,6 @@ public sealed record GroupedDropdownItem<T>(
   string? GroupName = null) : GroupedDropdownItem
 {
   public override string DisplayText => Text;
-  public override bool IsSelectable => true;
   public override DropdownItemKind Kind => DropdownItemKind.Value;
 }
 
@@ -48,7 +46,6 @@ public sealed record GroupedDropdownItem<T>(
 public sealed record GroupedDropdownAction(string Text, string ActionId) : GroupedDropdownItem
 {
   public override string DisplayText => Text;
-  public override bool IsSelectable => true;
   public override DropdownItemKind Kind => DropdownItemKind.Action;
 }
 
