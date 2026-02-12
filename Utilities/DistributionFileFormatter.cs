@@ -438,6 +438,13 @@ public static class DistributionFileFormatter
       "filterByRaces",
       entry.RaceLogicMode);
 
+    AddSkyPatcherFilterParts(
+      filterParts,
+      entry.SelectedClasses,
+      "filterByClass",
+      FilterLogicMode.And,
+      "Exclude");
+
     if (entry.Gender != GenderFilter.Any)
     {
       var genderValue = entry.Gender == GenderFilter.Female ? "female" : "male";
@@ -581,7 +588,8 @@ public static class DistributionFileFormatter
     List<string> filterParts,
     IReadOnlyList<T> items,
     string baseFilterName,
-    FilterLogicMode logicMode)
+    FilterLogicMode logicMode,
+    string excludedSuffix = "Excluded")
     where T : ISelectableRecordViewModel
   {
     if (items.Count == 0)
@@ -600,7 +608,7 @@ public static class DistributionFileFormatter
 
     if (excluded.Count > 0)
     {
-      filterParts.Add($"{baseFilterName}Excluded={string.Join(",", excluded)}");
+      filterParts.Add($"{baseFilterName}{excludedSuffix}={string.Join(",", excluded)}");
     }
   }
 }

@@ -118,6 +118,7 @@ public static class DistributionLineParser
       SkyPatcherSyntax.HasAnyVariant(rawText, "filterByFactions") ||
       SkyPatcherSyntax.HasAnyVariant(rawText, "filterByRaces") ||
       SkyPatcherSyntax.HasAnyVariant(rawText, "filterByKeywords") ||
+      SkyPatcherSyntax.HasFilter(rawText, "filterByClass") ||
       SkyPatcherSyntax.HasAnyVariant(rawText, "filterByEditorIdContains") ||
       SkyPatcherSyntax.HasFilter(rawText, "filterByGender") ||
       SkyPatcherSyntax.HasFilter(rawText, "filterByDefaultOutfits") ||

@@ -195,17 +195,20 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
       var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
       var raceStrings            = SkyPatcherSyntax.ExtractFilterValues(line, "filterByRaces");
+      var classStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
       var genderFilter           = SkyPatcherSyntax.ParseGenderFilter(line);
 
       var npcFilters     = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
       var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
       var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, excludedKeywordStrings, linkCache);
       var raceFilters    = ResolveRaceIdentifiers(raceStrings, linkCache);
+      var classFormKeys  = ResolveClassIdentifiers(classStrings, linkCache);
 
       var hasAnyParsedFilter = npcFilters.Count > 0 ||
                                factionFilters.Count > 0 ||
                                keywordFilters.Count > 0 ||
                                raceFilters.Count > 0 ||
+                               classFormKeys.Count > 0 ||
                                genderFilter.HasValue;
 
       var hasAnyFilterInLine =
@@ -213,6 +216,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions") ||
         SkyPatcherSyntax.HasAnyVariant(line, "filterByKeywords") ||
         SkyPatcherSyntax.HasFilter(line, "filterByRaces") ||
+        SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
         SkyPatcherSyntax.HasFilter(line, "filterByGender") ||
         SkyPatcherSyntax.HasAnyVariant(line, "filterByEditorIdContains") ||
         SkyPatcherSyntax.HasFilter(line, "filterByModNames") ||
@@ -256,6 +260,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                  FactionFilters   = factionFilters,
                  KeywordFilters   = keywordFilters,
                  RaceFilters      = raceFilters,
+                 ClassFormKeys    = classFormKeys,
                  TraitFilters     = new SpidTraitFilters { IsFemale = genderFilter },
                  NpcLogicMode     = npcLogicMode,
                  FactionLogicMode = factionLogicMode,
@@ -386,6 +391,35 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
     return resolvedKeyword != null
              ? new KeywordFilter(resolvedKeyword.EditorID ?? id, isExcluded)
              : new KeywordFilter(id, isExcluded);
+  }
+
+  private List<FormKey> ResolveClassIdentifiers(
+    List<string> identifiers,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  {
+    var results = new List<FormKey>();
+    foreach (var id in identifiers)
+    {
+      if (TryParseFormKey(id) is { } formKey)
+      {
+        results.Add(formKey);
+        continue;
+      }
+
+      var classRecord = linkCache.PriorityOrder.WinningOverrides<IClassGetter>()
+                                 .FirstOrDefault(c => string.Equals(c.EditorID, id, StringComparison.OrdinalIgnoreCase));
+      if (classRecord != null)
+      {
+        results.Add(classRecord.FormKey);
+        _logger.Debug("Resolved Class EditorID '{Id}' to {FormKey}", id, classRecord.FormKey);
+      }
+      else
+      {
+        _logger.Warning("Could not resolve Class identifier: {Id}", id);
+      }
+    }
+
+    return results;
   }
 
   private List<FormKeyFilter> ResolveRaceIdentifiers(

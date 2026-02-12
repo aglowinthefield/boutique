@@ -6,7 +6,7 @@ namespace Boutique.Utilities;
 public static class SkyPatcherSyntax
 {
   private static readonly Regex _filterNamePattern = new(
-    @"(filterBy\w+|outfitDefault|outfitSleep|formsToAdd|formsToRemove|formsToReplace|clear)=",
+    @"(filterBy\w+|restrictTo\w+|rvsRestrictToTraits|outfitDefault|outfitSleep|formsToAdd|formsToRemove|formsToReplace|clear)=",
     RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
   private static readonly HashSet<string> _supportedFilters = new(StringComparer.OrdinalIgnoreCase)
@@ -20,16 +20,30 @@ public static class SkyPatcherSyntax
                                                                 "filterByKeywordsOr",
                                                                 "filterByKeywordsExcluded",
                                                                 "filterByRaces",
+                                                                "filterByClass",
+                                                                "filterByClassExclude",
                                                                 "filterByGender",
                                                                 "filterByEditorIdContains",
                                                                 "filterByEditorIdContainsOr",
                                                                 "filterByEditorIdContainsExcluded",
                                                                 "filterByDefaultOutfits",
                                                                 "filterByModNames",
+                                                                "filterByPCLevelMult",
+                                                                "filterByAutoCalc",
+                                                                "filterByEssential",
+                                                                "filterByProtected",
                                                                 "filterByOutfits",
                                                                 "filterByForms",
                                                                 "filterByFormsOr",
                                                                 "filterByFormsExclude",
+                                                                "restrictToMaleModelContains",
+                                                                "restrictToFlags",
+                                                                "restrictToTemplateFlags",
+                                                                "restrictToRaces",
+                                                                "restrictToGender",
+                                                                "restrictToVoiceType",
+                                                                "restrictToSkill",
+                                                                "rvsRestrictToTraits",
                                                                 "outfitDefault",
                                                                 "outfitSleep",
                                                                 "formsToAdd",
