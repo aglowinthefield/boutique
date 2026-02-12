@@ -248,6 +248,28 @@ public sealed record SpidTraitFilters
     IsFemale == null && IsUnique == null && IsSummonable == null &&
     IsChild == null && IsLeveled == null && IsTeammate == null && IsDead == null;
 
+  public bool MatchesNpc(NpcFilterData npc)
+  {
+    ReadOnlySpan<(bool? filter, bool actual)> traits =
+    [
+      (IsFemale, npc.IsFemale),
+      (IsUnique, npc.IsUnique),
+      (IsSummonable, npc.IsSummonable),
+      (IsChild, npc.IsChild),
+      (IsLeveled, npc.IsLeveled),
+    ];
+
+    foreach (var (filter, actual) in traits)
+    {
+      if (filter.HasValue && actual != filter.Value)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public override string ToString()
   {
     var parts = new List<string> { IsFemale == true ? "Female" : "Male" };

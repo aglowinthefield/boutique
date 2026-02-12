@@ -2,7 +2,6 @@ using Boutique.Models;
 using Boutique.Services;
 using FluentAssertions;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Skyrim;
 using Xunit;
 
 namespace Boutique.Tests;
@@ -153,8 +152,7 @@ public class FilterMatchingServiceTests
   public void PartialMatchesNpcStrings_EmptyVirtualKeywords_ReturnsFalse()
   {
     var npc = CreateTestNpc();
-    var virtualKeywords = new HashSet<string>();
-    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", virtualKeywords);
+    var result = FilterMatchingService.PartialMatchesNpcStrings(npc, "CustomKeyword", new HashSet<string>());
     result.Should().BeFalse();
   }
 

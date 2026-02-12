@@ -18,7 +18,7 @@ public enum AlphaType
 
 public static class TextureLoadingService
 {
-  private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> TextureCache =
+  private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> _textureCache =
     new(StringComparer.OrdinalIgnoreCase);
 
   private static readonly object _textureCacheLock = new();
@@ -27,7 +27,7 @@ public static class TextureLoadingService
   {
     lock (_textureCacheLock)
     {
-      if (TextureCache.TryGetValue(texturePath, out var cached))
+      if (_textureCache.TryGetValue(texturePath, out var cached))
       {
         return cached;
       }
@@ -37,7 +37,7 @@ public static class TextureLoadingService
 
     lock (_textureCacheLock)
     {
-      TextureCache[texturePath] = result;
+      _textureCache[texturePath] = result;
     }
 
     return result;
@@ -68,8 +68,6 @@ public static class TextureLoadingService
           var thresholdedData = ApplyAlphaThreshold(image.Data, image.Width, image.Height, image.Stride);
           var texture         = CreateTextureFromPixels(thresholdedData, image.Width, image.Height, image.Stride);
           return (texture, false);
-
-        case AlphaType.ProblematicLowAlpha:
         default:
           var opaqueData    = ForceOpaqueAlpha(image.Data, image.Width, image.Height, image.Stride);
           var opaqueTexture = CreateTextureFromPixels(opaqueData, image.Width, image.Height, image.Stride);
@@ -83,6 +81,15 @@ public static class TextureLoadingService
     }
   }
 
+  /// <summary>
+  /// Determine the alpha type for a given texture. Lets Boutique choose which rendering strategy to use.
+  /// Pfim is too slow to default to, but it's better at rendering textures with high alpha.
+  /// </summary>
+  /// <param name="data">DDS data</param>
+  /// <param name="width">Width of texture</param>
+  /// <param name="height">Height of texture</param>
+  /// <param name="stride">Distance to skip when sampling to speed things up</param>
+  /// <returns>AlphaType</returns>
   private static AlphaType AnalyzeAlphaChannel(byte[] data, int width, int height, int stride)
   {
     var sampleCount          = 0;
@@ -126,40 +133,46 @@ public static class TextureLoadingService
       }
     }
 
-    if (sampleCount == 0)
+    return DeriveTypeFromRatios(opaqueCount, transparentCount, semiTransparentCount, lowAlphaCount, sampleCount);
+
+    static AlphaType DeriveTypeFromRatios(
+      int opaque,
+      int transparent,
+      int semiTransparent,
+      int lowAlpha,
+      int samples)
     {
-      return AlphaType.FullyOpaque;
+      if (samples == 0)
+      {
+        return AlphaType.FullyOpaque;
+      }
+
+      var opaqueRatio          = (float)opaque / samples;
+      var transparentRatio     = (float)transparent / samples;
+      var semiTransparentRatio = (float)semiTransparent / samples;
+      var lowAlphaRatio        = (float)lowAlpha / samples;
+
+      if (opaqueRatio > 0.95f)
+      {
+        return AlphaType.FullyOpaque;
+      }
+
+      if (semiTransparentRatio > 0.1f)
+      {
+        return AlphaType.TrueTransparency;
+      }
+
+      if (opaqueRatio + transparentRatio > 0.9f)
+      {
+        return AlphaType.AlphaTest;
+      }
+
+      // ReSharper disable once ConvertIfStatementToReturnStatement
+      return lowAlphaRatio > 0.5f ? AlphaType.ProblematicLowAlpha : AlphaType.TrueTransparency;
     }
-
-    var opaqueRatio          = (float)opaqueCount / sampleCount;
-    var transparentRatio     = (float)transparentCount / sampleCount;
-    var semiTransparentRatio = (float)semiTransparentCount / sampleCount;
-    var lowAlphaRatio        = (float)lowAlphaCount / sampleCount;
-
-    if (opaqueRatio > 0.95f)
-    {
-      return AlphaType.FullyOpaque;
-    }
-
-    if (semiTransparentRatio > 0.1f)
-    {
-      return AlphaType.TrueTransparency;
-    }
-
-    if (opaqueRatio + transparentRatio > 0.9f)
-    {
-      return AlphaType.AlphaTest;
-    }
-
-    if (lowAlphaRatio > 0.5f)
-    {
-      return AlphaType.ProblematicLowAlpha;
-    }
-
-    return AlphaType.TrueTransparency;
   }
 
-  private static TextureModel? CreateTextureFromPixels(byte[] data, int width, int height, int stride)
+  private static TextureModel CreateTextureFromPixels(byte[] data, int width, int height, int stride)
   {
     var pinnedData = GCHandle.Alloc(data, GCHandleType.Pinned);
     try

@@ -30,7 +30,7 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
             return;
         }
 
-        var (successCount, _, failures) = TestFileSemanticRoundTrip(filePath);
+        var (successCount, failures) = TestFileSemanticRoundTrip(filePath);
 
         if (failures.Count > 0)
         {
@@ -52,7 +52,7 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
             return;
         }
 
-        var (successCount, _, failures) = TestFileSemanticRoundTrip(filePath);
+        var (successCount, failures) = TestFileSemanticRoundTrip(filePath);
 
         if (failures.Count > 0)
         {
@@ -122,8 +122,7 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
 
     #region Helper Methods
 
-    private static (int SuccessCount, int FailureCount, List<RoundTripResult> Failures) TestFileSemanticRoundTrip(
-        string filePath)
+    private static (int SuccessCount, List<RoundTripResult> Failures) TestFileSemanticRoundTrip(string filePath)
     {
         var lines = File.ReadAllLines(filePath);
         var successCount = 0;
@@ -307,5 +306,3 @@ public class SpidFileRoundTripTests(ITestOutputHelper output)
 
     #endregion
 }
-
-

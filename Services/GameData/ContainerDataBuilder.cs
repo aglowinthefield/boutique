@@ -80,6 +80,11 @@ public class ContainerDataBuilder(ILogger logger)
     return result;
   }
 
+  /// <summary>
+  /// Creates a lookup table keyed by container FormKeys, values being the location names the container is placed.
+  /// </summary>
+  /// <param name="linkCache">LinkCache</param>
+  /// <returns>The lookup dictionary</returns>
   private Dictionary<FormKey, List<string>> BuildCellPlacementLookup(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var result = new Dictionary<FormKey, List<string>>();

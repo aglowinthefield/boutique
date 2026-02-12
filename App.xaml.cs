@@ -74,21 +74,13 @@ public partial class App
     var themeService = Container.Resolve<ThemeService>();
     themeService.Initialize();
 
-    try
-    {
-      var localizationService = Container.Resolve<LocalizationService>();
-      localizationService.Initialize();
+    var localizationService = Container.Resolve<LocalizationService>();
+    localizationService.Initialize();
 
-      var mainWindow = Container.Resolve<MainWindow>();
-      mainWindow.Show();
+    var mainWindow = Container.Resolve<MainWindow>();
+    mainWindow.Show();
 
-      Log.Information("Main window displayed.");
-    }
-    catch (Exception ex)
-    {
-      Log.Fatal(ex, "Failed to show main window.");
-      throw;
-    }
+    Log.Information("Main window displayed.");
 
     if (GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {

@@ -385,11 +385,6 @@ public class OutfitDraftManager : ReactiveObject, IDisposable
 
       foreach (var entry in itemLinks)
       {
-        if (entry is null)
-        {
-          continue;
-        }
-
         var formKeyNullable = entry.FormKeyNullable;
         if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
         {

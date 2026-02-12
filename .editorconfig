@@ -381,7 +381,7 @@ dotnet_diagnostic.CA1506.severity = warning  # Class coupling > 95 (class) / 40 
 
 # SonarAnalyzer - cognitive complexity + code smells
 dotnet_diagnostic.S3776.severity = warning   # Cognitive complexity > 15
-dotnet_diagnostic.S1541.severity = warning   # Cyclomatic complexity > 10
+dotnet_diagnostic.S1541.severity = none      # Cyclomatic complexity > 10 (redundant with CA1502)
 dotnet_diagnostic.S107.severity = warning    # Too many parameters > 7
 dotnet_diagnostic.S138.severity = warning    # Method too long > 75 lines
 dotnet_diagnostic.S104.severity = warning    # File too long > 1000 lines

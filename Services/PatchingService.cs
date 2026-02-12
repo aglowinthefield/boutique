@@ -585,7 +585,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         if (missingMasters.Count == 0)
         {
           _logger.Debug("All masters present for patch {Patch}.", patchPath);
-          var validOutfits = patchMod.Outfits.ToList();
           return new MissingMastersResult(false, [], []);
         }
 

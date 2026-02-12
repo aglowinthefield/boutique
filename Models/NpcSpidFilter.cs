@@ -69,16 +69,13 @@ public class NpcSpidFilter
   /// </summary>
   public int? MaxLevel { get; set; }
 
+  private IEnumerable<bool?> TraitValues => [IsFemale, IsUnique, IsTemplated, IsChild, IsSummonable, IsLeveled];
+
   /// <summary>
   ///   Returns true if no filters are active.
   /// </summary>
   public bool IsEmpty =>
-    IsFemale == null &&
-    IsUnique == null &&
-    IsTemplated == null &&
-    IsChild == null &&
-    IsSummonable == null &&
-    IsLeveled == null &&
+    TraitValues.All(t => t == null) &&
     Factions.Count == 0 &&
     Races.Count == 0 &&
     Keywords.Count == 0 &&
@@ -89,13 +86,7 @@ public class NpcSpidFilter
   /// <summary>
   ///   Returns true if any trait filters are active.
   /// </summary>
-  public bool HasTraitFilters =>
-    IsFemale != null ||
-    IsUnique != null ||
-    IsTemplated != null ||
-    IsChild != null ||
-    IsSummonable != null ||
-    IsLeveled != null;
+  public bool HasTraitFilters => TraitValues.Any(t => t.HasValue);
 
   /// <summary>
   ///   Resets all filters to their default (unfiltered) state.
@@ -121,36 +112,24 @@ public class NpcSpidFilter
   /// </summary>
   public bool Matches(NpcFilterData npc)
   {
-    if (IsFemale.HasValue && npc.IsFemale != IsFemale.Value)
-    {
-      return false;
-    }
+    ReadOnlySpan<(bool? filter, bool actual)> traits =
+    [
+      (IsFemale, npc.IsFemale),
+      (IsUnique, npc.IsUnique),
+      (IsChild, npc.IsChild),
+      (IsSummonable, npc.IsSummonable),
+      (IsLeveled, npc.IsLeveled),
+    ];
 
-    if (IsUnique.HasValue && npc.IsUnique != IsUnique.Value)
+    foreach (var (filter, actual) in traits)
     {
-      return false;
-    }
-
-    if (IsTemplated.HasValue)
-    {
-      var isTemplated = npc.TemplateFormKey.HasValue;
-      if (isTemplated != IsTemplated.Value)
+      if (filter.HasValue && actual != filter.Value)
       {
         return false;
       }
     }
 
-    if (IsChild.HasValue && npc.IsChild != IsChild.Value)
-    {
-      return false;
-    }
-
-    if (IsSummonable.HasValue && npc.IsSummonable != IsSummonable.Value)
-    {
-      return false;
-    }
-
-    if (IsLeveled.HasValue && npc.IsLeveled != IsLeveled.Value)
+    if (IsTemplated.HasValue && npc.TemplateFormKey.HasValue != IsTemplated.Value)
     {
       return false;
     }

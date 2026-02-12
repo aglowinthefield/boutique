@@ -257,56 +257,24 @@ public static class NpcSpidSyntaxGenerator
       return null;
     }
 
+    ReadOnlySpan<(bool? value, string trueFlag, string falseFlag)> traitMappings =
+    [
+      (filter.IsFemale, "F", "M"),
+      (filter.IsUnique, "U", "-U"),
+      (filter.IsSummonable, "S", "-S"),
+      (filter.IsChild, "C", "-C"),
+      (filter.IsLeveled, "L", "-L"),
+    ];
+
     var parts = new List<string>();
-
-    if (filter.IsFemale == true)
+    foreach (var (value, trueFlag, falseFlag) in traitMappings)
     {
-      parts.Add("F");
-    }
-    else if (filter.IsFemale == false)
-    {
-      parts.Add("M");
+      if (value.HasValue)
+      {
+        parts.Add(value.Value ? trueFlag : falseFlag);
+      }
     }
 
-    if (filter.IsUnique == true)
-    {
-      parts.Add("U");
-    }
-    else if (filter.IsUnique == false)
-    {
-      parts.Add("-U");
-    }
-
-    if (filter.IsSummonable == true)
-    {
-      parts.Add("S");
-    }
-    else if (filter.IsSummonable == false)
-    {
-      parts.Add("-S");
-    }
-
-    if (filter.IsChild == true)
-    {
-      parts.Add("C");
-    }
-    else if (filter.IsChild == false)
-    {
-      parts.Add("-C");
-    }
-
-    if (filter.IsLeveled == true)
-    {
-      parts.Add("L");
-    }
-    else if (filter.IsLeveled == false)
-    {
-      parts.Add("-L");
-    }
-
-    // Note: Templated is not a standard SPID trait filter
-    // We'll add it as a comment instead
-    // The -L (non-leveled) filter is close but not the same as non-templated
     return parts.Count > 0 ? string.Join("/", parts) : null;
   }
 
@@ -322,58 +290,26 @@ public static class NpcSpidSyntaxGenerator
 
     var parts = new List<string>();
 
-    if (filter.IsFemale == true)
-    {
-      parts.Add("Female");
-    }
-    else if (filter.IsFemale == false)
-    {
-      parts.Add("Male");
-    }
+    ReadOnlySpan<(bool? value, string trueName, string falseName)> traitLabels =
+    [
+      (filter.IsFemale, "Female", "Male"),
+      (filter.IsUnique, "Unique", "Non-Unique"),
+      (filter.IsTemplated, "Templated", "Non-Templated"),
+      (filter.IsChild, "Child", "Adult"),
+      (filter.IsSummonable, "Summonable", "Non-Summonable"),
+      (filter.IsLeveled, "Leveled", "Non-Leveled"),
+    ];
 
-    if (filter.IsUnique == true)
+    foreach (var (value, trueName, falseName) in traitLabels)
     {
-      parts.Add("Unique");
-    }
-    else if (filter.IsUnique == false)
-    {
-      parts.Add("Non-Unique");
-    }
-
-    if (filter.IsTemplated == true)
-    {
-      parts.Add("Templated");
-    }
-    else if (filter.IsTemplated == false)
-    {
-      parts.Add("Non-Templated");
-    }
-
-    if (filter.IsChild == true)
-    {
-      parts.Add("Child");
-    }
-    else if (filter.IsChild == false)
-    {
-      parts.Add("Adult");
-    }
-
-    if (filter.IsSummonable == true)
-    {
-      parts.Add("Summonable");
-    }
-    else if (filter.IsSummonable == false)
-    {
-      parts.Add("Non-Summonable");
-    }
-
-    if (filter.IsLeveled == true)
-    {
-      parts.Add("Leveled");
-    }
-    else if (filter.IsLeveled == false)
-    {
-      parts.Add("Non-Leveled");
+      if (value == true)
+      {
+        parts.Add(trueName);
+      }
+      else if (value == false)
+      {
+        parts.Add(falseName);
+      }
     }
 
     if (filter.Factions.Count > 0)

@@ -17,27 +17,27 @@ public enum AppTheme
 
 public class ThemeService(ILogger logger)
 {
-  private const string ThemeConfigFileName       = "theme.json";
+  private const string ThemeConfigFileName = "theme.json";
 
   // ReSharper disable once InconsistentNaming
-  private const int    DWMWAUSEIMMERSIVEDARKMODE = 20;
+  private const int DWMWAUSEIMMERSIVEDARKMODE = 20;
 
   // ReSharper disable once InconsistentNaming
-  private const int    DWMWABORDERCOLOR          = 34;
+  private const int DWMWABORDERCOLOR = 34;
 
-  private static readonly string ConfigPath = Path.Combine(
+  private static readonly string _configPath = Path.Combine(
     AppDomain.CurrentDomain.BaseDirectory,
     ".config",
     ThemeConfigFileName);
 
-  private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+  private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-  private static readonly double[] BaseFontSizes = { 10, 13, 14, 16, 18 };
+  private static readonly double[] _baseFontSizes = [10, 13, 14, 16, 18];
 
-  private static readonly string[] FontSizeKeys =
-  {
+  private static readonly string[] _fontSizeKeys =
+  [
     "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading"
-  };
+  ];
 
   public static ThemeService? Current { get; private set; }
 
@@ -142,9 +142,9 @@ public class ThemeService(ILogger logger)
 
     try
     {
-      for (var i = 0; i < BaseFontSizes.Length; i++)
+      for (var i = 0; i < _baseFontSizes.Length; i++)
       {
-        app.Resources[FontSizeKeys[i]] = BaseFontSizes[i] * scale;
+        app.Resources[_fontSizeKeys[i]] = _baseFontSizes[i] * scale;
       }
     }
     catch (Exception ex)
@@ -241,12 +241,12 @@ public class ThemeService(ILogger logger)
   {
     try
     {
-      if (!File.Exists(ConfigPath))
+      if (!File.Exists(_configPath))
       {
         return (AppTheme.System, 1.0);
       }
 
-      var       json = File.ReadAllText(ConfigPath);
+      var       json = File.ReadAllText(_configPath);
       using var doc  = JsonDocument.Parse(json);
 
       var theme     = AppTheme.System;
@@ -281,15 +281,15 @@ public class ThemeService(ILogger logger)
   {
     try
     {
-      var dir = Path.GetDirectoryName(ConfigPath);
+      var dir = Path.GetDirectoryName(_configPath);
       if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
       {
         Directory.CreateDirectory(dir);
       }
 
       var settings = new { Theme = theme.ToString(), FontScale = fontScale };
-      var json     = JsonSerializer.Serialize(settings, JsonOptions);
-      File.WriteAllText(ConfigPath, json);
+      var json     = JsonSerializer.Serialize(settings, _jsonOptions);
+      File.WriteAllText(_configPath, json);
 
       logger.Information("Saved settings: Theme={Theme}, FontScale={FontScale}", theme, fontScale);
     }

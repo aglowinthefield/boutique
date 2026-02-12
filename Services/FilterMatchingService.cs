@@ -207,30 +207,22 @@ public static class FilterMatchingService
 
     if (!entry.TraitFilters.IsEmpty)
     {
+      ReadOnlySpan<(bool? value, string trueName, string falseName)> traitLabels =
+      [
+        (entry.TraitFilters.IsFemale, "Female", "Male"),
+        (entry.TraitFilters.IsUnique, "Unique", "Not Unique"),
+        (entry.TraitFilters.IsSummonable, "Summonable", "Not Summonable"),
+        (entry.TraitFilters.IsChild, "Child", "Not Child"),
+        (entry.TraitFilters.IsLeveled, "Leveled", "Not Leveled"),
+      ];
+
       var traits = new List<string>();
-      if (entry.TraitFilters.IsFemale.HasValue)
+      foreach (var (value, trueName, falseName) in traitLabels)
       {
-        traits.Add(entry.TraitFilters.IsFemale.Value ? "Female" : "Male");
-      }
-
-      if (entry.TraitFilters.IsUnique.HasValue)
-      {
-        traits.Add(entry.TraitFilters.IsUnique.Value ? "Unique" : "Not Unique");
-      }
-
-      if (entry.TraitFilters.IsSummonable.HasValue)
-      {
-        traits.Add(entry.TraitFilters.IsSummonable.Value ? "Summonable" : "Not Summonable");
-      }
-
-      if (entry.TraitFilters.IsChild.HasValue)
-      {
-        traits.Add(entry.TraitFilters.IsChild.Value ? "Child" : "Not Child");
-      }
-
-      if (entry.TraitFilters.IsLeveled.HasValue)
-      {
-        traits.Add(entry.TraitFilters.IsLeveled.Value ? "Leveled" : "Not Leveled");
+        if (value.HasValue)
+        {
+          traits.Add(value.Value ? trueName : falseName);
+        }
       }
 
       if (traits.Count > 0)
@@ -625,38 +617,6 @@ public static class FilterMatchingService
     return true;
   }
 
-  private static bool MatchesTraitFilters(NpcFilterData npc, SpidTraitFilters traits)
-  {
-    if (traits.IsEmpty)
-    {
-      return true;
-    }
-
-    if (traits.IsFemale.HasValue && npc.IsFemale != traits.IsFemale.Value)
-    {
-      return false;
-    }
-
-    if (traits.IsUnique.HasValue && npc.IsUnique != traits.IsUnique.Value)
-    {
-      return false;
-    }
-
-    if (traits.IsSummonable.HasValue && npc.IsSummonable != traits.IsSummonable.Value)
-    {
-      return false;
-    }
-
-    if (traits.IsChild.HasValue && npc.IsChild != traits.IsChild.Value)
-    {
-      return false;
-    }
-
-    if (traits.IsLeveled.HasValue && npc.IsLeveled != traits.IsLeveled.Value)
-    {
-      return false;
-    }
-
-    return true;
-  }
+  private static bool MatchesTraitFilters(NpcFilterData npc, SpidTraitFilters traits) =>
+    traits.IsEmpty || traits.MatchesNpc(npc);
 }
