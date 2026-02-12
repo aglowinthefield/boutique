@@ -12,7 +12,6 @@ public static class SkyPatcherSyntax
   private static readonly HashSet<string> _supportedFilters = new(StringComparer.OrdinalIgnoreCase)
                                                               {
                                                                 "filterByNpcs",
-                                                                "filterByNpcsOr",
                                                                 "filterByNpcsExcluded",
                                                                 "filterByFactions",
                                                                 "filterByFactionsOr",

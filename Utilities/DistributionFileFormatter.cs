@@ -418,7 +418,7 @@ public static class DistributionFileFormatter
       filterParts,
       entry.SelectedNpcs,
       "filterByNpcs",
-      entry.NpcLogicMode);
+      FilterLogicMode.And);
 
     AddSkyPatcherFilterParts(
       filterParts,

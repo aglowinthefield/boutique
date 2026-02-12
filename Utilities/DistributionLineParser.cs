@@ -25,9 +25,7 @@ public static class DistributionLineParser
 
   private static List<FormKey> ExtractNpcFormKeysFromSkyPatcherLine(string rawText)
   {
-    var results = SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
-    results.AddRange(SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcsOr"));
-    return results;
+    return SkyPatcherSyntax.ParseFormKeys(rawText, "filterByNpcs");
   }
 
   private static List<FormKey> ExtractNpcFormKeysFromSpidLine(

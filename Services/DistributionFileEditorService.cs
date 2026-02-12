@@ -189,10 +189,8 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, null);
       }
 
-      var npcAndStrings          = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
-      var npcOrStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsOr");
+      var npcStrings             = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
       var excludedNpcStrings     = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
-      var npcStrings             = npcAndStrings.Concat(npcOrStrings).ToList();
       var factionStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
       var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
       var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
@@ -250,7 +248,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, "SkyPatcher distribution (preserved)");
       }
 
-      var npcLogicMode     = npcOrStrings.Count > 0 || npcAndStrings.Count > 1 ? FilterLogicMode.Or : FilterLogicMode.And;
+      var npcLogicMode     = npcStrings.Count > 1 ? FilterLogicMode.Or : FilterLogicMode.And;
       var factionLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByFactionsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
       var keywordLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByKeywordsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
       var raceLogicMode    = SkyPatcherSyntax.HasFilter(line, "filterByRacesOr") ? FilterLogicMode.Or : FilterLogicMode.And;
