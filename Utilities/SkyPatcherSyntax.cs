@@ -12,6 +12,7 @@ public static class SkyPatcherSyntax
   private static readonly HashSet<string> _supportedFilters = new(StringComparer.OrdinalIgnoreCase)
                                                               {
                                                                 "filterByNpcs",
+                                                                "filterByNpcsOr",
                                                                 "filterByNpcsExcluded",
                                                                 "filterByFactions",
                                                                 "filterByFactionsOr",
@@ -51,6 +52,27 @@ public static class SkyPatcherSyntax
                                                                 "formsToReplace",
                                                                 "clear"
                                                               };
+
+  private static readonly HashSet<string> _roundtrippableFilters = new(StringComparer.OrdinalIgnoreCase)
+                                                                 {
+                                                                   "filterByNpcs",
+                                                                   "filterByNpcsOr",
+                                                                   "filterByNpcsExcluded",
+                                                                   "filterByFactions",
+                                                                   "filterByFactionsOr",
+                                                                   "filterByFactionsExcluded",
+                                                                   "filterByKeywords",
+                                                                   "filterByKeywordsOr",
+                                                                   "filterByKeywordsExcluded",
+                                                                   "filterByRaces",
+                                                                   "filterByClass",
+                                                                   "filterByClassExclude",
+                                                                   "filterByGender",
+                                                                   "outfitDefault"
+                                                                 };
+
+  public static bool HasNonRoundtrippableFilters(string line) =>
+    GetAllFilterNames(line).Any(f => !_roundtrippableFilters.Contains(f));
 
   public static string? ExtractFilterValue(string line, string filterName)
   {

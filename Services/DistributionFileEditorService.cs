@@ -189,7 +189,15 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         return (null, null);
       }
 
-      var npcStrings             = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcs");
+      if (SkyPatcherSyntax.HasNonRoundtrippableFilters(line))
+      {
+        _logger.Debug(
+          "Line has filters that cannot be round-tripped through the UI - preserving unchanged: {Line}",
+          line);
+        return (null, "SkyPatcher filter distribution (preserved)");
+      }
+
+      var npcStrings             = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByNpcs");
       var excludedNpcStrings     = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
       var factionStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
       var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
@@ -217,10 +225,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         SkyPatcherSyntax.HasAnyVariant(line, "filterByKeywords") ||
         SkyPatcherSyntax.HasFilter(line, "filterByRaces") ||
         SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByGender") ||
-        SkyPatcherSyntax.HasAnyVariant(line, "filterByEditorIdContains") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByModNames") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByDefaultOutfits");
+        SkyPatcherSyntax.HasFilter(line, "filterByGender");
 
       if (hasAnyFilterInLine && !hasAnyParsedFilter)
       {
