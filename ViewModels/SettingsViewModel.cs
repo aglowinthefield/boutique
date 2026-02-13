@@ -28,6 +28,7 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
+  private readonly AutoUpdateService   _autoUpdateService;
   private readonly GuiSettingsService  _guiSettings;
   private readonly LocalizationService _localizationService;
   private readonly ILoggingService     _loggingService;
@@ -54,13 +55,15 @@ public partial class SettingsViewModel : ReactiveObject
     ILoggingService loggingService,
     ThemeService themeService,
     LocalizationService localizationService,
-    MutagenService mutagenService)
+    MutagenService mutagenService,
+    AutoUpdateService autoUpdateService)
   {
     _settings            = settings;
     _guiSettings         = guiSettings;
     _loggingService      = loggingService;
     _themeService        = themeService;
     _localizationService = localizationService;
+    _autoUpdateService   = autoUpdateService;
     _mutagenService      = mutagenService;
 
     _mutagenService.Initialized += OnMutagenInitialized;
@@ -244,7 +247,7 @@ public partial class SettingsViewModel : ReactiveObject
   }
 
   [ReactiveCommand]
-  private void TestAutoUpdate() => App.CheckForUpdates(true);
+  private void TestAutoUpdate() => _autoUpdateService.CheckForUpdates(true);
 
   [ReactiveCommand]
   private void BrowseDataPath()
