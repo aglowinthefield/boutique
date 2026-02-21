@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Rescanner les fichiers de distribution pour les assignations de tenues PNJ</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Masquer les distributions vanilla</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Statut</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Masque les PNJ dont la tenue par défaut est l'assignation gagnante</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>Filtrer les PNJ selon que leur tenue a été modifiée par un fichier de distribution</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Rechercher des PNJ par nom, EditorID, tenue ou mod</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Charger toutes les tenues depuis l'ordre de chargement</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Masquer les distributions vanilla</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Masque les tenues dont la tenue par défaut est l'assignation gagnante</value>

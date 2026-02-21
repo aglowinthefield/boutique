@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>NPC 의상 할당을 위해 배포 파일 다시 스캔</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>바닐라 배포 숨기기</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>상태</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>기본 의상이 우승 할당인 NPC를 숨깁니다</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>배포 파일에 의해 의상이 변경되었는지 여부로 NPC 필터링</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>이름, EditorID, 의상 또는 모드로 NPC 검색</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>로드 순서에서 모든 의상 로드</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>바닐라 배포 숨기기</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>기본 의상이 우승 할당인 의상을 숨깁니다</value>

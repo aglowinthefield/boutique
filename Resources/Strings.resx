@@ -508,11 +508,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Rescan distribution files for NPC outfit assignments</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Hide vanilla distributions</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Status</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Hides NPCs with their default outfit as the winning assignment</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>Filter NPCs by whether their outfit was changed by a distribution file</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Search NPCs by name, EditorID, outfit, or mod</value>
@@ -620,6 +620,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Load all outfits from the load order</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Hide vanilla distributions</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Hides Outfits with their default outfit as the winning assignment</value>

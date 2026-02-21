@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Verteilungsdateien für NPC-Outfit-Zuweisungen neu scannen</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Vanilla-Verteilungen ausblenden</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Status</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Blendet NPCs aus, deren Standard-Outfit die gewinnende Zuweisung ist</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>NPCs filtern, ob ihr Outfit durch eine Verteilungsdatei geändert wurde</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>NPCs nach Name, EditorID, Outfit oder Mod durchsuchen</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Alle Outfits aus der Ladereihenfolge laden</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Vanilla-Verteilungen ausblenden</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Blendet Outfits aus, deren Standard-Outfit die gewinnende Zuweisung ist</value>

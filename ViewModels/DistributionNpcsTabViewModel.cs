@@ -28,7 +28,9 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 
   private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcAssignmentsSource = new(x => x.NpcFormKey);
 
-  [Reactive] private bool _hideVanillaDistributions;
+  public IReadOnlyList<string> DistributionStatusOptions { get; } = ["Any", "Distributed", "Vanilla Only"];
+
+  [Reactive] private string _selectedDistributionStatus = "Any";
 
   [Reactive] private bool _isLoading;
 
@@ -121,7 +123,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
                          .Throttle(TimeSpan.FromMilliseconds(200))
                          .Select(text => text?.Trim() ?? string.Empty);
 
-    var vanillaFilter = this.WhenAnyValue(vm => vm.HideVanillaDistributions);
+    var statusFilter = this.WhenAnyValue(vm => vm.SelectedDistributionStatus);
 
     var spidFilters = this.WhenAnyValue(
       vm => vm.SelectedGenderFilter,
@@ -135,12 +137,12 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       (_, _, _, _, _, _, _, _) => Unit.Default);
 
     return textFilter
-           .CombineLatest(vanillaFilter, spidFilters, (text, hideVanilla, _) => (text, hideVanilla))
+           .CombineLatest(statusFilter, spidFilters, (text, status, _) => (text, status))
            .Do(_ => UpdateFilterFromSelections())
-           .Select(tuple => CreateFilterFunc(tuple.text, tuple.hideVanilla));
+           .Select(tuple => CreateFilterFunc(tuple.text, tuple.status));
   }
 
-  private Func<NpcOutfitAssignmentViewModel, bool> CreateFilterFunc(string searchText, bool hideVanilla)
+  private Func<NpcOutfitAssignmentViewModel, bool> CreateFilterFunc(string searchText, string distributionStatus)
   {
     return assignment =>
     {
@@ -159,9 +161,18 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
         }
       }
 
-      if (hideVanilla && IsVanillaDistribution(assignment.NpcFormKey, assignment.FinalOutfitFormKey))
+      if (distributionStatus != "Any")
       {
-        return false;
+        var isVanilla = IsVanillaDistribution(assignment.NpcFormKey, assignment.FinalOutfitFormKey);
+        if (distributionStatus == "Distributed" && isVanilla)
+        {
+          return false;
+        }
+
+        if (distributionStatus == "Vanilla Only" && !isVanilla)
+        {
+          return false;
+        }
       }
 
       if (!Filter.IsEmpty)

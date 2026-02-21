@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>重新扫描分配文件以获取 NPC 服装分配</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>隐藏原版分配</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>状态</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>隐藏其默认服装为获胜分配的 NPC</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>按服装是否被分配文件更改来筛选 NPC</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>按名称、EditorID、服装或模组搜索 NPC</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>从加载顺序加载所有服装</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>隐藏原版分配</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>隐藏其默认服装为获胜分配的服装</value>

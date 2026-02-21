@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Volver a escanear archivos de distribución para asignaciones de atuendos de NPCs</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Ocultar distribuciones vanilla</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Estado</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Oculta NPCs cuyo atuendo predeterminado es la asignación ganadora</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>Filtrar NPCs según si su atuendo fue cambiado por un archivo de distribución</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Buscar NPCs por nombre, EditorID, atuendo o mod</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Cargar todos los atuendos del orden de carga</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Ocultar distribuciones vanilla</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Oculta atuendos cuyo atuendo predeterminado es la asignación ganadora</value>

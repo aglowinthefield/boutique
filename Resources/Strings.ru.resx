@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Пересканировать файлы распределения для назначений нарядов NPC</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Скрыть ванильные распределения</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Статус</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Скрывает NPC, чей наряд по умолчанию является победившим назначением</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>Фильтровать NPC по тому, был ли их наряд изменён файлом распределения</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Поиск NPC по имени, EditorID, наряду или моду</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Загрузить все наряды из порядка загрузки</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Скрыть ванильные распределения</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Скрывает наряды, чей наряд по умолчанию является победившим назначением</value>

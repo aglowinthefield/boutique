@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>NPC衣装割り当ての配布ファイルを再スキャン</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>バニラ配布を非表示</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>ステータス</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>デフォルト衣装が勝利割り当てであるNPCを非表示にします</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>配布ファイルによって衣装が変更されたかどうかでNPCをフィルター</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>名前、EditorID、衣装、またはMODでNPCを検索</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>ロードオーダーからすべての衣装を読み込み</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>バニラ配布を非表示</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>デフォルト衣装が勝利割り当てである衣装を非表示にします</value>

@@ -493,11 +493,11 @@
   <data name="NPCs_RefreshTooltip" xml:space="preserve">
     <value>Reanalisar arquivos de distribuição para atribuições de trajes de NPCs</value>
   </data>
-  <data name="NPCs_HideVanilla" xml:space="preserve">
-    <value>Ocultar distribuições vanilla</value>
+  <data name="NPCs_DistributionStatus" xml:space="preserve">
+    <value>Status</value>
   </data>
-  <data name="NPCs_HideVanillaTooltip" xml:space="preserve">
-    <value>Oculta NPCs cujo traje padrão é a atribuição vencedora</value>
+  <data name="NPCs_DistributionStatusTooltip" xml:space="preserve">
+    <value>Filtrar NPCs por se seu traje foi alterado por um arquivo de distribuição</value>
   </data>
   <data name="NPCs_SearchTooltip" xml:space="preserve">
     <value>Pesquisar NPCs por nome, EditorID, traje ou mod</value>
@@ -605,6 +605,9 @@
   </data>
   <data name="Outfits_LoadTooltip" xml:space="preserve">
     <value>Carregar todos os trajes da ordem de carregamento</value>
+  </data>
+  <data name="Outfits_HideVanilla" xml:space="preserve">
+    <value>Ocultar distribuições vanilla</value>
   </data>
   <data name="Outfits_HideVanillaTooltip" xml:space="preserve">
     <value>Oculta trajes cujo traje padrão é a atribuição vencedora</value>

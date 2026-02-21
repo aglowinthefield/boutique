@@ -183,9 +183,9 @@ public static class LocalizationKeys
   public static class NpcTab
   {
     public const string RefreshTooltip      = "NPCs_RefreshTooltip";
-    public const string HideVanilla         = "NPCs_HideVanilla";
-    public const string HideVanillaTooltip  = "NPCs_HideVanillaTooltip";
-    public const string SearchTooltip       = "NPCs_SearchTooltip";
+    public const string DistributionStatus        = "NPCs_DistributionStatus";
+    public const string DistributionStatusTooltip = "NPCs_DistributionStatusTooltip";
+    public const string SearchTooltip             = "NPCs_SearchTooltip";
     public const string SpidFilters         = "NPCs_SpidFilters";
     public const string Templated           = "NPCs_Templated";
     public const string Age                 = "NPCs_Age";
@@ -224,6 +224,7 @@ public static class LocalizationKeys
   {
     public const string LoadOutfits        = "Outfits_LoadOutfits";
     public const string LoadTooltip        = "Outfits_LoadTooltip";
+    public const string HideVanilla        = "Outfits_HideVanilla";
     public const string HideVanillaTooltip = "Outfits_HideVanillaTooltip";
     public const string SearchTooltip      = "Outfits_SearchTooltip";
     public const string CopyToPatch        = "Outfits_CopyToPatch";
