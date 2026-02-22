@@ -17,7 +17,8 @@ public enum DistributionTab
   Create     = 0,
   Containers = 1,
   Npcs       = 2,
-  Outfits    = 3
+  Outfits    = 3,
+  ReportCard = 4
 }
 
 public partial class DistributionViewModel : ReactiveObject
@@ -75,6 +76,8 @@ public partial class DistributionViewModel : ReactiveObject
       logger);
 
     ContainersTab = new DistributionContainersTabViewModel(gameDataCache);
+
+    ReportCardTab = new DistributionReportCardTabViewModel(gameDataCache, logger);
 
     EditTab.ShowPreview.RegisterHandler(async interaction =>
     {
@@ -228,14 +231,16 @@ public partial class DistributionViewModel : ReactiveObject
           vm => vm.EditTab.IsLoading,
           vm => vm.NpcsTab.IsLoading,
           vm => vm.OutfitsTab.IsLoading,
-          (edit, npcs, outfits) => edit || npcs || outfits)
+          vm => vm.ReportCardTab.IsLoading,
+          (edit, npcs, outfits, report) => edit || npcs || outfits || report)
         .Subscribe(loading => IsLoading = loading);
 
     this.WhenAnyValue(
           vm => vm.EditTab.StatusMessage,
           vm => vm.NpcsTab.StatusMessage,
           vm => vm.OutfitsTab.StatusMessage,
-          (edit, npcs, outfits) => GetFirstNonEmptyStatus(edit, npcs, outfits))
+          vm => vm.ReportCardTab.StatusMessage,
+          (edit, npcs, outfits, report) => GetFirstNonEmptyStatus(edit, npcs, outfits, report))
         .Subscribe(msg => StatusMessage = msg);
 
     this.WhenAnyValue(vm => vm.SelectedTabIndex)
@@ -283,6 +288,7 @@ public partial class DistributionViewModel : ReactiveObject
   public DistributionContainersTabViewModel ContainersTab { get; }
   public DistributionNpcsTabViewModel NpcsTab { get; }
   public DistributionOutfitsTabViewModel OutfitsTab { get; }
+  public DistributionReportCardTabViewModel ReportCardTab { get; }
   public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
   private static string GetFirstNonEmptyStatus(params string[] statuses) =>

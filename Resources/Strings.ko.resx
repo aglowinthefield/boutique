@@ -94,6 +94,9 @@
   <data name="Tab_Outfits" xml:space="preserve">
     <value>의상</value>
   </data>
+  <data name="Tab_ReportCard" xml:space="preserve">
+    <value>성적표</value>
+  </data>
   <data name="Tab_Factions" xml:space="preserve">
     <value>세력</value>
   </data>

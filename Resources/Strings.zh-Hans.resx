@@ -94,6 +94,9 @@
   <data name="Tab_Outfits" xml:space="preserve">
     <value>服装</value>
   </data>
+  <data name="Tab_ReportCard" xml:space="preserve">
+    <value>成绩单</value>
+  </data>
   <data name="Tab_Factions" xml:space="preserve">
     <value>派系</value>
   </data>

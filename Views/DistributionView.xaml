@@ -41,6 +41,11 @@
       <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Outfits}}">
         <views:DistributionOutfitsTabView DataContext="{Binding OutfitsTab}" />
       </TabItem>
+
+      <!-- REPORT CARD TAB -->
+      <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.ReportCard}}">
+        <views:DistributionReportCardTabView DataContext="{Binding ReportCardTab}" />
+      </TabItem>
     </TabControl>
 
     <TextBlock Grid.Row="1"

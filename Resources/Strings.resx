@@ -97,6 +97,9 @@
   <data name="Tab_Outfits" xml:space="preserve">
     <value>Outfits</value>
   </data>
+  <data name="Tab_ReportCard" xml:space="preserve">
+    <value>Report Card</value>
+  </data>
   <data name="Tab_Factions" xml:space="preserve">
     <value>Factions</value>
   </data>

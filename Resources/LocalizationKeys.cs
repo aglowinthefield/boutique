@@ -19,6 +19,7 @@ public static class LocalizationKeys
     public const string Races         = "Tab_Races";
     public const string Classes       = "Tab_Classes";
     public const string Locations     = "Tab_Locations";
+    public const string ReportCard   = "Tab_ReportCard";
   }
 
   public static class Settings

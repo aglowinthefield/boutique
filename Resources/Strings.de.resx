@@ -94,6 +94,9 @@
   <data name="Tab_Outfits" xml:space="preserve">
     <value>Outfits</value>
   </data>
+  <data name="Tab_ReportCard" xml:space="preserve">
+    <value>Zeugnis</value>
+  </data>
   <data name="Tab_Factions" xml:space="preserve">
     <value>Fraktionen</value>
   </data>

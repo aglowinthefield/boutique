@@ -1,0 +1,268 @@
+<UserControl x:Class="Boutique.Views.DistributionReportCardTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Boutique.ViewModels"
+             xmlns:utilities="clr-namespace:Boutique.Utilities"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:DistributionReportCardTabViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="700"
+             d:DesignWidth="900">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+    <Style x:Key="GradeCardBorder" TargetType="Border">
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="16,12" />
+      <Setter Property="Margin" Value="6" />
+      <Setter Property="Background" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushCardBackground}}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushBorderLight}}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style x:Key="GradeLetter" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="36" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding}" Value="A">
+          <Setter Property="Foreground" Value="#4CAF50" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding}" Value="B">
+          <Setter Property="Foreground" Value="#2196F3" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding}" Value="C">
+          <Setter Property="Foreground" Value="#FFC107" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding}" Value="D">
+          <Setter Property="Foreground" Value="#FF9800" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding}" Value="F">
+          <Setter Property="Foreground" Value="#F44336" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="GradePercent" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
+    </Style>
+
+    <Style x:Key="GradeLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0,4,0,0" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}" />
+    </Style>
+
+    <Style x:Key="GroupHeader" TargetType="TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,6,0,2" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextPrimary}}" />
+    </Style>
+
+    <Style x:Key="GroupItems" TargetType="TextBlock">
+      <Setter Property="Margin" Value="12,0,0,4" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
+    </Style>
+  </UserControl.Resources>
+
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Row 0: Grade Cards -->
+    <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,8">
+
+      <!-- Overall -->
+      <Border Style="{StaticResource GradeCardBorder}">
+        <StackPanel>
+          <TextBlock Text="{Binding}"
+                     Style="{StaticResource GradeLetter}"
+                     DataContext="{Binding OverallGrade}" />
+          <TextBlock Style="{StaticResource GradePercent}"
+                     Text="{Binding OverallPercent, StringFormat='{}{0:P0}'}" />
+          <TextBlock Text="Overall" Style="{StaticResource GradeLabel}" />
+        </StackPanel>
+      </Border>
+
+      <!-- NPC Coverage -->
+      <Border Style="{StaticResource GradeCardBorder}">
+        <StackPanel>
+          <TextBlock Text="{Binding}"
+                     Style="{StaticResource GradeLetter}"
+                     DataContext="{Binding NpcCoverageGrade}" />
+          <TextBlock Style="{StaticResource GradePercent}"
+                     Text="{Binding NpcCoveragePercent, StringFormat='{}{0:P0}'}" />
+          <TextBlock Text="NPC Coverage" Style="{StaticResource GradeLabel}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Mod Utilization -->
+      <Border Style="{StaticResource GradeCardBorder}">
+        <StackPanel>
+          <TextBlock Text="{Binding}"
+                     Style="{StaticResource GradeLetter}"
+                     DataContext="{Binding ModUtilizationGrade}" />
+          <TextBlock Style="{StaticResource GradePercent}"
+                     Text="{Binding ModUtilizationPercent, StringFormat='{}{0:P0}'}" />
+          <TextBlock Text="Mod Utilization" Style="{StaticResource GradeLabel}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Variety -->
+      <Border Style="{StaticResource GradeCardBorder}">
+        <StackPanel>
+          <TextBlock Text="{Binding}"
+                     Style="{StaticResource GradeLetter}"
+                     DataContext="{Binding VarietyGrade}" />
+          <TextBlock Style="{StaticResource GradePercent}"
+                     Text="{Binding VarietyPercent, StringFormat='{}{0:P0}'}" />
+          <TextBlock Text="Outfit Variety" Style="{StaticResource GradeLabel}" />
+        </StackPanel>
+      </Border>
+    </UniformGrid>
+
+    <!-- Row 1: Calculate Button -->
+    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,4,0,8">
+      <Button Content="Calculate Grade"
+              Command="{Binding CalculateCommand}"
+              Padding="24,8"
+              FontSize="14" />
+      <TextBlock Margin="0,6,0,0"
+                 HorizontalAlignment="Center"
+                 Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}"
+                 Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}">
+        <TextBlock.Text>
+          <MultiBinding StringFormat="{}{0:N0}/{1:N0} NPCs covered · {2:N0}/{3:N0} mod outfits used · {4:N0} unique outfits">
+            <Binding Path="CoveredNpcCount" />
+            <Binding Path="EligibleNpcCount" />
+            <Binding Path="UsedModOutfitCount" />
+            <Binding Path="ModOutfitCount" />
+            <Binding Path="UniqueOutfitCount" />
+          </MultiBinding>
+        </TextBlock.Text>
+      </TextBlock>
+    </StackPanel>
+
+    <!-- Row 2: Empty state -->
+    <TextBlock Grid.Row="2"
+               HorizontalAlignment="Center"
+               Margin="0,16,0,8"
+               FontStyle="Italic"
+               Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}"
+               Text="Click Calculate Grade to analyze your distribution setup">
+      <TextBlock.Style>
+        <Style TargetType="TextBlock">
+          <Setter Property="Visibility" Value="Collapsed" />
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding HasResults}" Value="False">
+              <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </TextBlock.Style>
+    </TextBlock>
+
+    <!-- Row 3: Suggestion Panels -->
+    <ScrollViewer Grid.Row="3"
+                  VerticalScrollBarVisibility="Auto"
+                  Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}">
+      <StackPanel Margin="4,0">
+
+        <!-- Uncovered NPCs -->
+        <Expander IsExpanded="True" Margin="0,0,0,8">
+          <Expander.Header>
+            <TextBlock FontWeight="SemiBold">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Uncovered NPCs ({0})">
+                  <Binding Path="UncoveredNpcGroups.Count" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </Expander.Header>
+          <ItemsControl ItemsSource="{Binding UncoveredNpcGroups}" Margin="8,4,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Style="{StaticResource GroupHeader}">
+                    <TextBlock.Text>
+                      <MultiBinding StringFormat="{}{0} ({1})">
+                        <Binding Path="GroupName" />
+                        <Binding Path="Count" />
+                      </MultiBinding>
+                    </TextBlock.Text>
+                  </TextBlock>
+                  <ItemsControl ItemsSource="{Binding NpcNames}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat='{}{0},  '}"
+                                   Style="{StaticResource GroupItems}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Expander>
+
+        <!-- Unused Mod Outfits -->
+        <Expander IsExpanded="True">
+          <Expander.Header>
+            <TextBlock FontWeight="SemiBold">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Unused Mod Outfits ({0})">
+                  <Binding Path="UnusedOutfitGroups.Count" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </Expander.Header>
+          <ItemsControl ItemsSource="{Binding UnusedOutfitGroups}" Margin="8,4,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Style="{StaticResource GroupHeader}">
+                    <TextBlock.Text>
+                      <MultiBinding StringFormat="{}{0} ({1})">
+                        <Binding Path="PluginName" />
+                        <Binding Path="Count" />
+                      </MultiBinding>
+                    </TextBlock.Text>
+                  </TextBlock>
+                  <ItemsControl ItemsSource="{Binding OutfitEditorIds}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat='{}{0},  '}"
+                                   Style="{StaticResource GroupItems}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Expander>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
