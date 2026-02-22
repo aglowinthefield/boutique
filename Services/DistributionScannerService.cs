@@ -165,9 +165,8 @@ public class DistributionScannerService(ILogger logger)
   {
     try
     {
-      var lines          = new List<DistributionLine>();
-      var currentSection = string.Empty;
-      var lineNumber     = 0;
+      var lines      = new List<DistributionLine>();
+      var lineNumber = 0;
 
       var outfitCount         = 0;
       var keywordCount        = 0;
@@ -180,9 +179,6 @@ public class DistributionScannerService(ILogger logger)
         totalLines++;
         var                  trimmed = raw.Trim();
         DistributionLineKind kind;
-        var                  sectionName = currentSection;
-        string?              key         = null;
-        string?              value       = null;
 
         if (string.IsNullOrEmpty(trimmed))
         {
@@ -195,22 +191,11 @@ public class DistributionScannerService(ILogger logger)
         else if (trimmed.StartsWith('[') && trimmed.EndsWith(']') && trimmed.Length > 2)
         {
           kind           = DistributionLineKind.Section;
-          currentSection = trimmed[1..^1].Trim();
-          sectionName    = currentSection;
         }
         else
         {
           var equalsIndex = trimmed.IndexOf('=');
-          if (equalsIndex >= 0)
-          {
-            kind  = DistributionLineKind.KeyValue;
-            key   = trimmed[..equalsIndex].Trim();
-            value = trimmed[(equalsIndex + 1)..].Trim();
-          }
-          else
-          {
-            kind = DistributionLineKind.Other;
-          }
+          kind = equalsIndex >= 0 ? DistributionLineKind.KeyValue : DistributionLineKind.Other;
         }
 
         var                   isOutfitDistribution         = IsOutfitDistributionLine(type, kind, trimmed);

@@ -20,7 +20,7 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
 {
   private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;
-  private readonly CompositeDisposable  _disposables = new();
+  private readonly CompositeDisposable  _disposables = [];
   private readonly ILogger              _logger;
   private readonly MutagenService       _mutagenService;
 

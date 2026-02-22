@@ -28,11 +28,13 @@ public static class GridSplitterBehavior
     splitter.Loaded        -= OnSplitterLoaded;
     splitter.DragCompleted -= OnSplitterDragCompleted;
 
-    if (e.NewValue is string key && !string.IsNullOrEmpty(key))
+    if (e.NewValue is not string key || string.IsNullOrEmpty(key))
     {
-      splitter.Loaded        += OnSplitterLoaded;
-      splitter.DragCompleted += OnSplitterDragCompleted;
+      return;
     }
+
+    splitter.Loaded        += OnSplitterLoaded;
+    splitter.DragCompleted += OnSplitterDragCompleted;
   }
 
   private static void OnSplitterLoaded(object sender, RoutedEventArgs e)
@@ -49,13 +51,9 @@ public static class GridSplitterBehavior
     }
 
     var settingsService = GetSettingsService();
-    if (settingsService == null)
-    {
-      return;
-    }
 
-    var savedRatio = settingsService.GetSplitterPosition(key);
-    if (!savedRatio.HasValue || savedRatio.Value <= 0)
+    var savedRatio = settingsService?.GetSplitterPosition(key);
+    if (savedRatio is null or <= 0)
     {
       return;
     }

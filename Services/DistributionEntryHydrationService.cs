@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using Boutique.Models;
 using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
@@ -109,7 +108,7 @@ public class DistributionEntryHydrationService(
       return new NpcRecordViewModel(existingNpc.NpcRecord);
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<INpcGetter>(formKey, out var npc))
     {
       var npcRecord = new NpcRecord(
@@ -148,7 +147,7 @@ public class DistributionEntryHydrationService(
       return new FactionRecordViewModel(existingFaction.FactionRecord);
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IFactionGetter>(formKey, out var faction))
     {
       return new FactionRecordViewModel(FactionRecord.FromGetter(faction));
@@ -250,7 +249,7 @@ public class DistributionEntryHydrationService(
       return new RaceRecordViewModel(existingRace.RaceRecord);
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IRaceGetter>(formKey, out var race))
     {
       return new RaceRecordViewModel(RaceRecord.FromGetter(race));
@@ -270,7 +269,7 @@ public class DistributionEntryHydrationService(
       return existingClass;
     }
 
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IClassGetter>(formKey, out var classRecord))
     {
       return new ClassRecordViewModel(ClassRecord.FromGetter(classRecord));
@@ -306,7 +305,7 @@ public class DistributionEntryHydrationService(
 
   public OutfitRecordViewModel? ResolveOutfitFilterFormKey(FormKey formKey)
   {
-    if (mutagenService.LinkCache is ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache &&
+    if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IOutfitGetter>(formKey, out var outfit))
     {
       return new OutfitRecordViewModel(outfit);

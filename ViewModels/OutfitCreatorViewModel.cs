@@ -455,7 +455,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       try
       {
         SelectedOutfitPlugin = targetPlugin;
-        await LoadOutfitPluginAsync(true);
+        await LoadOutfitPluginAsync();
       }
       finally
       {
@@ -467,7 +467,7 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
                targetPlugin,
                StringComparison.OrdinalIgnoreCase))
     {
-      await LoadOutfitPluginAsync(true);
+      await LoadOutfitPluginAsync();
     }
   }
 

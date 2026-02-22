@@ -149,9 +149,8 @@ public static class DistributionLineParser
   {
     return file.TypeDisplay switch
     {
-      "SPID"       => ExtractChanceFromSpidLine(line.RawText),
-      "SkyPatcher" => 100,
-      _            => 100
+      "SPID" => ExtractChanceFromSpidLine(line.RawText),
+      _      => 100
     };
   }
 

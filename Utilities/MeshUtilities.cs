@@ -213,7 +213,7 @@ public static class MeshUtilities
 
       if (!string.IsNullOrWhiteSpace(path))
       {
-        yield return path!;
+        yield return path;
       }
     }
   }

@@ -8,7 +8,7 @@ using Boutique.ViewModels;
 
 namespace Boutique.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow
 {
   private readonly CompositeDisposable _bindings = [];
   private readonly GuiSettingsService  _guiSettings;

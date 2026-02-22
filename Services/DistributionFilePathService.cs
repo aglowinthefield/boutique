@@ -107,7 +107,7 @@ public class DistributionFilePathService(SettingsViewModel settings, ILogger log
       ? settings.OutputPatchPath
       : dataPath;
 
-  private string? GetTargetDirectory()
+  private string GetTargetDirectory()
   {
     if (!string.IsNullOrWhiteSpace(settings.OutputPatchPath) &&
         Directory.Exists(settings.OutputPatchPath))

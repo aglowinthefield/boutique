@@ -65,7 +65,7 @@ public static class RecordLoader
     bool requireEditorId = false)
     where TRecord : class, ISkyrimMajorRecordGetter
   {
-    var results = new List<TRecord>();
+    List<TRecord> results;
     var query = linkCache.WinningOverrides<TRecord>()
                          .Where(r => !isBlacklisted(r.FormKey.ModKey));
 

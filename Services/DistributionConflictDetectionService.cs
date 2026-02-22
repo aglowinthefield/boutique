@@ -48,7 +48,6 @@ public class DistributionConflictDetectionService
 
     foreach (var entry in entries)
     {
-      var newOutfitName = entry.SelectedOutfit?.EditorID ?? entry.SelectedOutfit?.FormKey.ToString();
       var newChance     = entry.UseChance ? entry.Chance : 100;
 
       foreach (var npcVm in entry.SelectedNpcs)

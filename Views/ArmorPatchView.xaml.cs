@@ -6,7 +6,7 @@ using Boutique.ViewModels;
 
 namespace Boutique.Views;
 
-public partial class ArmorPatchView : UserControl
+public partial class ArmorPatchView
 {
   private MainViewModel? _currentViewModel;
   private bool           _syncingSourceSelection;
@@ -71,7 +71,7 @@ public partial class ArmorPatchView : UserControl
 
   private void TargetArmorsDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
   {
-    if (ViewModel is not MainViewModel viewModel)
+    if (ViewModel is not { } viewModel)
     {
       return;
     }

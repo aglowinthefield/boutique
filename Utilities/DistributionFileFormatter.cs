@@ -149,7 +149,7 @@ public static class DistributionFileFormatter
   ///   Formats a single entry as a SPID keyword distribution line.
   ///   Format: Keyword = EditorID|StringFilters|FormFilters|LevelFilters|TraitFilters|Count|Chance
   /// </summary>
-  public static string FormatSpidKeywordLine(DistributionEntryViewModel entry)
+  private static string FormatSpidKeywordLine(DistributionEntryViewModel entry)
   {
     if (string.IsNullOrWhiteSpace(entry.KeywordToDistribute))
     {
@@ -181,9 +181,9 @@ public static class DistributionFileFormatter
   private static string BuildSpidLine(string formType, string identifier, DistributionEntryViewModel entry)
   {
     var (stringFiltersPart, formFiltersPart) = BuildSpidFilterParts(entry);
-    var     levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
-    var     traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
-    string? countPart        = null;
+    var           levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
+    var           traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
+    const string? countPart        = null;
     var chancePart = entry.UseChance && entry.Chance != 100
                        ? entry.Chance.ToString(CultureInfo.InvariantCulture)
                        : null;
@@ -193,9 +193,9 @@ public static class DistributionFileFormatter
     var lastNonNullIndex = Array.FindLastIndex(parts, p => p != null);
 
     var sb = new StringBuilder();
-    sb.Append(formType);
-    sb.Append(" = ");
-    sb.Append(identifier);
+    sb.Append(formType)
+      .Append(" = ")
+      .Append(identifier);
 
     for (var i = 0; i <= lastNonNullIndex; i++)
     {
@@ -245,8 +245,8 @@ public static class DistributionFileFormatter
 
     var stringFiltersPart = stringFilterParts.Count > 0 ? string.Join(",", stringFilterParts) : null;
 
-    var formFilterTerms    = new List<List<string>>();
-    var formExclusions = new List<string>();
+    var formFilterTerms = new List<List<string>>();
+    var formExclusions  = new List<string>();
 
     var includedFactions = entry.SelectedFactions
                                 .Where(f => !f.IsExcluded && !string.IsNullOrWhiteSpace(f.EditorID) &&

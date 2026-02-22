@@ -121,7 +121,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
   {
     var textFilter = this.WhenAnyValue(vm => vm.NpcOutfitSearchText)
                          .Throttle(TimeSpan.FromMilliseconds(200))
-                         .Select(text => text?.Trim() ?? string.Empty);
+                         .Select(text => text.Trim());
 
     var statusFilter = this.WhenAnyValue(vm => vm.SelectedDistributionStatus);
 
@@ -149,7 +149,7 @@ public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
       if (!string.IsNullOrEmpty(searchText))
       {
         var matchesText =
-          (assignment.DisplayName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+          assignment.DisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
           (assignment.EditorId?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
           (assignment.FinalOutfitEditorId?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
           assignment.FormKeyString.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||

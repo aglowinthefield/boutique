@@ -140,15 +140,7 @@ public class CollectionContainsConverter : IValueConverter
     }
 
     var parameterString = parameter.ToString();
-    foreach (var item in collection)
-    {
-      if (string.Equals(item?.ToString(), parameterString, StringComparison.Ordinal))
-      {
-        return true;
-      }
-    }
-
-    return false;
+    return collection.Cast<object?>().Any(item => string.Equals(item?.ToString(), parameterString, StringComparison.Ordinal));
   }
 
   public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

@@ -166,7 +166,7 @@ public static class OutfitResolver
         return;
       }
 
-      var count = selectedEntry?.Data?.Count ?? 1;
+      var count = selectedEntry.Data?.Count ?? 1;
       if (calculateEach && count > 1)
       {
         for (var i = 0; i < count; i++)
