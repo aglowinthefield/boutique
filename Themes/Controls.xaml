@@ -12,6 +12,7 @@
   <!-- Typography -->
   <FontFamily x:Key="Font.Primary">Segoe UI</FontFamily>
   <FontFamily x:Key="Font.Mono">Consolas</FontFamily>
+  <FontFamily x:Key="Font.Handwriting">pack://application:,,,/Assets/Fonts/#Indie Flower</FontFamily>
 
   <Style x:Key="{x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />

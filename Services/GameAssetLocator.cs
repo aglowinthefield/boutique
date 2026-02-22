@@ -103,7 +103,9 @@ public class GameAssetLocator
     ModKey.FromNameAndExtension("ccVSVSSE002-Pets.esl"),
     ModKey.FromNameAndExtension("ccVSVSSE003-NecroArts.esl"),
     ModKey.FromNameAndExtension("ccVSVSSE004-BeAFarmer.esl"),
-    ModKey.FromNameAndExtension("ccAFDSSE001-DweSanctuary.esm")
+    ModKey.FromNameAndExtension("ccAFDSSE001-DweSanctuary.esm"),
+    ModKey.FromNameAndExtension("unofficial skyrim special edition patch.esp"),
+    ModKey.FromNameAndExtension("unofficial skyrim edition patch.esp")
   ];
 
   private readonly Dictionary<ModKey, IReadOnlyList<CachedArchive>> _archivesByMod = [];

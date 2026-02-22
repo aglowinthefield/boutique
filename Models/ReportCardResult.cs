@@ -10,9 +10,12 @@ public sealed record ReportCardResult(
   int ModOutfitCount,
   int UsedModOutfitCount,
   int UniqueOutfitCount,
-  IReadOnlyList<NpcFactionGroup> UncoveredNpcGroups,
+  IReadOnlyList<UncoveredAttributeRanking> UncoveredByFaction,
+  IReadOnlyList<UncoveredAttributeRanking> UncoveredByClass,
+  IReadOnlyList<UncoveredAttributeRanking> UncoveredByRace,
+  IReadOnlyList<UncoveredAttributeRanking> UncoveredByMod,
   IReadOnlyList<UnusedOutfitGroup> UnusedOutfitGroups);
 
-public sealed record NpcFactionGroup(string GroupName, int Count, IReadOnlyList<string> NpcNames);
+public sealed record UncoveredAttributeRanking(string Label, int UncoveredCount, int TotalCount);
 
 public sealed record UnusedOutfitGroup(string PluginName, int Count, IReadOnlyList<string> OutfitEditorIds);

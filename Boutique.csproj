@@ -86,6 +86,7 @@
   <ItemGroup>
     <Resource Include="Assets\eye.png"/>
     <Resource Include="Assets\sprites\*.png"/>
+    <Resource Include="Assets\Fonts\IndieFlower-Regular.ttf"/>
   </ItemGroup>
 
   <ItemGroup>

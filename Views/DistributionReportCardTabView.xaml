@@ -22,8 +22,9 @@
     </Style>
 
     <Style x:Key="GradeLetter" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="36" />
-      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontFamily" Value="{StaticResource Font.Handwriting}" />
+      <Setter Property="FontSize" Value="42" />
+      <Setter Property="FontWeight" Value="Normal" />
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
       <Style.Triggers>
@@ -69,6 +70,38 @@
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
     </Style>
+
+    <Style x:Key="RankingColumnHeader" TargetType="TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Margin" Value="0,0,0,6" />
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextPrimary}}" />
+    </Style>
+
+    <DataTemplate x:Key="RankingRowTemplate">
+      <Grid Margin="0,1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0"
+                   Text="{Binding Label}"
+                   FontSize="11"
+                   TextTrimming="CharacterEllipsis"
+                   Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
+        <TextBlock Grid.Column="1"
+                   FontSize="11"
+                   Margin="8,0,0,0"
+                   Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}">
+          <TextBlock.Text>
+            <MultiBinding StringFormat="{}{0}/{1}">
+              <Binding Path="UncoveredCount" />
+              <Binding Path="TotalCount" />
+            </MultiBinding>
+          </TextBlock.Text>
+        </TextBlock>
+      </Grid>
+    </DataTemplate>
   </UserControl.Resources>
 
   <Grid Margin="8">
@@ -112,8 +145,18 @@
           <TextBlock Text="{Binding}"
                      Style="{StaticResource GradeLetter}"
                      DataContext="{Binding ModUtilizationGrade}" />
-          <TextBlock Style="{StaticResource GradePercent}"
-                     Text="{Binding ModUtilizationPercent, StringFormat='{}{0:P0}'}" />
+          <TextBlock>
+            <TextBlock.Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource GradePercent}">
+                <Setter Property="Text" Value="{Binding ModUtilizationPercent, StringFormat='{}{0:P0}'}" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasModOutfits}" Value="False">
+                    <Setter Property="Text" Value="N/A" />
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TextBlock.Style>
+          </TextBlock>
           <TextBlock Text="Mod Utilization" Style="{StaticResource GradeLabel}" />
         </StackPanel>
       </Border>
@@ -178,47 +221,39 @@
                   Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}">
       <StackPanel Margin="4,0">
 
-        <!-- Uncovered NPCs -->
-        <Expander IsExpanded="True" Margin="0,0,0,8">
-          <Expander.Header>
-            <TextBlock FontWeight="SemiBold">
-              <TextBlock.Text>
-                <MultiBinding StringFormat="Uncovered NPCs ({0})">
-                  <Binding Path="UncoveredNpcGroups.Count" />
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
-          </Expander.Header>
-          <ItemsControl ItemsSource="{Binding UncoveredNpcGroups}" Margin="8,4,0,0">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <StackPanel>
-                  <TextBlock Style="{StaticResource GroupHeader}">
-                    <TextBlock.Text>
-                      <MultiBinding StringFormat="{}{0} ({1})">
-                        <Binding Path="GroupName" />
-                        <Binding Path="Count" />
-                      </MultiBinding>
-                    </TextBlock.Text>
-                  </TextBlock>
-                  <ItemsControl ItemsSource="{Binding NpcNames}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <WrapPanel />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding StringFormat='{}{0},  '}"
-                                   Style="{StaticResource GroupItems}" />
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </Expander>
+        <!-- Uncovered NPCs — Attribute Rankings -->
+        <Grid Margin="0,0,0,8">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0" Margin="0,0,8,0">
+            <TextBlock Text="Factions" Style="{StaticResource RankingColumnHeader}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByFaction}"
+                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Margin="4,0,8,0">
+            <TextBlock Text="Classes" Style="{StaticResource RankingColumnHeader}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByClass}"
+                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Margin="4,0,8,0">
+            <TextBlock Text="Races" Style="{StaticResource RankingColumnHeader}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByRace}"
+                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="3" Margin="4,0,0,0">
+            <TextBlock Text="Source Mods" Style="{StaticResource RankingColumnHeader}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByMod}"
+                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+          </StackPanel>
+        </Grid>
 
         <!-- Unused Mod Outfits -->
         <Expander IsExpanded="True">
