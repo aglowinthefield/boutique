@@ -71,6 +71,24 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
   public ObservableCollection<string> AvailableCells { get; } = [];
   public IReadOnlyList<string> RespawnsFilterOptions { get; } = ["Any", "Yes", "No"];
 
+  public async Task EnsureContainersLoadedAsync()
+  {
+    if (_cacheService.ContainersLoaded)
+    {
+      return;
+    }
+
+    IsLoading = true;
+    try
+    {
+      await _cacheService.EnsureContainersLoadedAsync();
+    }
+    finally
+    {
+      IsLoading = false;
+    }
+  }
+
   private void OnCacheLoaded(object? sender, EventArgs e)
   {
     PopulateCellOptions();

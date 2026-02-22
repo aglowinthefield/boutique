@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -588,6 +589,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
   {
     BeginLoading();
     StatusMessage = "Initializing Mutagen...";
+    var totalSw = Stopwatch.StartNew();
     _logger.Information("Initializing Mutagen with data path {DataPath}", Settings.SkyrimDataPath);
 
     try
@@ -606,11 +608,10 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
       StatusMessage = $"Loaded {pluginList.Count} plugins with armors/outfits";
       _logger.Information(
-        "Loaded {PluginCount} plugins with armors/outfits from {DataPath}",
+        "Startup completed in {Elapsed}ms: {PluginCount} plugins with armors/outfits from {DataPath}",
+        totalSw.ElapsedMilliseconds,
         pluginList.Count,
         Settings.SkyrimDataPath);
-
-      // LoadOutfitsFromOutputPluginAsync is now handled by OutfitCreatorViewModel
     }
     catch (Exception ex)
     {

@@ -159,6 +159,8 @@ public class GameDataCacheService : IDisposable
 
   public bool IsLoading { get; private set; }
 
+  public bool ContainersLoaded { get; private set; }
+
   public ReadOnlyObservableCollection<NpcFilterData> AllNpcs { get; }
   public ReadOnlyObservableCollection<FactionRecordViewModel> AllFactions { get; }
   public ReadOnlyObservableCollection<RaceRecordViewModel> AllRaces { get; }
@@ -241,14 +243,6 @@ public class GameDataCacheService : IDisposable
         }
       }
 
-      List<FactionRecordViewModel>   factionsList;
-      List<RaceRecordViewModel>      racesList;
-      List<KeywordRecordViewModel>   keywordsList;
-      List<ClassRecordViewModel>     classesList;
-      List<LocationRecordViewModel>  locationsList;
-      List<IOutfitGetter>            outfitsList;
-      List<ContainerRecordViewModel> containersList;
-
       var factionsTask  = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
       var racesTask     = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
       var keywordsTask  = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
@@ -256,38 +250,14 @@ public class GameDataCacheService : IDisposable
       var locationsTask = Task.Run(() => RecordLoaders.LoadLocations(linkCache, IsBlacklisted));
       var outfitsTask   = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
 
-      if (_guiSettings.ShowContainersTab)
-      {
-        var containersTask = Task.Run(() => _containerDataBuilder.LoadContainers(linkCache, IsBlacklisted));
-        await Task.WhenAll(
-                    factionsTask,
-                    racesTask,
-                    keywordsTask,
-                    classesTask,
-                    locationsTask,
-                    outfitsTask,
-                    containersTask)
-                  .ContinueWith(_ => { });
-        factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
-        racesList      = await SafeAwaitAsync(racesTask, "Races");
-        keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
-        classesList    = await SafeAwaitAsync(classesTask, "Classes");
-        locationsList  = await SafeAwaitAsync(locationsTask, "Locations");
-        outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
-        containersList = await SafeAwaitAsync(containersTask, "Containers");
-      }
-      else
-      {
-        await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, locationsTask, outfitsTask)
-                  .ContinueWith(_ => { });
-        factionsList   = await SafeAwaitAsync(factionsTask, "Factions");
-        racesList      = await SafeAwaitAsync(racesTask, "Races");
-        keywordsList   = await SafeAwaitAsync(keywordsTask, "Keywords");
-        classesList    = await SafeAwaitAsync(classesTask, "Classes");
-        locationsList  = await SafeAwaitAsync(locationsTask, "Locations");
-        outfitsList    = await SafeAwaitAsync(outfitsTask, "Outfits");
-        containersList = [];
-      }
+      await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, locationsTask, outfitsTask)
+                .ContinueWith(_ => { });
+      var factionsList  = await SafeAwaitAsync(factionsTask, "Factions");
+      var racesList     = await SafeAwaitAsync(racesTask, "Races");
+      var keywordsList  = await SafeAwaitAsync(keywordsTask, "Keywords");
+      var classesList   = await SafeAwaitAsync(classesTask, "Classes");
+      var locationsList = await SafeAwaitAsync(locationsTask, "Locations");
+      var outfitsList   = await SafeAwaitAsync(outfitsTask, "Outfits");
 
       var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID);
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
@@ -447,20 +417,11 @@ public class GameDataCacheService : IDisposable
         cache.AddOrUpdate(outfitsList.Select(o => new OutfitRecordViewModel(o)));
       });
 
-      _containersSource.Edit(cache =>
-      {
-        cache.Clear();
-        cache.AddOrUpdate(containersList);
-      });
-
       await LoadDistributionDataAsync(npcFilterDataList);
 
       IsLoaded = true;
-      var logMessage = _guiSettings.ShowContainersTab
-                         ? "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {LocationCount} locations, {KeywordCount} keywords, {OutfitCount} outfits, {ContainerCount} containers, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments."
-                         : "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {LocationCount} locations, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments. (Containers skipped - feature disabled)";
       _logger.Information(
-        logMessage,
+        "Game data cache loaded: {NpcCount} NPCs, {FactionCount} factions, {RaceCount} races, {ClassCount} classes, {LocationCount} locations, {KeywordCount} keywords, {OutfitCount} outfits, {FileCount} distribution files, {AssignmentCount} NPC outfit assignments.",
         npcFilterDataList.Count,
         factionsList.Count,
         racesList.Count,
@@ -468,7 +429,6 @@ public class GameDataCacheService : IDisposable
         locationsList.Count,
         keywordsList.Count,
         outfitsList.Count,
-        containersList.Count,
         AllDistributionFiles.Count,
         AllNpcOutfitAssignments.Count);
 
@@ -487,7 +447,8 @@ public class GameDataCacheService : IDisposable
 
   public async Task ReloadAsync()
   {
-    IsLoaded = false;
+    IsLoaded         = false;
+    ContainersLoaded = false;
     await _mutagenService.RefreshLinkCacheAsync(_settings.PatchFileName);
     await LoadAsync();
   }
@@ -525,6 +486,40 @@ public class GameDataCacheService : IDisposable
     }
 
     await LoadAsync();
+  }
+
+  public async Task EnsureContainersLoadedAsync()
+  {
+    if (ContainersLoaded || !_guiSettings.ShowContainersTab)
+    {
+      return;
+    }
+
+    await EnsureLoadedAsync();
+
+    if (_mutagenService.LinkCache is not { } linkCache)
+    {
+      return;
+    }
+
+    try
+    {
+      _logger.Information("Loading container data (deferred)...");
+      var containersList = await Task.Run(() => _containerDataBuilder.LoadContainers(linkCache, IsBlacklisted));
+
+      _containersSource.Edit(cache =>
+      {
+        cache.Clear();
+        cache.AddOrUpdate(containersList);
+      });
+
+      ContainersLoaded = true;
+      _logger.Information("Container data loaded: {Count} containers.", containersList.Count);
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Failed to load container data.");
+    }
   }
 
   private async Task<T> SafeAwaitAsync<T>(Task<T> task, string taskName)

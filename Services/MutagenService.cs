@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using Boutique.Models;
@@ -21,6 +22,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
   private          IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
+  private          Task<IEnumerable<string>>? _pluginsWithArmorsOrOutfitsTask;
 
   public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
@@ -142,6 +144,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
   private void BuildEnvironment(string? explicitDataPath)
   {
+    var sw = Stopwatch.StartNew();
+
     _environment = string.IsNullOrEmpty(explicitDataPath)
                      ? GameEnvironment.Typical.Builder<ISkyrimMod, ISkyrimModGetter>(GetGameRelease())
                                       .WithUtf8Encoding()
@@ -152,6 +156,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
                                       .Build();
 
     LinkCache = _environment.LoadOrder.ToImmutableLinkCache();
+
+    _logger.Information("BuildEnvironment completed in {Elapsed}ms.", sw.ElapsedMilliseconds);
   }
 
   public async Task<IEnumerable<string>> GetAvailablePluginsAsync(bool excludeBlacklisted = true) =>
@@ -208,41 +214,50 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
     });
   }
 
-  public async Task<IEnumerable<string>> GetPluginsWithArmorsOrOutfitsAsync()
+  public Task<IEnumerable<string>> GetPluginsWithArmorsOrOutfitsAsync()
   {
-    var allPlugins = await GetAvailablePluginsAsync();
-
-    return await Task.Run(() =>
+    if (LinkCache is null)
     {
-      var result = new List<string>();
+      return Task.FromResult<IEnumerable<string>>([]);
+    }
 
-      foreach (var pluginFileName in allPlugins)
+    return _pluginsWithArmorsOrOutfitsTask ??= ScanPluginsWithArmorsOrOutfitsAsync();
+  }
+
+  private async Task<IEnumerable<string>> ScanPluginsWithArmorsOrOutfitsAsync()
+  {
+    var sw = Stopwatch.StartNew();
+
+    var result = await Task.Run(() =>
+    {
+      var plugins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+      foreach (var armor in LinkCache!.WinningOverrides<IArmorGetter>())
       {
-        var pluginPath = Path.Combine(DataFolderPath!, pluginFileName);
-        if (!File.Exists(pluginPath))
+        if (!string.IsNullOrWhiteSpace(armor.Name?.String)
+            && !IsBlacklisted(armor.FormKey.ModKey.FileName))
         {
-          continue;
-        }
-
-        try
-        {
-          using var mod        = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease(), Utf8ReadParameters);
-          var       hasArmors  = mod.Armors.Any(a => !string.IsNullOrWhiteSpace(a.Name?.String));
-          var       hasOutfits = mod.Outfits.Any();
-
-          if (hasArmors || hasOutfits)
-          {
-            result.Add(pluginFileName);
-          }
-        }
-        catch
-        {
-          // Skip plugins that can't be read
+          plugins.Add(armor.FormKey.ModKey.FileName);
         }
       }
 
-      return result;
+      foreach (var outfit in LinkCache.WinningOverrides<IOutfitGetter>())
+      {
+        if (!IsBlacklisted(outfit.FormKey.ModKey.FileName))
+        {
+          plugins.Add(outfit.FormKey.ModKey.FileName);
+        }
+      }
+
+      return plugins.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();
     });
+
+    _logger.Information(
+      "GetPluginsWithArmorsOrOutfitsAsync completed in {Elapsed}ms ({Count} plugins).",
+      sw.ElapsedMilliseconds,
+      result.Count);
+
+    return result;
   }
 
   public async Task RefreshLinkCacheAsync(string? expectedPlugin = null)
@@ -254,6 +269,8 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
 
     var previousCount = _environment?.LoadOrder.Count ?? 0;
     _logger.Information("Refreshing LinkCache (current load order: {PreviousCount} mod(s))...", previousCount);
+
+    _pluginsWithArmorsOrOutfitsTask = null;
 
     await Task.Run(() =>
     {
@@ -320,6 +337,7 @@ public class MutagenService(ILoggingService loggingService, PatcherSettings sett
   public void ReleaseLinkCache()
   {
     _logger.Debug("Releasing LinkCache file handles...");
+    _pluginsWithArmorsOrOutfitsTask = null;
     _environment?.Dispose();
     _environment = null;
     LinkCache    = null;
