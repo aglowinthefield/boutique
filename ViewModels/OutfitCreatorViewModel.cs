@@ -652,6 +652,13 @@ public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private async Task LoadOutfitPluginsAsync()
   {
     var plugins = await _mutagenService.GetPluginsWithArmorsOrOutfitsAsync();
+
+    var current = new HashSet<string>(_outfitPluginsSource.Items, StringComparer.OrdinalIgnoreCase);
+    if (current.SetEquals(plugins))
+    {
+      return;
+    }
+
     _outfitPluginsSource.Edit(list =>
     {
       list.Clear();
