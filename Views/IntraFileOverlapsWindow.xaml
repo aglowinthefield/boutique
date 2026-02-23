@@ -1,0 +1,55 @@
+<Window x:Class="Boutique.Views.IntraFileOverlapsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Intra-file Overlaps"
+        SizeToContent="WidthAndHeight"
+        MinWidth="400" MinHeight="300"
+        MaxWidth="1200" MaxHeight="800"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        BorderThickness="0"
+        Background="{StaticResource Brush.CardBackground}">
+
+  <Grid Margin="20">
+    <Grid.LayoutTransform>
+      <ScaleTransform x:Name="RootScaleTransform" ScaleX="1" ScaleY="1" />
+    </Grid.LayoutTransform>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+      <TextBlock x:Name="HeaderText"
+                 FontSize="16"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource Brush.Accent}"
+                 Margin="0,0,0,6" />
+      <TextBlock Text="Shared NPC counts between outfit entries. Non-zero cells indicate NPCs targeted by multiple outfits."
+                 TextWrapping="Wrap"
+                 FontSize="12"
+                 Foreground="{StaticResource Brush.TextSecondary}" />
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Background="{StaticResource Brush.CardBackground}"
+            CornerRadius="6"
+            BorderBrush="{StaticResource Brush.Border}"
+            BorderThickness="1">
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="8">
+        <Grid x:Name="MatrixGrid" />
+      </ScrollViewer>
+    </Border>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+      <Button Content="Close"
+              Click="CloseButton_Click"
+              MinWidth="100"
+              Padding="14,8" />
+    </StackPanel>
+  </Grid>
+</Window>

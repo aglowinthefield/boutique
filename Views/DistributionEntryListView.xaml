@@ -157,28 +157,15 @@
             <TextBlock Text="{Binding OverlapSummary}" TextWrapping="Wrap" Foreground="#0078D4" FontSize="11" />
           </StackPanel>
         </Border>
-        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
-                Visibility="{Binding HasIntraFileConflicts, Converter={StaticResource BoolToVisConverter}}">
-          <StackPanel>
-            <TextBlock Text="Intra-file Conflicts" FontWeight="Bold" Foreground="#CC6600" FontSize="11"
-                       Margin="0,0,0,4" />
-            <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
-              <TextBlock Text="{Binding IntraFileConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600"
-                         FontSize="11" />
-            </ScrollViewer>
-          </StackPanel>
-        </Border>
-        <Border BorderBrush="#0078D4" BorderThickness="1" Background="#1A0078D4" CornerRadius="4" Padding="8"
-                Margin="0,6,0,0"
+        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasIntraFileOverlaps, Converter={StaticResource BoolToVisConverter}}">
-          <StackPanel>
-            <TextBlock Text="Intra-file Overlaps" FontWeight="Bold" Foreground="#0078D4" FontSize="11"
-                       Margin="0,0,0,4" />
-            <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
-              <TextBlock Text="{Binding IntraFileOverlapSummary}" TextWrapping="Wrap" Foreground="#0078D4"
-                         FontSize="11" />
-            </ScrollViewer>
-          </StackPanel>
+          <DockPanel>
+            <Button Content="View" DockPanel.Dock="Right" Padding="8,2"
+                    Command="{Binding ViewIntraFileOverlapsCommand}" />
+            <TextBlock Text="{Binding IntraFileOverlapCount, StringFormat='{}{0} intra-file overlaps'}"
+                       Foreground="{StaticResource Brush.Accent}" FontSize="11" FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+          </DockPanel>
         </Border>
       </StackPanel>
 

@@ -1,7 +1,6 @@
 namespace Boutique.Models;
 
 public sealed record IntraFileConflictResult(
-  bool HasConflicts,
-  string ConflictSummary,
-  bool HasOverlaps,
-  string OverlapSummary);
+  int TotalOverlappingNpcCount,
+  IReadOnlyList<string> OutfitNames,
+  IReadOnlyDictionary<(string, string), int> PairwiseOverlapCounts);

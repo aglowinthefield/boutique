@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
+using Boutique.Views;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Win32;
@@ -95,7 +96,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// </summary>
   [Reactive] private bool _hasExclusiveGroupDistributions;
 
-  [Reactive] private bool _hasIntraFileConflicts;
+  [Reactive] private bool _hasIntraFileOverlaps;
+
+  [Reactive] private int _intraFileOverlapCount;
 
   /// <summary>
   ///   True if any distribution entry is a keyword distribution.
@@ -105,11 +108,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   [Reactive] private PreviewLineHighlightRequest? _highlightRequest;
 
-  [Reactive] private string _intraFileConflictSummary = string.Empty;
-
-  [Reactive] private bool _hasIntraFileOverlaps;
-
-  [Reactive] private string _intraFileOverlapSummary = string.Empty;
+  private IntraFileConflictResult? _intraFileConflictResult;
 
   private bool _isBulkLoading;
 
@@ -535,10 +534,9 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
     if (_isBulkLoading || outfitEntries.Count < 2)
     {
-      HasIntraFileConflicts    = false;
-      IntraFileConflictSummary = string.Empty;
+      _intraFileConflictResult = null;
       HasIntraFileOverlaps     = false;
-      IntraFileOverlapSummary  = string.Empty;
+      IntraFileOverlapCount    = 0;
       return;
     }
 
@@ -546,10 +544,24 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
                    outfitEntries,
                    _cache.AllNpcs.ToList(),
                    _cache.SimulatedKeywordsByNpc);
-    HasIntraFileConflicts    = result.HasConflicts;
-    IntraFileConflictSummary = result.ConflictSummary;
-    HasIntraFileOverlaps     = result.HasOverlaps;
-    IntraFileOverlapSummary  = result.OverlapSummary;
+    _intraFileConflictResult = result;
+    HasIntraFileOverlaps     = result.TotalOverlappingNpcCount > 0;
+    IntraFileOverlapCount    = result.TotalOverlappingNpcCount;
+  }
+
+  [ReactiveCommand]
+  private void ViewIntraFileOverlaps()
+  {
+    if (_intraFileConflictResult is null)
+    {
+      return;
+    }
+
+    var window = new IntraFileOverlapsWindow(_intraFileConflictResult)
+    {
+      Owner = Application.Current.MainWindow
+    };
+    window.Show();
   }
 
   private void SetupFilterPipelines()

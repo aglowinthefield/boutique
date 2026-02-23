@@ -160,8 +160,8 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
 
     var usedOutfitKeys = new HashSet<FormKey>(
       allAssignments
-        .Where(a => a.FinalOutfitFormKey.HasValue)
-        .Select(a => a.FinalOutfitFormKey!.Value));
+        .SelectMany(a => a.Distributions)
+        .Select(d => d.OutfitFormKey));
 
     var usedModOutfits = modOutfits
       .Where(o => usedOutfitKeys.Contains(o.FormKey))
