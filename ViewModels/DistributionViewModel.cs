@@ -176,6 +176,8 @@ public partial class DistributionViewModel : ReactiveObject
       _logger.Debug("Outfit copy requested from Outfits tab: {Description}", copiedOutfit.Description);
     };
 
+    ReportCardTab.RankingClicked += (_, args) => NavigateToNpcsTabFromRanking(args);
+
     EditTab.WhenAnyValue(vm => vm.CopiedFilter)
            .Subscribe(_ => this.RaisePropertyChanged(nameof(CopiedFilter)));
     EditTab.WhenAnyValue(vm => vm.HasCopiedFilter)
@@ -293,6 +295,30 @@ public partial class DistributionViewModel : ReactiveObject
 
   private static string GetFirstNonEmptyStatus(params string[] statuses) =>
     statuses.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ?? "Ready";
+
+  private void NavigateToNpcsTabFromRanking((RankingCategory Category, string Label) args)
+  {
+    NpcsTab.ClearFiltersCommand.Execute().Subscribe();
+
+    switch (args.Category)
+    {
+      case RankingCategory.Faction:
+        NpcsTab.SelectedFaction = NpcsTab.AvailableFactions
+          .FirstOrDefault(f => string.Equals(f.EditorID, args.Label, StringComparison.Ordinal));
+        break;
+      case RankingCategory.Class:
+        NpcsTab.SelectedClass = NpcsTab.AvailableClasses
+          .FirstOrDefault(c => string.Equals(c.EditorID, args.Label, StringComparison.Ordinal));
+        break;
+      case RankingCategory.Race:
+        NpcsTab.SelectedRace = NpcsTab.AvailableRaces
+          .FirstOrDefault(r => string.Equals(r.EditorID, args.Label, StringComparison.Ordinal));
+        break;
+    }
+
+    SelectedTabIndex = (int)DistributionTab.Npcs;
+    _logger.Debug("Navigated to NPCs tab from report card: {Category}={Label}", args.Category, args.Label);
+  }
 
   /// <summary>
   ///   Event raised when an outfit should be copied to the Outfit Creator tab.

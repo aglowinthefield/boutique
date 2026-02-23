@@ -102,6 +102,32 @@
         </TextBlock>
       </Grid>
     </DataTemplate>
+
+    <Style x:Key="ClickableRankingButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="2,1" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd"
+                    Background="{TemplateBinding Background}"
+                    Padding="{TemplateBinding Padding}"
+                    CornerRadius="3">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background"
+                        Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushBorderLight}}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </UserControl.Resources>
 
   <Grid Margin="8">
@@ -232,20 +258,50 @@
 
           <StackPanel Grid.Column="0" Margin="0,0,8,0">
             <TextBlock Text="Factions" Style="{StaticResource RankingColumnHeader}" />
-            <ItemsControl ItemsSource="{Binding UncoveredByFaction}"
-                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByFaction}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Style="{StaticResource ClickableRankingButton}"
+                          Command="{Binding DataContext.NavigateToFactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource RankingRowTemplate}" />
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
 
           <StackPanel Grid.Column="1" Margin="4,0,8,0">
             <TextBlock Text="Classes" Style="{StaticResource RankingColumnHeader}" />
-            <ItemsControl ItemsSource="{Binding UncoveredByClass}"
-                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByClass}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Style="{StaticResource ClickableRankingButton}"
+                          Command="{Binding DataContext.NavigateToClassCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource RankingRowTemplate}" />
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
 
           <StackPanel Grid.Column="2" Margin="4,0,8,0">
             <TextBlock Text="Races" Style="{StaticResource RankingColumnHeader}" />
-            <ItemsControl ItemsSource="{Binding UncoveredByRace}"
-                          ItemTemplate="{StaticResource RankingRowTemplate}" />
+            <ItemsControl ItemsSource="{Binding UncoveredByRace}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Style="{StaticResource ClickableRankingButton}"
+                          Command="{Binding DataContext.NavigateToRaceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource RankingRowTemplate}" />
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
 
           <StackPanel Grid.Column="3" Margin="4,0,0,0">

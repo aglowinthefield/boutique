@@ -8,6 +8,13 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
+public enum RankingCategory
+{
+  Faction,
+  Class,
+  Race
+}
+
 public partial class DistributionReportCardTabViewModel : ReactiveObject
 {
   private readonly GameDataCacheService _cache;
@@ -42,6 +49,20 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
     _logger     = logger.ForContext<DistributionReportCardTabViewModel>();
     _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
   }
+
+  public event EventHandler<(RankingCategory Category, string Label)>? RankingClicked;
+
+  [ReactiveCommand]
+  private void NavigateToFaction(UncoveredAttributeRanking ranking) =>
+    RankingClicked?.Invoke(this, (RankingCategory.Faction, ranking.Label));
+
+  [ReactiveCommand]
+  private void NavigateToClass(UncoveredAttributeRanking ranking) =>
+    RankingClicked?.Invoke(this, (RankingCategory.Class, ranking.Label));
+
+  [ReactiveCommand]
+  private void NavigateToRace(UncoveredAttributeRanking ranking) =>
+    RankingClicked?.Invoke(this, (RankingCategory.Race, ranking.Label));
 
   public ObservableCollection<UncoveredAttributeRanking> UncoveredByFaction { get; } = [];
   public ObservableCollection<UncoveredAttributeRanking> UncoveredByClass { get; } = [];
