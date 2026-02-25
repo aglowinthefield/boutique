@@ -142,12 +142,9 @@ public class KeywordDistributionResolver(ILogger logger)
     {
       var matchingNpcs = GetMatchingNpcs(entry, allNpcs, npcKeywords);
 
-      foreach (var npc in matchingNpcs)
+      foreach (var npc in matchingNpcs.Where(n => ShouldApplyChance(entry.Chance, n.FormKey)))
       {
-        if (ShouldApplyChance(entry.Chance, npc.FormKey))
-        {
-          npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
-        }
+        npcKeywords[npc.FormKey].Add(entry.KeywordIdentifier);
       }
 
       _logger.Debug(

@@ -31,15 +31,11 @@ public static class OutfitResolver
 
     var items = outfit.Items ?? [];
 
-    foreach (var itemLink in items)
+    foreach (var targetKey in items
+               .Select(itemLink => itemLink.FormKeyNullable)
+               .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
     {
-      var targetKeyNullable = itemLink.FormKeyNullable;
-      if (!targetKeyNullable.HasValue || targetKeyNullable.Value == FormKey.Null)
-      {
-        continue;
-      }
-
-      GatherArmorsFromItem(targetKeyNullable.Value, linkCache, pieces, visited, random, ref containsLeveledItems);
+      GatherArmorsFromItem(targetKey!.Value, linkCache, pieces, visited, random, ref containsLeveledItems);
     }
 
     return new OutfitArmorResult(pieces, containsLeveledItems);
@@ -93,15 +89,11 @@ public static class OutfitResolver
 
     containsLeveledItems = true;
 
-    foreach (var itemLink in items)
+    foreach (var formKey in items
+               .Select(itemLink => itemLink.FormKeyNullable)
+               .Where(fk => fk.HasValue && !fk.Value.IsNull))
     {
-      var formKeyNullable = itemLink.FormKeyNullable;
-      if (!formKeyNullable.HasValue || formKeyNullable.Value.IsNull)
-      {
-        continue;
-      }
-
-      GatherArmorsFromItem(formKeyNullable.Value, linkCache, pieces, visited, random, ref containsLeveledItems);
+      GatherArmorsFromItem(formKey!.Value, linkCache, pieces, visited, random, ref containsLeveledItems);
     }
   }
 
@@ -210,15 +202,11 @@ public static class OutfitResolver
     var visited = new HashSet<FormKey>();
     var items   = outfit.Items ?? [];
 
-    foreach (var itemLink in items)
+    foreach (var targetKey in items
+               .Select(itemLink => itemLink.FormKeyNullable)
+               .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
     {
-      var targetKey = itemLink.FormKeyNullable;
-      if (!targetKey.HasValue || targetKey.Value == FormKey.Null)
-      {
-        continue;
-      }
-
-      var childNode = BuildTreeNode(targetKey.Value, linkCache, visited);
+      var childNode = BuildTreeNode(targetKey!.Value, linkCache, visited);
       if (childNode != null)
       {
         root.Children.Add(childNode);
@@ -290,15 +278,11 @@ public static class OutfitResolver
           OutfitTreeNodeType.FormList,
           formList.FormKey);
 
-        foreach (var itemLink in formList.Items)
+        foreach (var itemFormKey in formList.Items
+                   .Select(itemLink => itemLink.FormKeyNullable)
+                   .Where(fk => fk.HasValue && !fk.Value.IsNull))
         {
-          var itemFormKey = itemLink.FormKeyNullable;
-          if (!itemFormKey.HasValue || itemFormKey.Value.IsNull)
-          {
-            continue;
-          }
-
-          var childNode = BuildTreeNode(itemFormKey.Value, linkCache, visited);
+          var childNode = BuildTreeNode(itemFormKey!.Value, linkCache, visited);
           if (childNode != null)
           {
             node.Children.Add(childNode);

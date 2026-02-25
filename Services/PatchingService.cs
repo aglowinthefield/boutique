@@ -596,22 +596,18 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
           if (outfit.Items != null)
           {
-            foreach (var itemLink in outfit.Items)
+            foreach (var formKey in outfit.Items
+                       .Select(itemLink => itemLink.FormKeyNullable)
+                       .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
+                       .Select(fk => fk!.Value))
             {
-              var formKeyNullable = itemLink.FormKeyNullable;
-
-              if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
-              {
-                continue;
-              }
-
-              var itemModKey = formKeyNullable.Value.ModKey;
+              var itemModKey = formKey.ModKey;
               if (!missingMasterSet.Contains(itemModKey))
               {
                 continue;
               }
 
-              orphanedFormKeys.Add(formKeyNullable.Value);
+              orphanedFormKeys.Add(formKey);
               affectingMasters.Add(itemModKey);
             }
           }
@@ -757,14 +753,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       {
         case IOutfitGetter { Items: not null } outfitRecord:
         {
-          foreach (var item in outfitRecord.Items)
+          foreach (var formKey in outfitRecord.Items
+                     .Select(item => item.FormKeyNullable)
+                     .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
           {
-            var formKey = item.FormKeyNullable;
-
-            if (formKey.HasValue && formKey.Value != FormKey.Null)
-            {
-              AddMaster(formKey.Value.ModKey);
-            }
+            AddMaster(formKey!.Value.ModKey);
           }
 
           break;

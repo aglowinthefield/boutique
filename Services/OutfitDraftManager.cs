@@ -383,15 +383,11 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
       var itemLinks   = outfit.Items ?? [];
       var armorPieces = new List<IArmorGetter>();
 
-      foreach (var entry in itemLinks)
+      foreach (var formKey in itemLinks
+                 .Select(entry => entry.FormKeyNullable)
+                 .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
+                 .Select(fk => fk!.Value))
       {
-        var formKeyNullable = entry.FormKeyNullable;
-        if (!formKeyNullable.HasValue || formKeyNullable.Value == FormKey.Null)
-        {
-          continue;
-        }
-
-        var formKey = formKeyNullable.Value;
 
         if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
         {

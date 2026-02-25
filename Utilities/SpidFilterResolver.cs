@@ -27,9 +27,9 @@ public sealed class FormIdLookupCache
     Dictionary<uint, FormKey> dict)
     where T : class, ISkyrimMajorRecordGetter
   {
-    foreach (var record in linkCache.WinningOverrides<T>())
+    foreach (var formKey in linkCache.WinningOverrides<T>().Select(record => record.FormKey))
     {
-      dict.TryAdd(record.FormKey.ID, record.FormKey);
+      dict.TryAdd(formKey.ID, formKey);
     }
   }
 }
@@ -525,9 +525,9 @@ public static class SpidFilterResolver
       }
     }
 
-    foreach (var exclusion in formFilters.GlobalExclusions)
+    foreach (var value in formFilters.GlobalExclusions.Select(exclusion => exclusion.Value))
     {
-      var exclusionPart = new SpidFilterPart { Value = exclusion.Value, IsNegated = true };
+      var exclusionPart = new SpidFilterPart { Value = value, IsNegated = true };
       if (TryResolveFormFilterByFormKey(
         exclusionPart,
         linkCache,
@@ -543,12 +543,12 @@ public static class SpidFilterResolver
         continue;
       }
 
-      if (TryResolveAndAddFilter<IFactionGetter>(exclusion.Value, true, linkCache, factionFilters, resolvedEditorIds))
+      if (TryResolveAndAddFilter<IFactionGetter>(value, true, linkCache, factionFilters, resolvedEditorIds))
       {
         continue;
       }
 
-      TryResolveAndAddFilter<IRaceGetter>(exclusion.Value, true, linkCache, raceFilters, resolvedEditorIds);
+      TryResolveAndAddFilter<IRaceGetter>(value, true, linkCache, raceFilters, resolvedEditorIds);
     }
   }
 
@@ -851,12 +851,11 @@ public static class SpidFilterResolver
       }
     }
 
-    foreach (var exclusion in stringFilters.GlobalExclusions)
+    foreach (var value in stringFilters.GlobalExclusions
+               .Select(exclusion => exclusion.Value)
+               .Where(v => !IsResolved(v)))
     {
-      if (!IsResolved(exclusion.Value))
-      {
-        unresolvableParts.Add($"-{exclusion.Value}");
-      }
+      unresolvableParts.Add($"-{value}");
     }
 
     return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;
@@ -888,12 +887,11 @@ public static class SpidFilterResolver
       }
     }
 
-    foreach (var exclusion in formFilters.GlobalExclusions)
+    foreach (var value in formFilters.GlobalExclusions
+               .Select(exclusion => exclusion.Value)
+               .Where(v => !resolvedEditorIds.Contains(v)))
     {
-      if (!resolvedEditorIds.Contains(exclusion.Value))
-      {
-        unresolvableParts.Add($"-{exclusion.Value}");
-      }
+      unresolvableParts.Add($"-{value}");
     }
 
     return unresolvableParts.Count > 0 ? string.Join(",", unresolvableParts) : null;

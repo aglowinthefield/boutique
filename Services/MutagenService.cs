@@ -241,12 +241,11 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
         }
       }
 
-      foreach (var outfit in LinkCache.WinningOverrides<IOutfitGetter>())
+      foreach (var fileName in LinkCache.WinningOverrides<IOutfitGetter>()
+                 .Select(outfit => outfit.FormKey.ModKey.FileName)
+                 .Where(fn => !IsBlacklisted(fn)))
       {
-        if (!IsBlacklisted(outfit.FormKey.ModKey.FileName))
-        {
-          plugins.Add(outfit.FormKey.ModKey.FileName);
-        }
+        plugins.Add(fileName);
       }
 
       return plugins.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();

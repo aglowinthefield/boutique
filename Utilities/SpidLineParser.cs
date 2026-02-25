@@ -415,14 +415,16 @@ public static class SpidLineParser
 
     foreach (var expr in filter.StringFilters.Expressions)
     {
-      foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
+      foreach (var value in expr.Parts
+                 .Where(p => !p.HasWildcard && !p.IsNegated)
+                 .Select(p => p.Value))
       {
-        if (keywordEditorIds != null && keywordEditorIds.Contains(part.Value))
+        if (keywordEditorIds != null && keywordEditorIds.Contains(value))
         {
           continue;
         }
 
-        results.Add(part.Value);
+        results.Add(value);
       }
     }
 
@@ -441,11 +443,13 @@ public static class SpidLineParser
 
     foreach (var expr in filter.StringFilters.Expressions)
     {
-      foreach (var part in expr.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
+      foreach (var value in expr.Parts
+                 .Where(p => !p.HasWildcard && !p.IsNegated)
+                 .Select(p => p.Value))
       {
-        if (keywordEditorIds == null || keywordEditorIds.Contains(part.Value))
+        if (keywordEditorIds == null || keywordEditorIds.Contains(value))
         {
-          results.Add(part.Value);
+          results.Add(value);
         }
       }
     }

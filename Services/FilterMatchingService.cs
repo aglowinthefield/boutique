@@ -378,15 +378,12 @@ public static class FilterMatchingService
       return true;
     }
 
-    foreach (var exclusion in filters.GlobalExclusions)
+    if (filters.GlobalExclusions.Any(exclusion => MatchesStringPart(
+          npc,
+          new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
+          virtualKeywords)))
     {
-      if (MatchesStringPart(
-        npc,
-        new SpidFilterPart { Value = exclusion.Value, IsNegated = false },
-        virtualKeywords))
-      {
-        return false;
-      }
+      return false;
     }
 
     if (filters.Expressions.Count == 0)

@@ -232,12 +232,11 @@ public static class NpcDataBuilder
       matchKeys.Add(kw);
     }
 
-    foreach (var f in filterData.Factions)
+    foreach (var factionEditorId in filterData.Factions
+               .Select(f => f.FactionEditorId)
+               .Where(id => !string.IsNullOrWhiteSpace(id)))
     {
-      if (!string.IsNullOrWhiteSpace(f.FactionEditorId))
-      {
-        matchKeys.Add(f.FactionEditorId);
-      }
+      matchKeys.Add(factionEditorId);
     }
 
     if (!string.IsNullOrWhiteSpace(filterData.RaceEditorId))

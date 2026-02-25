@@ -241,10 +241,10 @@ public class NpcOutfitResolutionService(
 
     if (skyPatcherLines.Count > 0)
     {
-      foreach (var line in skyPatcherLines)
+      foreach (var rawText in skyPatcherLines.Select(line => line.RawText))
       {
         var results = new List<(FormKey NpcFormKey, FormKey OutfitFormKey, string? OutfitEditorId)>();
-        ParseSkyPatcherLineCore(line.RawText, linkCache, outfitByEditorId, results);
+        ParseSkyPatcherLineCore(rawText, linkCache, outfitByEditorId, results);
 
         foreach (var (npcFormKey, outfitFormKey, outfitEditorId) in results)
         {
@@ -258,7 +258,7 @@ public class NpcOutfitResolutionService(
               outfitEditorId,
               processingOrder,
               false,
-              line.RawText,
+              rawText,
               "Specific NPC targeting"));
         }
       }

@@ -43,10 +43,10 @@ public sealed class ContainerRecordViewModel(
 
     var items = new List<ContainerContentItem>(container.Items.Count);
 
-    foreach (var entry in container.Items)
+    foreach (var item in container.Items.Select(entry => entry.Item))
     {
-      var itemLink = entry.Item.Item;
-      var count    = entry.Item.Count;
+      var itemLink = item.Item;
+      var count    = item.Count;
 
       if (itemLink.IsNull)
       {

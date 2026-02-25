@@ -779,14 +779,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
       return;
     }
 
-    var addedCount = 0;
-    foreach (var item in selectedItems)
-    {
-      if (addToEntry(SelectedEntry, item))
-      {
-        addedCount++;
-      }
-    }
+    var addedCount = selectedItems.Count(item => addToEntry(SelectedEntry, item));
 
     foreach (var item in selectedItems)
     {

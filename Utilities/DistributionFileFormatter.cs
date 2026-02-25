@@ -535,20 +535,17 @@ public static class DistributionFileFormatter
 
     var result = new List<string>();
 
-    foreach (var expr in section.Expressions)
+    foreach (var parts in section.Expressions
+               .Select(expr => expr.Parts)
+               .Where(p => p.Count > 0))
     {
-      if (expr.Parts.Count == 0)
-      {
-        continue;
-      }
-
-      var parts = expr.Parts.Select(part =>
+      var formatted = parts.Select(part =>
       {
         var prefix = part.IsNegated ? "-" : string.Empty;
         return $"{prefix}{part.Value}";
       });
 
-      result.Add(string.Join("+", parts));
+      result.Add(string.Join("+", formatted));
     }
 
     foreach (var exclusion in section.GlobalExclusions)

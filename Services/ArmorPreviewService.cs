@@ -80,22 +80,21 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
     var visitedParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    foreach (var piece in pieces)
+    foreach (var armor in pieces.Select(piece => piece.Armor))
     {
       cancellationToken.ThrowIfCancellationRequested();
 
-      var armor     = piece.Armor;
       var armorName = armor.Name?.String ?? armor.EditorID ?? "Unknown Armor";
 
-      foreach (var addonLink in armor.Armature)
+      foreach (var addonFormKey in armor.Armature.Select(addonLink => addonLink.FormKey))
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!linkCache.TryResolve<IArmorAddonGetter>(addonLink.FormKey, out var addon))
+        if (!linkCache.TryResolve<IArmorAddonGetter>(addonFormKey, out var addon))
         {
           _logger.Warning(
             "Failed to resolve ArmorAddon {FormKey} for armor {Armor}",
-            addonLink.FormKey,
+            addonFormKey,
             armorName);
           continue;
         }

@@ -11,7 +11,7 @@
     <RootNamespace>Boutique</RootNamespace>
     <ApplicationIcon>Assets\App.ico</ApplicationIcon>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <NoWarn>$(NoWarn);CS0436;CS1591;CS1570;CS1587</NoWarn>
+    <NoWarn>$(NoWarn);CS0436;CS1591;CS1570;CS1587;S1121</NoWarn>
 
     <!-- Versioning - automatically derived from git tags via MinVer -->
     <!-- Tag format: v1.2.3 → Version 1.2.3 -->
