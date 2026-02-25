@@ -1,5 +1,6 @@
 using System.Text;
 using Boutique.Models;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 
@@ -149,40 +150,10 @@ public static class NpcSpidSyntaxGenerator
 
     var filterParts = new List<string>();
 
-    // Faction filter
-    if (filter.Factions.Count > 0)
-    {
-      var factionFormKeys = filter.Factions
-                                  .Select(FormKeyHelper.Format)
-                                  .ToList();
-      filterParts.Add($"filterByFactions={string.Join(",", factionFormKeys)}");
-    }
-
-    // Keyword filter
-    if (filter.Keywords.Count > 0)
-    {
-      var keywordFormKeys = filter.Keywords
-                                  .Select(FormKeyHelper.Format)
-                                  .ToList();
-      filterParts.Add($"filterByKeywords={string.Join(",", keywordFormKeys)}");
-    }
-
-    // Race filter
-    if (filter.Races.Count > 0)
-    {
-      var raceFormKeys = filter.Races
-                               .Select(FormKeyHelper.Format)
-                               .ToList();
-      filterParts.Add($"filterByRaces={string.Join(",", raceFormKeys)}");
-    }
-
-    if (filter.Classes.Count > 0)
-    {
-      var classFormKeys = filter.Classes
-                                .Select(FormKeyHelper.Format)
-                                .ToList();
-      filterParts.Add($"filterByClass={string.Join(",", classFormKeys)}");
-    }
+    AddFormKeyFilter(filterParts, filter.Factions, "filterByFactions");
+    AddFormKeyFilter(filterParts, filter.Keywords, "filterByKeywords");
+    AddFormKeyFilter(filterParts, filter.Races, "filterByRaces");
+    AddFormKeyFilter(filterParts, filter.Classes, "filterByClass");
 
     if (filter.IsFemale.HasValue)
     {
@@ -337,5 +308,13 @@ public static class NpcSpidSyntaxGenerator
     }
 
     return string.Join(", ", parts);
+  }
+
+  private static void AddFormKeyFilter(List<string> filterParts, List<FormKey> formKeys, string filterName)
+  {
+    if (formKeys.Count > 0)
+    {
+      filterParts.Add($"{filterName}={string.Join(",", formKeys.Select(FormKeyHelper.Format))}");
+    }
   }
 }
