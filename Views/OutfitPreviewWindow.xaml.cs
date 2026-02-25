@@ -73,7 +73,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     InitializeViewport();
     InitializeGenderDropdown();
-    BuildScene();
+    _ = BuildScene();
 
     PreviewKeyDown += OnWindowPreviewKeyDown;
   }
@@ -164,7 +164,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     }
   }
 
-  private async void BuildScene()
+  private async Task BuildScene()
   {
     LoadingPanel.Visibility       = Visibility.Visible;
     MissingAssetsPanel.Visibility = Visibility.Collapsed;
@@ -188,7 +188,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private void OnRandomize(object sender, RoutedEventArgs e)
   {
     _sceneCollection.ClearCache();
-    BuildScene();
+    _ = BuildScene();
   }
 
   private void UpdateMetadataDisplay(int sceneIndex)
@@ -633,7 +633,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     }
 
     _currentGender = newGender;
-    BuildScene();
+    _ = BuildScene();
   }
 
   private void ToggleGender()
@@ -643,7 +643,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
                        : GenderedModelVariant.Female;
 
     GenderComboBox.SelectedIndex = _currentGender == GenderedModelVariant.Female ? 0 : 1;
-    BuildScene();
+    _ = BuildScene();
   }
 
   private void OnPreviousOutfit(object sender, RoutedEventArgs e) => NavigateOutfit(-1);
@@ -659,7 +659,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     _currentSceneIndex = (_currentSceneIndex + direction + _sceneCollection.Count)
                          % _sceneCollection.Count;
-    BuildScene();
+    _ = BuildScene();
   }
 
   private void OnWindowPreviewKeyDown(object? sender, KeyEventArgs e)
@@ -745,7 +745,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     _disposed = true;
   }
 
-  private record EvaluatedMesh(
+  private sealed record EvaluatedMesh(
     PreviewMeshShape Shape,
     IReadOnlyList<Vector3> Vertices,
     IReadOnlyList<Vector3> Normals);

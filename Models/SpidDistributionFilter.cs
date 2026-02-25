@@ -284,12 +284,12 @@ public sealed record SpidTraitFilters
     [
       (IsFemale, "Female", "Male"),
       (IsUnique, "Unique", "Non-Unique"),
-      (IsSummonable, "Summonable", ""),
+      (IsSummonable, "Summonable", string.Empty),
       (IsChild, "Child", "Adult"),
-      (IsLeveled, "Leveled", ""),
+      (IsLeveled, "Leveled", string.Empty),
       (IsTemplated, "Templated", "Non-Templated"),
-      (IsTeammate, "Teammate", ""),
-      (IsDead, "Dead", ""),
+      (IsTeammate, "Teammate", string.Empty),
+      (IsDead, "Dead", string.Empty),
     ];
 
     var parts = new List<string>();

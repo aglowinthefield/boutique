@@ -194,8 +194,7 @@ public class DistributionScannerService(ILogger logger)
         }
         else
         {
-          var equalsIndex = trimmed.IndexOf('=');
-          kind = equalsIndex >= 0 ? DistributionLineKind.KeyValue : DistributionLineKind.Other;
+          kind = trimmed.Contains('=') ? DistributionLineKind.KeyValue : DistributionLineKind.Other;
         }
 
         var                   isOutfitDistribution         = IsOutfitDistributionLine(type, kind, trimmed);

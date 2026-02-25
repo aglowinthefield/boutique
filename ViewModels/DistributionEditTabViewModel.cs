@@ -247,25 +247,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   public bool HasParseErrors => ActualParseErrors.Count > 0;
 
-  public ObservableCollection<DistributionEntryViewModel> DistributionEntries
-  {
-    get => _distributionEntries;
-    private set
-    {
-      var oldCollection = _distributionEntries;
-      if (oldCollection != null)
-      {
-        oldCollection.CollectionChanged -= OnDistributionEntriesChanged;
-      }
-
-      this.RaiseAndSetIfChanged(ref _distributionEntries, value);
-      if (value != null)
-      {
-        value.CollectionChanged += OnDistributionEntriesChanged;
-        this.RaisePropertyChanged(nameof(DistributionEntriesCount));
-      }
-    }
-  }
+  public ObservableCollection<DistributionEntryViewModel> DistributionEntries => _distributionEntries;
 
   private int DistributionEntriesCount => _distributionEntries.Count;
 
@@ -943,7 +925,6 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
     DetectConflicts();
 
     var finalFilePath = DistributionFilePath;
-    var finalFileName = Path.GetFileName(DistributionFilePath);
 
     if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
     {
@@ -975,7 +956,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
       if (result == MessageBoxResult.Yes)
       {
         var directory = Path.GetDirectoryName(DistributionFilePath);
-        finalFileName = SuggestedFileName;
+        var finalFileName = SuggestedFileName;
         if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
         {
           finalFileName += ".ini";
@@ -1389,18 +1370,12 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   private void RaiseHighlightForEntry(DistributionEntryViewModel entry)
   {
-    var effectiveFormat = DistributionEntries.Any(e => e.UseChance)
-                            ? DistributionFileType.Spid
-                            : DistributionFormat;
-
     var lineNumber = CalculateLineNumberForEntry(entry);
     if (lineNumber < 0)
     {
       return;
     }
 
-    var lines       = DistributionFileContent.Split('\n');
-    var lineContent = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
     HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
   }
 

@@ -9,7 +9,7 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
-public class DistributionConflictDetectionService
+public static class DistributionConflictDetectionService
 {
   public static ConflictDetectionResult DetectConflicts(
     IReadOnlyList<DistributionEntryViewModel> entries,

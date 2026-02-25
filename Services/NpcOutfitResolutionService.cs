@@ -521,7 +521,7 @@ public class NpcOutfitResolutionService(
     _logger.Debug("Found {Count} NPCs with ESP-provided default outfits", espOutfitCount);
   }
 
-  private record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
+  private sealed record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
 }
 
 public record NpcOutfitResolutionResult(

@@ -36,7 +36,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     _previewDraft   = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
     _duplicateDraft = duplicateDraft ?? (_ => Task.CompletedTask);
 
-    SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name, false);
+    SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name);
 
     _pieces                   =  new ObservableCollection<ArmorRecordViewModel>(pieces);
     _pieces.CollectionChanged += PiecesOnCollectionChanged;
@@ -62,7 +62,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   public string Name
   {
     get => _name;
-    set => SetNameInternal(value, true);
+    set => SetNameInternal(value);
   }
 
   public string EditorId { get; private set; } = string.Empty;
@@ -135,9 +135,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     this.RaisePropertyChanged(nameof(PieceCount));
   }
 
-#pragma warning disable SA1313
-  private void SetNameInternal(string? value, bool _)
-#pragma warning restore SA1313
+  private void SetNameInternal(string? value)
   {
     var sanitized = Sanitize(value);
     if (string.IsNullOrEmpty(sanitized))

@@ -17,7 +17,7 @@ public static class RecordLoader
     where TRecord : class, ISkyrimMajorRecordGetter
     where TViewModel : class
   {
-    var results = new List<TViewModel>();
+    List<TViewModel> results;
     var query = linkCache.WinningOverrides<TRecord>()
                          .Where(r => !isBlacklisted(r.FormKey.ModKey));
 
