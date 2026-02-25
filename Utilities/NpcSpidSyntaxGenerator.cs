@@ -207,35 +207,8 @@ public static class NpcSpidSyntaxGenerator
   /// <summary>
   ///   Formats trait filters for SPID output.
   /// </summary>
-  private static string? FormatTraitFilters(NpcSpidFilter filter)
-  {
-    if (!filter.HasTraitFilters)
-    {
-      return null;
-    }
-
-    ReadOnlySpan<(bool? value, string trueFlag, string falseFlag)> traitMappings =
-    [
-      (filter.IsFemale, "F", "M"),
-      (filter.IsUnique, "U", "-U"),
-      (filter.IsSummonable, "S", "-S"),
-      (filter.IsChild, "C", "-C"),
-      (filter.IsLeveled, "L", "-L"),
-      (filter.IsTeammate, "T", "-T"),
-      (filter.IsDead, "D", "-D"),
-    ];
-
-    var parts = new List<string>();
-    foreach (var (value, trueFlag, falseFlag) in traitMappings)
-    {
-      if (value.HasValue)
-      {
-        parts.Add(value.Value ? trueFlag : falseFlag);
-      }
-    }
-
-    return parts.Count > 0 ? string.Join("/", parts) : null;
-  }
+  private static string? FormatTraitFilters(NpcSpidFilter filter) =>
+    DistributionFileFormatter.FormatTraitFilters(filter.ToSpidTraitFilters());
 
   /// <summary>
   ///   Gets a human-readable description of the active filters.
