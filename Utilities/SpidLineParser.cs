@@ -158,48 +158,62 @@ public static class SpidLineParser
 
     if (tildeIndex >= 0 && (firstPipe < 0 || tildeIndex < firstPipe))
     {
-      var afterTilde  = valuePart[(tildeIndex + 1)..];
-      var modEndIndex = FormKeyHelper.FindModKeyEnd(afterTilde);
-
-      if (modEndIndex > 0)
+      var result = TryExtractTildeForm(valuePart, tildeIndex);
+      if (result.HasValue)
       {
-        var identifier = valuePart[..(tildeIndex + 1 + modEndIndex)];
-        var remainder = afterTilde.Length > modEndIndex && afterTilde[modEndIndex] == '|'
-                          ? afterTilde[(modEndIndex + 1)..]
-                          : string.Empty;
-        return (identifier, remainder);
+        return result.Value;
       }
     }
 
     if (firstPipe >= 0)
     {
-      var firstPart = valuePart[..firstPipe];
-
-      if (FormKeyHelper.IsModKeyFileName(firstPart))
-      {
-        var afterFirstPipe = valuePart[(firstPipe + 1)..];
-        var secondPipe     = afterFirstPipe.IndexOf('|');
-
-        if (secondPipe >= 0)
-        {
-          var potentialFormId = afterFirstPipe[..secondPipe];
-          if (FormKeyHelper.LooksLikeFormId(potentialFormId))
-          {
-            var identifier = valuePart[..(firstPipe + 1 + secondPipe)];
-            var remainder  = afterFirstPipe[(secondPipe + 1)..];
-            return (identifier, remainder);
-          }
-        }
-        else if (FormKeyHelper.LooksLikeFormId(afterFirstPipe))
-        {
-          return (valuePart, string.Empty);
-        }
-      }
-
-      return (firstPart, valuePart[(firstPipe + 1)..]);
+      return ExtractPipeForm(valuePart, firstPipe);
     }
 
     return (valuePart, string.Empty);
+  }
+
+  private static (string Identifier, string Remainder)? TryExtractTildeForm(string valuePart, int tildeIndex)
+  {
+    var afterTilde  = valuePart[(tildeIndex + 1)..];
+    var modEndIndex = FormKeyHelper.FindModKeyEnd(afterTilde);
+
+    if (modEndIndex <= 0)
+    {
+      return null;
+    }
+
+    var identifier = valuePart[..(tildeIndex + 1 + modEndIndex)];
+    var remainder = afterTilde.Length > modEndIndex && afterTilde[modEndIndex] == '|'
+                      ? afterTilde[(modEndIndex + 1)..]
+                      : string.Empty;
+    return (identifier, remainder);
+  }
+
+  private static (string Identifier, string Remainder) ExtractPipeForm(string valuePart, int firstPipe)
+  {
+    var firstPart = valuePart[..firstPipe];
+
+    if (!FormKeyHelper.IsModKeyFileName(firstPart))
+    {
+      return (firstPart, valuePart[(firstPipe + 1)..]);
+    }
+
+    var afterFirstPipe = valuePart[(firstPipe + 1)..];
+    var secondPipe     = afterFirstPipe.IndexOf('|');
+
+    if (secondPipe >= 0 && FormKeyHelper.LooksLikeFormId(afterFirstPipe[..secondPipe]))
+    {
+      var identifier = valuePart[..(firstPipe + 1 + secondPipe)];
+      return (identifier, afterFirstPipe[(secondPipe + 1)..]);
+    }
+
+    if (secondPipe < 0 && FormKeyHelper.LooksLikeFormId(afterFirstPipe))
+    {
+      return (valuePart, string.Empty);
+    }
+
+    return (firstPart, valuePart[(firstPipe + 1)..]);
   }
 
   private static string? GetSection(string[] sections, int index)
@@ -241,21 +255,10 @@ public static class SpidLineParser
 
       if (trimmedExpr.StartsWith('-') && !trimmedExpr.Contains('+'))
       {
-        var exclusionValue = trimmedExpr[1..].Trim();
-        if (!string.IsNullOrWhiteSpace(exclusionValue))
+        var exclusion = TryParseGlobalExclusion(trimmedExpr);
+        if (exclusion != null)
         {
-          var exclusionPart = new SpidFilterPart { Value = exclusionValue, IsNegated = true };
-
-          if (FormKeyHelper.TryParse(exclusionValue, out var formKey))
-          {
-            exclusionPart.FormKey = formKey;
-          }
-          else if (FormKeyHelper.IsModKeyFileName(exclusionValue))
-          {
-            exclusionPart.IsModKey = true;
-          }
-
-          globalExclusions.Add(exclusionPart);
+          globalExclusions.Add(exclusion);
         }
 
         continue;
@@ -274,6 +277,28 @@ public static class SpidLineParser
     }
 
     return section;
+  }
+
+  private static SpidFilterPart? TryParseGlobalExclusion(string trimmedExpr)
+  {
+    var exclusionValue = trimmedExpr[1..].Trim();
+    if (string.IsNullOrWhiteSpace(exclusionValue))
+    {
+      return null;
+    }
+
+    var part = new SpidFilterPart { Value = exclusionValue, IsNegated = true };
+
+    if (FormKeyHelper.TryParse(exclusionValue, out var formKey))
+    {
+      part.FormKey = formKey;
+    }
+    else if (FormKeyHelper.IsModKeyFileName(exclusionValue))
+    {
+      part.IsModKey = true;
+    }
+
+    return part;
   }
 
   private static SpidFilterExpression ParseFilterExpression(string exprText)

@@ -162,30 +162,22 @@ public static class NpcSpidSyntaxGenerator
 
     // Note: SkyPatcher doesn't have direct filters for unique, templated, child, summonable, leveled
     // These are SPID-specific traits. We'll add a comment about this.
+    ReadOnlySpan<(bool? value, string name)> unsupportedTraits =
+    [
+      (filter.IsUnique, "Unique"),
+      (filter.IsTemplated, "Templated"),
+      (filter.IsChild, "Child"),
+      (filter.IsSummonable, "Summonable"),
+      (filter.IsLeveled, "Leveled"),
+    ];
+
     var unsupportedFilters = new List<string>();
-    if (filter.IsUnique.HasValue)
+    foreach (var (value, name) in unsupportedTraits)
     {
-      unsupportedFilters.Add($"Unique={(filter.IsUnique.Value ? "Yes" : "No")}");
-    }
-
-    if (filter.IsTemplated.HasValue)
-    {
-      unsupportedFilters.Add($"Templated={(filter.IsTemplated.Value ? "Yes" : "No")}");
-    }
-
-    if (filter.IsChild.HasValue)
-    {
-      unsupportedFilters.Add($"Child={(filter.IsChild.Value ? "Yes" : "No")}");
-    }
-
-    if (filter.IsSummonable.HasValue)
-    {
-      unsupportedFilters.Add($"Summonable={(filter.IsSummonable.Value ? "Yes" : "No")}");
-    }
-
-    if (filter.IsLeveled.HasValue)
-    {
-      unsupportedFilters.Add($"Leveled={(filter.IsLeveled.Value ? "Yes" : "No")}");
+      if (value.HasValue)
+      {
+        unsupportedFilters.Add($"{name}={(value.Value ? "Yes" : "No")}");
+      }
     }
 
     // Add outfit

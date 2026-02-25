@@ -147,48 +147,20 @@ public static class FormKeyHelper
     string? modCandidate = null;
     string? editorCandidate;
 
-    var pipeIndex  = trimmed.IndexOf('|');
-    var tildeIndex = trimmed.IndexOf('~');
-
-    if (pipeIndex >= 0)
+    var separatorIndex = trimmed.IndexOf('|');
+    if (separatorIndex < 0)
     {
-      var firstPart  = trimmed[..pipeIndex].Trim();
-      var secondPart = trimmed[(pipeIndex + 1)..].Trim();
-      if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
-      {
-        modKey          = modFromSecond;
-        editorCandidate = firstPart;
-      }
-      else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
-      {
-        modKey          = modFromFirst;
-        editorCandidate = secondPart;
-      }
-      else
-      {
-        editorCandidate = firstPart;
-        modCandidate    = secondPart;
-      }
+      separatorIndex = trimmed.IndexOf('~');
     }
-    else if (tildeIndex >= 0)
+
+    if (separatorIndex >= 0)
     {
-      var firstPart  = trimmed[..tildeIndex].Trim();
-      var secondPart = trimmed[(tildeIndex + 1)..].Trim();
-      if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
-      {
-        modKey          = modFromSecond;
-        editorCandidate = firstPart;
-      }
-      else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
-      {
-        modKey          = modFromFirst;
-        editorCandidate = secondPart;
-      }
-      else
-      {
-        editorCandidate = firstPart;
-        modCandidate    = secondPart;
-      }
+      SplitByModKey(
+        trimmed[..separatorIndex].Trim(),
+        trimmed[(separatorIndex + 1)..].Trim(),
+        out modKey,
+        out editorCandidate,
+        out modCandidate);
     }
     else
     {
@@ -248,6 +220,33 @@ public static class FormKeyHelper
     return outfitByEditorId.TryGetValue(identifier, out var resolvedFormKey)
              ? resolvedFormKey
              : null;
+  }
+
+  private static void SplitByModKey(
+    string firstPart,
+    string secondPart,
+    out ModKey? modKey,
+    out string editorCandidate,
+    out string? modCandidate)
+  {
+    modKey       = null;
+    modCandidate = null;
+
+    if (!string.IsNullOrWhiteSpace(secondPart) && TryParseModKey(secondPart, out var modFromSecond))
+    {
+      modKey          = modFromSecond;
+      editorCandidate = firstPart;
+    }
+    else if (!string.IsNullOrWhiteSpace(firstPart) && TryParseModKey(firstPart, out var modFromFirst))
+    {
+      modKey          = modFromFirst;
+      editorCandidate = secondPart;
+    }
+    else
+    {
+      editorCandidate = firstPart;
+      modCandidate    = secondPart;
+    }
   }
 
   public static IReadOnlyDictionary<string, FormKey> BuildOutfitEditorIdLookup(

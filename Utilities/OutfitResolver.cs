@@ -248,26 +248,11 @@ public static class OutfitResolver
           leveledItem.FormKey,
           flags);
 
-        var entries = leveledItem.Entries;
-        if (entries == null)
-        {
-          return node;
-        }
-
-        foreach (var entry in entries)
-        {
-          if (!TryGetEntryFormKey(entry, out var entryFormKey))
-          {
-            continue;
-          }
-
-          var childNode = BuildTreeNode(entryFormKey, linkCache, visited);
-          if (childNode != null)
-          {
-            node.Children.Add(childNode);
-          }
-        }
-
+        AddChildNodes(
+          node,
+          GetLeveledItemChildFormKeys(leveledItem),
+          linkCache,
+          visited);
         return node;
       }
 
@@ -278,22 +263,48 @@ public static class OutfitResolver
           OutfitTreeNodeType.FormList,
           formList.FormKey);
 
-        foreach (var itemFormKey in formList.Items
-                   .Select(itemLink => itemLink.FormKeyNullable)
-                   .Where(fk => fk.HasValue && !fk.Value.IsNull))
-        {
-          var childNode = BuildTreeNode(itemFormKey!.Value, linkCache, visited);
-          if (childNode != null)
-          {
-            node.Children.Add(childNode);
-          }
-        }
-
+        var childFormKeys = formList.Items
+                                    .Select(itemLink => itemLink.FormKeyNullable)
+                                    .Where(fk => fk.HasValue && !fk.Value.IsNull)
+                                    .Select(fk => fk!.Value);
+        AddChildNodes(node, childFormKeys, linkCache, visited);
         return node;
       }
 
       default:
         return null;
+    }
+  }
+
+  private static IEnumerable<FormKey> GetLeveledItemChildFormKeys(ILeveledItemGetter leveledItem)
+  {
+    if (leveledItem.Entries is not { } entries)
+    {
+      yield break;
+    }
+
+    foreach (var entry in entries)
+    {
+      if (TryGetEntryFormKey(entry, out var entryFormKey))
+      {
+        yield return entryFormKey;
+      }
+    }
+  }
+
+  private static void AddChildNodes(
+    OutfitTreeNode parent,
+    IEnumerable<FormKey> childFormKeys,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    HashSet<FormKey> visited)
+  {
+    foreach (var childFormKey in childFormKeys)
+    {
+      var childNode = BuildTreeNode(childFormKey, linkCache, visited);
+      if (childNode != null)
+      {
+        parent.Children.Add(childNode);
+      }
     }
   }
 

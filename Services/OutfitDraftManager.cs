@@ -380,41 +380,7 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
         continue;
       }
 
-      var itemLinks   = outfit.Items ?? [];
-      var armorPieces = new List<IArmorGetter>();
-
-      foreach (var formKey in itemLinks
-                 .Select(entry => entry.FormKeyNullable)
-                 .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
-                 .Select(fk => fk!.Value))
-      {
-        if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
-        {
-          _logger.Debug(
-            "Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
-            formKey,
-            outfit.EditorID ?? "(No EditorID)",
-            plugin);
-          continue;
-        }
-
-        if (item is not IArmorGetter armor)
-        {
-          _logger.Debug(
-            "Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
-            formKey,
-            item.GetType().Name,
-            outfit.EditorID ?? "(No EditorID)");
-          continue;
-        }
-
-        armorPieces.Add(armor);
-      }
-
-      var distinctPieces = armorPieces
-                           .GroupBy(p => p.FormKey)
-                           .Select(g => g.First())
-                           .ToList();
+      var distinctPieces = ResolveOutfitArmors(outfit, linkCache, plugin);
 
       if (distinctPieces.Count == 0)
       {
@@ -435,6 +401,46 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
     }
 
     return discoveredCount;
+  }
+
+  private List<IArmorGetter> ResolveOutfitArmors(
+    IOutfitGetter outfit,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    string plugin)
+  {
+    var armorPieces = new List<IArmorGetter>();
+    foreach (var formKey in (outfit.Items ?? [])
+               .Select(entry => entry.FormKeyNullable)
+               .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
+               .Select(fk => fk!.Value))
+    {
+      if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
+      {
+        _logger.Debug(
+          "Unable to resolve outfit item {FormKey} for outfit {EditorId} in {Plugin}.",
+          formKey,
+          outfit.EditorID ?? "(No EditorID)",
+          plugin);
+        continue;
+      }
+
+      if (item is not IArmorGetter armor)
+      {
+        _logger.Debug(
+          "Skipping non-armor item {FormKey} ({Type}) in outfit {EditorId}.",
+          formKey,
+          item.GetType().Name,
+          outfit.EditorID ?? "(No EditorID)");
+        continue;
+      }
+
+      armorPieces.Add(armor);
+    }
+
+    return armorPieces
+           .GroupBy(p => p.FormKey)
+           .Select(g => g.First())
+           .ToList();
   }
 
   public int CopyExistingOutfits(ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache)

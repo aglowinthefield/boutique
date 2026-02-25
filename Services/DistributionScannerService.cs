@@ -60,41 +60,11 @@ public class DistributionScannerService(ILogger logger)
 
       _logger.Debug("Found {Count} SPID distribution files (*_DISTR*.ini)", spidFileCount);
 
-      var skyPatcherRoot = PathUtilities.GetSkyPatcherRoot(dataFolderPath);
-      if (Directory.Exists(skyPatcherRoot))
-      {
-        _logger.Debug("SkyPatcher directory exists: {Path}", skyPatcherRoot);
-
-        var skyPatcherOptions = new EnumerationOptions
-                                {
-                                  RecurseSubdirectories    = true,
-                                  ReturnSpecialDirectories = false,
-                                  IgnoreInaccessible       = true,
-                                  MatchCasing              = MatchCasing.CaseInsensitive
-                                };
-        var skyFiles = Directory.EnumerateFiles(skyPatcherRoot, "*.ini*", skyPatcherOptions).ToList();
-
-        foreach (var iniFile in skyFiles)
-        {
-          cancellationToken.ThrowIfCancellationRequested();
-          if (seenPaths.Contains(iniFile))
-          {
-            continue;
-          }
-
-          if (IsSkyPatcherIni(dataFolderPath, iniFile))
-          {
-            skyPatcherFileCount++;
-            TryParse(iniFile, DistributionFileType.SkyPatcher);
-          }
-        }
-
-        _logger.Debug("Found {Count} SkyPatcher distribution files", skyPatcherFileCount);
-      }
-      else
-      {
-        _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
-      }
+      skyPatcherFileCount = DiscoverSkyPatcherFiles(
+        dataFolderPath,
+        seenPaths,
+        TryParse,
+        cancellationToken);
     }
     catch (OperationCanceledException ex)
     {
@@ -139,6 +109,50 @@ public class DistributionScannerService(ILogger logger)
         skippedCount++;
       }
     }
+  }
+
+  private int DiscoverSkyPatcherFiles(
+    string dataFolderPath,
+    HashSet<string> seenPaths,
+    Action<string, DistributionFileType> tryParse,
+    CancellationToken cancellationToken)
+  {
+    var skyPatcherRoot = PathUtilities.GetSkyPatcherRoot(dataFolderPath);
+    if (!Directory.Exists(skyPatcherRoot))
+    {
+      _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
+      return 0;
+    }
+
+    _logger.Debug("SkyPatcher directory exists: {Path}", skyPatcherRoot);
+
+    var skyPatcherOptions = new EnumerationOptions
+                            {
+                              RecurseSubdirectories    = true,
+                              ReturnSpecialDirectories = false,
+                              IgnoreInaccessible       = true,
+                              MatchCasing              = MatchCasing.CaseInsensitive
+                            };
+    var skyFiles = Directory.EnumerateFiles(skyPatcherRoot, "*.ini*", skyPatcherOptions).ToList();
+    var count    = 0;
+
+    foreach (var iniFile in skyFiles)
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      if (seenPaths.Contains(iniFile))
+      {
+        continue;
+      }
+
+      if (IsSkyPatcherIni(dataFolderPath, iniFile))
+      {
+        count++;
+        tryParse(iniFile, DistributionFileType.SkyPatcher);
+      }
+    }
+
+    _logger.Debug("Found {Count} SkyPatcher distribution files", count);
+    return count;
   }
 
   private static bool IsSkyPatcherIni(string dataFolderPath, string iniFile)

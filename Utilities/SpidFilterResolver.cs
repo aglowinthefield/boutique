@@ -832,18 +832,12 @@ public static class SpidFilterResolver
 
     foreach (var expr in stringFilters.Expressions)
     {
-      var exprParts = new List<string>();
-      foreach (var part in expr.Parts)
-      {
-        if (part.HasWildcard)
-        {
-          exprParts.Add(part.Value);
-        }
-        else if (!IsResolved(part.Value))
-        {
-          exprParts.Add(part.IsNegated ? $"-{part.Value}" : part.Value);
-        }
-      }
+      var exprParts = expr.Parts
+                          .Where(part => part.HasWildcard || !IsResolved(part.Value))
+                          .Select(part => part is { HasWildcard: false, IsNegated: true }
+                                           ? $"-{part.Value}"
+                                           : part.Value)
+                          .ToList();
 
       if (exprParts.Count > 0)
       {

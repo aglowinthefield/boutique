@@ -297,39 +297,7 @@ public static class FilterMatchingService
     foreach (var expression in expressions)
     {
       var parts = expression.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-      var allPartsMatch = true;
-
-      foreach (var part in parts)
-      {
-        var trimmedPart = part.Trim();
-        var isNegated = trimmedPart.StartsWith('-');
-        var value = isNegated ? trimmedPart[1..] : trimmedPart;
-        var hasWildcard = value.Contains('*');
-
-        bool matches;
-        if (hasWildcard)
-        {
-          var searchValue = value.Replace("*", string.Empty);
-          matches = PartialMatchesNpcStrings(npc, searchValue, virtualKeywords);
-        }
-        else
-        {
-          matches = ExactMatchesNpcStrings(npc, value, virtualKeywords);
-        }
-
-        if (isNegated)
-        {
-          matches = !matches;
-        }
-
-        if (!matches)
-        {
-          allPartsMatch = false;
-          break;
-        }
-      }
-
-      if (allPartsMatch)
+      if (parts.All(part => MatchesStringPart(npc, part.Trim(), virtualKeywords)))
       {
         return true;
       }
@@ -399,6 +367,22 @@ public static class FilterMatchingService
     SpidFilterExpression expression,
     IReadOnlySet<string>? virtualKeywords) =>
     expression.Parts.All(part => MatchesStringPart(npc, part, virtualKeywords));
+
+  private static bool MatchesStringPart(
+    NpcFilterData npc,
+    string part,
+    IReadOnlySet<string>? virtualKeywords)
+  {
+    var isNegated   = part.StartsWith('-');
+    var value       = isNegated ? part[1..] : part;
+    var hasWildcard = value.Contains('*');
+
+    var matches = hasWildcard
+                    ? PartialMatchesNpcStrings(npc, value.Replace("*", string.Empty), virtualKeywords)
+                    : ExactMatchesNpcStrings(npc, value, virtualKeywords);
+
+    return isNegated ? !matches : matches;
+  }
 
   private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part, IReadOnlySet<string>? virtualKeywords)
   {
