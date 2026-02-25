@@ -25,12 +25,21 @@ public sealed class ContainerRecordViewModel(
   public string DisplayName => string.IsNullOrEmpty(Name) ? EditorId : Name;
   public bool IsMerchantContainer => !string.IsNullOrEmpty(MerchantFaction);
 
-  public string CellPlacementsDisplay => CellPlacements.Count > 0
-                                           ? string.Join(", ", CellPlacements.Take(3)) +
-                                             (CellPlacements.Count > 3
-                                                ? $" (+{CellPlacements.Count - 3})"
-                                                : string.Empty)
-                                           : string.Empty;
+  public string CellPlacementsDisplay
+  {
+    get
+    {
+      if (CellPlacements.Count == 0)
+      {
+        return string.Empty;
+      }
+
+      var summary = string.Join(", ", CellPlacements.Take(3));
+      return CellPlacements.Count > 3
+               ? $"{summary} (+{CellPlacements.Count - 3})"
+               : summary;
+    }
+  }
 
   private static List<ContainerContentItem> ResolveItems(
     IContainerGetter container,

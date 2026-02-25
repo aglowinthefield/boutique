@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public partial class AutoUpdateService
+public static partial class AutoUpdateService
 {
 #pragma warning disable S1075
   private const string GitHubReleasesUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";

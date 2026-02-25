@@ -453,9 +453,13 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
                              ? GenderedModelVariant.Male
                              : GenderedModelVariant.Female;
 
-    return primary != null
-             ? (primary, preferred)
-             : (secondary, secondary != null ? alternateVariant : preferred);
+    if (primary != null)
+    {
+      return (primary, preferred);
+    }
+
+    var fallbackVariant = secondary != null ? alternateVariant : preferred;
+    return (secondary, fallbackVariant);
   }
 
   private static string? ResolveModelPath(ISimpleModelGetter model)

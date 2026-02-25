@@ -28,7 +28,6 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
-  private readonly AutoUpdateService   _autoUpdateService;
   private readonly GuiSettingsService  _guiSettings;
   private readonly LocalizationService _localizationService;
   private readonly ILoggingService     _loggingService;
@@ -55,15 +54,13 @@ public partial class SettingsViewModel : ReactiveObject
     ILoggingService loggingService,
     ThemeService themeService,
     LocalizationService localizationService,
-    MutagenService mutagenService,
-    AutoUpdateService autoUpdateService)
+    MutagenService mutagenService)
   {
     _settings            = settings;
     _guiSettings         = guiSettings;
     _loggingService      = loggingService;
     _themeService        = themeService;
     _localizationService = localizationService;
-    _autoUpdateService   = autoUpdateService;
     _mutagenService      = mutagenService;
 
     _mutagenService.Initialized += OnMutagenInitialized;

@@ -67,7 +67,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
 
   [Reactive] private CopiedNpcFilter? _copiedFilter;
 
-  private IReadOnlyList<DistributionParseError> _actualParseErrors = [];
+  private List<DistributionParseError> _actualParseErrors = [];
 
   private ObservableCollection<DistributionEntryViewModel> _distributionEntries = [];
 

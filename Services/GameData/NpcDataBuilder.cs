@@ -236,7 +236,7 @@ public static class NpcDataBuilder
                .Select(f => f.FactionEditorId)
                .Where(id => !string.IsNullOrWhiteSpace(id)))
     {
-      matchKeys.Add(factionEditorId);
+      matchKeys.Add(factionEditorId!);
     }
 
     if (!string.IsNullOrWhiteSpace(filterData.RaceEditorId))

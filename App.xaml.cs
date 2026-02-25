@@ -52,8 +52,6 @@ public partial class App
     builder.RegisterType<ThemeService>().SingleInstance();
     builder.RegisterType<GuiSettingsService>().SingleInstance();
     builder.RegisterType<LocalizationService>().SingleInstance();
-    builder.RegisterType<AutoUpdateService>().SingleInstance();
-
     builder.RegisterType<MainViewModel>().AsSelf().SingleInstance();
     builder.RegisterType<SettingsViewModel>().AsSelf().SingleInstance();
     builder.RegisterType<DistributionViewModel>().AsSelf().SingleInstance();

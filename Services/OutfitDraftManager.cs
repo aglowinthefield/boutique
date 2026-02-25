@@ -388,7 +388,6 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
                  .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
                  .Select(fk => fk!.Value))
       {
-
         if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
         {
           _logger.Debug(
