@@ -7,7 +7,7 @@
       <Parameters>
         <Parameter>
           <Key>threshold</Key>
-          <Value>20</Value>
+          <Value>25</Value>
         </Parameter>
       </Parameters>
     </Rule>
