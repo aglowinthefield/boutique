@@ -464,10 +464,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           {
             var delay = initialDelayMs * attempt;
             _logger.Debug(
-              "File replace attempt {Attempt}/{Max} failed ({Error}), retrying in {Delay}ms...",
+              ex,
+              "File replace attempt {Attempt}/{Max} failed, retrying in {Delay}ms...",
               attempt,
               maxRetries,
-              ex.GetType().Name,
               delay);
             Thread.Sleep(delay);
           }

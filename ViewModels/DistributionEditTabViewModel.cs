@@ -67,6 +67,8 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 
   [Reactive] private CopiedNpcFilter? _copiedFilter;
 
+  private IReadOnlyList<DistributionParseError> _actualParseErrors = [];
+
   private ObservableCollection<DistributionEntryViewModel> _distributionEntries = [];
 
   [Reactive] private string _distributionFileContent = string.Empty;
@@ -242,10 +244,18 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
   /// <summary>
   ///   Actual parse errors (excludes preserved lines like keyword distributions).
   /// </summary>
-  public IReadOnlyList<DistributionParseError> ActualParseErrors =>
-    ParseErrors.Where(e => !e.Reason.EndsWith("(preserved)", StringComparison.Ordinal)).ToList();
+  public IReadOnlyList<DistributionParseError> ActualParseErrors => _actualParseErrors;
 
-  public bool HasParseErrors => ActualParseErrors.Count > 0;
+  public bool HasParseErrors => _actualParseErrors.Count > 0;
+
+  private void RefreshActualParseErrors()
+  {
+    _actualParseErrors = ParseErrors
+                         .Where(e => !e.Reason.EndsWith("(preserved)", StringComparison.Ordinal))
+                         .ToList();
+    this.RaisePropertyChanged(nameof(ActualParseErrors));
+    this.RaisePropertyChanged(nameof(HasParseErrors));
+  }
 
   public ObservableCollection<DistributionEntryViewModel> DistributionEntries => _distributionEntries;
 
@@ -360,8 +370,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
             {
               DistributionEntries.Clear();
               ParseErrors = [];
-              this.RaisePropertyChanged(nameof(ActualParseErrors));
-              this.RaisePropertyChanged(nameof(HasParseErrors));
+              RefreshActualParseErrors();
               ResetConflictState();
             }
             finally
@@ -1050,8 +1059,7 @@ public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
         await _fileWriterService.LoadDistributionFileWithErrorsAsync(DistributionFilePath);
       DistributionFormat = detectedFormat;
       ParseErrors        = parseErrors;
-      this.RaisePropertyChanged(nameof(ActualParseErrors));
-      this.RaisePropertyChanged(nameof(HasParseErrors));
+      RefreshActualParseErrors();
 
       await LoadAvailableOutfitsAsync();
       _isBulkLoading = true;

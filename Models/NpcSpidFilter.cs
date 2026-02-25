@@ -151,25 +151,16 @@ public class NpcSpidFilter
       }
     }
 
-    if (Races.Count > 0)
+    if (Races.Count > 0 &&
+        (!npc.RaceFormKey.HasValue || !Races.Contains(npc.RaceFormKey.Value)))
     {
-      if (!npc.RaceFormKey.HasValue || !Races.Contains(npc.RaceFormKey.Value))
-      {
-        return false;
-      }
+      return false;
     }
 
-    if (Classes.Count > 0)
+    if (Classes.Count > 0 &&
+        (!npc.ClassFormKey.HasValue || !Classes.Contains(npc.ClassFormKey.Value)))
     {
-      if (!npc.ClassFormKey.HasValue || !Classes.Contains(npc.ClassFormKey.Value))
-      {
-        return false;
-      }
-    }
-
-    // Keyword matching requires LinkCache - handled in ViewModel
-    if (Keywords.Count > 0)
-    {
+      return false;
     }
 
     if (MinLevel.HasValue && npc.Level < MinLevel.Value)

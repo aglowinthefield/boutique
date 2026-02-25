@@ -890,11 +890,7 @@ public partial class ArmorMatchViewModel : ReactiveObject
     ApplyTargetInternal(target);
   }
 
-  public void ApplyAutoTarget(ArmorRecordViewModel target)
-  {
-    Match.IsGlamOnly = false;
-    ApplyTargetInternal(target);
-  }
+  public void ApplyAutoTarget(ArmorRecordViewModel target) => ApplyManualTarget(target);
 
   public void ClearTarget()
   {

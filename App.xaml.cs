@@ -77,11 +77,10 @@ public partial class App
 
     if (GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {
-      var autoUpdateService = Container.Resolve<AutoUpdateService>();
       _ = Task.Run(async () =>
       {
         await Task.Delay(1500);
-        Current.Dispatcher.Invoke(() => autoUpdateService.CheckForUpdates());
+        Current.Dispatcher.Invoke(AutoUpdateService.CheckForUpdates);
       });
     }
   }

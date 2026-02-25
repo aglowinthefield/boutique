@@ -247,7 +247,7 @@ public partial class SettingsViewModel : ReactiveObject
   }
 
   [ReactiveCommand]
-  private void TestAutoUpdate() => _autoUpdateService.CheckForUpdates(true);
+  private static void TestAutoUpdate() => AutoUpdateService.CheckForUpdates(true);
 
   [ReactiveCommand]
   private void BrowseDataPath()
@@ -466,7 +466,7 @@ public partial class SettingsViewModel : ReactiveObject
   private async void OnMutagenInitialized(object? sender, EventArgs e)
   {
     var plugins = await _mutagenService.GetAvailablePluginsAsync(false);
-    Application.Current.Dispatcher.Invoke(() =>
-                                            AvailableBlacklistPlugins = new ObservableCollection<string>(plugins));
+    await Application.Current.Dispatcher.InvokeAsync(() =>
+                                                       AvailableBlacklistPlugins = new ObservableCollection<string>(plugins));
   }
 }

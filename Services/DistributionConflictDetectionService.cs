@@ -145,7 +145,7 @@ public static class DistributionConflictDetectionService
   }
 
   private static string BuildIssueSummary(
-    IReadOnlyList<NpcConflictInfo> issues,
+    List<NpcConflictInfo> issues,
     bool loadsAfter,
     bool hasAllNpcsIssue,
     string resolvedMessage,

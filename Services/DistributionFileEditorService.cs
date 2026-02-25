@@ -163,9 +163,9 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                    detectedFormat,
                    parseErrors.Count);
                }
-               catch (OperationCanceledException)
+               catch (OperationCanceledException ex)
                {
-                 _logger.Information("Distribution file load cancelled.");
+                 _logger.Information(ex, "Distribution file load cancelled.");
                }
                catch (Exception ex)
                {
@@ -379,13 +379,11 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
     bool isExcluded,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
-    if (TryParseFormKey(id) is { } formKey)
+    if (TryParseFormKey(id) is { } formKey &&
+        linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
+        !string.IsNullOrWhiteSpace(keyword.EditorID))
     {
-      if (linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
-          !string.IsNullOrWhiteSpace(keyword.EditorID))
-      {
-        return new KeywordFilter(keyword.EditorID, isExcluded);
-      }
+      return new KeywordFilter(keyword.EditorID, isExcluded);
     }
 
     var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()

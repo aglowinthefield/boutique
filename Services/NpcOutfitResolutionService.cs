@@ -122,9 +122,9 @@ public class NpcOutfitResolutionService(
                    assignments.Count);
                  return new NpcOutfitResolutionResult(assignments, simulatedKeywords);
                }
-               catch (OperationCanceledException)
+               catch (OperationCanceledException ex)
                {
-                 _logger.Information("NPC outfit resolution cancelled.");
+                 _logger.Information(ex, "NPC outfit resolution cancelled.");
                  return NpcOutfitResolutionResult.Empty;
                }
                catch (Exception ex)
@@ -368,12 +368,11 @@ public class NpcOutfitResolutionService(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
     var outfitFormKey = FormKeyHelper.ResolveOutfit(identifier, linkCache);
-    if (outfitFormKey.HasValue && !outfitFormKey.Value.IsNull)
+    if (outfitFormKey.HasValue &&
+        !outfitFormKey.Value.IsNull &&
+        linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
     {
-      if (linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
-      {
-        return (outfit.FormKey, outfit.EditorID);
-      }
+      return (outfit.FormKey, outfit.EditorID);
     }
 
     return null;

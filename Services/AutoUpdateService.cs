@@ -12,10 +12,12 @@ namespace Boutique.Services;
 
 public partial class AutoUpdateService
 {
-  private string _pendingReleaseNotes = string.Empty;
-  private bool   _forceShowUpdate;
+  private const string GitHubReleasesUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
 
-  public void CheckForUpdates(bool forceShow = false)
+  private static string _pendingReleaseNotes = string.Empty;
+  private static bool   _forceShowUpdate;
+
+  public static void CheckForUpdates(bool forceShow = false)
   {
     if (!forceShow && GuiSettingsService.Current?.AutoUpdateEnabled != true)
     {
@@ -43,9 +45,7 @@ public partial class AutoUpdateService
       AutoUpdater.CheckForUpdateEvent  -= OnCheckForUpdate;
       AutoUpdater.CheckForUpdateEvent  += OnCheckForUpdate;
 
-      const string updateUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
-
-      AutoUpdater.Start(updateUrl);
+      AutoUpdater.Start(GitHubReleasesUrl);
       Log.Information("Update check initiated (forceShow: {ForceShow}).", forceShow);
     }
     catch (Exception ex)
@@ -54,7 +54,7 @@ public partial class AutoUpdateService
     }
   }
 
-  private void OnCheckForUpdate(UpdateInfoEventArgs args)
+  private static void OnCheckForUpdate(UpdateInfoEventArgs args)
   {
     if (args.IsUpdateAvailable)
     {
@@ -110,7 +110,7 @@ public partial class AutoUpdateService
     return string.IsNullOrEmpty(infoVersion) ? assembly.GetName().Version : ParseSemanticVersion(infoVersion);
   }
 
-  private void ParseGitHubReleases(ParseUpdateInfoEventArgs args)
+  private static void ParseGitHubReleases(ParseUpdateInfoEventArgs args)
   {
     try
     {

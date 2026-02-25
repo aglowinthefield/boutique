@@ -25,15 +25,6 @@ public static class SpidLineParser
   public static bool TryParse(string line, out SpidDistributionFilter? result) =>
     TryParse(line, out result, null);
 
-  public static bool TryParseOutfit(string line, out SpidDistributionFilter? result) =>
-    TryParse(line, out result, SpidFormType.Outfit);
-
-  public static bool TryParseKeyword(string line, out SpidDistributionFilter? result) =>
-    TryParse(line, out result, SpidFormType.Keyword);
-
-  public static bool TryParseExclusiveGroup(string line, out SpidDistributionFilter? result) =>
-    TryParse(line, out result, SpidFormType.ExclusiveGroup);
-
   public static bool TryParse(string line, out SpidDistributionFilter? result, SpidFormType? formTypeFilter)
   {
     result = null;
@@ -83,6 +74,15 @@ public static class SpidLineParser
     result = ParseValuePart(valuePart, trimmed, formType);
     return result != null;
   }
+
+  public static bool TryParseOutfit(string line, out SpidDistributionFilter? result) =>
+    TryParse(line, out result, SpidFormType.Outfit);
+
+  public static bool TryParseKeyword(string line, out SpidDistributionFilter? result) =>
+    TryParse(line, out result, SpidFormType.Keyword);
+
+  public static bool TryParseExclusiveGroup(string line, out SpidDistributionFilter? result) =>
+    TryParse(line, out result, SpidFormType.ExclusiveGroup);
 
   private static SpidDistributionFilter? ParseValuePart(string valuePart, string rawLine, SpidFormType formType)
   {

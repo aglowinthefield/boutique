@@ -94,12 +94,12 @@ public partial class ArmorPatchView
     e.Column.SortDirection = newDirection;
 
     var sortMember = e.Column.SortMemberPath;
-    if (string.IsNullOrWhiteSpace(sortMember) && e.Column is DataGridBoundColumn boundColumn)
+    if (string.IsNullOrWhiteSpace(sortMember) &&
+        e.Column is DataGridBoundColumn boundColumn &&
+        boundColumn.Binding is Binding binding &&
+        binding.Path != null)
     {
-      if (boundColumn.Binding is Binding binding && binding.Path != null)
-      {
-        sortMember = binding.Path.Path;
-      }
+      sortMember = binding.Path.Path;
     }
 
     if (string.IsNullOrWhiteSpace(sortMember))

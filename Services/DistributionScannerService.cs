@@ -96,9 +96,9 @@ public class DistributionScannerService(ILogger logger)
         _logger.Debug("SkyPatcher directory does not exist: {Path}", skyPatcherRoot);
       }
     }
-    catch (OperationCanceledException)
+    catch (OperationCanceledException ex)
     {
-      _logger.Information("Distribution discovery cancelled.");
+      _logger.Information(ex, "Distribution discovery cancelled.");
     }
     catch (Exception ex)
     {

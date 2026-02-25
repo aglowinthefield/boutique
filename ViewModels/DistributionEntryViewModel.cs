@@ -248,25 +248,22 @@ public partial class DistributionEntryViewModel : ReactiveObject
           var wasEnabled = previousUseChance;
           previousUseChance = useChance;
 
-          if (useChance && !wasEnabled && isFormatChangingToSpid != null)
+          if (useChance && !wasEnabled && isFormatChangingToSpid != null && isFormatChangingToSpid())
           {
-            if (isFormatChangingToSpid())
-            {
-              var result = MessageBox.Show(
-                "Enabling chance-based distribution will change the file format to SPID.\n\n" +
-                "SkyPatcher does not support chance-based outfit distribution. " +
-                "The file will be saved in SPID format to support this feature.\n\n" +
-                "Do you want to continue?",
-                "Format Change Required",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+            var result = MessageBox.Show(
+              "Enabling chance-based distribution will change the file format to SPID.\n\n" +
+              "SkyPatcher does not support chance-based outfit distribution. " +
+              "The file will be saved in SPID format to support this feature.\n\n" +
+              "Do you want to continue?",
+              "Format Change Required",
+              MessageBoxButton.YesNo,
+              MessageBoxImage.Warning);
 
-              if (result == MessageBoxResult.No)
-              {
-                previousUseChance = false;
-                UseChance         = false;
-                return;
-              }
+            if (result == MessageBoxResult.No)
+            {
+              previousUseChance = false;
+              UseChance         = false;
+              return;
             }
           }
 

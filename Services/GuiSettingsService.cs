@@ -249,14 +249,13 @@ public class GuiSettingsService
       window.Height = geometry.Height.Value;
     }
 
-    if (geometry.Left.HasValue && geometry.Top.HasValue)
+    if (geometry.Left.HasValue &&
+        geometry.Top.HasValue &&
+        IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
     {
-      if (IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
-      {
-        window.Left                  = geometry.Left.Value;
-        window.Top                   = geometry.Top.Value;
-        window.WindowStartupLocation = WindowStartupLocation.Manual;
-      }
+      window.Left                  = geometry.Left.Value;
+      window.Top                   = geometry.Top.Value;
+      window.WindowStartupLocation = WindowStartupLocation.Manual;
     }
   }
 
