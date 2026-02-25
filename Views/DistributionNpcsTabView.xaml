@@ -30,7 +30,7 @@
       </Grid.ColumnDefinitions>
 
       <StackPanel Grid.Column="0" Orientation="Horizontal">
-        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Refresh}}"
+        <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.RefreshData}}"
                 Command="{Binding ScanNpcOutfitsCommand}"
                 Padding="12,4" Margin="0,0,6,0"
                 ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.RefreshTooltip}}" />

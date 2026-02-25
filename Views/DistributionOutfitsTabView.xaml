@@ -94,10 +94,10 @@
               </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
-          <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Preview}}" Width="Auto">
+          <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.PreviewCol}}" Width="Auto">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Preview}}"
+                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
                         Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                         CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
               </DataTemplate>
@@ -171,7 +171,7 @@
             <TextBox Grid.Row="0" Text="{Binding SelectedOutfitContents, Mode=OneWay}"
                      IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                      VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
-            <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Preview}}"
+            <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
                     Command="{Binding PreviewOutfitCommand}"
                     CommandParameter="{Binding SelectedOutfit}"
                     Padding="12,4" Margin="0,6,0,0" HorizontalAlignment="Left" />

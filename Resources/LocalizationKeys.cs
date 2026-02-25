@@ -6,10 +6,10 @@ public static class LocalizationKeys
 
   public static class Tabs
   {
-    public const string Distribution  = "Tab_Distribution";
-    public const string OutfitCreator = "Tab_OutfitCreator";
-    public const string ArmorPatch    = "Tab_ArmorPatch";
-    public const string Settings      = "Tab_Settings";
+    public const string DistributionTab = "Tab_Distribution";
+    public const string OutfitCreatorTab = "Tab_OutfitCreator";
+    public const string ArmorPatchTab    = "Tab_ArmorPatch";
+    public const string SettingsTab      = "Tab_Settings";
     public const string Create        = "Tab_Create";
     public const string Containers    = "Tab_Containers";
     public const string NPCs          = "Tab_NPCs";
@@ -30,8 +30,8 @@ public static class LocalizationKeys
     public const string PatchFileName     = "Settings_PatchFileName";
     public const string OutputPath        = "Settings_OutputPath";
     public const string OutputPathTooltip = "Settings_OutputPathTooltip";
-    public const string Detection         = "Settings_Detection";
-    public const string Theme             = "Settings_Theme";
+    public const string DetectionMethod    = "Settings_Detection";
+    public const string AppTheme          = "Settings_Theme";
     public const string Language          = "Settings_Language";
     public const string Tutorial          = "Settings_Tutorial";
 
@@ -49,13 +49,13 @@ public static class LocalizationKeys
     public const string Browse          = "Button_Browse";
     public const string AutoDetect      = "Button_AutoDetect";
     public const string RestartTutorial = "Button_RestartTutorial";
-    public const string Refresh         = "Button_Refresh";
+    public const string RefreshData     = "Button_Refresh";
     public const string Close           = "Button_Close";
     public const string Save            = "Button_Save";
     public const string Cancel          = "Button_Cancel";
     public const string ClearAll        = "Button_ClearAll";
     public const string ClearFilters    = "Button_ClearFilters";
-    public const string Preview         = "Button_Preview";
+    public const string ShowPreview     = "Button_Preview";
     public const string ResetView       = "Button_ResetView";
   }
 
@@ -95,7 +95,7 @@ public static class LocalizationKeys
     public const string Targeting   = "Header_Targeting";
     public const string Chance      = "Header_Chance";
     public const string Conflict    = "Header_Conflict";
-    public const string Preview     = "Header_Preview";
+    public const string PreviewCol  = "Header_Preview";
     public const string Copy        = "Header_Copy";
     public const string Override    = "Header_Override";
   }
