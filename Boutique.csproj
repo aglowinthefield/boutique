@@ -103,6 +103,7 @@
 
   <ItemGroup>
     <AdditionalFiles Include="stylecop.json"/>
+    <AdditionalFiles Include="SonarLint.xml"/>
   </ItemGroup>
 
   <!-- Exclude test project directory from main project -->
