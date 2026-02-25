@@ -12,6 +12,16 @@ namespace Boutique.Utilities;
 /// </summary>
 public static class DistributionFileFormatter
 {
+  public static void AppendSpidFilterPositions(StringBuilder sb, params string?[] parts)
+  {
+    var lastNonNullIndex = Array.FindLastIndex(parts, p => p != null);
+    for (var i = 0; i <= lastNonNullIndex; i++)
+    {
+      sb.Append('|');
+      sb.Append(parts[i] ?? "NONE");
+    }
+  }
+
   /// <summary>
   ///   Gets the application version from the assembly's informational version (set by MinVer from git tags).
   /// </summary>
@@ -188,20 +198,19 @@ public static class DistributionFileFormatter
                        ? entry.Chance.ToString(CultureInfo.InvariantCulture)
                        : null;
 
-    var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
-
-    var lastNonNullIndex = Array.FindLastIndex(parts, p => p != null);
-
     var sb = new StringBuilder();
     sb.Append(formType)
       .Append(" = ")
       .Append(identifier);
 
-    for (var i = 0; i <= lastNonNullIndex; i++)
-    {
-      sb.Append('|');
-      sb.Append(parts[i] ?? "NONE");
-    }
+    AppendSpidFilterPositions(
+      sb,
+      stringFiltersPart,
+      formFiltersPart,
+      levelFiltersPart,
+      traitFiltersPart,
+      countPart,
+      chancePart);
 
     return sb.ToString();
   }
@@ -495,29 +504,19 @@ public static class DistributionFileFormatter
     var countPart         = filter.CountOrPackageIdx;
     var chancePart        = filter.Chance != 100 ? filter.Chance.ToString(CultureInfo.InvariantCulture) : null;
 
-    var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
-
-    // Find the last non-null value
-    var lastOutputIndex = -1;
-    for (var i = parts.Length - 1; i >= 0; i--)
-    {
-      if (parts[i] != null)
-      {
-        lastOutputIndex = i;
-        break;
-      }
-    }
-
     var sb = new StringBuilder();
     sb.Append(formTypeKeyword);
     sb.Append(" = ");
     sb.Append(filter.FormIdentifier);
 
-    for (var i = 0; i <= lastOutputIndex; i++)
-    {
-      sb.Append('|');
-      sb.Append(parts[i] ?? "NONE");
-    }
+    AppendSpidFilterPositions(
+      sb,
+      stringFiltersPart,
+      formFiltersPart,
+      levelFiltersPart,
+      traitFiltersPart,
+      countPart,
+      chancePart);
 
     return sb.ToString();
   }

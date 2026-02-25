@@ -50,9 +50,7 @@ public static class GridSplitterBehavior
       return;
     }
 
-    var settingsService = GetSettingsService();
-
-    var savedRatio = settingsService?.GetSplitterPosition(key);
+    var savedRatio = GetSettingsService()?.GetSplitterPosition(key);
     if (savedRatio is null or <= 0)
     {
       return;
@@ -63,36 +61,23 @@ public static class GridSplitterBehavior
       return;
     }
 
-    var isHorizontal = splitter.ResizeDirection == GridResizeDirection.Rows ||
-                       (splitter.ResizeDirection == GridResizeDirection.Auto && splitter.Height > splitter.Width);
+    var neighbors = ResolveNeighbors(splitter, parent);
+    if (neighbors is not var (before, after, isHorizontal))
+    {
+      return;
+    }
 
     if (isHorizontal)
     {
-      var splitterRow = Grid.GetRow(splitter);
-      var beforeRow   = splitterRow - 1;
-      var afterRow    = splitterRow + 1;
-
-      if (beforeRow >= 0 && afterRow < parent.RowDefinitions.Count)
-      {
-        var afterDef        = parent.RowDefinitions[afterRow];
-        var afterStarValue  = afterDef.Height.IsStar ? afterDef.Height.Value : 1.0;
-        var beforeStarValue = savedRatio.Value * afterStarValue;
-        parent.RowDefinitions[beforeRow].Height = new GridLength(beforeStarValue, GridUnitType.Star);
-      }
+      var afterDef        = parent.RowDefinitions[after];
+      var afterStarValue  = afterDef.Height.IsStar ? afterDef.Height.Value : 1.0;
+      parent.RowDefinitions[before].Height = new GridLength(savedRatio.Value * afterStarValue, GridUnitType.Star);
     }
     else
     {
-      var splitterColumn = Grid.GetColumn(splitter);
-      var beforeColumn   = splitterColumn - 1;
-      var afterColumn    = splitterColumn + 1;
-
-      if (beforeColumn >= 0 && afterColumn < parent.ColumnDefinitions.Count)
-      {
-        var afterDef        = parent.ColumnDefinitions[afterColumn];
-        var afterStarValue  = afterDef.Width.IsStar ? afterDef.Width.Value : 1.0;
-        var beforeStarValue = savedRatio.Value * afterStarValue;
-        parent.ColumnDefinitions[beforeColumn].Width = new GridLength(beforeStarValue, GridUnitType.Star);
-      }
+      var afterDef        = parent.ColumnDefinitions[after];
+      var afterStarValue  = afterDef.Width.IsStar ? afterDef.Width.Value : 1.0;
+      parent.ColumnDefinitions[before].Width = new GridLength(savedRatio.Value * afterStarValue, GridUnitType.Star);
     }
   }
 
@@ -120,45 +105,45 @@ public static class GridSplitterBehavior
       return;
     }
 
-    var isHorizontal = splitter.ResizeDirection == GridResizeDirection.Rows ||
-                       (splitter.ResizeDirection == GridResizeDirection.Auto && splitter.Height > splitter.Width);
+    var neighbors = ResolveNeighbors(splitter, parent);
+    if (neighbors is not var (before, after, isHorizontal))
+    {
+      return;
+    }
 
+    double beforeSize, afterSize;
     if (isHorizontal)
     {
-      var splitterRow = Grid.GetRow(splitter);
-      var beforeRow   = splitterRow - 1;
-      var afterRow    = splitterRow + 1;
-
-      if (beforeRow >= 0 && afterRow < parent.RowDefinitions.Count)
-      {
-        var beforeHeight = parent.RowDefinitions[beforeRow].ActualHeight;
-        var afterHeight  = parent.RowDefinitions[afterRow].ActualHeight;
-
-        if (afterHeight > 0)
-        {
-          var ratio = beforeHeight / afterHeight;
-          settingsService.SetSplitterPosition(key, ratio);
-        }
-      }
+      beforeSize = parent.RowDefinitions[before].ActualHeight;
+      afterSize  = parent.RowDefinitions[after].ActualHeight;
     }
     else
     {
-      var splitterColumn = Grid.GetColumn(splitter);
-      var beforeColumn   = splitterColumn - 1;
-      var afterColumn    = splitterColumn + 1;
-
-      if (beforeColumn >= 0 && afterColumn < parent.ColumnDefinitions.Count)
-      {
-        var beforeWidth = parent.ColumnDefinitions[beforeColumn].ActualWidth;
-        var afterWidth  = parent.ColumnDefinitions[afterColumn].ActualWidth;
-
-        if (afterWidth > 0)
-        {
-          var ratio = beforeWidth / afterWidth;
-          settingsService.SetSplitterPosition(key, ratio);
-        }
-      }
+      beforeSize = parent.ColumnDefinitions[before].ActualWidth;
+      afterSize  = parent.ColumnDefinitions[after].ActualWidth;
     }
+
+    if (afterSize > 0)
+    {
+      settingsService.SetSplitterPosition(key, beforeSize / afterSize);
+    }
+  }
+
+  private static (int Before, int After, bool IsHorizontal)? ResolveNeighbors(
+    GridSplitter splitter,
+    Grid parent)
+  {
+    var isHorizontal = splitter.ResizeDirection == GridResizeDirection.Rows ||
+                       (splitter.ResizeDirection == GridResizeDirection.Auto && splitter.Height > splitter.Width);
+
+    var splitterIndex = isHorizontal ? Grid.GetRow(splitter) : Grid.GetColumn(splitter);
+    var count         = isHorizontal ? parent.RowDefinitions.Count : parent.ColumnDefinitions.Count;
+    var before        = splitterIndex - 1;
+    var after         = splitterIndex + 1;
+
+    return before >= 0 && after < count
+             ? (before, after, isHorizontal)
+             : null;
   }
 
   private static GuiSettingsService? GetSettingsService()

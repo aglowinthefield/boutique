@@ -124,26 +124,14 @@ public static class NpcSpidSyntaxGenerator
     // Position 7: Chance - Not used for filtering
     string? chancePart = null;
 
-    // Build the line, preserving intermediate NONEs but trimming trailing ones
-    var parts = new[] { stringFiltersPart, formFiltersPart, levelFiltersPart, traitFiltersPart, countPart, chancePart };
-
-    // Find the last non-null position
-    var lastNonNullIndex = -1;
-    for (var i = parts.Length - 1; i >= 0; i--)
-    {
-      if (parts[i] != null)
-      {
-        lastNonNullIndex = i;
-        break;
-      }
-    }
-
-    // Add all parts up to and including the last non-null one
-    for (var i = 0; i <= lastNonNullIndex; i++)
-    {
-      sb.Append('|');
-      sb.Append(parts[i] ?? "NONE");
-    }
+    DistributionFileFormatter.AppendSpidFilterPositions(
+      sb,
+      stringFiltersPart,
+      formFiltersPart,
+      levelFiltersPart,
+      traitFiltersPart,
+      countPart,
+      chancePart);
 
     return sb.ToString();
   }
