@@ -19,7 +19,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class MainViewModel : ReactiveObject, IDisposable
+public sealed partial class MainViewModel : ReactiveObject, IDisposable
 {
   public const string AllPluginsOption = "(All Plugins)";
 

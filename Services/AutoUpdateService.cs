@@ -12,7 +12,9 @@ namespace Boutique.Services;
 
 public partial class AutoUpdateService
 {
+#pragma warning disable S1075
   private const string GitHubReleasesUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
+#pragma warning restore S1075
 
   private static string _pendingReleaseNotes = string.Empty;
   private static bool   _forceShowUpdate;

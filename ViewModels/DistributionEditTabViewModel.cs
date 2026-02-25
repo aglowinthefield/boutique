@@ -30,7 +30,7 @@ public class PreviewLine
   public string Content { get; init; } = string.Empty;
 }
 
-public partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
+public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
   private readonly ArmorPreviewService                                 _armorPreviewService;
   private readonly GameDataCacheService                                _cache;

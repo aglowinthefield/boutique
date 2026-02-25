@@ -15,7 +15,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
+public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisposable
 {
   private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;

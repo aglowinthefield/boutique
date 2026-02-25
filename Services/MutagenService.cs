@@ -16,7 +16,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
+public sealed class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
   : IDisposable
 {
   private readonly SemaphoreSlim _initLock = new(1, 1);

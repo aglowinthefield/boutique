@@ -16,7 +16,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class GameDataCacheService : IDisposable
+public sealed class GameDataCacheService : IDisposable
 {
   private readonly HashSet<string> _blacklistedPluginsSet = new(StringComparer.OrdinalIgnoreCase);
   private readonly SourceCache<ClassRecordViewModel, FormKey> _classesSource = new(x => x.FormKey);

@@ -311,7 +311,7 @@ public static class MeshUtilities
 
   private static Matrix4x4 CreateLocalTransform(NiAVObject avObject)
   {
-    var scale       = avObject.Scale == 0 ? 1f : avObject.Scale;
+    var scale       = Math.Abs(avObject.Scale) < float.Epsilon ? 1f : avObject.Scale;
     var scaleMatrix = Matrix4x4.CreateScale(scale);
 
     var rot = avObject.Rotation;

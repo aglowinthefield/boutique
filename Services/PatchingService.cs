@@ -443,9 +443,6 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
       }
 
-      GC.Collect();
-      GC.WaitForPendingFinalizers();
-
       const int  maxRetries     = 10;
       const int  initialDelayMs = 100;
       Exception? lastException  = null;

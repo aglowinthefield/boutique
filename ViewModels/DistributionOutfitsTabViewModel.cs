@@ -16,7 +16,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposable
+public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposable
 {
   private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;
@@ -87,12 +87,8 @@ public partial class DistributionOutfitsTabViewModel : ReactiveObject, IDisposab
     get => field;
     set
     {
-      // Clear previous selection
       field?.IsSelected = false;
-
       this.RaiseAndSetIfChanged(ref field, value);
-
-      // Set new selection
       value?.IsSelected = true;
     }
   }

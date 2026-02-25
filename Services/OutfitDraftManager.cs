@@ -15,7 +15,7 @@ using Serilog;
 
 namespace Boutique.Services;
 
-public class OutfitDraftManager : ReactiveObject, IDisposable
+public sealed class OutfitDraftManager : ReactiveObject, IDisposable
 {
   private static readonly BipedObjectFlag[] _bipedFlags = Enum.GetValues<BipedObjectFlag>()
                                                               .Where(f => f != 0 && ((uint)f & ((uint)f - 1)) == 0)

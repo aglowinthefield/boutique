@@ -19,7 +19,7 @@ using Serilog;
 
 namespace Boutique.ViewModels;
 
-public partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
+public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 {
   private readonly Subject<Unit>                    _autoSaveTrigger = new();
   private readonly IObservable<bool>                _canCopyExistingOutfits;
