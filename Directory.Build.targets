@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup Condition="$(MSBuildProjectFile.EndsWith('_wpftmp.csproj', System.StringComparison.OrdinalIgnoreCase))">
+    <RunAnalyzers>false</RunAnalyzers>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+</Project>
