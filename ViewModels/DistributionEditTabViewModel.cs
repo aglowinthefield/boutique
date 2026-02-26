@@ -911,5 +911,4 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     SelectedEntry = entryVm; // Property setter handles IsSelected updates
     _logger.Debug("Selected distribution entry: {Outfit}", entryVm?.SelectedOutfit?.EditorID ?? "(No outfit)");
   }
-
 }
