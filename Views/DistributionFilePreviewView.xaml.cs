@@ -61,13 +61,13 @@ public partial class DistributionFilePreviewView
           return;
         }
 
-        var transform  = container.TransformToAncestor(LinesControl);
-        var position   = transform.Transform(new Point(0, 0));
-        var lineTop    = position.Y;
+        var transform = container.TransformToAncestor(LinesControl);
+        var position = transform.Transform(new Point(0, 0));
+        var lineTop = position.Y;
         var lineHeight = container.ActualHeight > 0 ? container.ActualHeight : 16;
 
         var viewportCenter = PreviewScrollViewer.ViewportHeight / 2;
-        var targetOffset   = lineTop - viewportCenter + (lineHeight / 2);
+        var targetOffset = lineTop - viewportCenter + (lineHeight / 2);
         targetOffset = Math.Max(0, Math.Min(targetOffset, PreviewScrollViewer.ScrollableHeight));
         PreviewScrollViewer.ScrollToVerticalOffset(targetOffset);
 
@@ -77,12 +77,12 @@ public partial class DistributionFilePreviewView
         HighlightOverlay.BeginAnimation(OpacityProperty, null);
 
         var animation = new DoubleAnimation
-                        {
-                          From      = 0.4,
-                          To        = 0,
-                          Duration  = TimeSpan.FromMilliseconds(800),
-                          BeginTime = TimeSpan.FromMilliseconds(100)
-                        };
+        {
+          From = 0.4,
+          To = 0,
+          Duration = TimeSpan.FromMilliseconds(800),
+          BeginTime = TimeSpan.FromMilliseconds(100)
+        };
         HighlightOverlay.BeginAnimation(OpacityProperty, animation);
       },
       DispatcherPriority.Loaded);

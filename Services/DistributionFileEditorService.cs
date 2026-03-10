@@ -204,6 +204,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
       var raceStrings            = SkyPatcherSyntax.ExtractFilterValues(line, "filterByRaces");
       var classStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
+      var outfitFilterStrings    = SkyPatcherSyntax.ExtractFilterValues(line, "filterByDefaultOutfits");
       var genderFilter           = SkyPatcherSyntax.ParseGenderFilter(line);
 
       var npcFilters     = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
@@ -211,12 +212,14 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, excludedKeywordStrings, linkCache);
       var raceFilters    = ResolveRaceIdentifiers(raceStrings, linkCache);
       var classFormKeys  = ResolveClassIdentifiers(classStrings, linkCache);
+      var outfitFilterFormKeys = ResolveOutfitFilterIdentifiers(outfitFilterStrings, linkCache, outfitByEditorId);
 
       var hasAnyParsedFilter = npcFilters.Count > 0 ||
                                factionFilters.Count > 0 ||
                                keywordFilters.Count > 0 ||
                                raceFilters.Count > 0 ||
                                classFormKeys.Count > 0 ||
+                               outfitFilterFormKeys.Count > 0 ||
                                genderFilter.HasValue;
 
       var hasAnyFilterInLine =
@@ -225,6 +228,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         SkyPatcherSyntax.HasAnyVariant(line, "filterByKeywords") ||
         SkyPatcherSyntax.HasFilter(line, "filterByRaces") ||
         SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
+        SkyPatcherSyntax.HasFilter(line, "filterByDefaultOutfits") ||
         SkyPatcherSyntax.HasFilter(line, "filterByGender");
 
       if (hasAnyFilterInLine && !hasAnyParsedFilter)
@@ -260,16 +264,17 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       return (
                new DistributionEntry
                {
-                 Outfit           = outfit,
-                 NpcFilters       = npcFilters,
-                 FactionFilters   = factionFilters,
-                 KeywordFilters   = keywordFilters,
-                 RaceFilters      = raceFilters,
-                 ClassFormKeys    = classFormKeys,
-                 TraitFilters     = new SpidTraitFilters { IsFemale = genderFilter },
-                 NpcLogicMode     = npcLogicMode,
-                 FactionLogicMode = factionLogicMode,
-                 KeywordLogicMode = keywordLogicMode
+                 Outfit               = outfit,
+                 NpcFilters           = npcFilters,
+                 FactionFilters       = factionFilters,
+                 KeywordFilters       = keywordFilters,
+                 RaceFilters          = raceFilters,
+                 ClassFormKeys        = classFormKeys,
+                 OutfitFilterFormKeys = outfitFilterFormKeys,
+                 TraitFilters         = new SpidTraitFilters { IsFemale = genderFilter },
+                 NpcLogicMode         = npcLogicMode,
+                 FactionLogicMode     = factionLogicMode,
+                 KeywordLogicMode     = keywordLogicMode
                }, null);
     }
     catch (Exception ex)
@@ -448,6 +453,29 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       else
       {
         _logger.Warning("Could not resolve Race identifier: {Id}", id);
+      }
+    }
+
+    return results;
+  }
+
+  private List<FormKey> ResolveOutfitFilterIdentifiers(
+    List<string> identifiers,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyDictionary<string, FormKey> outfitByEditorId)
+  {
+    var results = new List<FormKey>();
+    foreach (var id in identifiers)
+    {
+      var formKey = FormKeyHelper.ResolveOutfit(id, outfitByEditorId)
+                    ?? FormKeyHelper.ResolveOutfit(id, linkCache);
+      if (formKey.HasValue)
+      {
+        results.Add(formKey.Value);
+      }
+      else
+      {
+        _logger.Warning("Could not resolve outfit filter identifier: {Id}", id);
       }
     }
 

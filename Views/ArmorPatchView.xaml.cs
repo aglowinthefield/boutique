@@ -9,15 +9,15 @@ namespace Boutique.Views;
 public partial class ArmorPatchView
 {
   private MainViewModel? _currentViewModel;
-  private bool           _syncingSourceSelection;
+  private bool _syncingSourceSelection;
 
   public ArmorPatchView()
   {
     InitializeComponent();
 
     DataContextChanged += OnDataContextChanged;
-    Loaded             += OnLoaded;
-    Unloaded           += OnUnloaded;
+    Loaded += OnLoaded;
+    Unloaded += OnUnloaded;
 
     SourceArmorsGrid.Loaded += (_, _) => SynchronizeSourceSelection();
     TargetArmorsGrid.Loaded += TargetArmorsGridOnLoaded;

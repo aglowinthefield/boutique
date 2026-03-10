@@ -68,6 +68,7 @@ public static class SkyPatcherSyntax
                                                                    "filterByClass",
                                                                    "filterByClassExclude",
                                                                    "filterByGender",
+                                                                   "filterByDefaultOutfits",
                                                                    "outfitDefault"
                                                                  };
 

@@ -433,6 +433,13 @@ public static class DistributionFileFormatter
       filterParts.Add($"filterByGender={genderValue}");
     }
 
+    if (entry.SelectedOutfitFilters.Count > 0)
+    {
+      var outfitFilterKeys = entry.SelectedOutfitFilters
+                                  .Select(o => FormKeyHelper.Format(o.FormKey));
+      filterParts.Add($"filterByDefaultOutfits={string.Join(",", outfitFilterKeys)}");
+    }
+
     var outfitFormKey = FormKeyHelper.Format(entry.SelectedOutfit.FormKey);
     filterParts.Add($"outfitDefault={outfitFormKey}");
 
