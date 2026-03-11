@@ -206,6 +206,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
       var classStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
       var outfitFilterStrings    = SkyPatcherSyntax.ExtractFilterValues(line, "filterByDefaultOutfits");
       var genderFilter           = SkyPatcherSyntax.ParseGenderFilter(line);
+      var uniqueFilter           = SkyPatcherSyntax.ParseUniqueFilter(line);
 
       var npcFilters     = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
       var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
@@ -220,7 +221,8 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                                raceFilters.Count > 0 ||
                                classFormKeys.Count > 0 ||
                                outfitFilterFormKeys.Count > 0 ||
-                               genderFilter.HasValue;
+                               genderFilter.HasValue ||
+                               uniqueFilter.HasValue;
 
       var hasAnyFilterInLine =
         SkyPatcherSyntax.HasAnyVariant(line, "filterByNpcs") ||
@@ -229,6 +231,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
         SkyPatcherSyntax.HasFilter(line, "filterByRaces") ||
         SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
         SkyPatcherSyntax.HasFilter(line, "filterByDefaultOutfits") ||
+        SkyPatcherSyntax.HasFilter(line, "restrictToFlags") ||
         SkyPatcherSyntax.HasFilter(line, "filterByGender");
 
       if (hasAnyFilterInLine && !hasAnyParsedFilter)
@@ -271,7 +274,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                  RaceFilters          = raceFilters,
                  ClassFormKeys        = classFormKeys,
                  OutfitFilterFormKeys = outfitFilterFormKeys,
-                 TraitFilters         = new SpidTraitFilters { IsFemale = genderFilter },
+                 TraitFilters         = new SpidTraitFilters { IsFemale = genderFilter, IsUnique = uniqueFilter },
                  NpcLogicMode         = npcLogicMode,
                  FactionLogicMode     = factionLogicMode,
                  KeywordLogicMode     = keywordLogicMode

@@ -433,6 +433,11 @@ public static class DistributionFileFormatter
       filterParts.Add($"filterByGender={genderValue}");
     }
 
+    if (entry.Unique == UniqueFilter.UniqueOnly)
+    {
+      filterParts.Add("restrictToFlags=unique");
+    }
+
     if (entry.SelectedOutfitFilters.Count > 0)
     {
       var outfitFilterKeys = entry.SelectedOutfitFilters

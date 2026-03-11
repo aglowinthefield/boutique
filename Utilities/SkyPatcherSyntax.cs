@@ -69,6 +69,7 @@ public static class SkyPatcherSyntax
                                                                    "filterByClassExclude",
                                                                    "filterByGender",
                                                                    "filterByDefaultOutfits",
+                                                                   "restrictToFlags",
                                                                    "outfitDefault"
                                                                  };
 
@@ -137,6 +138,14 @@ public static class SkyPatcherSyntax
     }
 
     return null;
+  }
+
+  public static bool? ParseUniqueFilter(string line)
+  {
+    var values = ExtractFilterValues(line, "restrictToFlags");
+    return values.Any(v => v.Equals("unique", StringComparison.OrdinalIgnoreCase))
+             ? true
+             : null;
   }
 
   public static List<FormKey> ParseFormKeys(string line, string filterName)

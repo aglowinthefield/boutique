@@ -359,7 +359,8 @@ public sealed partial class DistributionEditTabViewModel
       var hasSpidOnlyEntries = DistributionEntries.Any(e =>
                                                          e.UseChance ||
                                                          e.Type == DistributionType.Keyword ||
-                                                         e.Type == DistributionType.ExclusiveGroup);
+                                                         e.Type == DistributionType.ExclusiveGroup ||
+                                                         e.Unique == UniqueFilter.NonUniqueOnly);
       var effectiveFormat = hasSpidOnlyEntries ? DistributionFileType.Spid : DistributionFormat;
 
       _logger.Debug(
