@@ -175,6 +175,32 @@
                 Command="{Binding AddDistributionEntryCommand}" Margin="0,0,6,0" Padding="8,2" />
         <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SaveFile}}"
                 Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
+        <TextBlock Text="Saved" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11"
+                   Foreground="{StaticResource Brush.Accent}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Opacity" Value="0" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding ShowAutoSaveIndicator}" Value="True">
+                  <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </DataTrigger.EnterActions>
+                  <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.5" />
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </DataTrigger.ExitActions>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
         <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilter}}"
                 Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
                 ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue={lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilterTooltip}}}" />

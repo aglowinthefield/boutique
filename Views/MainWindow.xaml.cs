@@ -13,7 +13,9 @@ public partial class MainWindow
   private readonly CompositeDisposable _bindings = [];
   private readonly GuiSettingsService  _guiSettings;
   private readonly ThemeService        _themeService;
+  private          bool                _closingConfirmed;
   private          bool                _initialized;
+  private          int                 _previousMainTabIndex;
 
   public MainWindow(
     MainViewModel viewModel,
@@ -122,7 +124,27 @@ public partial class MainWindow
     });
     _bindings.Add(errorDisposable);
 
-    Closing += (_, _) => _guiSettings.SaveWindowGeometry(this);
+    Closing += (_, e) =>
+    {
+      _guiSettings.SaveWindowGeometry(this);
+      if (_closingConfirmed)
+      {
+        return;
+      }
+
+      if (viewModel.Distribution.EditTab.HasUnsavedChanges)
+      {
+        e.Cancel = true;
+        Dispatcher.BeginInvoke(() =>
+        {
+          if (viewModel.Distribution.EditTab.PromptAndSaveIfNeeded())
+          {
+            _closingConfirmed = true;
+            Close();
+          }
+        });
+      }
+    };
     Closed += (_, _) =>
     {
       _bindings.Dispose();
@@ -153,7 +175,7 @@ public partial class MainWindow
       return;
     }
 
-    if (sender is not TabControl)
+    if (sender is not TabControl tabControl)
     {
       return;
     }
@@ -162,6 +184,25 @@ public partial class MainWindow
     {
       return;
     }
+
+    var currentIndex = tabControl.SelectedIndex;
+
+    if (_previousMainTabIndex == 0 && currentIndex != 0 &&
+        viewModel.Distribution.EditTab.HasUnsavedChanges)
+    {
+      _ = Dispatcher.BeginInvoke(() =>
+      {
+        if (!viewModel.Distribution.EditTab.PromptAndSaveIfNeeded())
+        {
+          tabControl.SelectedIndex = 0;
+        }
+
+        _previousMainTabIndex = tabControl.SelectedIndex;
+      });
+      return;
+    }
+
+    _previousMainTabIndex = currentIndex;
 
     if (e.AddedItems.Count == 0)
     {

@@ -100,6 +100,7 @@ public sealed partial class DistributionEditTabViewModel
       }
 
       await File.WriteAllTextAsync(finalFilePath, DistributionFileContent, Encoding.UTF8);
+      _lastSavedContent = DistributionFileContent;
 
       StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
       _logger.Information(
@@ -121,6 +122,66 @@ public sealed partial class DistributionEditTabViewModel
     finally
     {
       IsLoading = false;
+    }
+  }
+
+  public bool PromptAndSaveIfNeeded()
+  {
+    if (!HasUnsavedChanges)
+    {
+      return true;
+    }
+
+    var result = MessageBox.Show(
+      "You have unsaved distribution changes. Would you like to save before continuing?",
+      "Unsaved Changes",
+      MessageBoxButton.YesNoCancel,
+      MessageBoxImage.Warning);
+
+    switch (result)
+    {
+      case MessageBoxResult.Yes:
+        if (!IsCreatingNewFile && File.Exists(DistributionFilePath))
+        {
+          File.WriteAllText(DistributionFilePath, DistributionFileContent, Encoding.UTF8);
+          _lastSavedContent = DistributionFileContent;
+          _logger.Information("Saved distribution file: {Path}", DistributionFilePath);
+          StatusMessage = $"Saved {Path.GetFileName(DistributionFilePath)}";
+        }
+        else
+        {
+          SaveDistributionFileCommand.Execute().Subscribe();
+        }
+
+        return true;
+      case MessageBoxResult.No:
+        _lastSavedContent = DistributionFileContent;
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private void AutoSaveFile(string content)
+  {
+    try
+    {
+      var path = DistributionFilePath;
+      if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+      {
+        return;
+      }
+
+      File.WriteAllText(path, content, Encoding.UTF8);
+      _lastSavedContent                     = content;
+      _guiSettings.LastDistributionFilePath = path;
+      _logger.Debug("Auto-saved distribution file: {Path}", path);
+
+      Application.Current?.Dispatcher.BeginInvoke(() => ShowAutoSaveIndicator = true);
+    }
+    catch (Exception ex)
+    {
+      _logger.Warning(ex, "Auto-save failed for {Path}", DistributionFilePath);
     }
   }
 
@@ -177,6 +238,8 @@ public sealed partial class DistributionEditTabViewModel
 
       this.RaisePropertyChanged(nameof(DistributionEntriesCount));
       UpdateFileContent();
+      _lastSavedContent                     = DistributionFileContent;
+      _guiSettings.LastDistributionFilePath = DistributionFilePath;
       UpdateHasChanceBasedEntries();
       UpdateHasKeywordDistributions();
       UpdateHasExclusiveGroupDistributions();
