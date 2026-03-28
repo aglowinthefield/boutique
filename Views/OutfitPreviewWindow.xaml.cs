@@ -65,6 +65,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     SourceInitialized += (_, _) =>
     {
+      TextureLoadingService.AddCacheConsumer();
       _themeService.ApplyTitleBarTheme(this);
       RootScaleTransform.ScaleX = _themeService.CurrentFontScale;
       RootScaleTransform.ScaleY = _themeService.CurrentFontScale;
@@ -235,7 +236,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private void RenderScene(ArmorPreviewScene scene)
   {
     var evaluatedMeshes = EvaluateMeshes(scene, out var center, out var radius);
-    _meshGroup.Children.Clear();
+    DisposeMeshChildren();
 
     if (evaluatedMeshes.Count == 0)
     {
@@ -730,7 +731,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     {
       _themeService.ThemeChanged -= OnThemeChanged;
 
-      _meshGroup.Children.Clear();
+      DisposeMeshChildren();
       PreviewViewport.Items.Clear();
 
       _ambientLight.Dispose();
@@ -740,9 +741,24 @@ public sealed partial class OutfitPreviewWindow : IDisposable
       _frontRightLight.Dispose();
       _meshGroup.Dispose();
       _effectsManager.Dispose();
+
+      _sceneCollection.ClearCache();
+      TextureLoadingService.RemoveCacheConsumer();
     }
 
     _disposed = true;
+  }
+
+  private void DisposeMeshChildren()
+  {
+    var meshes = _meshGroup.Children.OfType<MeshGeometryModel3D>().ToList();
+    _meshGroup.Children.Clear();
+
+    foreach (var mesh in meshes)
+    {
+      (mesh.Material as IDisposable)?.Dispose();
+      mesh.Dispose();
+    }
   }
 
   private sealed record EvaluatedMesh(

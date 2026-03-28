@@ -21,12 +21,63 @@ public static class TextureLoadingService
   private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> _textureCache =
     new(StringComparer.OrdinalIgnoreCase);
 
+  private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> _persistentCache =
+    new(StringComparer.OrdinalIgnoreCase);
+
   private static readonly object _textureCacheLock = new();
+  private static int _cacheConsumers;
+
+  internal static int CacheCount
+  {
+    get
+    {
+      lock (_textureCacheLock)
+      {
+        return _textureCache.Count;
+      }
+    }
+  }
+
+  internal static int ConsumerCount
+  {
+    get
+    {
+      lock (_textureCacheLock)
+      {
+        return _cacheConsumers;
+      }
+    }
+  }
+
+  public static void AddCacheConsumer()
+  {
+    lock (_textureCacheLock)
+    {
+      _cacheConsumers++;
+    }
+  }
+
+  public static void RemoveCacheConsumer()
+  {
+    lock (_textureCacheLock)
+    {
+      _cacheConsumers = Math.Max(0, _cacheConsumers - 1);
+      if (_cacheConsumers == 0)
+      {
+        ClearCacheLocked();
+      }
+    }
+  }
 
   public static (TextureModel? Texture, bool NeedsTransparency) LoadDdsTexture(string texturePath)
   {
     lock (_textureCacheLock)
     {
+      if (_persistentCache.TryGetValue(texturePath, out var persistent))
+      {
+        return persistent;
+      }
+
       if (_textureCache.TryGetValue(texturePath, out var cached))
       {
         return cached;
@@ -34,13 +85,74 @@ public static class TextureLoadingService
     }
 
     var result = LoadDdsTextureCore(texturePath);
+    var isBodyTexture = IsBodyTexture(texturePath);
 
     lock (_textureCacheLock)
     {
-      _textureCache[texturePath] = result;
+      if (isBodyTexture)
+      {
+        _persistentCache[texturePath] = result;
+      }
+      else
+      {
+        _textureCache[texturePath] = result;
+      }
+
+      Log.Debug(
+        "Texture cache: {Count}+{Persistent} entries after loading {Path}",
+        _textureCache.Count,
+        _persistentCache.Count,
+        texturePath);
     }
 
     return result;
+  }
+
+  private static bool IsBodyTexture(string path) =>
+    path.Contains(@"actors\character", StringComparison.OrdinalIgnoreCase) ||
+    path.Contains("actors/character", StringComparison.OrdinalIgnoreCase);
+
+  internal static int PersistentCacheCount
+  {
+    get
+    {
+      lock (_textureCacheLock)
+      {
+        return _persistentCache.Count;
+      }
+    }
+  }
+
+  internal static void ResetForTesting()
+  {
+    lock (_textureCacheLock)
+    {
+      _textureCache.Clear();
+      _persistentCache.Clear();
+      _cacheConsumers = 0;
+    }
+  }
+
+  internal static void InjectCacheEntry(string key)
+  {
+    lock (_textureCacheLock)
+    {
+      _textureCache[key] = (null, false);
+    }
+  }
+
+  internal static void InjectBodyCacheEntry(string key)
+  {
+    lock (_textureCacheLock)
+    {
+      _persistentCache[key] = (null, false);
+    }
+  }
+
+  private static void ClearCacheLocked()
+  {
+    Log.Information("Clearing texture cache ({Count} entries)", _textureCache.Count);
+    _textureCache.Clear();
   }
 
   private static (TextureModel? Texture, bool NeedsTransparency) LoadDdsTextureCore(string texturePath)
