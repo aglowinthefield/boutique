@@ -553,7 +553,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
       return;
     }
 
-    var result = IntraFileConflictDetectionService.Detect(
+    var result = DistributionConflictDetectionService.DetectIntraFile(
                    outfitEntries,
                    _cache.AllNpcs.ToList(),
                    _cache.SimulatedKeywordsByNpc);
