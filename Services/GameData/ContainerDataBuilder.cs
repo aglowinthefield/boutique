@@ -8,6 +8,10 @@ using Serilog;
 
 namespace Boutique.Services.GameData;
 
+/// <summary>
+/// Builds container-related data structures from the load order, loading container records
+/// and their inventory contents for use in CDF distribution configuration.
+/// </summary>
 public class ContainerDataBuilder(ILogger logger)
 {
   private readonly ILogger _logger = logger.ForContext<ContainerDataBuilder>();
@@ -20,19 +24,18 @@ public class ContainerDataBuilder(ILogger logger)
 
     var merchantContainers = BuildMerchantContainerLookup(linkCache);
     var merchantTime       = sw.ElapsedMilliseconds;
-
-    var cellPlacements = BuildCellPlacementLookup(linkCache);
-    var cellTime       = sw.ElapsedMilliseconds - merchantTime;
+    var cellPlacements     = BuildCellPlacementLookup(linkCache);
+    var cellTime           = sw.ElapsedMilliseconds - merchantTime;
 
     var containers = linkCache.WinningOverrides<IContainerGetter>()
-                              .Where(c => !isBlacklisted(c.FormKey.ModKey))
-                              .Select(c => new ContainerRecordViewModel(
-                                        c,
-                                        linkCache,
-                                        merchantContainers.GetValueOrDefault(c.FormKey),
-                                        cellPlacements.GetValueOrDefault(c.FormKey)))
-                              .OrderBy(c => c.DisplayName)
-                              .ToList();
+      .Where(c => !isBlacklisted(c.FormKey.ModKey))
+      .Select(c => new ContainerRecordViewModel(
+        c,
+        linkCache,
+        merchantContainers.GetValueOrDefault(c.FormKey),
+        cellPlacements.GetValueOrDefault(c.FormKey)))
+      .OrderBy(c => c.DisplayName)
+      .ToList();
 
     sw.Stop();
     _logger.Information(

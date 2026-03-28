@@ -6,6 +6,10 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Hydrates distribution entry view models by resolving outfit and filter references
+/// (NPCs, factions, keywords, races, classes) from FormKeys into display-ready objects.
+/// </summary>
 public class DistributionEntryHydrationService(
   GameDataCacheService cache,
   MutagenService mutagenService)

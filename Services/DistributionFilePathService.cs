@@ -6,6 +6,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Constructs and updates file paths for distribution files based on their format
+/// (SPID vs SkyPatcher), managing the correct directory structure and filename conventions.
+/// </summary>
 public class DistributionFilePathService(SettingsViewModel settings, ILogger logger)
 {
   private readonly ILogger _logger = logger.ForContext<DistributionFilePathService>();

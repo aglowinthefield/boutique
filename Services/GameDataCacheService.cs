@@ -16,6 +16,11 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Central reactive cache for game data loaded from Skyrim plugins. Provides observable
+/// collections of NPCs, outfits, factions, keywords, races, classes, containers, and locations
+/// using DynamicData for efficient filtering and binding.
+/// </summary>
 public sealed class GameDataCacheService : IDisposable
 {
   private readonly HashSet<string> _blacklistedPluginsSet = new(StringComparer.OrdinalIgnoreCase);

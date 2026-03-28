@@ -7,6 +7,10 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services.GameData;
 
+/// <summary>
+/// Loads game records (factions, keywords, races, classes) from the link cache
+/// and converts them into view model objects for use in filter dropdowns and selection lists.
+/// </summary>
 public static class RecordLoaders
 {
   public static List<FactionRecordViewModel> LoadFactions(

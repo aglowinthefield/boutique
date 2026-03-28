@@ -15,6 +15,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Manages the outfit creation queue, tracking draft outfits and their armor contents.
+/// Supports drag-and-drop reordering, separators, slot conflict detection, and state persistence.
+/// </summary>
 public sealed class OutfitDraftManager : ReactiveObject, IDisposable
 {
   private static readonly BipedObjectFlag[] _bipedFlags = Enum.GetValues<BipedObjectFlag>()

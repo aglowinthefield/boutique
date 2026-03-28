@@ -10,6 +10,10 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services.GameData;
 
+/// <summary>
+/// Builds NPC-related data structures from the load order, including NPC-to-location lookups,
+/// filter data extraction, and outfit assignment resolution for the game data cache.
+/// </summary>
 public static class NpcDataBuilder
 {
   public static Dictionary<FormKey, HashSet<FormKey>> BuildNpcLocationLookup(

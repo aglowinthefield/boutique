@@ -8,6 +8,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Creates and modifies Skyrim patch plugins by copying armor stats, keywords, enchantments,
+/// and tempering recipes from gameplay mods to cosmetic mods, and generates outfit records.
+/// </summary>
 public class PatchingService(MutagenService mutagenService, ILoggingService loggingService)
 {
   private const    uint    MinimumFormId = 0x800;

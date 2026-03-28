@@ -5,6 +5,10 @@ using System.Resources;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Loads and caches icon filenames from embedded assembly resources, providing
+/// random icon selection for UI elements like outfit draft separators.
+/// </summary>
 public static class IconCacheService
 {
   private static readonly Lazy<IReadOnlyList<string>> _lazyIcons = new(LoadIcons);

@@ -8,6 +8,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Resolves which outfit each NPC will receive by simulating SPID and SkyPatcher distribution
+/// logic, accounting for keyword dependencies, filter matching, and chance-based assignment.
+/// </summary>
 public class NpcOutfitResolutionService(
   MutagenService mutagenService,
   KeywordDistributionResolver keywordResolver,

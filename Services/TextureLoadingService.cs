@@ -16,6 +16,10 @@ public enum AlphaType
   ProblematicLowAlpha
 }
 
+/// <summary>
+/// Loads and caches DDS textures using the Pfim library, detecting alpha transparency types
+/// and converting them to WPF-compatible formats for 3D armor preview rendering.
+/// </summary>
 public static class TextureLoadingService
 {
   private static readonly Dictionary<string, (TextureModel? Texture, bool NeedsTransparency)> _textureCache =

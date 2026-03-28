@@ -12,6 +12,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Locates game assets (meshes, textures) in Skyrim BSA/BA2 archives and loose mod files,
+/// resolving relative paths to their physical locations on disk.
+/// </summary>
 public class GameAssetLocator
 {
   private static readonly ModKey[] _fallbackModKeys =

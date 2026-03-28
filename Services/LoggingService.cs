@@ -5,6 +5,10 @@ using Serilog.Events;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Serilog-based logging implementation that writes daily-rolling log files to the
+/// application data folder with 14-day retention and runtime debug level toggling.
+/// </summary>
 public sealed class LoggingService : ILoggingService
 {
   private readonly LoggingLevelSwitch _levelSwitch;

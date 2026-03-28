@@ -13,6 +13,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Builds 3D armor preview scenes by loading NIF meshes from ArmorAddon records and combining
+/// them with base character body models for visualization in the UI.
+/// </summary>
 public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator assetLocator, ILogger logger)
 {
   private const           string FemaleBodyRelativePath = "meshes/actors/character/character assets/femalebody_0.nif";

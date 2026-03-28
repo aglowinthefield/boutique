@@ -10,6 +10,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Loads and parses distribution files (SPID and SkyPatcher formats) with format detection
+/// and error tracking, converting raw INI content into structured distribution entries.
+/// </summary>
 public class DistributionFileEditorService(MutagenService mutagenService, ILogger logger)
 {
   private readonly ILogger _logger = logger.ForContext<DistributionFileEditorService>();

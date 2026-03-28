@@ -7,6 +7,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Discovers and parses SPID and SkyPatcher distribution files from the Skyrim data folder,
+/// returning structured entries with automatic format detection.
+/// </summary>
 public class DistributionScannerService(ILogger logger)
 {
   private readonly ILogger _logger = logger.ForContext<DistributionScannerService>();

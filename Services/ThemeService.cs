@@ -15,6 +15,10 @@ public enum AppTheme
   Dark
 }
 
+/// <summary>
+/// Manages application theming (Light/Dark/System) with font scaling support,
+/// using the Windows DWM API for dark title bar integration and JSON config persistence.
+/// </summary>
 public class ThemeService(ILogger logger)
 {
   private const string ThemeConfigFileName = "theme.json";

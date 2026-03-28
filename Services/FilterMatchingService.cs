@@ -4,6 +4,10 @@ using Mutagen.Bethesda.Plugins;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Evaluates NPC filter matching logic, testing NPCs against distribution filters
+/// (string filters, form filters, level ranges, trait filters) to determine which NPCs a distribution entry targets.
+/// </summary>
 public static class FilterMatchingService
 {
   public static bool NpcMatchesFilterForBatch(

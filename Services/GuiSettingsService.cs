@@ -7,6 +7,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Serializable data model for persisting application settings including Skyrim paths,
+/// window geometry, grid splitter positions, language, and plugin blacklist.
+/// </summary>
 public class GuiSettings
 {
   public string? SkyrimDataPath { get; set; }
@@ -52,6 +56,10 @@ public class SecondaryWindowGeometry
   public double? Height { get; set; }
 }
 
+/// <summary>
+/// Manages loading, saving, and accessing GUI settings from a JSON config file,
+/// providing methods for window geometry, grid splitter positions, and outfit draft state persistence.
+/// </summary>
 public class GuiSettingsService
 {
   private const string SettingsFileName = "gui-settings.json";

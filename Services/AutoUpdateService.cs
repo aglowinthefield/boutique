@@ -10,6 +10,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Checks for application updates by querying GitHub releases and prompting the user
+/// to download newer versions via the AutoUpdater library.
+/// </summary>
 public static partial class AutoUpdateService
 {
 #pragma warning disable S1075

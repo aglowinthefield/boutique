@@ -11,6 +11,10 @@ public record LanguageOption(string Code, string DisplayName)
   public override string ToString() => DisplayName;
 }
 
+/// <summary>
+/// Manages multi-language support using WPFLocalizeExtension, providing language selection
+/// across 9 supported languages and persisting the user's choice.
+/// </summary>
 public class LocalizationService(ILogger logger, GuiSettingsService guiSettings)
 {
   private readonly ILogger _logger = logger.ForContext<LocalizationService>();

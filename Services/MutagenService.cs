@@ -16,6 +16,10 @@ using Serilog;
 
 namespace Boutique.Services;
 
+/// <summary>
+/// Initializes and manages the Mutagen game environment, link cache, and plugin loading.
+/// Serves as the central gateway for reading and writing Bethesda plugin files across the load order.
+/// </summary>
 public sealed class MutagenService(ILoggingService loggingService, PatcherSettings settings, GuiSettingsService guiSettings)
   : IDisposable
 {
