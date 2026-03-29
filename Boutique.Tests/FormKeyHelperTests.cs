@@ -396,6 +396,47 @@ public class FormKeyHelperTests
 
     #endregion
 
+    #region IsModKeyFileName
+
+    [Theory]
+    [InlineData("MyMod.esp", true)]
+    [InlineData("Skyrim.esm", true)]
+    [InlineData("Light.esl", true)]
+    [InlineData("MYMOD.ESP", true)]
+    [InlineData("MyMod", false)]
+    [InlineData("esp", false)]
+    [InlineData("", false)]
+    [InlineData("ActorTypeNPC", false)]
+    public void IsModKeyFileName_VariousInputs_ReturnsCorrectly(string input, bool expected)
+    {
+        var result = FormKeyHelper.IsModKeyFileName(input);
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
+    #region LooksLikeFormId
+
+    [Theory]
+    [InlineData("0x12345", true)]
+    [InlineData("0X12345", true)]
+    [InlineData("12345", true)]
+    [InlineData("ABCDEF", true)]
+    [InlineData("0xABCDEF", true)]
+    [InlineData("1", true)]
+    [InlineData("12345678", true)]
+    [InlineData("123456789", false)]
+    [InlineData("GHIJK", false)]
+    [InlineData("ActorTypeNPC", false)]
+    [InlineData("", false)]
+    public void LooksLikeFormId_VariousInputs_ReturnsCorrectly(string input, bool expected)
+    {
+        var result = FormKeyHelper.LooksLikeFormId(input);
+        result.Should().Be(expected);
+    }
+
+    #endregion
+
     #region TryParseEditorIdReference
 
     [Fact]

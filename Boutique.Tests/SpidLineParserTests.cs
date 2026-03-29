@@ -5,10 +5,6 @@ using Xunit;
 
 namespace Boutique.Tests;
 
-/// <summary>
-///     Tests for the SpidLineParser which parses full SPID distribution syntax.
-///     See also: SpidSemanticTests for semantic verification of parsed values.
-/// </summary>
 public class SpidLineParserTests
 {
     #region Basic Parsing
@@ -23,24 +19,6 @@ public class SpidLineParserTests
         filter.StringFilters.IsEmpty.Should().BeTrue();
         filter.FormFilters.IsEmpty.Should().BeTrue();
         filter.Chance.Should().Be(100);
-    }
-
-    [Fact]
-    public void TryParse_FormKeyWithTilde_ParsesCorrectly()
-    {
-        var result = SpidLineParser.TryParse("Outfit = 0x800~MyMod.esp", out var filter);
-
-        result.Should().BeTrue();
-        filter!.OutfitIdentifier.Should().Be("0x800~MyMod.esp");
-    }
-
-    [Fact]
-    public void TryParse_FormKeyWithPipe_ParsesCorrectly()
-    {
-        var result = SpidLineParser.TryParse("Outfit = MyMod.esp|0x800", out var filter);
-
-        result.Should().BeTrue();
-        filter!.OutfitIdentifier.Should().Be("MyMod.esp|0x800");
     }
 
     [Fact]
@@ -100,6 +78,39 @@ public class SpidLineParserTests
 
         result.Should().BeFalse();
         filter.Should().BeNull();
+    }
+
+    #endregion
+
+    #region FormKey Format Parsing
+
+    [Theory]
+    [InlineData("Outfit = 0x800~MyMod.esp", "0x800~MyMod.esp")]
+    [InlineData("Outfit = MyMod.esp|0x800", "MyMod.esp|0x800")]
+    [InlineData("Outfit = 0xFE000D65~Plugin.esl", "0xFE000D65~Plugin.esl")]
+    [InlineData("Outfit = Skyrim.esm|0x000D3E05", "Skyrim.esm|0x000D3E05")]
+    public void TryParse_FormKeyFormats_ExtractsCorrectIdentifier(string line, string expectedIdentifier)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.FormIdentifier.Should().Be(expectedIdentifier);
+    }
+
+    [Theory]
+    [InlineData("Outfit = 0x800~MyMod.esp|ActorTypeNPC", "0x800~MyMod.esp", "ActorTypeNPC")]
+    [InlineData("Outfit = MyMod.esp|0x800|ActorTypeNPC|VampireFaction", "MyMod.esp|0x800", "ActorTypeNPC")]
+    public void TryParse_FormKeyWithFilters_SeparatesCorrectly(
+        string line,
+        string expectedIdentifier,
+        string expectedFirstFilter)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.FormIdentifier.Should().Be(expectedIdentifier);
+        filter.StringFilters.Expressions.Should().ContainSingle()
+            .Which.Parts[0].Value.Should().Be(expectedFirstFilter);
     }
 
     #endregion
@@ -179,6 +190,84 @@ public class SpidLineParserTests
 
     #endregion
 
+    #region Global Exclusions
+
+    [Theory]
+    [InlineData("Outfit = Test|-Exclude1", 0, 1, "Exclude1")]
+    [InlineData("Outfit = Test|Filter1,-Exclude1", 1, 1, "Exclude1")]
+    [InlineData("Outfit = Test|Filter1,-Exclude1,-Exclude2", 1, 2, "Exclude1")]
+    [InlineData("Outfit = Test|Filter1+Filter2,-Exclude1,-Exclude2,-Exclude3", 1, 3, "Exclude1")]
+    public void TryParse_GlobalExclusions_CountsCorrectly(
+        string line,
+        int expectedExpressions,
+        int expectedExclusions,
+        string firstExclusionValue)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.StringFilters.Expressions.Should().HaveCount(expectedExpressions);
+        filter.StringFilters.GlobalExclusions.Should().HaveCount(expectedExclusions);
+        filter.StringFilters.GlobalExclusions[0].Value.Should().Be(firstExclusionValue);
+        filter.StringFilters.GlobalExclusions[0].IsNegated.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryParse_OnlyGlobalExclusions_NoPositiveExpressions()
+    {
+        var line = "Outfit = TestOutfit|-OnlyExclude";
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.StringFilters.Expressions.Should().BeEmpty();
+        filter.StringFilters.GlobalExclusions.Should().ContainSingle()
+            .Which.Value.Should().Be("OnlyExclude");
+    }
+
+    #endregion
+
+    #region AND/OR Expressions
+
+    [Theory]
+    [InlineData("Outfit = Test|A,B,C", 3, new[] { 1, 1, 1 })]
+    [InlineData("Outfit = Test|A+B,C", 2, new[] { 2, 1 })]
+    [InlineData("Outfit = Test|A+B+C", 1, new[] { 3 })]
+    [InlineData("Outfit = Test|A+B,C+D,E", 3, new[] { 2, 2, 1 })]
+    public void TryParse_AndOrExpressions_CountsCorrectly(
+        string line,
+        int expectedExpressionCount,
+        int[] expectedPartsPerExpression)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.StringFilters.Expressions.Should().HaveCount(expectedExpressionCount);
+
+        for (var i = 0; i < expectedPartsPerExpression.Length; i++)
+        {
+            filter.StringFilters.Expressions[i].Parts.Should().HaveCount(expectedPartsPerExpression[i]);
+        }
+    }
+
+    [Fact]
+    public void TryParse_MixedAndWithNegation_ParsesCorrectly()
+    {
+        var line = "Outfit = Test|ActorTypeNPC+*Bandit+-Chief";
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        var parts = filter!.StringFilters.Expressions.Should().ContainSingle()
+            .Which.Parts;
+
+        parts.Should().HaveCount(3)
+            .And.SatisfyRespectively(
+                p => { p.Value.Should().Be("ActorTypeNPC"); p.IsNegated.Should().BeFalse(); },
+                p => { p.Value.Should().Be("*Bandit"); p.IsNegated.Should().BeFalse(); },
+                p => { p.Value.Should().Be("Chief"); p.IsNegated.Should().BeTrue(); });
+    }
+
+    #endregion
+
     #region Form Filters (Position 3)
 
     [Fact]
@@ -222,46 +311,74 @@ public class SpidLineParserTests
         filter!.FormFilters.Expressions.Should().HaveCount(2);
     }
 
+    [Theory]
+    [InlineData("Outfit = Test|NONE|VampireFaction", 1, 0)]
+    [InlineData("Outfit = Test|NONE|VampireFaction,NordRace", 2, 0)]
+    [InlineData("Outfit = Test|NONE|VampireFaction+NordRace", 1, 0)]
+    [InlineData("Outfit = Test|NONE|0x48362,-0x13BB6", 1, 1)]
+    public void TryParse_FormFilters_CountsCorrectly(
+        string line,
+        int expectedExpressions,
+        int expectedExclusions)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.FormFilters.Expressions.Should().HaveCount(expectedExpressions);
+        filter.FormFilters.GlobalExclusions.Should().HaveCount(expectedExclusions);
+    }
+
+    #endregion
+
+    #region Level Filters (Position 4)
+
+    [Fact]
+    public void TryParse_WithSkillLevel_ParsesCorrectly()
+    {
+        var result = SpidLineParser.TryParse(
+            "Keyword = MAGECORE_isMasterAlteration|MAGECORE_isMage+MAGECORE_isFemale|NONE|12(85/999)",
+            out var filter);
+
+        result.Should().BeTrue();
+        filter!.LevelFilters.Should().Be("12(85/999)");
+    }
+
+    [Fact]
+    public void TryParse_WithLevelRange_ParsesCorrectly()
+    {
+        var result = SpidLineParser.TryParse(
+            "Keyword = MAGECORE_isMasterLevel|MAGECORE_isMage+MAGECORE_isFemale|NONE|40/999",
+            out var filter);
+
+        result.Should().BeTrue();
+        filter!.LevelFilters.Should().Be("40/999");
+    }
+
     #endregion
 
     #region Trait Filters (Position 5)
 
-    [Fact]
-    public void TryParse_WithFemale_ParsesTraitFilters()
+    [Theory]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|F", true, null, null)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|M", false, null, null)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|U", null, true, null)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|-U", null, false, null)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|C", null, null, true)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|-C", null, null, false)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|F/U", true, true, null)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|M/-U/-C", false, false, false)]
+    public void TryParse_TraitFilters_ValuesCorrect(
+        string line,
+        bool? expectedFemale,
+        bool? expectedUnique,
+        bool? expectedChild)
     {
-        var result = SpidLineParser.TryParse("Outfit = FemaleOutfit|NONE|NONE|NONE|F", out var filter);
+        var success = SpidLineParser.TryParse(line, out var filter);
 
-        result.Should().BeTrue();
-        filter!.TraitFilters.IsFemale.Should().BeTrue();
-    }
-
-    [Fact]
-    public void TryParse_WithMale_ParsesTraitFilters()
-    {
-        var result = SpidLineParser.TryParse("Outfit = MaleOutfit|NONE|NONE|NONE|M", out var filter);
-
-        result.Should().BeTrue();
-        filter!.TraitFilters.IsFemale.Should().BeFalse();
-    }
-
-    [Fact]
-    public void TryParse_WithMultipleTraits_ParsesCorrectly()
-    {
-        var result = SpidLineParser.TryParse("Outfit = UniqueOutfit|NONE|NONE|NONE|-U/M/-C", out var filter);
-
-        result.Should().BeTrue();
-        filter!.TraitFilters.IsUnique.Should().BeFalse();
-        filter.TraitFilters.IsFemale.Should().BeFalse();
-        filter.TraitFilters.IsChild.Should().BeFalse();
-    }
-
-    [Fact]
-    public void TryParse_WithUnique_ParsesCorrectly()
-    {
-        var result = SpidLineParser.TryParse("Outfit = BossOutfit|NONE|NONE|NONE|U", out var filter);
-
-        result.Should().BeTrue();
-        filter!.TraitFilters.IsUnique.Should().BeTrue();
+        success.Should().BeTrue();
+        filter!.TraitFilters.IsFemale.Should().Be(expectedFemale);
+        filter.TraitFilters.IsUnique.Should().Be(expectedUnique);
+        filter.TraitFilters.IsChild.Should().Be(expectedChild);
     }
 
     #endregion
@@ -284,6 +401,50 @@ public class SpidLineParserTests
 
         result.Should().BeTrue();
         filter!.Chance.Should().Be(100);
+    }
+
+    #endregion
+
+    #region TargetsAllNpcs
+
+    [Theory]
+    [InlineData("Outfit = Test", true)]
+    [InlineData("Outfit = Test|NONE", true)]
+    [InlineData("Outfit = Test|NONE|NONE", true)]
+    [InlineData("Outfit = Test|NONE|NONE|NONE|F", true)]
+    [InlineData("Outfit = Test|ActorTypeNPC", false)]
+    [InlineData("Outfit = Test|NONE|VampireFaction", false)]
+    [InlineData("Outfit = Test|-Exclude", false)]
+    public void TryParse_TargetsAllNpcs_CorrectForFilters(string line, bool expectedTargetsAll)
+    {
+        var success = SpidLineParser.TryParse(line, out var filter);
+
+        success.Should().BeTrue();
+        filter!.TargetsAllNpcs.Should().Be(expectedTargetsAll);
+    }
+
+    #endregion
+
+    #region Targeting Description
+
+    [Fact]
+    public void GetTargetingDescription_AllNpcs_ReturnsAllNpcs()
+    {
+        SpidLineParser.TryParse("Outfit = VampireOutfit", out var filter);
+
+        filter!.GetTargetingDescription().Should().Be("All NPCs");
+    }
+
+    [Fact]
+    public void GetTargetingDescription_WithFilters_ReturnsDescription()
+    {
+        SpidLineParser.TryParse("Outfit = VampireOutfit|ActorTypeNPC|VampireFaction|NONE|F|NONE|5", out var filter);
+
+        var description = filter!.GetTargetingDescription();
+        description.Should().Contain("Names/Keywords");
+        description.Should().Contain("Factions/Forms");
+        description.Should().Contain("Female");
+        description.Should().Contain("5%");
     }
 
     #endregion
@@ -329,6 +490,22 @@ public class SpidLineParserTests
         filter!.OutfitIdentifier.Should().Be("0x800~RequiredMod.esp");
         filter.StringFilters.Expressions.Should().ContainSingle();
         filter.TraitFilters.IsFemale.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryParse_RealExample_OutfitWithAndExpressionAndExclusion()
+    {
+        var result = SpidLineParser.TryParse(
+            "Outfit = MAGECOREMasterResearcherMagickaOutfit|MAGECORE_isFemale+MAGECORE_isMage+MAGECORE_isMasterLevel+MAGECORE_isGroupA,-MAGECORE_hasMasterSkill",
+            out var filter);
+
+        result.Should().BeTrue();
+        filter!.FormType.Should().Be(SpidFormType.Outfit);
+        filter.FormIdentifier.Should().Be("MAGECOREMasterResearcherMagickaOutfit");
+        filter.StringFilters.Expressions.Should().ContainSingle()
+            .Which.Parts.Should().HaveCount(4);
+        filter.StringFilters.GlobalExclusions.Should().ContainSingle()
+            .Which.Value.Should().Be("MAGECORE_hasMasterSkill");
     }
 
     [Fact]
@@ -469,46 +646,6 @@ public class SpidLineParserTests
         filter.FormFilters.Expressions.Should().ContainSingle()
             .Which.Parts[0].Should().Match<SpidFilterPart>(p =>
                 p.Value == "0x1A6D9" && p.IsNegated == false);
-    }
-
-    #endregion
-
-    #region Targeting Description
-
-    [Fact]
-    public void GetTargetingDescription_AllNpcs_ReturnsAllNpcs()
-    {
-        SpidLineParser.TryParse("Outfit = VampireOutfit", out var filter);
-
-        filter!.GetTargetingDescription().Should().Be("All NPCs");
-    }
-
-    [Fact]
-    public void GetTargetingDescription_WithFilters_ReturnsDescription()
-    {
-        SpidLineParser.TryParse("Outfit = VampireOutfit|ActorTypeNPC|VampireFaction|NONE|F|NONE|5", out var filter);
-
-        var description = filter!.GetTargetingDescription();
-        description.Should().Contain("Names/Keywords");
-        description.Should().Contain("Factions/Forms");
-        description.Should().Contain("Female");
-        description.Should().Contain("5%");
-    }
-
-    [Fact]
-    public void TargetsAllNpcs_WithNoFilters_ReturnsTrue()
-    {
-        SpidLineParser.TryParse("Outfit = VampireOutfit", out var filter);
-
-        filter!.TargetsAllNpcs.Should().BeTrue();
-    }
-
-    [Fact]
-    public void TargetsAllNpcs_WithFilters_ReturnsFalse()
-    {
-        SpidLineParser.TryParse("Outfit = VampireOutfit|Serana", out var filter);
-
-        filter!.TargetsAllNpcs.Should().BeFalse();
     }
 
     #endregion
