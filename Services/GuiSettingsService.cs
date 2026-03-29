@@ -195,14 +195,13 @@ public class GuiSettingsService
 
   public void RestoreWindowGeometry(Window window)
   {
-    if (_settings.WindowWidth.HasValue && _settings.WindowHeight.HasValue &&
-        _settings.WindowWidth.Value > 0 && _settings.WindowHeight.Value > 0)
+    if (_settings.WindowWidth.HasValue && _settings is { WindowHeight: > 0, WindowWidth: > 0 })
     {
       window.Width  = _settings.WindowWidth.Value;
       window.Height = _settings.WindowHeight.Value;
     }
 
-    if (_settings.WindowLeft.HasValue && _settings.WindowTop.HasValue)
+    if (_settings is { WindowLeft: not null, WindowTop: not null })
     {
       var left = _settings.WindowLeft.Value;
       var top  = _settings.WindowTop.Value;
@@ -250,15 +249,13 @@ public class GuiSettingsService
       return;
     }
 
-    if (geometry.Width.HasValue && geometry.Height.HasValue &&
-        geometry.Width.Value > 0 && geometry.Height.Value > 0)
+    if (geometry.Width.HasValue && geometry is { Height: > 0, Width: > 0 })
     {
       window.Width  = geometry.Width.Value;
       window.Height = geometry.Height.Value;
     }
 
-    if (geometry.Left.HasValue &&
-        geometry.Top.HasValue &&
+    if (geometry is { Left: not null, Top: not null } &&
         IsOnScreen(geometry.Left.Value, geometry.Top.Value, window.Width, window.Height))
     {
       window.Left                  = geometry.Left.Value;
@@ -362,7 +359,7 @@ public class GuiSettingsService
     }
 
     var intersection = Rect.Intersect(windowRect, virtualScreen);
-    return intersection.Width >= 100 && intersection.Height >= 100;
+    return intersection is { Width: >= 100, Height: >= 100 };
   }
 
   private void LoadSettings()

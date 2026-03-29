@@ -32,17 +32,17 @@ public sealed partial class DistributionEditTabViewModel
     if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
     {
       var sb = new StringBuilder();
-      sb.AppendLine("⚠ Distribution Conflicts Detected");
-      sb.AppendLine();
-      sb.AppendLine(ConflictSummary);
-      sb.AppendLine();
-      sb.AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:");
-      sb.AppendLine();
-      sb.Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine();
-      sb.AppendLine();
-      sb.AppendLine("This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files.");
-      sb.AppendLine();
-      sb.AppendLine("Do you want to continue with this filename?");
+      sb.AppendLine("⚠ Distribution Conflicts Detected")
+        .AppendLine()
+        .AppendLine(ConflictSummary)
+        .AppendLine()
+        .AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:")
+        .AppendLine()
+        .Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine()
+        .AppendLine()
+        .AppendLine("This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files.")
+        .AppendLine()
+        .AppendLine("Do you want to continue with this filename?");
 
       var result = MessageBox.Show(
         sb.ToString(),
