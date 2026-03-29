@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Windows;
 using Boutique.Models;
+using Boutique.Services;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -41,6 +41,8 @@ public sealed record SkillFilterOption(int Index, string Name)
 
 public partial class DistributionEntryViewModel : ReactiveObject
 {
+  private readonly IDialogService? _dialogService;
+
   [Reactive] private int _chance = 100;
 
   [Reactive] private string _exclusiveGroupFormsText = string.Empty;
@@ -105,8 +107,10 @@ public partial class DistributionEntryViewModel : ReactiveObject
   public DistributionEntryViewModel(
     DistributionEntry entry,
     Action<DistributionEntryViewModel>? removeAction = null,
-    Func<bool>? isFormatChangingToSpid = null)
+    Func<bool>? isFormatChangingToSpid = null,
+    IDialogService? dialogService = null)
   {
+    _dialogService      = dialogService;
     Entry               = entry;
     Type                = entry.Type;
     SelectedOutfit      = entry.Outfit;
@@ -248,23 +252,18 @@ public partial class DistributionEntryViewModel : ReactiveObject
           var wasEnabled = previousUseChance;
           previousUseChance = useChance;
 
-          if (useChance && !wasEnabled && isFormatChangingToSpid != null && isFormatChangingToSpid())
+          if (useChance && !wasEnabled && _dialogService != null &&
+              isFormatChangingToSpid != null && isFormatChangingToSpid() &&
+              !_dialogService.Confirm(
+                "Enabling chance-based distribution will change the file format to SPID.\n\n" +
+                "SkyPatcher does not support chance-based outfit distribution. " +
+                "The file will be saved in SPID format to support this feature.\n\n" +
+                "Do you want to continue?",
+                "Format Change Required"))
           {
-            var result = MessageBox.Show(
-              "Enabling chance-based distribution will change the file format to SPID.\n\n" +
-              "SkyPatcher does not support chance-based outfit distribution. " +
-              "The file will be saved in SPID format to support this feature.\n\n" +
-              "Do you want to continue?",
-              "Format Change Required",
-              MessageBoxButton.YesNo,
-              MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.No)
-            {
-              previousUseChance = false;
-              UseChance         = false;
-              return;
-            }
+            previousUseChance = false;
+            UseChance         = false;
+            return;
           }
 
           Entry.Chance = useChance ? Chance : null;

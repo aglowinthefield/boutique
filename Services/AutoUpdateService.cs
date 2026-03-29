@@ -20,10 +20,11 @@ public static partial class AutoUpdateService
   private const string GitHubReleasesUrl = "https://api.github.com/repos/aglowinthefield/Boutique/releases";
 #pragma warning restore S1075
 
-  private static string _pendingReleaseNotes = string.Empty;
-  private static bool   _forceShowUpdate;
+  private static IDialogService? _dialogService;
+  private static string          _pendingReleaseNotes = string.Empty;
+  private static bool            _forceShowUpdate;
 
-  public static void CheckForUpdates(bool forceShow = false)
+  public static void CheckForUpdates(bool forceShow = false, IDialogService? dialogService = null)
   {
     if (!forceShow && GuiSettingsService.Current?.AutoUpdateEnabled != true)
     {
@@ -31,6 +32,7 @@ public static partial class AutoUpdateService
     }
 
     _forceShowUpdate = forceShow;
+    _dialogService   = dialogService;
 
     try
     {
@@ -87,21 +89,13 @@ public static partial class AutoUpdateService
         catch (Exception ex)
         {
           Log.Error(ex, "Failed to download update.");
-          MessageBox.Show(
-            $"Failed to download update: {ex.Message}",
-            "Update Error",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
+          _dialogService?.ShowError($"Failed to download update: {ex.Message}", "Update Error");
         }
       }
     }
     else if (_forceShowUpdate)
     {
-      MessageBox.Show(
-        "You are running the latest version.",
-        "No Update Available",
-        MessageBoxButton.OK,
-        MessageBoxImage.Information);
+      _dialogService?.ShowInfo("You are running the latest version.", "No Update Available");
     }
   }
 

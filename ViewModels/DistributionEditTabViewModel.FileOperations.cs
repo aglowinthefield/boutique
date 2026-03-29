@@ -44,19 +44,15 @@ public sealed partial class DistributionEditTabViewModel
         .AppendLine()
         .AppendLine("Do you want to continue with this filename?");
 
-      var result = MessageBox.Show(
-        sb.ToString(),
-        "Conflicts Detected - Filename Change Required",
-        MessageBoxButton.YesNoCancel,
-        MessageBoxImage.Warning);
+      var result = _dialogService.ConfirmWithCancel(sb.ToString(), "Conflicts Detected - Filename Change Required");
 
-      if (result == MessageBoxResult.Cancel)
+      if (result is null)
       {
         StatusMessage = "Save cancelled.";
         return;
       }
 
-      if (result == MessageBoxResult.Yes)
+      if (result is true)
       {
         var directory = Path.GetDirectoryName(DistributionFilePath);
         var finalFileName = SuggestedFileName;
@@ -73,19 +69,13 @@ public sealed partial class DistributionEditTabViewModel
       }
     }
 
-    if (File.Exists(finalFilePath))
+    if (File.Exists(finalFilePath) &&
+        !_dialogService.Confirm(
+          $"The file '{Path.GetFileName(finalFilePath)}' already exists.\n\nDo you want to overwrite it?",
+          "Confirm Overwrite"))
     {
-      var result = MessageBox.Show(
-        $"The file '{Path.GetFileName(finalFilePath)}' already exists.\n\nDo you want to overwrite it?",
-        "Confirm Overwrite",
-        MessageBoxButton.YesNo,
-        MessageBoxImage.Warning);
-
-      if (result != MessageBoxResult.Yes)
-      {
-        StatusMessage = "Save cancelled.";
-        return;
-      }
+      StatusMessage = "Save cancelled.";
+      return;
     }
 
     try
@@ -132,15 +122,13 @@ public sealed partial class DistributionEditTabViewModel
       return true;
     }
 
-    var result = MessageBox.Show(
+    var result = _dialogService.ConfirmWithCancel(
       "You have unsaved distribution changes. Would you like to save before continuing?",
-      "Unsaved Changes",
-      MessageBoxButton.YesNoCancel,
-      MessageBoxImage.Warning);
+      "Unsaved Changes");
 
     switch (result)
     {
-      case MessageBoxResult.Yes:
+      case true:
         if (!IsCreatingNewFile && File.Exists(DistributionFilePath))
         {
           File.WriteAllText(DistributionFilePath, DistributionFileContent, Encoding.UTF8);
@@ -154,7 +142,7 @@ public sealed partial class DistributionEditTabViewModel
         }
 
         return true;
-      case MessageBoxResult.No:
+      case false:
         _lastSavedContent = DistributionFileContent;
         return true;
       default:
@@ -892,7 +880,7 @@ public sealed partial class DistributionEditTabViewModel
 
   private DistributionEntryViewModel CreateEntryViewModel(DistributionEntry entry)
   {
-    var entryVm = new DistributionEntryViewModel(entry, RemoveDistributionEntry, IsFormatChangingToSpid);
+    var entryVm = new DistributionEntryViewModel(entry, RemoveDistributionEntry, IsFormatChangingToSpid, _dialogService);
     _hydrationService.HydrateEntry(entryVm, entry, AvailableOutfits);
     return entryVm;
   }

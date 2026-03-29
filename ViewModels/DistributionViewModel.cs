@@ -41,6 +41,7 @@ public partial class DistributionViewModel : ReactiveObject
     GuiSettingsService guiSettings,
     DistributionEntryHydrationService hydrationService,
     DistributionFilePathService filePathService,
+    IDialogService dialogService,
     ILogger logger)
   {
     Settings = settings;
@@ -60,6 +61,7 @@ public partial class DistributionViewModel : ReactiveObject
       guiSettings,
       hydrationService,
       filePathService,
+      dialogService,
       logger);
 
     NpcsTab = new DistributionNpcsTabViewModel(

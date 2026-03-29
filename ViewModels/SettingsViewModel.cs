@@ -28,6 +28,7 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
+  private readonly IDialogService      _dialogService;
   private readonly GuiSettingsService  _guiSettings;
   private readonly LocalizationService _localizationService;
   private readonly ILoggingService     _loggingService;
@@ -52,6 +53,7 @@ public partial class SettingsViewModel : ReactiveObject
     PatcherSettings settings,
     GuiSettingsService guiSettings,
     ILoggingService loggingService,
+    IDialogService dialogService,
     ThemeService themeService,
     LocalizationService localizationService,
     MutagenService mutagenService)
@@ -59,6 +61,7 @@ public partial class SettingsViewModel : ReactiveObject
     _settings            = settings;
     _guiSettings         = guiSettings;
     _loggingService      = loggingService;
+    _dialogService       = dialogService;
     _themeService        = themeService;
     _localizationService = localizationService;
     _mutagenService      = mutagenService;
@@ -244,7 +247,7 @@ public partial class SettingsViewModel : ReactiveObject
   }
 
   [ReactiveCommand]
-  private static void TestAutoUpdate() => AutoUpdateService.CheckForUpdates(true);
+  private void TestAutoUpdate() => AutoUpdateService.CheckForUpdates(true, _dialogService);
 
   [ReactiveCommand]
   private void BrowseDataPath()
@@ -320,20 +323,12 @@ public partial class SettingsViewModel : ReactiveObject
       }
       catch (Exception ex)
       {
-        MessageBox.Show(
-          $"Failed to open log file: {ex.Message}",
-          "Error",
-          MessageBoxButton.OK,
-          MessageBoxImage.Error);
+        _dialogService.ShowError($"Failed to open log file: {ex.Message}", "Error");
       }
     }
     else
     {
-      MessageBox.Show(
-        $"Today's log file does not exist yet:\n{todayLogFile}",
-        "Log File Not Found",
-        MessageBoxButton.OK,
-        MessageBoxImage.Information);
+      _dialogService.ShowInfo($"Today's log file does not exist yet:\n{todayLogFile}", "Log File Not Found");
     }
   }
 
@@ -353,20 +348,12 @@ public partial class SettingsViewModel : ReactiveObject
       }
       catch (Exception ex)
       {
-        MessageBox.Show(
-          $"Failed to open logs folder: {ex.Message}",
-          "Error",
-          MessageBoxButton.OK,
-          MessageBoxImage.Error);
+        _dialogService.ShowError($"Failed to open logs folder: {ex.Message}", "Error");
       }
     }
     else
     {
-      MessageBox.Show(
-        $"Logs folder does not exist:\n{logsFolder}",
-        "Folder Not Found",
-        MessageBoxButton.OK,
-        MessageBoxImage.Information);
+      _dialogService.ShowInfo($"Logs folder does not exist:\n{logsFolder}", "Folder Not Found");
     }
   }
 

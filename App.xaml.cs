@@ -36,6 +36,7 @@ public partial class App
     builder.RegisterInstance(_loggingService).As<ILoggingService>().SingleInstance();
     builder.Register(ctx => ctx.Resolve<ILoggingService>().Logger).As<ILogger>().SingleInstance();
 
+    builder.RegisterType<WpfDialogService>().As<IDialogService>().SingleInstance();
     builder.RegisterType<PatcherSettings>().AsSelf().SingleInstance();
     builder.RegisterType<MutagenService>().SingleInstance();
     builder.RegisterType<GameAssetLocator>().SingleInstance();
@@ -74,10 +75,11 @@ public partial class App
 
     if (GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {
+      var dialogService = Container.Resolve<IDialogService>();
       _ = Task.Run(async () =>
       {
         await Task.Delay(1500);
-        Current.Dispatcher.Invoke(AutoUpdateService.CheckForUpdates);
+        Current.Dispatcher.Invoke(() => AutoUpdateService.CheckForUpdates(dialogService: dialogService));
       });
     }
   }

@@ -33,6 +33,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
   private readonly GameDataCacheService                                _cache;
   private readonly IObservable<bool>                                   _canPaste;
   private readonly IObservable<bool>                                   _canSave;
+  private readonly IDialogService                                      _dialogService;
   private readonly CompositeDisposable                                 _disposables               = new();
   private readonly Dictionary<DistributionEntryViewModel, CompositeDisposable> _entrySubscriptions = new();
   private readonly DistributionFilePathService                                  _filePathService;
@@ -154,6 +155,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     GuiSettingsService guiSettings,
     DistributionEntryHydrationService hydrationService,
     DistributionFilePathService filePathService,
+    IDialogService dialogService,
     ILogger logger)
   {
     _fileWriterService   = fileWriterService;
@@ -164,6 +166,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     _guiSettings         = guiSettings;
     _hydrationService    = hydrationService;
     _filePathService     = filePathService;
+    _dialogService       = dialogService;
     _logger              = logger.ForContext<DistributionEditTabViewModel>();
 
     _mutagenService.PluginsChanged += OnPluginsChanged;
@@ -748,7 +751,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
       var entry = new DistributionEntry();
 
       _logger.Debug("Creating DistributionEntryViewModel");
-      var entryVm = new DistributionEntryViewModel(entry, RemoveDistributionEntry, IsFormatChangingToSpid);
+      var entryVm = new DistributionEntryViewModel(entry, RemoveDistributionEntry, IsFormatChangingToSpid, _dialogService);
 
       _logger.Debug("Adding to DistributionEntries collection");
       DistributionEntries.Add(entryVm);
