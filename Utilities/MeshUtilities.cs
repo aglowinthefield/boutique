@@ -198,22 +198,37 @@ public static class MeshUtilities
     }
 
     var set = nif.GetBlock<BSShaderTextureSet>(shader.TextureSetRef);
-    if (set?.Textures == null)
+    if (set == null)
     {
       yield break;
     }
 
-    foreach (var textureRef in set.Textures)
-    {
-      var path = textureRef?.Content;
-      if (string.IsNullOrWhiteSpace(path))
-      {
-        path = textureRef?.ToString();
-      }
+    var found = false;
 
-      if (!string.IsNullOrWhiteSpace(path))
+    if (set.Textures != null)
+    {
+      foreach (var textureRef in set.Textures)
       {
-        yield return path;
+        var path = textureRef?.Content;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+          found = true;
+          yield return path;
+        }
+      }
+    }
+
+    // NiString4.Content can be null in some NIFs; fall back to StringRefs which
+    // uses NiStringRef and reliably populates the .String property.
+    if (!found)
+    {
+      foreach (var stringRef in set.StringRefs)
+      {
+        var path = stringRef?.String;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+          yield return path;
+        }
       }
     }
   }
