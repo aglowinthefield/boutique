@@ -42,6 +42,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   private            string? _lastLoadedOutfitPlugin;
   [Reactive] private int     _outfitArmorsTotalCount;
+  [Reactive] private string  _outfitDraftSearchText  = string.Empty;
   [Reactive] private string  _outfitPluginSearchText = string.Empty;
   [Reactive] private string  _outfitSearchText       = string.Empty;
   [Reactive] private int     _selectedOutfitArmorCount;
@@ -87,6 +88,13 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     HasOutfitDrafts           = _draftManager.HasDrafts;
     HasExistingPluginOutfits  = _draftManager.HasExistingOutfits;
     HasPendingOutfitDeletions = _draftManager.HasPendingDeletions;
+
+    // Outfit draft search filter
+    _disposables.Add(
+      this.WhenAnyValue(x => x.OutfitDraftSearchText)
+          .Throttle(TimeSpan.FromMilliseconds(150))
+          .ObserveOn(RxApp.MainThreadScheduler)
+          .Subscribe(ApplyDraftSearchFilter));
 
     // Auto-save logic
     _disposables.Add(
@@ -253,6 +261,79 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
                          .Subscribe());
 
     FilteredOutfitArmors = filteredArmors;
+  }
+
+  private void ApplyDraftSearchFilter(string searchText)
+  {
+    var isEmpty = string.IsNullOrWhiteSpace(searchText);
+
+    if (isEmpty)
+    {
+      // Restore normal expand/collapse visibility
+      _draftManager.RefreshVisibility();
+      return;
+    }
+
+    // First pass: determine which drafts match
+    OutfitSeparatorViewModel? currentSeparator = null;
+    var separatorNameMatches = false;
+    var anyChildMatches = false;
+    var separatorChildren = new List<(IOutfitQueueItem Item, bool Matches)>();
+
+    foreach (var item in OutfitDrafts)
+    {
+      if (item is OutfitSeparatorViewModel sep)
+      {
+        // Flush previous separator group
+        ApplySeparatorGroupVisibility(currentSeparator, separatorChildren, separatorNameMatches, anyChildMatches);
+
+        currentSeparator = sep;
+        separatorNameMatches = sep.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+        anyChildMatches = false;
+        separatorChildren.Clear();
+      }
+      else if (item is OutfitDraftViewModel draft)
+      {
+        var matches = draft.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+        if (currentSeparator != null)
+        {
+          separatorChildren.Add((item, matches));
+          if (matches)
+          {
+            anyChildMatches = true;
+          }
+        }
+        else
+        {
+          // Ungrouped draft
+          draft.IsVisible = matches;
+        }
+      }
+    }
+
+    // Flush last separator group
+    ApplySeparatorGroupVisibility(currentSeparator, separatorChildren, separatorNameMatches, anyChildMatches);
+  }
+
+  private static void ApplySeparatorGroupVisibility(
+    OutfitSeparatorViewModel? separator,
+    List<(IOutfitQueueItem Item, bool Matches)> children,
+    bool separatorNameMatches,
+    bool anyChildMatches)
+  {
+    if (separator == null)
+    {
+      return;
+    }
+
+    // Show separator if its name matches or any child matches
+    separator.IsVisible = separatorNameMatches || anyChildMatches;
+
+    foreach (var (child, matches) in children)
+    {
+      // If separator name matched, show all children; otherwise show only matching children
+      child.IsVisible = separatorNameMatches || matches;
+    }
   }
 
   private static Func<string, bool> BuildPluginPredicate(string searchText) =>
