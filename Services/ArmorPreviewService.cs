@@ -189,7 +189,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         {
           _logger.Debug(
             "Skipping shape {ShapeName} in {FullPath} due to missing geometry or texture data.",
-            shape.Name?.ToString() ?? "<unnamed>",
+            shape.Name?.String ?? "<unnamed>",
             meshPath);
           continue;
         }
@@ -198,11 +198,11 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
         {
           _logger.Debug(
             "Skipping shape {ShapeName} because it has no diffuse texture.",
-            shape.Name?.ToString() ?? "<unnamed>");
+            shape.Name?.String ?? "<unnamed>");
           continue;
         }
 
-        var shapeName = shape.Name?.ToString();
+        var shapeName = shape.Name?.String;
         var name      = string.IsNullOrWhiteSpace(shapeName) ? partName : $"{partName} - {shapeName}";
         meshes.Add(
           new PreviewMeshShape(
@@ -238,14 +238,14 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     var vertices = MeshUtilities.ExtractVertices(shape);
     if (vertices == null || vertices.Count == 0)
     {
-      _logger.Debug("Shape {ShapeName} has no vertices.", shape.Name?.ToString() ?? "<unnamed>");
+      _logger.Debug("Shape {ShapeName} has no vertices.", shape.Name?.String ?? "<unnamed>");
       return false;
     }
 
     var indices = MeshUtilities.ExtractIndices(shape);
     if (indices == null || indices.Count == 0)
     {
-      _logger.Debug("Shape {ShapeName} has no indices.", shape.Name?.ToString() ?? "<unnamed>");
+      _logger.Debug("Shape {ShapeName} has no indices.", shape.Name?.String ?? "<unnamed>");
       return false;
     }
 
@@ -259,7 +259,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     else
     {
       normals = MeshUtilities.ComputeNormals(vertices, indices);
-      var shapeName = shape.Name?.ToString() ?? "<unnamed>";
+      var shapeName = shape.Name?.String ?? "<unnamed>";
       if (extractedNormals == null)
       {
         _logger.Debug("Shape {ShapeName} provided no normals; computed fallback.", shapeName);
@@ -279,7 +279,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
       _logger.Debug(
         "Shape {ShapeName} texture coordinate count {TexCount} does not match vertex count {VertexCount}. Ignoring UVs.",
-        shape.Name?.ToString() ?? "<unnamed>",
+        shape.Name?.String ?? "<unnamed>",
         textureCoordinates.Count,
         vertices.Count);
       textureCoordinates = null;
@@ -288,7 +288,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
       _logger.Debug(
         "Shape {ShapeName} extracted {TexCount} UV coordinates.",
-        shape.Name?.ToString() ?? "<unnamed>",
+        shape.Name?.String ?? "<unnamed>",
         textureCoordinates.Count);
     }
 
@@ -297,7 +297,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
     if (diffuse == null)
     {
-      _logger.Debug("Shape {ShapeName} has no diffuse texture.", shape.Name?.ToString() ?? "<unnamed>");
+      _logger.Debug("Shape {ShapeName} has no diffuse texture.", shape.Name?.String ?? "<unnamed>");
     }
 
     meshData = new MeshData(vertices, normals, textureCoordinates, indices, transform, diffuse);
@@ -312,7 +312,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     GenderedModelVariant variant,
     ILinkCache? linkCache)
   {
-    var shapeName = shape.Name?.String ?? shape.Name?.ToString() ?? "<unnamed>";
+    var shapeName = shape.Name?.String ?? "<unnamed>";
 
     var alternateTexture = TryGetAlternateTexture(addon, variant, linkCache, shapeName);
     return alternateTexture ?? ExtractTextureFromNif(nif, shape, ownerModKey, shapeName);
@@ -385,11 +385,21 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
 
     CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(shape.ShaderPropertyRef));
 
+    if (candidates.Count == 0)
+    {
+      CollectEffectShaderTexture(nif.GetBlock<BSEffectShaderProperty>(shape.ShaderPropertyRef), candidates);
+    }
+
     if (candidates.Count == 0 && shape.Properties != null)
     {
       foreach (var propRef in shape.Properties.References)
       {
         CollectCandidates(nif.GetBlock<BSLightingShaderProperty>(propRef));
+
+        if (candidates.Count == 0)
+        {
+          CollectEffectShaderTexture(nif.GetBlock<BSEffectShaderProperty>(propRef), candidates);
+        }
       }
     }
 
@@ -411,7 +421,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
       }
 
       var normalized = PathUtilities.NormalizeAssetPath(candidate);
-      var resolved   = assetLocator.ResolveAssetPath(normalized, ownerModKey);
+      var resolved   = ResolveTexturePath(normalized, ownerModKey);
       if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
       {
         _logger.Debug(
@@ -438,6 +448,44 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     }
 
     return null;
+  }
+
+  private static readonly System.Reflection.FieldInfo? EffectShaderSourceTextField =
+    typeof(BSEffectShaderProperty).GetField(
+      "_sourceTexture",
+      System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+
+  private static void CollectEffectShaderTexture(BSEffectShaderProperty? effectShader, List<string> candidates)
+  {
+    if (effectShader == null || EffectShaderSourceTextField == null)
+    {
+      return;
+    }
+
+    if (EffectShaderSourceTextField.GetValue(effectShader) is string sourceTexture && sourceTexture.Length > 0)
+    {
+      candidates.Add(sourceTexture);
+    }
+  }
+
+  /// <summary>
+  /// Resolves a normalized texture path against the data folder, retrying with a
+  /// <c>textures/</c> prefix when the path is stored relative to that subdirectory.
+  /// </summary>
+  private string? ResolveTexturePath(string normalized, ModKey? ownerModKey)
+  {
+    var resolved = assetLocator.ResolveAssetPath(normalized, ownerModKey);
+    if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
+    {
+      return resolved;
+    }
+
+    if (!normalized.StartsWith("textures/", StringComparison.OrdinalIgnoreCase))
+    {
+      resolved = assetLocator.ResolveAssetPath("textures/" + normalized, ownerModKey);
+    }
+
+    return resolved;
   }
 
   private static (IModelGetter? Model, GenderedModelVariant Variant) SelectModel(
