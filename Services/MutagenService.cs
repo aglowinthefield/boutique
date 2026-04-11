@@ -211,8 +211,9 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
         using var mod = SkyrimMod.CreateFromBinaryOverlay(pluginPath, GetSkyrimRelease(), Utf8ReadParameters);
         return recordSelector(mod).ToList();
       }
-      catch
+      catch (Exception ex)
       {
+        _logger.Error(ex, "Failed to load records from plugin {Plugin}.", pluginFileName);
         return [];
       }
     });

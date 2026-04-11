@@ -15,6 +15,7 @@ namespace Boutique.Services;
 public class PatchingService(MutagenService mutagenService, ILoggingService loggingService)
 {
   private const    uint    MinimumFormId = 0x800;
+  private static readonly ModKey SkyrimMaster = ModKey.FromFileName("Skyrim.esm");
   private readonly ILogger _logger       = loggingService.ForContext<PatchingService>();
 
   private void RequireInitialized()
@@ -57,9 +58,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string outputPath,
     IProgress<(int current, int total, string message)>? progress)
   {
+    requiredMasters.Add(SkyrimMaster);
+
     EnsureMasters(patchMod, requiredMasters);
 
     var actuallyRequiredMasters = CollectRequiredMasters(patchMod, []);
+    actuallyRequiredMasters.Add(SkyrimMaster);
     CleanupMasterReferences(patchMod, actuallyRequiredMasters);
 
     TryApplyEslFlag(patchMod);
