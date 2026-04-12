@@ -200,7 +200,8 @@
       </views:OutfitQueueItemTemplateSelector.DraftTemplate>
       <views:OutfitQueueItemTemplateSelector.SeparatorTemplate>
         <DataTemplate DataType="{x:Type vm:OutfitSeparatorViewModel}">
-          <Grid AllowDrop="True" Margin="0,8,0,0"
+          <Grid Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisConverter}}"
+                AllowDrop="True" Margin="0,8,0,0"
                 DragEnter="QueueItem_OnDragEnter"
                 DragLeave="QueueItem_OnDragLeave"
                 DragOver="QueueItem_OnDragOver"
@@ -484,10 +485,21 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
 
-          <Border Grid.Row="1" Style="{DynamicResource {x:Static themes:ResourceKeys.DropZoneStyleKey}}"
+          <!-- Search -->
+          <Grid Grid.Row="0" Margin="0,0,0,6">
+            <TextBox x:Name="DraftSearchBox"
+                     Text="{Binding OutfitDraftSearchText, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.FilterPlaceholder}}" Foreground="Gray"
+                       IsHitTestVisible="False"
+                       Margin="6,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding Text, ElementName=DraftSearchBox, Converter={StaticResource StringEmptyToVisConverter}, ConverterParameter=Inverse}" />
+          </Grid>
+
+          <Border Grid.Row="2" Style="{DynamicResource {x:Static themes:ResourceKeys.DropZoneStyleKey}}"
                   Margin="0,0,0,6"
                   AllowDrop="True"
                   DragEnter="NewOutfitDropZone_OnDragEnter"
@@ -499,7 +511,7 @@
                        TextWrapping="Wrap" />
           </Border>
 
-          <Border Grid.Row="0" Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}"
+          <Border Grid.Row="1" Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}"
                   Margin="0,0,0,6"
                   Visibility="{Binding HasExistingPluginOutfits, Converter={StaticResource BoolToVisConverter}}">
             <StackPanel>
@@ -521,7 +533,7 @@
             </StackPanel>
           </Border>
 
-          <Grid Grid.Row="2">
+          <Grid Grid.Row="3">
             <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoOutfitsQueued}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
                        Visibility="{Binding HasOutfitDrafts, Converter={StaticResource InverseBoolToVisConverter}}" />

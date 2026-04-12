@@ -1066,6 +1066,8 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
     }
   }
 
+  public void RefreshVisibility() => UpdateChildVisibility();
+
   private void UpdateChildVisibility()
   {
     var                       isVisible        = true;
