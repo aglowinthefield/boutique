@@ -89,6 +89,7 @@ public sealed partial class DistributionEditTabViewModel
         Directory.CreateDirectory(directory);
       }
 
+      _backupService.CreateBackup(finalFilePath);
       await File.WriteAllTextAsync(finalFilePath, DistributionFileContent, Encoding.UTF8);
       _lastSavedContent = DistributionFileContent;
 
@@ -131,6 +132,7 @@ public sealed partial class DistributionEditTabViewModel
       case true:
         if (!IsCreatingNewFile && File.Exists(DistributionFilePath))
         {
+          _backupService.CreateBackup(DistributionFilePath);
           File.WriteAllText(DistributionFilePath, DistributionFileContent, Encoding.UTF8);
           _lastSavedContent = DistributionFileContent;
           _logger.Information("Saved distribution file: {Path}", DistributionFilePath);
@@ -147,29 +149,6 @@ public sealed partial class DistributionEditTabViewModel
         return true;
       default:
         return false;
-    }
-  }
-
-  private void AutoSaveFile(string content)
-  {
-    try
-    {
-      var path = DistributionFilePath;
-      if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-      {
-        return;
-      }
-
-      File.WriteAllText(path, content, Encoding.UTF8);
-      _lastSavedContent                     = content;
-      _guiSettings.LastDistributionFilePath = path;
-      _logger.Debug("Auto-saved distribution file: {Path}", path);
-
-      Application.Current?.Dispatcher.BeginInvoke(() => ShowAutoSaveIndicator = true);
-    }
-    catch (Exception ex)
-    {
-      _logger.Warning(ex, "Auto-save failed for {Path}", DistributionFilePath);
     }
   }
 

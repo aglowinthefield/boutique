@@ -44,6 +44,7 @@ public partial class App
     builder.RegisterType<ArmorPreviewService>().SingleInstance();
     builder.RegisterType<DistributionScannerService>().SingleInstance();
     builder.RegisterType<DistributionFileEditorService>().SingleInstance();
+    builder.RegisterType<DistributionFileBackupService>().SingleInstance();
     builder.RegisterType<NpcOutfitResolutionService>().SingleInstance();
     builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
     builder.RegisterType<GameDataCacheService>().SingleInstance();

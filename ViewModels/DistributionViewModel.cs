@@ -41,6 +41,7 @@ public partial class DistributionViewModel : ReactiveObject
     GuiSettingsService guiSettings,
     DistributionEntryHydrationService hydrationService,
     DistributionFilePathService filePathService,
+    DistributionFileBackupService backupService,
     IDialogService dialogService,
     ILogger logger)
   {
@@ -61,6 +62,7 @@ public partial class DistributionViewModel : ReactiveObject
       guiSettings,
       hydrationService,
       filePathService,
+      backupService,
       dialogService,
       logger);
 
