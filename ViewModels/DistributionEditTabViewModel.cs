@@ -30,6 +30,7 @@ public class PreviewLine
 public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
   private readonly ArmorPreviewService                                 _armorPreviewService;
+  private readonly DistributionFileBackupService                       _backupService;
   private readonly GameDataCacheService                                _cache;
   private readonly IObservable<bool>                                   _canPaste;
   private readonly IObservable<bool>                                   _canSave;
@@ -140,8 +141,6 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
 
   [Reactive] private string _raceSearchText = string.Empty;
 
-  [Reactive] private bool _showAutoSaveIndicator;
-
   [Reactive] private string _statusMessage = string.Empty;
 
   [Reactive] private string _suggestedFileName = string.Empty;
@@ -155,6 +154,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     GuiSettingsService guiSettings,
     DistributionEntryHydrationService hydrationService,
     DistributionFilePathService filePathService,
+    DistributionFileBackupService backupService,
     IDialogService dialogService,
     ILogger logger)
   {
@@ -166,6 +166,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     _guiSettings         = guiSettings;
     _hydrationService    = hydrationService;
     _filePathService     = filePathService;
+    _backupService       = backupService;
     _dialogService       = dialogService;
     _logger              = logger.ForContext<DistributionEditTabViewModel>();
 
@@ -229,23 +230,6 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
         .Throttle(TimeSpan.FromMilliseconds(100))
         .ObserveOn(RxApp.TaskpoolScheduler)
         .Subscribe(entry => UpdateMatchingNpcsForEntry(entry));
-
-    _disposables.Add(
-      this.WhenAnyValue(vm => vm.DistributionFileContent)
-          .Skip(1)
-          .Where(_ => !_isBulkLoading && !IsLoading && !IsCreatingNewFile)
-          .Where(_ => !string.IsNullOrWhiteSpace(DistributionFilePath) && File.Exists(DistributionFilePath))
-          .Throttle(TimeSpan.FromMilliseconds(100))
-          .Where(content => content != _lastSavedContent)
-          .ObserveOn(RxApp.TaskpoolScheduler)
-          .Subscribe(content => AutoSaveFile(content)));
-
-    _disposables.Add(
-      this.WhenAnyValue(vm => vm.ShowAutoSaveIndicator)
-          .Where(show => show)
-          .Delay(TimeSpan.FromSeconds(2))
-          .ObserveOn(RxApp.MainThreadScheduler)
-          .Subscribe(_ => ShowAutoSaveIndicator = false));
   }
 
   public ReadOnlyObservableCollection<ClassRecordViewModel> FilteredClasses { get; private set; } = null!;
