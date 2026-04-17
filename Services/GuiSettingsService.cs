@@ -33,6 +33,7 @@ public class GuiSettings
   public Dictionary<string, double>? GridSplitterPositions { get; set; }
   public Dictionary<string, SecondaryWindowGeometry>? SecondaryWindowGeometries { get; set; }
   public Dictionary<string, OutfitDraftsState>? OutfitDraftsStates { get; set; }
+  public HashSet<string>? DismissedNotices { get; set; }
 }
 
 public class OutfitDraftsState
@@ -338,6 +339,18 @@ public class GuiSettingsService
                     : state.Collapsed.Remove(editorId);
 
     if (changed)
+    {
+      SaveSettings();
+    }
+  }
+
+  public bool HasDismissedNotice(string noticeKey) =>
+    _settings.DismissedNotices?.Contains(noticeKey) == true;
+
+  public void DismissNotice(string noticeKey)
+  {
+    _settings.DismissedNotices ??= [];
+    if (_settings.DismissedNotices.Add(noticeKey))
     {
       SaveSettings();
     }

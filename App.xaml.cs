@@ -74,6 +74,8 @@ public partial class App
 
     Log.Information("Main window displayed.");
 
+    ShowOneTimeNotices(Container.Resolve<GuiSettingsService>(), Container.Resolve<IDialogService>());
+
     if (GuiSettingsService.Current?.AutoUpdateEnabled == true)
     {
       var dialogService = Container.Resolve<IDialogService>();
@@ -91,6 +93,25 @@ public partial class App
     Container?.Dispose();
     _loggingService?.Dispose();
     base.OnExit(e);
+  }
+
+  private static void ShowOneTimeNotices(GuiSettingsService settings, IDialogService dialog)
+  {
+    const string key = "autosave-removed-v1.13";
+    if (settings.HasDismissedNotice(key))
+    {
+      return;
+    }
+
+    dialog.ShowInfo(
+      "Auto-save for distribution files has been removed.\n\n" +
+      "Distribution files are now only saved when you explicitly click Save. " +
+      "A rotating backup is created automatically before each save, stored in:\n" +
+      "%LOCALAPPDATA%\\Boutique\\Backups\\\n\n" +
+      "This change prevents the silent data loss some users experienced with auto-save.",
+      "Distribution File Auto-Save Removed");
+
+    settings.DismissNotice(key);
   }
 
   private void ConfigureExceptionLogging()
