@@ -326,7 +326,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
 
     var npc = linkCache.PriorityOrder.WinningOverrides<INpcGetter>()
                        .FirstOrDefault(n => string.Equals(n.EditorID, id, StringComparison.OrdinalIgnoreCase)
-                                            || string.Equals(n.Name?.String, id, StringComparison.OrdinalIgnoreCase));
+                                            || string.Equals(n.Name.SafeString(n), id, StringComparison.OrdinalIgnoreCase));
     if (npc != null)
     {
       _logger.Debug("Resolved NPC EditorID/Name '{Id}' to {FormKey}", id, npc.FormKey);

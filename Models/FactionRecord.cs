@@ -1,3 +1,4 @@
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 
@@ -19,5 +20,5 @@ public sealed record FactionRecord(
   public string ModDisplayName => ModKey.FileName;
 
   public static FactionRecord FromGetter(IFactionGetter faction) =>
-    new(faction.FormKey, faction.EditorID, faction.Name?.String, faction.FormKey.ModKey);
+    new(faction.FormKey, faction.EditorID, faction.Name.SafeString(faction), faction.FormKey.ModKey);
 }

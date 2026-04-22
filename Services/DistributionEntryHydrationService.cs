@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Boutique.Models;
+using Boutique.Utilities;
 using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
@@ -118,7 +119,7 @@ public class DistributionEntryHydrationService(
       var npcRecord = new NpcRecord(
         npc.FormKey,
         npc.EditorID,
-        npc.Name?.String,
+        npc.Name.SafeString(npc),
         npc.FormKey.ModKey);
       return new NpcRecordViewModel(npcRecord);
     }

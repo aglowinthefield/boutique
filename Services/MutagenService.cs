@@ -239,10 +239,15 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
 
       foreach (var armor in LinkCache!.WinningOverrides<IArmorGetter>())
       {
-        if (!string.IsNullOrWhiteSpace(armor.Name?.String)
-            && !IsBlacklisted(armor.FormKey.ModKey.FileName))
+        var modKey = armor.FormKey.ModKey;
+        if (IsBlacklisted(modKey.FileName))
         {
-          plugins.Add(armor.FormKey.ModKey.FileName);
+          continue;
+        }
+
+        if (!string.IsNullOrWhiteSpace(armor.Name.SafeString(armor)))
+        {
+          plugins.Add(modKey.FileName);
         }
       }
 

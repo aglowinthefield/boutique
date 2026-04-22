@@ -88,7 +88,7 @@ public class ArmorPreviewService(MutagenService mutagenService, GameAssetLocator
     {
       cancellationToken.ThrowIfCancellationRequested();
 
-      var armorName = armor.Name?.String ?? armor.EditorID ?? "Unknown Armor";
+      var armorName = armor.Name.SafeString(armor) ?? armor.EditorID ?? "Unknown Armor";
 
       foreach (var addonFormKey in armor.Armature.Select(addonLink => addonLink.FormKey))
       {

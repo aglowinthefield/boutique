@@ -73,7 +73,7 @@ public class ContainerDataBuilder(ILogger logger)
           }
 
           var factionName =
-            faction.Name?.String ??
+            faction.Name.SafeString(faction) ??
             faction.EditorID ?? faction.FormKey.ToString();
           result.TryAdd(placedRef.Base.FormKey, factionName);
         },
@@ -99,7 +99,7 @@ public class ContainerDataBuilder(ILogger logger)
         cell,
         () =>
         {
-          var cellName = cell.Name?.String ?? cell.EditorID ?? cell.FormKey.ToString();
+          var cellName = cell.Name.SafeString(cell) ?? cell.EditorID ?? cell.FormKey.ToString();
           ProcessPlacedObjects(cell.Temporary, cellName);
           ProcessPlacedObjects(cell.Persistent, cellName);
         },

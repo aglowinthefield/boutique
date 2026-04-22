@@ -1,4 +1,5 @@
 using Boutique.Models;
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Aspects;
 using Mutagen.Bethesda.Plugins.Cache;
@@ -14,7 +15,7 @@ public sealed class ContainerRecordViewModel(
 {
   public FormKey FormKey { get; } = container.FormKey;
   public string EditorId { get; } = container.EditorID ?? string.Empty;
-  public string Name { get; } = container.Name?.String ?? container.EditorID ?? container.FormKey.ToString();
+  public string Name { get; } = container.Name.SafeString(container) ?? container.EditorID ?? container.FormKey.ToString();
   public string ModName { get; } = container.FormKey.ModKey.FileName;
   public bool Respawns { get; } = container.Flags.HasFlag(Container.Flag.Respawns);
   public IReadOnlyList<ContainerContentItem> Items { get; } = ResolveItems(container, linkCache);
@@ -69,7 +70,7 @@ public sealed class ContainerRecordViewModel(
       if (linkCache.TryResolve<ISkyrimMajorRecordGetter>(formKey, out var record))
       {
         editorId = record.EditorID ?? string.Empty;
-        name     = (record as ITranslatedNamedGetter)?.Name?.String ?? string.Empty;
+        name     = (record as ITranslatedNamedGetter)?.Name.SafeString(record) ?? string.Empty;
       }
 
       items.Add(

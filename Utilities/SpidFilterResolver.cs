@@ -349,7 +349,7 @@ public static class SpidFilterResolver
                                                 part.Value,
                                                 StringComparison.OrdinalIgnoreCase) ||
                                               string.Equals(
-                                                n.Name?.String,
+                                                n.Name.SafeString(n),
                                                 part.Value,
                                                 StringComparison.OrdinalIgnoreCase));
         if (npc != null)
@@ -393,7 +393,7 @@ public static class SpidFilterResolver
                                               exclusion.Value,
                                               StringComparison.OrdinalIgnoreCase) ||
                                             string.Equals(
-                                              n.Name?.String,
+                                              n.Name.SafeString(n),
                                               exclusion.Value,
                                               StringComparison.OrdinalIgnoreCase));
       if (npc != null)
@@ -826,7 +826,7 @@ public static class SpidFilterResolver
       cachedNpcs.Any(n =>
                        resolvedNpcFormKeys.Contains(n.FormKey) &&
                        (string.Equals(n.EditorID, value, StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(n.Name?.String, value, StringComparison.OrdinalIgnoreCase)));
+                        string.Equals(n.Name.SafeString(n), value, StringComparison.OrdinalIgnoreCase)));
 
     var unresolvableParts = new List<string>();
 

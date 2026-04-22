@@ -1,3 +1,4 @@
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 
@@ -14,5 +15,5 @@ public sealed record LocationRecord(
   public string ModDisplayName => ModKey.FileName;
 
   public static LocationRecord FromGetter(ILocationGetter location) =>
-    new(location.FormKey, location.EditorID, location.Name?.String, location.FormKey.ModKey);
+    new(location.FormKey, location.EditorID, location.Name.SafeString(location), location.FormKey.ModKey);
 }

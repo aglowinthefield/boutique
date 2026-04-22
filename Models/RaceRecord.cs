@@ -1,3 +1,4 @@
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 
@@ -15,5 +16,5 @@ public sealed record RaceRecord(FormKey FormKey, string? EditorID, string? Name,
   public string ModDisplayName => ModKey.FileName;
 
   public static RaceRecord FromGetter(IRaceGetter race) =>
-    new(race.FormKey, race.EditorID, race.Name?.String, race.FormKey.ModKey);
+    new(race.FormKey, race.EditorID, race.Name.SafeString(race), race.FormKey.ModKey);
 }

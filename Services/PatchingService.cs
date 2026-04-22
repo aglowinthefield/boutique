@@ -1,5 +1,6 @@
 using System.IO;
 using Boutique.Models;
+using Boutique.Utilities;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
@@ -116,7 +117,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         foreach (var match in validMatches)
         {
           current++;
-          var sourceName = match.SourceArmor.Name?.String ?? match.SourceArmor.EditorID ?? "Unknown";
+          var sourceName = match.SourceArmor.Name.SafeString(match.SourceArmor) ?? match.SourceArmor.EditorID ?? "Unknown";
           progress?.Report((current, total, $"Patching {sourceName}..."));
 
           var patchedArmor = patchMod.Armors.GetOrAddAsOverride(match.SourceArmor);

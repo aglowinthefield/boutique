@@ -312,9 +312,10 @@ public static class DistributionConflictDetectionService
                       .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
                       .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
       npcByName = allNpcs
-                  .Where(n => !string.IsNullOrWhiteSpace(n.Name?.String))
-                  .GroupBy(n => n.Name!.String!, StringComparer.OrdinalIgnoreCase)
-                  .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+                  .Select(n => (Npc: n, Name: n.Name.SafeString(n)))
+                  .Where(t => !string.IsNullOrWhiteSpace(t.Name))
+                  .GroupBy(t => t.Name!, StringComparer.OrdinalIgnoreCase)
+                  .ToDictionary(g => g.Key, g => g.First().Npc, StringComparer.OrdinalIgnoreCase);
     }
 
     foreach (var file in files)

@@ -1,3 +1,4 @@
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
@@ -30,8 +31,8 @@ public partial class ArmorRecordViewModel : ReactiveObject
   public IArmorGetter Armor { get; }
 
   public string EditorID => Armor.EditorID ?? "(No EditorID)";
-  public string Name => Armor.Name?.String ?? string.Empty;
-  public string DisplayName => !string.IsNullOrWhiteSpace(Armor.Name?.String) ? Armor.Name!.String : EditorID;
+  public string Name => Armor.Name.SafeString(Armor) ?? string.Empty;
+  public string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : EditorID;
   public float ArmorRating => Armor.ArmorRating;
   public float Weight => Armor.Weight;
   public uint Value => Armor.Value;
@@ -93,7 +94,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
       if (_linkCache != null &&
           _linkCache.TryResolve<IObjectEffectGetter>(Armor.ObjectEffect.FormKey, out var enchantment))
       {
-        return enchantment.Name?.String ?? enchantment.EditorID ?? "Unknown Enchantment";
+        return enchantment.Name.SafeString(enchantment) ?? enchantment.EditorID ?? "Unknown Enchantment";
       }
 
       return "Enchanted";

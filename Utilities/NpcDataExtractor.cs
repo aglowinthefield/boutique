@@ -4,7 +4,7 @@ namespace Boutique.Utilities;
 
 public static class NpcDataExtractor
 {
-  public static string? GetName(INpcGetter npc) => npc.Name?.String;
+  public static string? GetName(INpcGetter npc) => npc.Name.SafeString(npc);
 
   public static bool IsChildRace(string? raceEditorId)
   {
