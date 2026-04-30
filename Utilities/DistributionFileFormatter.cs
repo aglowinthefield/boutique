@@ -228,8 +228,7 @@ public static class DistributionFileFormatter
                                 .ToList();
     if (includedNpcNames.Count > 0)
     {
-      var separator = entry.NpcLogicMode == FilterLogicMode.Or ? "," : "+";
-      parts.Add(string.Join(separator, includedNpcNames));
+      parts.Add(string.Join(",", includedNpcNames));
     }
 
     var includedKeywords = entry.SelectedKeywords
