@@ -5,6 +5,12 @@
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "computedHash": "645b891da1edbae76ab79c7b088d4e73397464f8396edaf773c0e01971ce75d6"
+    },
+    "wpf-best-practices": {
+      "source": "jcurbelo/skills",
+      "sourceType": "github",
+      "skillPath": "wpf-best-practices/SKILL.md",
+      "computedHash": "2cfff70acaa5ef2e531737a9bd04d0aef562fd795d8dba82af20a421c1c9d778"
     }
   }
 }
