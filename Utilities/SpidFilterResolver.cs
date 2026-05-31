@@ -334,6 +334,14 @@ public static class SpidFilterResolver
     IReadOnlySet<string>? knownVirtualKeywords,
     ILogger? logger)
   {
+    var context = new StringFilterContext(
+      linkCache,
+      cachedNpcs,
+      npcFilters,
+      keywordFilters,
+      knownVirtualKeywords,
+      logger);
+
     foreach (var expr in stringFilters.Expressions)
     {
       foreach (var part in expr.Parts)
@@ -343,40 +351,7 @@ public static class SpidFilterResolver
           continue;
         }
 
-        var npc = cachedNpcs.FirstOrDefault(n =>
-                                              string.Equals(
-                                                n.EditorID,
-                                                part.Value,
-                                                StringComparison.OrdinalIgnoreCase) ||
-                                              string.Equals(
-                                                n.Name.SafeString(n),
-                                                part.Value,
-                                                StringComparison.OrdinalIgnoreCase));
-        if (npc != null)
-        {
-          npcFilters.Add(new FormKeyFilter(npc.FormKey, part.IsNegated));
-          logger?.Debug("Resolved NPC string filter '{Value}' to {FormKey}", part.Value, npc.FormKey);
-          continue;
-        }
-
-        var keyword = linkCache.WinningOverrides<IKeywordGetter>()
-                               .FirstOrDefault(k => string.Equals(
-                                                 k.EditorID,
-                                                 part.Value,
-                                                 StringComparison.OrdinalIgnoreCase));
-        if (keyword != null)
-        {
-          keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? part.Value, part.IsNegated));
-          continue;
-        }
-
-        if (knownVirtualKeywords != null && knownVirtualKeywords.Contains(part.Value))
-        {
-          keywordFilters.Add(new KeywordFilter(part.Value, part.IsNegated));
-          continue;
-        }
-
-        logger?.Verbose("Unresolved string filter (not NPC or keyword): {Value}", part.Value);
+        ResolveStringFilterValue(part.Value, part.IsNegated, false, context);
       }
     }
 
@@ -387,41 +362,67 @@ public static class SpidFilterResolver
         continue;
       }
 
-      var npc = cachedNpcs.FirstOrDefault(n =>
-                                            string.Equals(
-                                              n.EditorID,
-                                              exclusion.Value,
-                                              StringComparison.OrdinalIgnoreCase) ||
-                                            string.Equals(
-                                              n.Name.SafeString(n),
-                                              exclusion.Value,
-                                              StringComparison.OrdinalIgnoreCase));
-      if (npc != null)
-      {
-        npcFilters.Add(new FormKeyFilter(npc.FormKey, true));
-        logger?.Debug("Resolved excluded NPC string filter '{Value}' to {FormKey}", exclusion.Value, npc.FormKey);
-        continue;
-      }
-
-      var keyword = linkCache.WinningOverrides<IKeywordGetter>()
-                             .FirstOrDefault(k => string.Equals(
-                                               k.EditorID,
-                                               exclusion.Value,
-                                               StringComparison.OrdinalIgnoreCase));
-      if (keyword != null)
-      {
-        keywordFilters.Add(new KeywordFilter(keyword.EditorID ?? exclusion.Value, true));
-        continue;
-      }
-
-      if (knownVirtualKeywords != null && knownVirtualKeywords.Contains(exclusion.Value))
-      {
-        keywordFilters.Add(new KeywordFilter(exclusion.Value, true));
-        continue;
-      }
-
-      logger?.Verbose("Unresolved global exclusion (not NPC or keyword): {Value}", exclusion.Value);
+      ResolveStringFilterValue(exclusion.Value, true, true, context);
     }
+  }
+
+  private sealed record StringFilterContext(
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> LinkCache,
+    IReadOnlyList<INpcGetter> CachedNpcs,
+    List<FormKeyFilter> NpcFilters,
+    List<KeywordFilter> KeywordFilters,
+    IReadOnlySet<string>? KnownVirtualKeywords,
+    ILogger? Logger);
+
+  private static void ResolveStringFilterValue(
+    string value,
+    bool isNegated,
+    bool isExclusion,
+    StringFilterContext context)
+  {
+    var npc = context.CachedNpcs.FirstOrDefault(n =>
+                                                  string.Equals(
+                                                    n.EditorID,
+                                                    value,
+                                                    StringComparison.OrdinalIgnoreCase) ||
+                                                  string.Equals(
+                                                    n.Name.SafeString(n),
+                                                    value,
+                                                    StringComparison.OrdinalIgnoreCase));
+    if (npc != null)
+    {
+      context.NpcFilters.Add(new FormKeyFilter(npc.FormKey, isNegated));
+      context.Logger?.Debug(
+        isExclusion
+          ? "Resolved excluded NPC string filter '{Value}' to {FormKey}"
+          : "Resolved NPC string filter '{Value}' to {FormKey}",
+        value,
+        npc.FormKey);
+      return;
+    }
+
+    var keyword = context.LinkCache.WinningOverrides<IKeywordGetter>()
+                         .FirstOrDefault(k => string.Equals(
+                                           k.EditorID,
+                                           value,
+                                           StringComparison.OrdinalIgnoreCase));
+    if (keyword != null)
+    {
+      context.KeywordFilters.Add(new KeywordFilter(keyword.EditorID ?? value, isNegated));
+      return;
+    }
+
+    if (context.KnownVirtualKeywords != null && context.KnownVirtualKeywords.Contains(value))
+    {
+      context.KeywordFilters.Add(new KeywordFilter(value, isNegated));
+      return;
+    }
+
+    context.Logger?.Verbose(
+      isExclusion
+        ? "Unresolved global exclusion (not NPC or keyword): {Value}"
+        : "Unresolved string filter (not NPC or keyword): {Value}",
+      value);
   }
 
   private static void ProcessFormFilters(
