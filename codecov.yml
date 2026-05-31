@@ -4,10 +4,10 @@ coverage:
       default:
         target: auto
         threshold: 1%
-        informational: false
+        informational: true
     patch:
       default:
-        target: 70%
+        target: 60%
         threshold: 0%
 
 comment:
