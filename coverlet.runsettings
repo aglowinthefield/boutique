@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[Boutique]Boutique.Views.*,[Boutique]Boutique.Controls.*,[Boutique]Boutique.App</Exclude>
+          <ExcludeByFile>**/*.xaml.cs,**/*.g.cs,**/*.g.i.cs,**/obj/**,**/bin/**</ExcludeByFile>
+          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,DebuggerNonUserCodeAttribute</ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
