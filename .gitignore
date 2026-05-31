@@ -108,3 +108,6 @@ nul
 .github/skills/
 .opencode/
 docs/
+
+# Code coverage output
+TestResults/
