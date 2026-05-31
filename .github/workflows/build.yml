@@ -28,7 +28,18 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: >
+          dotnet test --configuration Release --no-build --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --settings coverlet.runsettings
+          --results-directory ./coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/**/coverage.cobertura.xml
+          fail_ci_if_error: false
 
       - name: Publish
         run: |
