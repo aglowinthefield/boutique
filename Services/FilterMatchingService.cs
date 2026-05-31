@@ -75,10 +75,7 @@ public static class FilterMatchingService
       return null;
     }
 
-    if (!string.IsNullOrWhiteSpace(entry.RawStringFilters))
-    {
-      parts.Add($"String: {entry.RawStringFilters}");
-    }
+    AddIfNotEmpty(parts, string.IsNullOrWhiteSpace(entry.RawStringFilters) ? null : $"String: {entry.RawStringFilters}");
 
     if (!MatchesFilters(entry.NpcFilters, f => f.FormKey, [npc.FormKey], entry.NpcLogicMode))
     {
@@ -96,44 +93,15 @@ public static class FilterMatchingService
       return null;
     }
 
-    if (entry.FactionFilters.Any(f => !f.IsExcluded))
-    {
-      var matched = entry.FactionFilters
-                         .Where(f => !f.IsExcluded && npcFactions.Contains(f.FormKey))
-                         .Select(f =>
-                                   npc.Factions.FirstOrDefault(nf => nf.FactionFormKey == f.FormKey)?.FactionEditorId ??
-                                   f.FormKey.ToString());
-      var str = string.Join(" + ", matched);
-      if (!string.IsNullOrEmpty(str))
-      {
-        parts.Add($"Faction: {str}");
-      }
-    }
+    AddIfNotEmpty(parts, DescribeFactionMatch(entry, npc, npcFactions));
 
-    IReadOnlyCollection<string> effectiveKeywords = npc.Keywords;
-    if (virtualKeywords != null && entry.KeywordFilters.Count > 0)
-    {
-      var augmented = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
-      augmented.UnionWith(virtualKeywords);
-      effectiveKeywords = augmented;
-    }
-
+    var effectiveKeywords = BuildEffectiveKeywords(npc, entry, virtualKeywords);
     if (!MatchesFilters(entry.KeywordFilters, f => f.EditorId, effectiveKeywords, entry.KeywordLogicMode))
     {
       return null;
     }
 
-    if (entry.KeywordFilters.Any(f => !f.IsExcluded))
-    {
-      var matched = entry.KeywordFilters
-                         .Where(f => !f.IsExcluded && effectiveKeywords.Contains(f.EditorId))
-                         .Select(f => f.EditorId);
-      var str = string.Join(" + ", matched);
-      if (!string.IsNullOrEmpty(str))
-      {
-        parts.Add($"Keyword: {str}");
-      }
-    }
+    AddIfNotEmpty(parts, DescribeKeywordMatch(entry, effectiveKeywords));
 
     if (!MatchesFilters(
           entry.RaceFilters,
@@ -149,48 +117,27 @@ public static class FilterMatchingService
       parts.Add($"Race: {npc.RaceEditorId ?? npc.RaceFormKey?.ToString() ?? "?"}");
     }
 
-    if (entry.ClassFormKeys.Count > 0 &&
-        (!npc.ClassFormKey.HasValue || !entry.ClassFormKeys.Contains(npc.ClassFormKey.Value)))
+    if (!TryDescribeFormKeySetFilter(entry.ClassFormKeys, npc.ClassFormKey, npc.ClassEditorId, "Class", parts) ||
+        !TryDescribeFormKeySetFilter(
+          entry.OutfitFilterFormKeys,
+          npc.DefaultOutfitFormKey,
+          npc.DefaultOutfitEditorId,
+          "Outfit",
+          parts) ||
+        !TryDescribeFormKeySetFilter(
+          entry.CombatStyleFormKeys,
+          npc.CombatStyleFormKey,
+          npc.CombatStyleEditorId,
+          "CombatStyle",
+          parts) ||
+        !TryDescribeFormKeySetFilter(
+          entry.VoiceTypeFormKeys,
+          npc.VoiceTypeFormKey,
+          npc.VoiceTypeEditorId,
+          "VoiceType",
+          parts))
     {
       return null;
-    }
-
-    if (entry.ClassFormKeys.Count > 0)
-    {
-      parts.Add($"Class: {npc.ClassEditorId ?? npc.ClassFormKey?.ToString() ?? "?"}");
-    }
-
-    if (entry.OutfitFilterFormKeys.Count > 0 &&
-        (!npc.DefaultOutfitFormKey.HasValue || !entry.OutfitFilterFormKeys.Contains(npc.DefaultOutfitFormKey.Value)))
-    {
-      return null;
-    }
-
-    if (entry.OutfitFilterFormKeys.Count > 0)
-    {
-      parts.Add($"Outfit: {npc.DefaultOutfitEditorId ?? npc.DefaultOutfitFormKey?.ToString() ?? "?"}");
-    }
-
-    if (entry.CombatStyleFormKeys.Count > 0 &&
-        (!npc.CombatStyleFormKey.HasValue || !entry.CombatStyleFormKeys.Contains(npc.CombatStyleFormKey.Value)))
-    {
-      return null;
-    }
-
-    if (entry.CombatStyleFormKeys.Count > 0)
-    {
-      parts.Add($"CombatStyle: {npc.CombatStyleEditorId ?? npc.CombatStyleFormKey?.ToString() ?? "?"}");
-    }
-
-    if (entry.VoiceTypeFormKeys.Count > 0 &&
-        (!npc.VoiceTypeFormKey.HasValue || !entry.VoiceTypeFormKeys.Contains(npc.VoiceTypeFormKey.Value)))
-    {
-      return null;
-    }
-
-    if (entry.VoiceTypeFormKeys.Count > 0)
-    {
-      parts.Add($"VoiceType: {npc.VoiceTypeEditorId ?? npc.VoiceTypeFormKey?.ToString() ?? "?"}");
     }
 
     if (!MatchesLevelFilters(npc, entry.LevelFilters))
@@ -209,48 +156,145 @@ public static class FilterMatchingService
       return null;
     }
 
-    if (!entry.TraitFilters.IsEmpty)
+    AddIfNotEmpty(parts, DescribeTraits(entry.TraitFilters));
+
+    if (!TryDescribeLocationFilter(entry, npc, parts))
     {
-      ReadOnlySpan<(bool? value, string trueName, string falseName)> traitLabels =
-      [
-        (entry.TraitFilters.IsFemale, "Female", "Male"),
-        (entry.TraitFilters.IsUnique, "Unique", "Not Unique"),
-        (entry.TraitFilters.IsSummonable, "Summonable", "Not Summonable"),
-        (entry.TraitFilters.IsChild, "Child", "Not Child"),
-        (entry.TraitFilters.IsLeveled, "Leveled", "Not Leveled"),
-        (entry.TraitFilters.IsTemplated, "Templated", "Not Templated"),
-        (entry.TraitFilters.IsTeammate, "Teammate", "Not Teammate"),
-        (entry.TraitFilters.IsDead, "Dead", "Not Dead"),
-      ];
+      return null;
+    }
 
-      var traits = new List<string>();
-      foreach (var (value, trueName, falseName) in traitLabels)
-      {
-        if (value.HasValue)
-        {
-          traits.Add(value.Value ? trueName : falseName);
-        }
-      }
+    return AppendUnresolvedAndFinalize(entry, parts);
+  }
 
-      if (traits.Count > 0)
+  private static void AddIfNotEmpty(List<string> parts, string? part)
+  {
+    if (!string.IsNullOrEmpty(part))
+    {
+      parts.Add(part);
+    }
+  }
+
+  private static IReadOnlyCollection<string> BuildEffectiveKeywords(
+    NpcFilterData npc,
+    DistributionEntry entry,
+    IReadOnlySet<string>? virtualKeywords)
+  {
+    if (virtualKeywords == null || entry.KeywordFilters.Count == 0)
+    {
+      return npc.Keywords;
+    }
+
+    var augmented = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase);
+    augmented.UnionWith(virtualKeywords);
+    return augmented;
+  }
+
+  private static string? DescribeFactionMatch(
+    DistributionEntry entry,
+    NpcFilterData npc,
+    HashSet<FormKey> npcFactions)
+  {
+    if (!entry.FactionFilters.Any(f => !f.IsExcluded))
+    {
+      return null;
+    }
+
+    var matched = entry.FactionFilters
+                       .Where(f => !f.IsExcluded && npcFactions.Contains(f.FormKey))
+                       .Select(f =>
+                                 npc.Factions.FirstOrDefault(nf => nf.FactionFormKey == f.FormKey)?.FactionEditorId ??
+                                 f.FormKey.ToString());
+    var str = string.Join(" + ", matched);
+    return string.IsNullOrEmpty(str) ? null : $"Faction: {str}";
+  }
+
+  private static string? DescribeKeywordMatch(DistributionEntry entry, IReadOnlyCollection<string> effectiveKeywords)
+  {
+    if (!entry.KeywordFilters.Any(f => !f.IsExcluded))
+    {
+      return null;
+    }
+
+    var matched = entry.KeywordFilters
+                       .Where(f => !f.IsExcluded && effectiveKeywords.Contains(f.EditorId))
+                       .Select(f => f.EditorId);
+    var str = string.Join(" + ", matched);
+    return string.IsNullOrEmpty(str) ? null : $"Keyword: {str}";
+  }
+
+  private static bool TryDescribeFormKeySetFilter(
+    List<FormKey> filterKeys,
+    FormKey? npcValue,
+    string? npcEditorId,
+    string label,
+    List<string> parts)
+  {
+    if (filterKeys.Count == 0)
+    {
+      return true;
+    }
+
+    if (!npcValue.HasValue || !filterKeys.Contains(npcValue.Value))
+    {
+      return false;
+    }
+
+    parts.Add($"{label}: {npcEditorId ?? npcValue?.ToString() ?? "?"}");
+    return true;
+  }
+
+  private static string? DescribeTraits(SpidTraitFilters traitFilters)
+  {
+    if (traitFilters.IsEmpty)
+    {
+      return null;
+    }
+
+    ReadOnlySpan<(bool? value, string trueName, string falseName)> traitLabels =
+    [
+      (traitFilters.IsFemale, "Female", "Male"),
+      (traitFilters.IsUnique, "Unique", "Not Unique"),
+      (traitFilters.IsSummonable, "Summonable", "Not Summonable"),
+      (traitFilters.IsChild, "Child", "Not Child"),
+      (traitFilters.IsLeveled, "Leveled", "Not Leveled"),
+      (traitFilters.IsTemplated, "Templated", "Not Templated"),
+      (traitFilters.IsTeammate, "Teammate", "Not Teammate"),
+      (traitFilters.IsDead, "Dead", "Not Dead"),
+    ];
+
+    var traits = new List<string>();
+    foreach (var (value, trueName, falseName) in traitLabels)
+    {
+      if (value.HasValue)
       {
-        parts.Add(string.Join(", ", traits));
+        traits.Add(value.Value ? trueName : falseName);
       }
     }
 
-    if (entry.LocationFormKeys.Count > 0)
-    {
-      var locationMatches = entry.LocationLogicMode == FilterLogicMode.Or
-                              ? entry.LocationFormKeys.Any(npc.Locations.Contains)
-                              : entry.LocationFormKeys.All(npc.Locations.Contains);
-      if (!locationMatches)
-      {
-        return null;
-      }
+    return traits.Count > 0 ? string.Join(", ", traits) : null;
+  }
 
-      parts.Add($"Location: ({entry.LocationFormKeys.Count} filter(s))");
+  private static bool TryDescribeLocationFilter(DistributionEntry entry, NpcFilterData npc, List<string> parts)
+  {
+    if (entry.LocationFormKeys.Count == 0)
+    {
+      return true;
     }
 
+    var locationMatches = entry.LocationLogicMode == FilterLogicMode.Or
+                            ? entry.LocationFormKeys.Any(npc.Locations.Contains)
+                            : entry.LocationFormKeys.All(npc.Locations.Contains);
+    if (!locationMatches)
+    {
+      return false;
+    }
+
+    parts.Add($"Location: ({entry.LocationFormKeys.Count} filter(s))");
+    return true;
+  }
+
+  private static string? AppendUnresolvedAndFinalize(DistributionEntry entry, List<string> parts)
+  {
     var unresolvedParts = new List<string>();
 
     if (entry.PerkFormKeys.Count > 0)
