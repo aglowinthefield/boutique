@@ -152,52 +152,12 @@ public class NpcOutfitResolutionService(
     HashSet<string> factionEditorIds,
     HashSet<string> raceEditorIds)
   {
-    var spidLines =
-      new List<(DistributionLine Line, SpidDistributionFilter Filter, FormKey OutfitFormKey, string? OutfitEditorId,
-        bool HasRaceTargeting, bool UsesKeywordTargeting, bool UsesFactionTargeting, string TargetingDescription, bool
-        HasTraitFilters)>();
-    var skyPatcherLines = new List<DistributionLine>();
-
-    foreach (var line in file.Lines)
-    {
-      if (!line.IsOutfitDistribution)
-      {
-        continue;
-      }
-
-      if (file.Type == DistributionFileType.Spid)
-      {
-        if (SpidLineParser.TryParse(line.RawText, out var filter) && filter != null)
-        {
-          var outfitSource = ResolveOutfitFromIdentifier(filter.OutfitIdentifier, linkCache);
-          if (outfitSource.HasValue)
-          {
-            var hasRaceTargeting = filter.FormFilters.Expressions
-                                         .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
-                                         .Any(p => raceEditorIds.Contains(p.Value));
-
-            var usesKeywordTargeting = filter.StringFilters.Expressions
-                                             .SelectMany(e => e.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
-                                             .Any(p => keywordEditorIds.Contains(p.Value));
-
-            var usesFactionTargeting = filter.FormFilters.Expressions
-                                             .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
-                                             .Any(p => factionEditorIds.Contains(p.Value));
-
-            var targetingDescription = filter.GetTargetingDescription();
-            var hasTraitFilters      = !filter.TraitFilters.IsEmpty;
-
-            spidLines.Add(
-              (line, filter, outfitSource.Value.FormKey, outfitSource.Value.EditorId, hasRaceTargeting,
-               usesKeywordTargeting, usesFactionTargeting, targetingDescription, hasTraitFilters));
-          }
-        }
-      }
-      else if (file.Type == DistributionFileType.SkyPatcher)
-      {
-        skyPatcherLines.Add(line);
-      }
-    }
+    var (spidLines, skyPatcherLines) = ClassifyOutfitLines(
+      file,
+      linkCache,
+      keywordEditorIds,
+      factionEditorIds,
+      raceEditorIds);
 
     if (spidLines.Count == 0 && skyPatcherLines.Count == 0)
     {
@@ -286,6 +246,70 @@ public class NpcOutfitResolutionService(
       spidLines.Count,
       skyPatcherLines.Count,
       localDistributions.Count);
+  }
+
+  private static (List<SpidOutfitLine> SpidLines, List<DistributionLine> SkyPatcherLines) ClassifyOutfitLines(
+    DistributionFile file,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    HashSet<string> keywordEditorIds,
+    HashSet<string> factionEditorIds,
+    HashSet<string> raceEditorIds)
+  {
+    var spidLines       = new List<SpidOutfitLine>();
+    var skyPatcherLines = new List<DistributionLine>();
+
+    foreach (var line in file.Lines)
+    {
+      if (!line.IsOutfitDistribution)
+      {
+        continue;
+      }
+
+      if (file.Type == DistributionFileType.SkyPatcher)
+      {
+        skyPatcherLines.Add(line);
+        continue;
+      }
+
+      if (file.Type != DistributionFileType.Spid ||
+          !SpidLineParser.TryParse(line.RawText, out var filter) ||
+          filter == null)
+      {
+        continue;
+      }
+
+      var outfitSource = ResolveOutfitFromIdentifier(filter.OutfitIdentifier, linkCache);
+      if (!outfitSource.HasValue)
+      {
+        continue;
+      }
+
+      var hasRaceTargeting = filter.FormFilters.Expressions
+                                   .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                                   .Any(p => raceEditorIds.Contains(p.Value));
+
+      var usesKeywordTargeting = filter.StringFilters.Expressions
+                                       .SelectMany(e => e.Parts.Where(p => !p.HasWildcard && !p.IsNegated))
+                                       .Any(p => keywordEditorIds.Contains(p.Value));
+
+      var usesFactionTargeting = filter.FormFilters.Expressions
+                                       .SelectMany(e => e.Parts.Where(p => !p.IsNegated))
+                                       .Any(p => factionEditorIds.Contains(p.Value));
+
+      spidLines.Add(
+        new SpidOutfitLine(
+          line,
+          filter,
+          outfitSource.Value.FormKey,
+          outfitSource.Value.EditorId,
+          hasRaceTargeting,
+          usesKeywordTargeting,
+          usesFactionTargeting,
+          filter.GetTargetingDescription(),
+          !filter.TraitFilters.IsEmpty));
+    }
+
+    return (spidLines, skyPatcherLines);
   }
 
   private static void ParseSkyPatcherLineCore(
@@ -525,6 +549,17 @@ public class NpcOutfitResolutionService(
   }
 
   private sealed record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
+
+  private sealed record SpidOutfitLine(
+    DistributionLine Line,
+    SpidDistributionFilter Filter,
+    FormKey OutfitFormKey,
+    string? OutfitEditorId,
+    bool HasRaceTargeting,
+    bool UsesKeywordTargeting,
+    bool UsesFactionTargeting,
+    string TargetingDescription,
+    bool HasTraitFilters);
 }
 
 public record NpcOutfitResolutionResult(
