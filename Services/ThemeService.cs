@@ -36,11 +36,12 @@ public class ThemeService(ILogger logger)
 
   private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-  private static readonly double[] _baseFontSizes = [10, 13, 14, 16, 18];
+  private static readonly double[] _baseFontSizes = [10, 13, 14, 16, 18, 12, 44];
 
   private static readonly string[] _fontSizeKeys =
   [
-    "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading"
+    "FontSize.Small", "FontSize.Base", "FontSize.Medium", "FontSize.Large", "FontSize.Heading",
+    "FontSize.StatCaption", "FontSize.Display"
   ];
 
   public static ThemeService? Current { get; private set; }

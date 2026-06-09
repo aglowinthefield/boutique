@@ -59,7 +59,8 @@
                       MinWidth="90" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0" />
 
             <!-- Arrow -->
-            <TextBlock Grid.Column="1" Text="→" VerticalAlignment="Center" FontSize="16" Margin="0,0,8,0" />
+            <TextBlock Grid.Column="1" Text="→" VerticalAlignment="Center"
+                       FontSize="{DynamicResource FontSize.Large}" Margin="0,0,8,0" />
 
             <!-- Target selector (Outfit/Keyword/ExclusiveGroup) -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -121,26 +122,26 @@
                   Background="{StaticResource Brush.CardBackground}"
                   CornerRadius="4" Padding="8" Margin="0,0,0,8">
             <StackPanel>
-              <TextBlock Text="Traits" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,6" />
+              <TextBlock Text="Traits" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
               <WrapPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
-                  <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
                             SelectedItem="{Binding Gender, Mode=TwoWay}"
-                            MinWidth="80" Height="24" VerticalContentAlignment="Center" FontSize="11" />
+                            MinWidth="80" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
-                  <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
                             SelectedItem="{Binding Unique, Mode=TwoWay}"
-                            MinWidth="100" Height="24" VerticalContentAlignment="Center" FontSize="11" />
+                            MinWidth="100" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="Level:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="11" />
+                  <TextBlock Text="Level:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox SelectedValue="{Binding LevelFilterMode, Mode=TwoWay}"
                             SelectedValuePath="Tag"
                             Width="110" Height="24" VerticalContentAlignment="Center"
-                            Margin="0,0,6,0" FontSize="11"
+                            Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}"
                             ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}">
                     <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="None" />
                     <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="Level" />
@@ -152,25 +153,25 @@
                             SelectedItem="{Binding SelectedLevelSkill, Mode=TwoWay}"
                             DisplayMemberPath="DisplayText"
                             Width="120" Height="24" VerticalContentAlignment="Center"
-                            Margin="0,0,6,0" FontSize="11"
+                            Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}"
                             Visibility="{Binding IsSkillLevelMode, Converter={StaticResource BoolToVisConverter}}" />
                   <TextBlock Text="Min"
-                             VerticalAlignment="Center" FontSize="11"
+                             VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                              Margin="0,0,4,0"
                              Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
                   <TextBox Text="{Binding LevelFilterMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                            Margin="0,0,6,0"
                            Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
                   <TextBlock Text="Max"
-                             VerticalAlignment="Center" FontSize="11"
+                             VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                              Margin="0,0,4,0"
                              Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
                   <TextBox Text="{Binding LevelFilterMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Width="40" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                            Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
                   <TextBox Text="{Binding LevelFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Width="150" Height="24" VerticalContentAlignment="Center" FontSize="11"
+                           Width="150" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                            Visibility="{Binding IsRawLevelFilterMode, Converter={StaticResource BoolToVisConverter}}"
                            ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}" />
                 </StackPanel>
@@ -185,7 +186,7 @@
                   Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="NPCs" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
+                <TextBlock Text="NPCs" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedNpcs}">
                 <ItemsControl.ItemsPanel>
@@ -211,15 +212,15 @@
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleNpcNegation_Click" Tag="{Binding}"
                                     ToolTip="Click to toggle negation">
-                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                          <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
                           </TextBlock>
-                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveNpc_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -238,8 +239,8 @@
                   Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Factions" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                <TextBlock Text="Factions" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding FactionLogicMode, Mode=TwoWay}"
                           SelectedValuePath="Tag"
                           ToolTip="AND: All factions must match | OR: At least one faction must match">
@@ -271,15 +272,15 @@
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleFactionNegation_Click" Tag="{Binding}"
                                     ToolTip="Click to toggle negation">
-                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                          <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
                           </TextBlock>
-                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveFaction_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -298,8 +299,8 @@
                   Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Keywords" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                <TextBlock Text="Keywords" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding KeywordLogicMode, Mode=TwoWay}"
                           SelectedValuePath="Tag"
                           ToolTip="AND: All keywords must match | OR: At least one keyword must match">
@@ -331,15 +332,15 @@
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleKeywordNegation_Click" Tag="{Binding}"
                                     ToolTip="Click to toggle negation">
-                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                          <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
                           </TextBlock>
-                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveKeyword_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -358,8 +359,8 @@
                   Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Races" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                <TextBlock Text="Races" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding RaceLogicMode, Mode=TwoWay}"
                           SelectedValuePath="Tag"
                           ToolTip="AND: All races must match | OR: At least one race must match">
@@ -391,15 +392,15 @@
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleRaceNegation_Click" Tag="{Binding}"
                                     ToolTip="Click to toggle negation">
-                          <TextBlock FontSize="11" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
+                          <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
                           </TextBlock>
-                          <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                          <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveRace_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -418,8 +419,8 @@
                   Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Classes" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                <TextBlock Text="Classes" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding ClassLogicMode, Mode=TwoWay}"
                           SelectedValuePath="Tag"
                           ToolTip="AND: All classes must match | OR: At least one class must match">
@@ -439,10 +440,10 @@
                             Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
                             BorderBrush="{StaticResource Brush.Border}">
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveClass_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -461,8 +462,8 @@
                   Visibility="{Binding SelectedLocations.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Locations" FontWeight="SemiBold" FontSize="11" DockPanel.Dock="Left" />
-                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="11"
+                <TextBlock Text="Locations" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding LocationLogicMode, Mode=TwoWay}"
                           SelectedValuePath="Tag"
                           ToolTip="AND: All locations must match | OR: At least one location must match">
@@ -482,10 +483,10 @@
                             Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
                             BorderBrush="{StaticResource Brush.Border}">
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding DisplayName}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding DisplayName}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveLocation_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -503,7 +504,7 @@
                   CornerRadius="4" Padding="8" Margin="0,0,0,8"
                   Visibility="{Binding SelectedOutfitFilters.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
-              <TextBlock Text="Outfit Filters" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,6" />
+              <TextBlock Text="Outfit Filters" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
               <ItemsControl ItemsSource="{Binding SelectedOutfitFilters}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
@@ -516,10 +517,10 @@
                             Background="{StaticResource Brush.PrimaryBackground}" BorderThickness="1"
                             BorderBrush="{StaticResource Brush.Border}">
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding EditorID}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding EditorID}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding FormKeyString}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}"
-                                   Margin="4,0,0,0" FontSize="9" />
+                                   Margin="4,0,0,0" />
                         <Button Click="RemoveOutfitFilter_Click" Tag="{Binding}"
                                 Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                 Margin="3,0,0,0" />
@@ -547,12 +548,12 @@
               <TextBlock Grid.Row="0" Grid.Column="0" Text="String:" VerticalAlignment="Center" Margin="0,0,6,4" />
               <TextBox Grid.Row="0" Grid.Column="1"
                        Text="{Binding RawStringFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                       Height="26" FontFamily="Consolas" VerticalContentAlignment="Center" Margin="0,0,0,4"
+                       Height="26" FontFamily="{StaticResource Font.Mono}" VerticalContentAlignment="Center" Margin="0,0,0,4"
                        ToolTip="Raw string filters: wildcards (*Mage), negations (-Exclude), and SPID-distributed keywords. Comma-separated for OR, plus-separated for AND." />
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Form:" VerticalAlignment="Center" Margin="0,0,6,0" />
               <TextBox Grid.Row="1" Grid.Column="1"
                        Text="{Binding RawFormFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                       Height="26" FontFamily="Consolas" VerticalContentAlignment="Center"
+                       Height="26" FontFamily="{StaticResource Font.Mono}" VerticalContentAlignment="Center"
                        ToolTip="Raw form filters: negated factions (-FactionName), races, etc. Comma-separated for OR." />
             </Grid>
           </StackPanel>
@@ -582,7 +583,7 @@
 
           <TextBlock DockPanel.Dock="Bottom"
                      Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"
-                     Margin="0,6,0,0" FontSize="11"
+                     Margin="0,6,0,0" FontSize="{DynamicResource FontSize.Small}"
                      Foreground="{StaticResource Brush.TextSecondary}" />
 
           <DataGrid ItemsSource="{Binding MatchingNpcsForSelectedEntry}"
@@ -600,7 +601,7 @@
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
-                    <Setter Property="FontSize" Value="11" />
+                    <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>
@@ -608,7 +609,7 @@
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
-                    <Setter Property="FontSize" Value="11" />
+                    <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>

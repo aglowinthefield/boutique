@@ -94,7 +94,7 @@
                     Background="Transparent" utilities:GridSplitterBehavior.PersistKey="Containers.InspectColumn" />
 
       <!-- Right: Inspect Panel -->
-      <Border Grid.Column="2" BorderThickness="1" BorderBrush="LightGray">
+      <Border Grid.Column="2" BorderThickness="1" BorderBrush="{StaticResource Brush.Border}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -105,7 +105,7 @@
           <Border Grid.Row="0" Background="#10000000" Padding="12,8">
             <StackPanel>
               <TextBlock Text="{Binding SelectedContainer.DisplayName, FallbackValue='Select a container'}"
-                         FontWeight="SemiBold" FontSize="14" />
+                         FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Medium}" />
               <TextBlock Text="{Binding SelectedContainer.EditorId}"
                          Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
                          Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}}" />

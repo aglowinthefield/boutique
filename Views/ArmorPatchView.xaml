@@ -220,12 +220,12 @@
                     <!-- Source: Name (Mod) -->
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                       <Run Text="{Binding Source.DisplayName, Mode=OneWay}" FontWeight="SemiBold" />
-                      <Run Text=" (" Foreground="Gray" />
-                      <Run Text="{Binding Source.ModDisplayName, Mode=OneWay}" Foreground="Gray" />
-                      <Run Text=")" Foreground="Gray" />
+                      <Run Text=" (" Foreground="{StaticResource Brush.TextDisabled}" />
+                      <Run Text="{Binding Source.ModDisplayName, Mode=OneWay}" Foreground="{StaticResource Brush.TextDisabled}" />
+                      <Run Text=")" Foreground="{StaticResource Brush.TextDisabled}" />
                     </TextBlock>
 
-                    <TextBlock Grid.Column="1" Text="→" Margin="8,0" VerticalAlignment="Center" Foreground="Gray" />
+                    <TextBlock Grid.Column="1" Text="→" Margin="8,0" VerticalAlignment="Center" Foreground="{StaticResource Brush.TextDisabled}" />
 
                     <!-- Target: Name (Armor: X) or Glam-only -->
                     <TextBlock Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
@@ -252,7 +252,7 @@
                           </Style>
                         </Run.Style>
                       </Run>
-                      <Run Foreground="Gray">
+                      <Run Foreground="{StaticResource Brush.TextDisabled}">
                         <Run.Style>
                           <Style TargetType="Run">
                             <Style.Triggers>
@@ -276,7 +276,7 @@
 
                     <Button Grid.Column="3"
                             Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                            FontSize="14" FontWeight="Bold" Width="24" Height="24"
+                            FontSize="{DynamicResource FontSize.Medium}" FontWeight="Bold" Width="24" Height="24"
                             Margin="8,0,0,0"
                             ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+ArmorPatch.RemoveMapping}}"
                             Command="{Binding DataContext.RemoveMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -301,7 +301,7 @@
       <Button Grid.Column="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+ArmorPatch.CreatePatch}}"
               Command="{Binding CreatePatchCommand}"
               Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
-              Padding="12,6" FontSize="13" HorizontalAlignment="Right"
+              Padding="12,6" FontSize="{DynamicResource FontSize.Base}" HorizontalAlignment="Right"
               IsEnabled="{Binding IsPatching, Converter={StaticResource InverseBoolConverter}}" />
     </Grid>
   </Grid>

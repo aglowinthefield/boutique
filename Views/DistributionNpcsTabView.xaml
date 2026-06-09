@@ -175,7 +175,7 @@
                 SelectedItem="{Binding SelectedNpcAssignment, Mode=TwoWay}"
                 AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                 IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
-                GridLinesVisibility="All" HeadersVisibility="Column"
+                GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                 EnableRowVirtualization="True" EnableColumnVirtualization="True">
         <DataGrid.RowStyle>
           <Style TargetType="DataGridRow">
@@ -204,7 +204,7 @@
                               ToolTipService.ToolTip="The distribution file determining this NPC's outfit">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
-                <Setter Property="FontSize" Value="10" />
+                <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
                 <Setter Property="Foreground" Value="#B8BB26" />
               </Style>
             </DataGridTextColumn.ElementStyle>
@@ -213,7 +213,7 @@
                               Binding="{Binding TargetingType}" Width="1*" CanUserSort="True">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
-                <Setter Property="FontSize" Value="10" />
+                <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
                 <Setter Property="Foreground" Value="#8EC07C" />
               </Style>
             </DataGridTextColumn.ElementStyle>
@@ -222,8 +222,8 @@
                                   CanUserSort="True" SortMemberPath="Chance">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding ChanceDisplay}" Foreground="#CC6600" FontWeight="SemiBold"
-                           FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ChanceDisplay}" Foreground="{StaticResource Brush.Conflict}" FontWeight="SemiBold"
+                           FontSize="{DynamicResource FontSize.Small}" HorizontalAlignment="Center" VerticalAlignment="Center" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -231,7 +231,7 @@
                                   CanUserSort="True" SortMemberPath="HasConflict">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding ConflictSummary}" Foreground="#FF8C00" FontWeight="Bold"
+                <TextBlock Text="{Binding ConflictSummary}" Foreground="{StaticResource Brush.Conflict}" FontWeight="Bold"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
@@ -262,7 +262,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Border Margin="0,0,0,4" Padding="6" CornerRadius="2"
-                          Background="#10000000" BorderBrush="LightGray" BorderThickness="1">
+                          Background="#10000000" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                     <Border.Style>
                       <Style TargetType="Border">
                         <Style.Triggers>
@@ -293,18 +293,18 @@
                                    Foreground="Green" FontWeight="Bold"
                                    Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
                         <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}"
-                                   Foreground="#CC6600" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"
+                                   Foreground="{StaticResource Brush.Conflict}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Margin="4,0,0,0"
                                    Visibility="{Binding Chance, Converter={StaticResource InequalityToVisConverter}, ConverterParameter=100}" />
                       </StackPanel>
                       <Button Grid.Column="1" Grid.Row="0" Content="👁" VerticalAlignment="Top"
                               Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.PreviewDistributionOutfitCommand}"
                               CommandParameter="{Binding}"
-                              Padding="2,0" FontSize="11" MinWidth="0" MinHeight="0" Margin="4,0,0,0" />
+                              Padding="2,0" FontSize="{DynamicResource FontSize.Small}" MinWidth="0" MinHeight="0" Margin="4,0,0,0" />
                       <TextBlock Grid.Column="0" Grid.Row="1"
                                  Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
-                                 FontFamily="Consolas" FontSize="11" Margin="0,2,0,0" />
+                                 FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}" Margin="0,2,0,0" />
                       <TextBlock Grid.Column="0" Grid.Row="2" Text="{Binding TargetingDescription}"
-                                 Foreground="#8EC07C" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"
+                                 Foreground="#8EC07C" FontSize="{DynamicResource FontSize.Small}" TextWrapping="Wrap" Margin="0,2,0,0"
                                  Visibility="{Binding TargetingDescription, Converter={StaticResource StringEmptyToVisConverter}}" />
                     </Grid>
                   </Border>
@@ -324,7 +324,7 @@
             </Grid.RowDefinitions>
             <TextBox Grid.Row="0" Text="{Binding SelectedNpcOutfitContents, Mode=OneWay}"
                      IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+                     VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}" />
             <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.PreviewOutfit}}"
                     Command="{Binding PreviewNpcOutfitCommand}"
                     CommandParameter="{Binding SelectedNpcAssignment}"
@@ -346,7 +346,7 @@
                            Margin="0,0,0,4" />
                 <TextBox Text="{Binding GeneratedSpidSyntax, Mode=OneWay}"
                          IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                         FontFamily="Consolas" FontSize="10"
+                         FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}"
                          Background="{StaticResource Brush.PanelBackground}"
                          Foreground="{StaticResource Brush.TextPrimary}"
                          Padding="4" Margin="0,0,0,8" />
@@ -354,14 +354,14 @@
                            FontWeight="SemiBold" Margin="0,0,0,4" />
                 <TextBox Text="{Binding GeneratedSkyPatcherSyntax, Mode=OneWay}"
                          IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                         FontFamily="Consolas" FontSize="10"
+                         FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}"
                          Background="{StaticResource Brush.PanelBackground}"
                          Foreground="{StaticResource Brush.TextPrimary}"
                          Padding="4" />
               </StackPanel>
             </ScrollViewer>
             <TextBlock Grid.Row="1" Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.CopySyntaxHint}}"
-                       FontStyle="Italic" Foreground="Gray" FontSize="10" Margin="0,6,0,0" />
+                       FontStyle="Italic" Foreground="{StaticResource Brush.TextDisabled}" FontSize="{DynamicResource FontSize.Small}" Margin="0,6,0,0" />
           </Grid>
         </GroupBox>
 
@@ -372,7 +372,7 @@
               <!-- FormKey -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
                 <TextBlock Text="{Binding SelectedNpcFilterData.FormKeyString}"
                            Style="{DynamicResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" />
               </StackPanel>
@@ -380,7 +380,7 @@
               <!-- Source Mod -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
                 <TextBlock Text="{Binding SelectedNpcFilterData.ModDisplayName}"
                            Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" />
               </StackPanel>
@@ -388,8 +388,8 @@
               <!-- Gender -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Gender}}"
-                           FontWeight="SemiBold" Width="70" FontSize="11" />
-                <TextBlock FontSize="11" VerticalAlignment="Center">
+                           FontWeight="SemiBold" Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Text" Value="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Male}}" />
@@ -406,18 +406,18 @@
               <!-- Traits -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Traits}}"
-                           FontWeight="SemiBold" Width="70" FontSize="11" />
+                           FontWeight="SemiBold" Width="70" FontSize="{DynamicResource FontSize.Small}" />
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitUnique}}" FontSize="10"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitUnique}}" FontSize="{DynamicResource FontSize.Small}"
                              Foreground="#8EC07C" Margin="0,0,6,0"
                              Visibility="{Binding SelectedNpcFilterData.IsUnique, Converter={StaticResource BoolToVisConverter}}" />
-                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitSummonable}}" FontSize="10"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitSummonable}}" FontSize="{DynamicResource FontSize.Small}"
                              Foreground="#8EC07C" Margin="0,0,6,0"
                              Visibility="{Binding SelectedNpcFilterData.IsSummonable, Converter={StaticResource BoolToVisConverter}}" />
-                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitChild}}" FontSize="10"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitChild}}" FontSize="{DynamicResource FontSize.Small}"
                              Foreground="#8EC07C" Margin="0,0,6,0"
                              Visibility="{Binding SelectedNpcFilterData.IsChild, Converter={StaticResource BoolToVisConverter}}" />
-                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitLeveled}}" FontSize="10"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.TraitLeveled}}" FontSize="{DynamicResource FontSize.Small}"
                              Foreground="#8EC07C" Margin="0,0,6,0"
                              Visibility="{Binding SelectedNpcFilterData.IsLeveled, Converter={StaticResource BoolToVisConverter}}" />
                 </StackPanel>
@@ -426,59 +426,59 @@
               <!-- Level -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Level}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock Text="{Binding SelectedNpcFilterData.Level}" FontSize="11" VerticalAlignment="Center" />
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock Text="{Binding SelectedNpcFilterData.Level}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
               </StackPanel>
 
               <!-- Race -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Race}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock Text="{Binding SelectedNpcFilterData.RaceEditorId}" FontSize="11" VerticalAlignment="Center" />
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock Text="{Binding SelectedNpcFilterData.RaceEditorId}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
               </StackPanel>
 
               <!-- Class -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Class}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock Text="{Binding SelectedNpcFilterData.ClassEditorId}" FontSize="11"
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock Text="{Binding SelectedNpcFilterData.ClassEditorId}" FontSize="{DynamicResource FontSize.Small}"
                            VerticalAlignment="Center" />
               </StackPanel>
 
               <!-- Voice Type -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Voice}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock Text="{Binding SelectedNpcFilterData.VoiceTypeEditorId}" FontSize="11"
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock Text="{Binding SelectedNpcFilterData.VoiceTypeEditorId}" FontSize="{DynamicResource FontSize.Small}"
                            VerticalAlignment="Center" />
               </StackPanel>
 
               <!-- Combat Style -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Combat}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock Text="{Binding SelectedNpcFilterData.CombatStyleEditorId}" FontSize="11"
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock Text="{Binding SelectedNpcFilterData.CombatStyleEditorId}" FontSize="{DynamicResource FontSize.Small}"
                            VerticalAlignment="Center" />
               </StackPanel>
 
               <!-- Template -->
               <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                 <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Template}}" FontWeight="SemiBold"
-                           Width="70" FontSize="11" />
-                <TextBlock FontSize="11" VerticalAlignment="Center"
+                           Width="70" FontSize="{DynamicResource FontSize.Small}" />
+                <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center"
                            Text="{Binding SelectedNpcFilterData.TemplateEditorId, TargetNullValue='(None)'}"
                            Foreground="{Binding SelectedNpcFilterData.TemplateEditorId, Converter={StaticResource NullToVisConverter}, ConverterParameter=Inverse, FallbackValue=Gray}" />
               </StackPanel>
 
               <!-- Factions -->
               <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Factions}}"
-                         FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
+                         FontWeight="SemiBold" Margin="0,6,0,2" FontSize="{DynamicResource FontSize.Small}" />
               <ItemsControl ItemsSource="{Binding SelectedNpcFilterData.Factions}" Margin="8,0,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding FactionEditorId}" FontSize="10" />
-                      <TextBlock Text="{Binding Rank, StringFormat=' (Rank {0})'}" FontSize="10" Foreground="Gray" />
+                      <TextBlock Text="{Binding FactionEditorId}" FontSize="{DynamicResource FontSize.Small}" />
+                      <TextBlock Text="{Binding Rank, StringFormat=' (Rank {0})'}" FontSize="{DynamicResource FontSize.Small}" Foreground="{StaticResource Brush.TextDisabled}" />
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -486,7 +486,7 @@
 
               <!-- Keywords -->
               <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.Keywords}}"
-                         FontWeight="SemiBold" Margin="0,6,0,2" FontSize="11" />
+                         FontWeight="SemiBold" Margin="0,6,0,2" FontSize="{DynamicResource FontSize.Small}" />
               <ItemsControl ItemsSource="{Binding SelectedNpcFilterData.Keywords}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
@@ -496,7 +496,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <Border Style="{DynamicResource {x:Static themes:ResourceKeys.TagBadgeStyleKey}}">
-                      <TextBlock Text="{Binding}" FontSize="9"
+                      <TextBlock Text="{Binding}" FontSize="{DynamicResource FontSize.Small}"
                                  Foreground="{StaticResource Brush.TextSecondary}" />
                     </Border>
                   </DataTemplate>

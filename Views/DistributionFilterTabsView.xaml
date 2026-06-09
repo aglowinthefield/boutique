@@ -51,9 +51,10 @@
           <StackPanel Grid.Row="2" Margin="0,6,0,0">
             <TextBlock
               Text="{Binding SelectedEntry.TargetDisplayName, StringFormat='Target: {0}', FallbackValue='Target: (None selected)'}"
-              FontStyle="Italic" Foreground="Gray" Margin="0,0,0,4" />
+              FontStyle="Italic" Foreground="{StaticResource Brush.TextDisabled}" Margin="0,0,0,4" />
             <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedNpcs}}"
-                    Command="{Binding AddSelectedNpcsToEntryCommand}" Padding="8,2" />
+                    Command="{Binding AddSelectedNpcsToEntryCommand}"
+                    Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" />
           </StackPanel>
         </Grid>
       </TabItem>
@@ -87,7 +88,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedFactions}}"
-                  Command="{Binding AddSelectedFactionsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedFactionsToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
 
@@ -120,7 +121,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedKeywords}}"
-                  Command="{Binding AddSelectedKeywordsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedKeywordsToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
 
@@ -153,7 +154,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedRaces}}"
-                  Command="{Binding AddSelectedRacesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedRacesToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
 
@@ -186,7 +187,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedClasses}}"
-                  Command="{Binding AddSelectedClassesToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedClassesToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
 
@@ -219,7 +220,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedLocations}}"
-                  Command="{Binding AddSelectedLocationsToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedLocationsToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
 
@@ -254,7 +255,7 @@
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="Add Selected Outfits"
-                  Command="{Binding AddSelectedOutfitFiltersToEntryCommand}" Padding="8,2" Margin="0,6,0,0" />
+                  Command="{Binding AddSelectedOutfitFiltersToEntryCommand}" Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}" Margin="0,6,0,0" />
         </Grid>
       </TabItem>
     </TabControl>

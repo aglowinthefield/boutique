@@ -29,7 +29,7 @@
               <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="#0078D4"
+            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="{DynamicResource Brush.Info}"
                     Margin="0,0,0,2" Visibility="Collapsed" />
 
             <Grid Grid.Row="1" Margin="0,0,0,0">
@@ -37,7 +37,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
-              <Rectangle Grid.Column="0" Width="3" Fill="#555555"
+              <Rectangle Grid.Column="0" Width="3" Fill="{DynamicResource Brush.Border}"
                          Margin="4,-6,10,-6" />
               <Border Grid.Column="1" Padding="6" Margin="0,0,0,6" BorderBrush="{DynamicResource Brush.Border}"
                       BorderThickness="1" CornerRadius="3" Opacity="0.6">
@@ -50,7 +50,7 @@
                       <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="⠿" FontSize="14" Margin="0,0,6,0"
+                    <TextBlock Grid.Column="0" Text="⠿" FontSize="{DynamicResource FontSize.Medium}" Margin="0,0,6,0"
                                Foreground="{DynamicResource Brush.TextSecondary}"
                                VerticalAlignment="Top" Cursor="SizeAll"
                                ToolTip="Drag to reorder"
@@ -72,7 +72,7 @@
                             <Setter.Value>
                               <ControlTemplate TargetType="ToggleButton">
                                 <Border Background="{TemplateBinding Background}">
-                                  <TextBlock x:Name="Arrow" Text="▶" FontSize="10"
+                                  <TextBlock x:Name="Arrow" Text="▶" FontSize="{DynamicResource FontSize.Small}"
                                              HorizontalAlignment="Center" VerticalAlignment="Center"
                                              Foreground="{DynamicResource Brush.TextSecondary}" />
                                 </Border>
@@ -113,26 +113,26 @@
                           </TextBox.Style>
                         </TextBox>
                         <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
-                                   Margin="8,0,0,0" FontSize="11" Foreground="Gray"
+                                   Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Small}" Foreground="{DynamicResource Brush.TextDisabled}"
                                    VerticalAlignment="Center"
                                    Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
                       </StackPanel>
                       <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
-                                 Margin="0,2,0,0" FontSize="11" Foreground="#CC6600" FontWeight="SemiBold"
+                                 Margin="0,2,0,0" FontSize="{DynamicResource FontSize.Small}" Foreground="{DynamicResource Brush.Conflict}" FontWeight="SemiBold"
                                  Visibility="{Binding IsOverride, Converter={StaticResource BoolToVisConverter}}" />
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Top">
                       <Button Content="👁" Command="{Binding PreviewCommand}"
                               Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                              Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                              Width="28" Height="28" Margin="0,0,4,0" FontSize="{DynamicResource FontSize.Medium}"
                               ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewOutfit}}" />
                       <Button Content="⎘" Command="{Binding DuplicateCommand}"
                               Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                              Width="28" Height="28" Margin="0,0,4,0" FontSize="14"
+                              Width="28" Height="28" Margin="0,0,4,0" FontSize="{DynamicResource FontSize.Medium}"
                               ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
                       <Button Command="{Binding RemoveSelfCommand}"
                               Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                              Width="28" Height="28" FontSize="14"
+                              Width="28" Height="28" FontSize="{DynamicResource FontSize.Medium}"
                               ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemoveOutfit}}" />
                     </StackPanel>
                   </Grid>
@@ -148,13 +148,13 @@
                               <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding SlotSummary}"
-                                       VerticalAlignment="Center" FontSize="11">
+                                       VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}">
                               <TextBlock.Style>
                                 <Style TargetType="TextBlock">
-                                  <Setter Property="Foreground" Value="{DynamicResource Brush.TextTertiary}" />
+                                  <Setter Property="Foreground" Value="{DynamicResource Brush.TextDisabled}" />
                                   <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsConflicting}" Value="True">
-                                      <Setter Property="Foreground" Value="#C75050" />
+                                      <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
                                       <Setter Property="FontWeight" Value="SemiBold" />
                                     </DataTrigger>
                                   </Style.Triggers>
@@ -163,12 +163,12 @@
                             </TextBlock>
                             <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
                                        VerticalAlignment="Center" TextWrapping="NoWrap"
-                                       TextTrimming="CharacterEllipsis" FontSize="11">
+                                       TextTrimming="CharacterEllipsis" FontSize="{DynamicResource FontSize.Small}">
                               <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                   <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsConflicting}" Value="True">
-                                      <Setter Property="Foreground" Value="#C75050" />
+                                      <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
                                     </DataTrigger>
                                   </Style.Triggers>
                                 </Style>
@@ -178,7 +178,7 @@
                                     Command="{Binding DataContext.RemovePieceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     CommandParameter="{Binding}"
                                     Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                                    Margin="4,0,0,0" FontSize="9"
+                                    Margin="4,0,0,0" FontSize="{DynamicResource FontSize.Small}"
                                     ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.RemovePiece}}" />
                           </Grid>
                         </DataTemplate>
@@ -186,14 +186,14 @@
                     </ItemsControl>
                     <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.NoPiecesSelected}}"
                                Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
-                               HorizontalAlignment="Left" FontSize="12" Margin="26,2,0,0"
+                               HorizontalAlignment="Left" FontSize="{DynamicResource FontSize.Small}" Margin="26,2,0,0"
                                Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
                   </StackPanel>
                 </StackPanel>
               </Border>
             </Grid>
 
-            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"
+            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="{DynamicResource Brush.Info}"
                     Margin="0,-4,0,6" Visibility="Collapsed" />
           </Grid>
         </DataTemplate>
@@ -212,7 +212,7 @@
               <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="#0078D4"
+            <Border x:Name="DropIndicatorTop" Grid.Row="0" Height="2" Background="{DynamicResource Brush.Info}"
                     Margin="0,0,0,2" Visibility="Collapsed" />
 
             <Border x:Name="SeparatorBorder" Grid.Row="1" Padding="2,6,2,4" BorderThickness="0,0,0,1"
@@ -229,8 +229,8 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="⠿" FontSize="11" Margin="0"
-                           Foreground="{DynamicResource Brush.TextTertiary}"
+                <TextBlock Grid.Column="0" Text="⠿" FontSize="{DynamicResource FontSize.Small}" Margin="0"
+                           Foreground="{DynamicResource Brush.TextDisabled}"
                            VerticalAlignment="Center" Cursor="SizeAll"
                            ToolTip="Drag to reorder"
                            PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
@@ -249,8 +249,8 @@
                       <Setter Property="Template">
                         <Setter.Value>
                           <ControlTemplate TargetType="ToggleButton">
-                            <TextBlock x:Name="Arrow" Text="▶" FontSize="8"
-                                       Foreground="{DynamicResource Brush.TextTertiary}" />
+                            <TextBlock x:Name="Arrow" Text="▶" FontSize="{DynamicResource FontSize.Small}"
+                                       Foreground="{DynamicResource Brush.TextDisabled}" />
                             <ControlTemplate.Triggers>
                               <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Arrow" Property="Text" Value="▼" />
@@ -279,12 +279,12 @@
                       Cursor="Hand" ToolTip="Click to rename">
                   <TextBlock x:Name="SeparatorNameDisplay"
                              Text="{Binding Name}"
-                             FontSize="11" FontWeight="SemiBold"
+                             FontSize="{DynamicResource FontSize.Small}" FontWeight="SemiBold"
                              Foreground="{DynamicResource Brush.TextSecondary}"
                              VerticalAlignment="Center" />
                   <TextBox x:Name="SeparatorNameEditor"
                            Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           FontSize="11" FontWeight="SemiBold"
+                           FontSize="{DynamicResource FontSize.Small}" FontWeight="SemiBold"
                            Foreground="{DynamicResource Brush.TextSecondary}"
                            BorderThickness="0"
                            Background="Transparent"
@@ -297,8 +297,8 @@
 
                 <TextBlock Grid.Column="4"
                            Text="{Binding ChildCount, StringFormat='({0})'}"
-                           FontSize="10"
-                           Foreground="{DynamicResource Brush.TextTertiary}"
+                           FontSize="{DynamicResource FontSize.Small}"
+                           Foreground="{DynamicResource Brush.TextDisabled}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Right"
                            Margin="0,0,6,0" />
@@ -306,12 +306,12 @@
                 <Button Grid.Column="5"
                         Command="{Binding RemoveSelfCommand}"
                         Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
-                        Width="20" Height="20" FontSize="10"
+                        Width="20" Height="20" FontSize="{DynamicResource FontSize.Small}"
                         ToolTip="Remove separator" />
               </Grid>
             </Border>
 
-            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="#0078D4"
+            <Border x:Name="DropIndicatorBottom" Grid.Row="2" Height="2" Background="{DynamicResource Brush.Info}"
                     Margin="0,-4,0,6" Visibility="Collapsed" />
           </Grid>
         </DataTemplate>
@@ -347,7 +347,7 @@
             <TextBox x:Name="PluginSearchBox"
                      Text="{Binding OutfitPluginSearchText, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.FilterPlugins}}" />
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.FilterPlaceholder}}" Foreground="Gray"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.FilterPlaceholder}}" Foreground="{DynamicResource Brush.TextDisabled}"
                        IsHitTestVisible="False"
                        Margin="6,0,0,0" VerticalAlignment="Center"
                        Visibility="{Binding Text, ElementName=PluginSearchBox, Converter={StaticResource StringEmptyToVisConverter}, ConverterParameter=Inverse}" />
@@ -444,7 +444,7 @@
                   <DataTemplate>
                     <Button Content="👁" Click="PreviewArmorButton_Click"
                             Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
-                            Width="28" Height="28" FontSize="12"
+                            Width="28" Height="28" FontSize="{DynamicResource FontSize.Small}"
                             ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.PreviewArmor}}" />
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -493,7 +493,7 @@
           <Grid Grid.Row="0" Margin="0,0,0,6">
             <TextBox x:Name="DraftSearchBox"
                      Text="{Binding OutfitDraftSearchText, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.FilterPlaceholder}}" Foreground="Gray"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.FilterPlaceholder}}" Foreground="{DynamicResource Brush.TextDisabled}"
                        IsHitTestVisible="False"
                        Margin="6,0,0,0" VerticalAlignment="Center"
                        Visibility="{Binding Text, ElementName=DraftSearchBox, Converter={StaticResource StringEmptyToVisConverter}, ConverterParameter=Inverse}" />
@@ -522,7 +522,7 @@
                 <ItemsControl ItemsSource="{Binding ExistingOutfits}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Summary}" Foreground="Gray" Margin="0,0,0,2" />
+                      <TextBlock Text="{Binding Summary}" Foreground="{DynamicResource Brush.TextDisabled}" Margin="0,0,0,2" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -547,7 +547,9 @@
       </GroupBox>
     </Grid>
 
-    <Grid Grid.Row="1" Margin="0,0,0,6">
+    <Border Grid.Row="1" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0"
+            Padding="0,8,0,0" Margin="0,0,0,6">
+    <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
@@ -573,5 +575,6 @@
         </Grid>
       </Button>
     </Grid>
+    </Border>
   </Grid>
 </UserControl>

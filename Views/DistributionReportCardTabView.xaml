@@ -13,51 +13,35 @@
   <UserControl.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-    <Style x:Key="GradeCardBorder" TargetType="Border">
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="Padding" Value="16,12" />
-      <Setter Property="Margin" Value="6" />
-      <Setter Property="Background" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushCardBackground}}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushBorderLight}}" />
-      <Setter Property="BorderThickness" Value="1" />
-    </Style>
-
     <Style x:Key="GradeLetter" TargetType="TextBlock">
       <Setter Property="FontFamily" Value="{StaticResource Font.Handwriting}" />
-      <Setter Property="FontSize" Value="42" />
+      <Setter Property="FontSize" Value="{DynamicResource FontSize.Display}" />
       <Setter Property="FontWeight" Value="Normal" />
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
       <Style.Triggers>
         <DataTrigger Binding="{Binding}" Value="A">
-          <Setter Property="Foreground" Value="#4CAF50" />
+          <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushSuccess}}" />
         </DataTrigger>
         <DataTrigger Binding="{Binding}" Value="B">
-          <Setter Property="Foreground" Value="#2196F3" />
+          <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushInfo}}" />
         </DataTrigger>
         <DataTrigger Binding="{Binding}" Value="C">
-          <Setter Property="Foreground" Value="#FFC107" />
+          <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushConflict}}" />
         </DataTrigger>
         <DataTrigger Binding="{Binding}" Value="D">
-          <Setter Property="Foreground" Value="#FF9800" />
+          <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushWarning}}" />
         </DataTrigger>
         <DataTrigger Binding="{Binding}" Value="F">
-          <Setter Property="Foreground" Value="#F44336" />
+          <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushWarning}}" />
         </DataTrigger>
       </Style.Triggers>
     </Style>
 
     <Style x:Key="GradePercent" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontSize" Value="{DynamicResource FontSize.Medium}" />
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
-    </Style>
-
-    <Style x:Key="GradeLabel" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="Margin" Value="0,4,0,0" />
-      <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}" />
     </Style>
 
     <Style x:Key="GroupHeader" TargetType="TextBlock">
@@ -74,7 +58,7 @@
 
     <Style x:Key="RankingColumnHeader" TargetType="TextBlock">
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontSize" Value="{DynamicResource FontSize.StatCaption}" />
       <Setter Property="Margin" Value="0,0,0,6" />
       <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextPrimary}}" />
     </Style>
@@ -87,11 +71,11 @@
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0"
                    Text="{Binding Label}"
-                   FontSize="11"
+                   FontSize="{DynamicResource FontSize.Small}"
                    TextTrimming="CharacterEllipsis"
                    Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}" />
         <TextBlock Grid.Column="1"
-                   FontSize="11"
+                   FontSize="{DynamicResource FontSize.Small}"
                    Margin="8,0,0,0"
                    Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}">
           <TextBlock.Text>
@@ -143,31 +127,31 @@
     <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,8">
 
       <!-- Overall -->
-      <Border Style="{StaticResource GradeCardBorder}">
+      <Border Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardStyleKey}}">
         <StackPanel>
           <TextBlock Text="{Binding}"
                      Style="{StaticResource GradeLetter}"
                      DataContext="{Binding OverallGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding OverallPercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="Overall" Style="{StaticResource GradeLabel}" />
+          <TextBlock Text="Overall" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
       <!-- NPC Coverage -->
-      <Border Style="{StaticResource GradeCardBorder}">
+      <Border Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardStyleKey}}">
         <StackPanel>
           <TextBlock Text="{Binding}"
                      Style="{StaticResource GradeLetter}"
                      DataContext="{Binding NpcCoverageGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding NpcCoveragePercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="NPC Coverage" Style="{StaticResource GradeLabel}" />
+          <TextBlock Text="NPC Coverage" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
       <!-- Mod Utilization -->
-      <Border Style="{StaticResource GradeCardBorder}">
+      <Border Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardStyleKey}}">
         <StackPanel>
           <TextBlock Text="{Binding}"
                      Style="{StaticResource GradeLetter}"
@@ -184,19 +168,19 @@
               </Style>
             </TextBlock.Style>
           </TextBlock>
-          <TextBlock Text="Mod Utilization" Style="{StaticResource GradeLabel}" />
+          <TextBlock Text="Mod Utilization" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
       <!-- Variety -->
-      <Border Style="{StaticResource GradeCardBorder}">
+      <Border Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardStyleKey}}">
         <StackPanel>
           <TextBlock Text="{Binding}"
                      Style="{StaticResource GradeLetter}"
                      DataContext="{Binding VarietyGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding VarietyPercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="Outfit Variety" Style="{StaticResource GradeLabel}" />
+          <TextBlock Text="Outfit Variety" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
     </UniformGrid>
@@ -205,8 +189,9 @@
     <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,4,0,8">
       <Button Content="Calculate Grade"
               Command="{Binding CalculateCommand}"
+              Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
               Padding="24,8"
-              FontSize="14" />
+              FontSize="{DynamicResource FontSize.Medium}" />
       <TextBlock Margin="0,6,0,0"
                  HorizontalAlignment="Center"
                  Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}"
@@ -327,7 +312,7 @@
                     Margin="0,4,0,0" MaxHeight="360"
                     AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                     IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
-                    GridLinesVisibility="All" HeadersVisibility="Column"
+                    GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                     EnableRowVirtualization="True" EnableColumnVirtualization="True"
                     RowHeight="32">
             <DataGrid.Columns>
@@ -370,7 +355,7 @@
                       MaxHeight="360"
                       AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                       IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
-                      GridLinesVisibility="All" HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                       EnableRowVirtualization="True" EnableColumnVirtualization="True"
                       RowHeight="32">
               <DataGrid.Columns>

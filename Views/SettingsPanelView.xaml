@@ -20,7 +20,7 @@
 
     <TextBlock Grid.Row="0" Text="{lex:Loc Settings_Title}"
                Style="{DynamicResource {x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}}"
-               FontSize="18" Margin="0,0,0,20" />
+               FontSize="{DynamicResource FontSize.Heading}" Margin="0,0,0,20" />
 
     <!-- Grouped Settings with ScrollViewer -->
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">

@@ -64,18 +64,9 @@
                 SelectedItem="{Binding SelectedOutfit, Mode=TwoWay}"
                 AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                 IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
-                GridLinesVisibility="All" HeadersVisibility="Column"
+                GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                 EnableRowVirtualization="True" EnableColumnVirtualization="True"
                 RowHeight="40">
-        <DataGrid.RowStyle>
-          <Style TargetType="DataGridRow">
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                <Setter Property="Background" Value="#400078D4" />
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </DataGrid.RowStyle>
         <DataGrid.Columns>
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}"
                               Binding="{Binding EditorID}" Width="2*" CanUserSort="True" />
@@ -97,27 +88,28 @@
           <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.PreviewCol}}" Width="Auto">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
-                        Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Copy}}" Width="Auto">
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyToPatch}}"
-                        Command="{Binding DataContext.CopyOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Override}}" Width="Auto">
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyAsOverride}}"
-                        Command="{Binding DataContext.CopyOutfitAsOverrideCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                  <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
+                          Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}" Margin="4,0" />
+                  <Button Content="⋯"
+                          Click="OverflowButton_Click"
+                          MinWidth="28"
+                          Margin="0,0,4,0"
+                          Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          ToolTip="More actions">
+                    <Button.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyToPatch}}"
+                                  Command="{Binding PlacementTarget.Tag.CopyOutfitCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyAsOverride}}"
+                                  Command="{Binding PlacementTarget.Tag.CopyOutfitAsOverrideCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                      </ContextMenu>
+                    </Button.ContextMenu>
+                  </Button>
+                </StackPanel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -143,7 +135,7 @@
           <DataGrid ItemsSource="{Binding SelectedOutfitNpcAssignments}"
                     AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                     IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
-                    GridLinesVisibility="All" HeadersVisibility="Column"
+                    GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                     EnableRowVirtualization="True" EnableColumnVirtualization="True">
             <DataGrid.Columns>
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}"
@@ -170,7 +162,8 @@
             </Grid.RowDefinitions>
             <TextBox Grid.Row="0" Text="{Binding SelectedOutfitContents, Mode=OneWay}"
                      IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" />
+                     VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource Font.Mono}"
+                     FontSize="{DynamicResource FontSize.Small}" />
             <Button Grid.Row="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
                     Command="{Binding PreviewOutfitCommand}"
                     CommandParameter="{Binding SelectedOutfit}"
@@ -186,7 +179,8 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Border Margin="0,0,0,4" Padding="8" CornerRadius="3"
-                          Background="#10000000" BorderBrush="LightGray" BorderThickness="1">
+                          Background="{StaticResource Brush.PanelBackground}"
+                          BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                     <Grid>
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -202,14 +196,14 @@
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
                                    Margin="4,0,0,0" />
                         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Winner}}"
-                                   Foreground="Green" FontWeight="Bold" Margin="8,0,0,0"
+                                   Foreground="{StaticResource Brush.Success}" FontWeight="Bold" Margin="8,0,0,0"
                                    Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
                         <TextBlock Text="{Binding NpcCount, StringFormat='({0} NPCs)'}"
                                    Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
                                    Margin="8,0,0,0" />
                       </StackPanel>
                       <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding TargetingDescription}"
-                                 Foreground="#8EC07C" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                                 Foreground="#8EC07C" FontSize="{DynamicResource FontSize.Small}" TextWrapping="Wrap" Margin="0,4,0,0"
                                  Visibility="{Binding TargetingDescription, Converter={StaticResource StringEmptyToVisConverter}}" />
                     </Grid>
                   </Border>

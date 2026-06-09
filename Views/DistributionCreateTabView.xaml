@@ -68,7 +68,7 @@
         <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="0,0,0,12" />
         <TextBlock Text="{Binding StatusMessage}"
                    Foreground="White"
-                   FontSize="14"
+                   FontSize="{DynamicResource FontSize.Medium}"
                    HorizontalAlignment="Center" />
       </StackPanel>
     </Border>

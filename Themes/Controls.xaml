@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:guideline="clr-namespace:GuideLine.WPF.View;assembly=GuideLine"
                     xmlns:controls="clr-namespace:Boutique.Controls"
                     xmlns:themes="clr-namespace:Boutique.Themes"
@@ -13,6 +14,19 @@
   <FontFamily x:Key="Font.Primary">Segoe UI</FontFamily>
   <FontFamily x:Key="Font.Mono">Consolas</FontFamily>
   <FontFamily x:Key="Font.Handwriting">pack://application:,,,/Assets/Fonts/#Indie Flower</FontFamily>
+
+  <!-- Spacing scale (4 / 8 / 12 / 16 / 24). Theme-independent; not font-scaled. -->
+  <sys:Double x:Key="Space.Xs">4</sys:Double>
+  <sys:Double x:Key="Space.Sm">8</sys:Double>
+  <sys:Double x:Key="Space.Md">12</sys:Double>
+  <sys:Double x:Key="Space.Lg">16</sys:Double>
+  <sys:Double x:Key="Space.Xl">24</sys:Double>
+
+  <!-- Common Thickness presets built on the spacing scale -->
+  <Thickness x:Key="Margin.RowGap">0,0,0,8</Thickness>
+  <Thickness x:Key="Margin.SectionGap">0,0,0,16</Thickness>
+  <Thickness x:Key="Padding.Panel">12</Thickness>
+  <Thickness x:Key="Padding.PanelTight">8</Thickness>
 
   <Style x:Key="{x:Static themes:ResourceKeys.HeadingTextBlockStyleKey}" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource Font.Primary}" />
@@ -148,12 +162,8 @@
   <Style x:Key="{x:Static themes:ResourceKeys.InfoPanelStyleKey}" TargetType="Border">
     <Setter Property="Padding" Value="8" />
     <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="Background">
-      <Setter.Value>
-        <SolidColorBrush Color="{StaticResource Color.Accent}" Opacity="0.1" />
-      </Setter.Value>
-    </Setter>
-    <Setter Property="BorderBrush" Value="{StaticResource Brush.Accent}" />
+    <Setter Property="Background" Value="{StaticResource Brush.Info.Surface}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Info}" />
     <Setter Property="BorderThickness" Value="1" />
   </Style>
 
@@ -173,19 +183,51 @@
     <Setter Property="BorderThickness" Value="1" />
   </Style>
 
+  <!-- Conflict Panel (amber) - warnings that are not errors -->
+  <Style x:Key="{x:Static themes:ResourceKeys.ConflictPanelStyleKey}" TargetType="Border">
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="{StaticResource Brush.Conflict.Surface}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Conflict}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Error Panel (red) - errors / destructive -->
+  <Style x:Key="{x:Static themes:ResourceKeys.ErrorPanelStyleKey}" TargetType="Border">
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background">
+      <Setter.Value>
+        <SolidColorBrush Color="{StaticResource Color.Warning}" Opacity="0.12" />
+      </Setter.Value>
+    </Setter>
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Warning}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Stat Card (Report Card metric tiles) -->
+  <Style x:Key="{x:Static themes:ResourceKeys.StatCardStyleKey}" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource Brush.CardBackground}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="Margin" Value="6" />
+  </Style>
+
+  <Style x:Key="{x:Static themes:ResourceKeys.StatCardCaptionStyleKey}" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="{DynamicResource FontSize.StatCaption}" />
+    <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="TextAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,2,0,0" />
+  </Style>
+
   <!-- Drop Zone Border -->
   <Style x:Key="{x:Static themes:ResourceKeys.DropZoneStyleKey}" TargetType="Border">
     <Setter Property="Padding" Value="8" />
-    <Setter Property="Background">
-      <Setter.Value>
-        <SolidColorBrush Color="#007ACC" Opacity="0.08" />
-      </Setter.Value>
-    </Setter>
-    <Setter Property="BorderBrush">
-      <Setter.Value>
-        <SolidColorBrush Color="#7FAFF6" />
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Background" Value="{StaticResource Brush.Info.Surface}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Info}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="4" />
   </Style>

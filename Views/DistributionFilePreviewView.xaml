@@ -47,12 +47,12 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Margin="0,2">
-                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas"
-                           FontSize="11"
+                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="{StaticResource Font.Mono}"
+                           FontSize="{DynamicResource FontSize.Small}"
                            Foreground="{DynamicResource Brush.Error.Title}" IsReadOnlyCaretVisible="False"
                            Text="{Binding ErrorHeader, Mode=OneWay}" />
-                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="Consolas"
-                           FontSize="10"
+                  <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontFamily="{StaticResource Font.Mono}"
+                           FontSize="{DynamicResource FontSize.Small}"
                            Foreground="{DynamicResource Brush.Error.Text}" IsReadOnlyCaretVisible="False"
                            Text="{Binding LineContent, Mode=OneWay}" ToolTip="{Binding LineContent}" Margin="12,0,0,0" />
                 </StackPanel>
@@ -89,7 +89,7 @@
                             MouseLeftButtonDown="LineNumber_MouseLeftButtonDown"
                             Cursor="Hand">
                       <TextBlock Text="{Binding LineNumber}"
-                                 FontFamily="Consolas" FontSize="11"
+                                 FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}"
                                  Foreground="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}"
                                  TextAlignment="Right" Padding="8,0,8,0"
                                  MinWidth="32" />
@@ -100,7 +100,7 @@
                              IsReadOnlyCaretVisible="False"
                              BorderThickness="0"
                              Background="Transparent"
-                             FontFamily="Consolas" FontSize="11"
+                             FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}"
                              Padding="4,0,0,0"
                              VerticalAlignment="Center" />
                   </Grid>

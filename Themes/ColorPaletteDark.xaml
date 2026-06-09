@@ -9,6 +9,8 @@
   <sys:Double x:Key="FontSize.Medium">14</sys:Double>
   <sys:Double x:Key="FontSize.Large">16</sys:Double>
   <sys:Double x:Key="FontSize.Heading">18</sys:Double>
+  <sys:Double x:Key="FontSize.StatCaption">12</sys:Double>
+  <sys:Double x:Key="FontSize.Display">44</sys:Double>
   <!-- Hierarchy: PrimaryBackground (deepest) < PanelBackground < CardBackground (brightest) -->
 
   <!-- Colors -->
@@ -38,6 +40,26 @@
   <!-- Opacity variants -->
   <SolidColorBrush x:Key="Brush.BorderLight" Color="#FF3A3D48" Opacity="0.5" />
   <SolidColorBrush x:Key="Brush.HighlightOverlay" Color="#FF4D7A6D" Opacity="0.12" />
+
+  <!-- Semantic colors (Info = blue, Conflict = amber, Success = accent green) -->
+  <!-- Brush.Warning (red) is reserved for errors / destructive actions only. -->
+  <Color x:Key="Color.Info">#FF5B8AA6</Color>
+  <Color x:Key="Color.Conflict">#FFC8943B</Color>
+  <Color x:Key="Color.Success">#FF4D7A6D</Color>
+
+  <SolidColorBrush x:Key="Brush.Info" Color="#FF5B8AA6" />
+  <SolidColorBrush x:Key="Brush.Conflict" Color="#FFC8943B" />
+  <SolidColorBrush x:Key="Brush.Success" Color="#FF4D7A6D" />
+
+  <!-- Semantic surface fills (low-opacity backgrounds for notice panels) -->
+  <SolidColorBrush x:Key="Brush.Info.Surface" Color="#FF5B8AA6" Opacity="0.12" />
+  <SolidColorBrush x:Key="Brush.Conflict.Surface" Color="#FFC8943B" Opacity="0.15" />
+  <SolidColorBrush x:Key="Brush.Success.Surface" Color="#FF4D7A6D" Opacity="0.12" />
+
+  <!-- Distribution type badge colors (solid, white text) -->
+  <SolidColorBrush x:Key="Brush.Type.Outfit" Color="#FF4D7A6D" />
+  <SolidColorBrush x:Key="Brush.Type.Keyword" Color="#FF4A8BAF" />
+  <SolidColorBrush x:Key="Brush.Type.ExclusiveGroup" Color="#FFB8860B" />
 
   <!-- Tutorial/GuideLine colors -->
   <SolidColorBrush x:Key="Brush.Tutorial.Overlay" Color="#FF000000" Opacity="0.75" />

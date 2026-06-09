@@ -43,8 +43,21 @@ public static class ResourceKeys
   public static ComponentResourceKey WarningPanelStyleKey { get; } =
     new(typeof(ResourceKeys), nameof(WarningPanelStyleKey));
 
+  public static ComponentResourceKey ConflictPanelStyleKey { get; } =
+    new(typeof(ResourceKeys), nameof(ConflictPanelStyleKey));
+
+  public static ComponentResourceKey ErrorPanelStyleKey { get; } =
+    new(typeof(ResourceKeys), nameof(ErrorPanelStyleKey));
+
   public static ComponentResourceKey DropZoneStyleKey { get; } =
     new(typeof(ResourceKeys), nameof(DropZoneStyleKey));
+
+  // Stat Cards (Report Card)
+  public static ComponentResourceKey StatCardStyleKey { get; } =
+    new(typeof(ResourceKeys), nameof(StatCardStyleKey));
+
+  public static ComponentResourceKey StatCardCaptionStyleKey { get; } =
+    new(typeof(ResourceKeys), nameof(StatCardCaptionStyleKey));
 
   public static ComponentResourceKey SelectableEntryStyleKey { get; } =
     new(typeof(ResourceKeys), nameof(SelectableEntryStyleKey));

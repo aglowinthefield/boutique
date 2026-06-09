@@ -23,6 +23,19 @@ public static class ResourceKeys
   public const string BrushWarning          = "Brush.Warning";
   public const string BrushHighlightOverlay = "Brush.HighlightOverlay";
 
+  // Semantic (Info = blue, Conflict = amber, Success = accent green)
+  public const string BrushInfo            = "Brush.Info";
+  public const string BrushConflict        = "Brush.Conflict";
+  public const string BrushSuccess         = "Brush.Success";
+  public const string BrushInfoSurface     = "Brush.Info.Surface";
+  public const string BrushConflictSurface = "Brush.Conflict.Surface";
+  public const string BrushSuccessSurface  = "Brush.Success.Surface";
+
+  // Distribution type badges
+  public const string BrushTypeOutfit         = "Brush.Type.Outfit";
+  public const string BrushTypeKeyword        = "Brush.Type.Keyword";
+  public const string BrushTypeExclusiveGroup = "Brush.Type.ExclusiveGroup";
+
   // Text
   public const string BrushTextPrimary   = "Brush.TextPrimary";
   public const string BrushTextSecondary = "Brush.TextSecondary";

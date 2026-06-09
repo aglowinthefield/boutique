@@ -41,7 +41,7 @@
                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static models:DropdownItemKind.Header}">
                           <Setter Property="Text" Value="{Binding DisplayText}" />
                           <Setter Property="FontWeight" Value="SemiBold" />
-                          <Setter Property="FontSize" Value="11" />
+                          <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
                           <Setter Property="Foreground"
                                   Value="{DynamicResource {x:Static util:ResourceKeys.BrushTextSecondary}}" />
                           <Setter Property="Padding" Value="0,4,0,2" />
@@ -133,28 +133,33 @@
         <StackPanel Orientation="Horizontal" Margin="0,2,0,0"
                     Visibility="{Binding ShowNewFileNameInput, Converter={StaticResource BoolToVisConverter}}">
           <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.SavesAs}}"
-                     Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0"
-                     FontSize="11" />
-          <TextBlock Text="{Binding ActualFileName}" FontFamily="Consolas" FontSize="11"
+                     Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}" Margin="0,0,4,0" />
+          <TextBlock Text="{Binding ActualFileName}" FontFamily="{StaticResource Font.Mono}"
+                     FontSize="{DynamicResource FontSize.Small}"
                      Foreground="{StaticResource Brush.TextSecondary}" />
         </StackPanel>
-        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.WarningPanelStyleKey}}" Margin="0,6,0,0"
+        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.ConflictPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasConflicts, Converter={StaticResource BoolToVisConverter}}">
           <StackPanel>
-            <TextBlock Text="{Binding ConflictSummary}" TextWrapping="Wrap" Foreground="#CC6600" FontSize="11" />
+            <TextBlock Text="{Binding ConflictSummary}" TextWrapping="Wrap"
+                       Foreground="{StaticResource Brush.Conflict}"
+                       FontSize="{DynamicResource FontSize.Small}" />
             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Suggested}}" Foreground="#CC6600"
-                         FontWeight="Bold" FontSize="11" />
-              <TextBlock Text="{Binding SuggestedFileName}" Foreground="#CC6600" FontFamily="Consolas"
-                         FontWeight="Bold" FontSize="11" />
+              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Suggested}}"
+                         Foreground="{StaticResource Brush.Conflict}"
+                         FontWeight="Bold" FontSize="{DynamicResource FontSize.Small}" />
+              <TextBlock Text="{Binding SuggestedFileName}" Foreground="{StaticResource Brush.Conflict}"
+                         FontFamily="{StaticResource Font.Mono}"
+                         FontWeight="Bold" FontSize="{DynamicResource FontSize.Small}" />
             </StackPanel>
           </StackPanel>
         </Border>
-        <Border BorderBrush="#0078D4" BorderThickness="1" Background="#1A0078D4" CornerRadius="4" Padding="8"
-                Margin="0,6,0,0"
+        <Border Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasOverlaps, Converter={StaticResource BoolToVisConverter}}">
           <StackPanel>
-            <TextBlock Text="{Binding OverlapSummary}" TextWrapping="Wrap" Foreground="#0078D4" FontSize="11" />
+            <TextBlock Text="{Binding OverlapSummary}" TextWrapping="Wrap"
+                       Foreground="{StaticResource Brush.Info}"
+                       FontSize="{DynamicResource FontSize.Small}" />
           </StackPanel>
         </Border>
         <Border Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,6,0,0"
@@ -163,7 +168,8 @@
             <Button Content="View" DockPanel.Dock="Right" Padding="8,2"
                     Command="{Binding ViewIntraFileOverlapsCommand}" />
             <TextBlock Text="{Binding IntraFileOverlapCount, StringFormat='{}{0} intra-file overlaps'}"
-                       Foreground="{StaticResource Brush.Accent}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource Brush.Info}" FontSize="{DynamicResource FontSize.Small}"
+                       FontWeight="SemiBold"
                        VerticalAlignment="Center" />
           </DockPanel>
         </Border>
@@ -208,23 +214,27 @@
                       CornerRadius="2" Padding="4,2" Margin="0,0,8,0" VerticalAlignment="Center">
                 <Border.Style>
                   <Style TargetType="Border">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static util:ResourceKeys.BrushAccent}}" />
+                    <Setter Property="Background"
+                            Value="{DynamicResource {x:Static util:ResourceKeys.BrushTypeOutfit}}" />
                     <Style.Triggers>
                       <DataTrigger Binding="{Binding Type}" Value="{x:Static models:DistributionType.Keyword}">
-                        <Setter Property="Background" Value="#4A8BAF" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static util:ResourceKeys.BrushTypeKeyword}}" />
                       </DataTrigger>
                       <DataTrigger Binding="{Binding Type}" Value="{x:Static models:DistributionType.ExclusiveGroup}">
-                        <Setter Property="Background" Value="#B8860B" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static util:ResourceKeys.BrushTypeExclusiveGroup}}" />
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding Type}" FontSize="10" FontWeight="SemiBold" Foreground="White" />
+                <TextBlock Text="{Binding Type}" FontSize="{DynamicResource FontSize.Small}" FontWeight="SemiBold"
+                           Foreground="White" />
               </Border>
 
               <!-- Target name -->
               <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
-                <TextBlock Text="⚠ " Foreground="#CC6600" FontWeight="Bold"
+                <TextBlock Text="⚠ " Foreground="{StaticResource Brush.Conflict}" FontWeight="Bold"
                            ToolTip="This entry has unresolved filters that couldn't be matched to known NPCs or keywords">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
@@ -251,7 +261,6 @@
               <TextBlock Grid.Column="1" Grid.Row="1"
                          Text="{Binding FilterSummary}"
                          Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
-                         FontSize="11"
                          TextTrimming="CharacterEllipsis"
                          ToolTip="{Binding FilterSummary}" />
 
@@ -262,7 +271,7 @@
                       Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                       ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.RemoveEntry}}"
                       Height="28" Width="28"
-                      FontSize="14"
+                      FontSize="{DynamicResource FontSize.Medium}"
                       VerticalAlignment="Center" />
             </Grid>
           </DataTemplate>
