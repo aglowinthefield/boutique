@@ -336,6 +336,9 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     }
   }
 
+  private static bool IsAllPlugins(string? plugin) =>
+    string.Equals(plugin, MainViewModel.AllPluginsOption, StringComparison.OrdinalIgnoreCase);
+
   private static Func<string, bool> BuildPluginPredicate(string searchText) =>
     string.IsNullOrWhiteSpace(searchText)
       ? _ => true
@@ -390,7 +393,11 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     }
 
     await LoadOutfitArmorsAsync(plugin);
-    await LoadExistingOutfitsAsync(plugin);
+
+    if (!IsAllPlugins(plugin))
+    {
+      await LoadExistingOutfitsAsync(plugin);
+    }
   }
 
   private async Task LoadOutfitArmorsAsync(string plugin)
@@ -406,7 +413,9 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       StatusMessage = $"Loading armors from {plugin}...";
       _logger.Information("Loading outfit armors from plugin {Plugin}", plugin);
 
-      var armorsFromPlugin = await _mutagenService.LoadArmorsFromPluginAsync(plugin);
+      var armorsFromPlugin = IsAllPlugins(plugin)
+                               ? await _mutagenService.LoadAllArmorsAsync()
+                               : await _mutagenService.LoadArmorsFromPluginAsync(plugin);
       var armors = armorsFromPlugin
                    .Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache))
                    .ToList();
@@ -734,8 +743,11 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   {
     var plugins = await _mutagenService.GetPluginsWithArmorsOrOutfitsAsync();
 
+    var desired = new List<string> { MainViewModel.AllPluginsOption };
+    desired.AddRange(plugins);
+
     var current = new HashSet<string>(_outfitPluginsSource.Items, StringComparer.OrdinalIgnoreCase);
-    if (current.SetEquals(plugins))
+    if (current.SetEquals(desired))
     {
       return;
     }
@@ -743,7 +755,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     _outfitPluginsSource.Edit(list =>
     {
       list.Clear();
-      list.AddRange(plugins);
+      list.AddRange(desired);
     });
   }
 }
