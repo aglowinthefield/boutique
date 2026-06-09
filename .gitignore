@@ -111,3 +111,12 @@ docs/
 
 # Code coverage output
 TestResults/
+
+# Skyrim game data for integration tests (never commit copyrighted game files)
+Boutique.Tests/TestData/Game/*.esm
+Boutique.Tests/TestData/Game/*.esp
+Boutique.Tests/TestData/Game/*.esl
+Boutique.Tests/TestData/Game/*.bsa
+Boutique.Tests/TestData/Game/*.strings
+Boutique.Tests/TestData/Game/*.ilstrings
+Boutique.Tests/TestData/Game/*.dlstrings
