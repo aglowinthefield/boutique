@@ -13,9 +13,6 @@ public sealed record ReportCardResult(
   IReadOnlyList<UncoveredAttributeRanking> UncoveredByFaction,
   IReadOnlyList<UncoveredAttributeRanking> UncoveredByClass,
   IReadOnlyList<UncoveredAttributeRanking> UncoveredByRace,
-  IReadOnlyList<UncoveredAttributeRanking> UncoveredByMod,
-  IReadOnlyList<UnusedOutfitGroup> UnusedOutfitGroups);
+  IReadOnlyList<UncoveredAttributeRanking> UncoveredByMod);
 
 public sealed record UncoveredAttributeRanking(string Label, int UncoveredCount, int TotalCount);
-
-public sealed record UnusedOutfitGroup(string PluginName, int Count, IReadOnlyList<string> OutfitEditorIds);

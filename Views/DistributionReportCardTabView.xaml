@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:utilities="clr-namespace:Boutique.Utilities"
+             xmlns:themes="clr-namespace:Boutique.Themes"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionReportCardTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="700"
@@ -317,40 +318,81 @@
             <TextBlock FontWeight="SemiBold">
               <TextBlock.Text>
                 <MultiBinding StringFormat="Unused Mod Outfits ({0})">
-                  <Binding Path="UnusedOutfitGroups.Count" />
+                  <Binding Path="UnusedOutfits.Count" />
                 </MultiBinding>
               </TextBlock.Text>
             </TextBlock>
           </Expander.Header>
-          <ItemsControl ItemsSource="{Binding UnusedOutfitGroups}" Margin="8,4,0,0">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <StackPanel>
-                  <TextBlock Style="{StaticResource GroupHeader}">
-                    <TextBlock.Text>
-                      <MultiBinding StringFormat="{}{0} ({1})">
-                        <Binding Path="PluginName" />
-                        <Binding Path="Count" />
-                      </MultiBinding>
-                    </TextBlock.Text>
-                  </TextBlock>
-                  <ItemsControl ItemsSource="{Binding OutfitEditorIds}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <WrapPanel />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding StringFormat='{}{0},  '}"
-                                   Style="{StaticResource GroupItems}" />
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <DataGrid ItemsSource="{Binding UnusedOutfits}"
+                    Margin="0,4,0,0" MaxHeight="360"
+                    AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                    IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
+                    GridLinesVisibility="All" HeadersVisibility="Column"
+                    EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                    RowHeight="32">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="2*" CanUserSort="True" />
+              <DataGridTextColumn Header="Plugin" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
+                                  ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
+              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="1.5*" CanUserSort="True"
+                                  ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTemplateColumn Header="Preview" Width="Auto">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <Button Content="Preview"
+                            Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Expander>
+
+        <!-- Armors Not In Any Outfit -->
+        <Expander IsExpanded="False" Margin="0,8,0,0">
+          <Expander.Header>
+            <TextBlock FontWeight="SemiBold">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Armors Not In Any Outfit ({0})">
+                  <Binding Path="UnusedArmors.Count" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </Expander.Header>
+          <StackPanel Margin="0,4,0,0">
+            <TextBlock Style="{StaticResource GroupItems}"
+                       FontStyle="Italic"
+                       Margin="0,0,0,6"
+                       Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}"
+                       Text="Playable, unenchanted armors from mods that no outfit grants. Some may be intentionally craft-only." />
+            <DataGrid ItemsSource="{Binding UnusedArmors}"
+                      MaxHeight="360"
+                      AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                      IsReadOnly="True" CanUserSortColumns="True" SelectionMode="Single" SelectionUnit="FullRow"
+                      GridLinesVisibility="All" HeadersVisibility="Column"
+                      EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                      RowHeight="32">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
+                <DataGridTextColumn Header="Slots" Binding="{Binding SlotSummary}" Width="1.5*" CanUserSort="True"
+                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
+                <DataGridTextColumn Header="Plugin" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
+                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
+                <DataGridTextColumn Header="FormID" Binding="{Binding FormIdDisplay}" Width="1*" CanUserSort="True"
+                                    ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+                <DataGridTemplateColumn Header="Preview" Width="Auto">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <Button Content="Preview"
+                              Command="{Binding DataContext.PreviewArmorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </StackPanel>
         </Expander>
 
       </StackPanel>

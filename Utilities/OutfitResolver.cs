@@ -41,6 +41,73 @@ public static class OutfitResolver
     return new OutfitArmorResult(pieces, containsLeveledItems);
   }
 
+  /// <summary>
+  ///   Collects the FormKeys of every armor an outfit can grant, traversing all leveled-list and
+  ///   form-list branches (no random selection). Intended for usage detection ("is this armor used
+  ///   in any outfit?"), where an armor counts if any branch could distribute it.
+  /// </summary>
+  /// <param name="outfit">The outfit to inspect.</param>
+  /// <param name="linkCache">The link cache for resolving records.</param>
+  /// <param name="destination">The set to add discovered armor FormKeys to.</param>
+  public static void CollectArmorFormKeys(
+    IOutfitGetter outfit,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    HashSet<FormKey> destination)
+  {
+    var visited = new HashSet<FormKey>();
+    var items   = outfit.Items ?? [];
+
+    foreach (var formKey in items
+               .Select(itemLink => itemLink.FormKeyNullable)
+               .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
+    {
+      CollectArmorFormKeysFromItem(formKey!.Value, linkCache, destination, visited);
+    }
+  }
+
+  private static void CollectArmorFormKeysFromItem(
+    FormKey itemFormKey,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    HashSet<FormKey> destination,
+    HashSet<FormKey> visited)
+  {
+    if (!visited.Add(itemFormKey))
+    {
+      return;
+    }
+
+    if (!linkCache.TryResolve<ISkyrimMajorRecordGetter>(itemFormKey, out var record))
+    {
+      return;
+    }
+
+    switch (record)
+    {
+      case IArmorGetter armor:
+        destination.Add(armor.FormKey);
+        break;
+      case ILeveledItemGetter leveledItem when leveledItem.Entries is { } entries:
+        foreach (var entry in entries)
+        {
+          if (TryGetEntryFormKey(entry, out var entryFormKey))
+          {
+            CollectArmorFormKeysFromItem(entryFormKey, linkCache, destination, visited);
+          }
+        }
+
+        break;
+      case IFormListGetter formList:
+        foreach (var formKey in formList.Items
+                   .Select(itemLink => itemLink.FormKeyNullable)
+                   .Where(fk => fk.HasValue && !fk.Value.IsNull))
+        {
+          CollectArmorFormKeysFromItem(formKey!.Value, linkCache, destination, visited);
+        }
+
+        break;
+    }
+  }
+
   private static void GatherArmorsFromItem(
     FormKey itemFormKey,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,

@@ -81,7 +81,11 @@ public partial class DistributionViewModel : ReactiveObject
 
     ContainersTab = new DistributionContainersTabViewModel(gameDataCache);
 
-    ReportCardTab = new DistributionReportCardTabViewModel(gameDataCache, logger);
+    ReportCardTab = new DistributionReportCardTabViewModel(
+      armorPreviewService,
+      mutagenService,
+      gameDataCache,
+      logger);
 
     EditTab.ShowPreview.RegisterHandler(async interaction =>
     {
@@ -94,6 +98,11 @@ public partial class DistributionViewModel : ReactiveObject
       interaction.SetOutput(Unit.Default);
     });
     OutfitsTab.ShowPreview.RegisterHandler(async interaction =>
+    {
+      await ShowPreview.Handle(interaction.Input);
+      interaction.SetOutput(Unit.Default);
+    });
+    ReportCardTab.ShowPreview.RegisterHandler(async interaction =>
     {
       await ShowPreview.Handle(interaction.Input);
       interaction.SetOutput(Unit.Default);

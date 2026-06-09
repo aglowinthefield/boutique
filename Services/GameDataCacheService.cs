@@ -10,6 +10,7 @@ using Boutique.ViewModels;
 using DynamicData;
 using DynamicData.Kernel;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using Serilog;
@@ -181,6 +182,10 @@ public sealed class GameDataCacheService : IDisposable
 
   public IReadOnlyDictionary<FormKey, HashSet<string>> SimulatedKeywordsByNpc { get; private set; } =
     new Dictionary<FormKey, HashSet<string>>();
+
+  public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache => _mutagenService.LinkCache;
+
+  public bool IsPluginBlacklisted(ModKey modKey) => IsBlacklisted(modKey);
 
   public void Dispose()
   {

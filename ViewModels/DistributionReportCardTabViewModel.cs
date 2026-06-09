@@ -1,7 +1,11 @@
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Linq;
 using Boutique.Models;
 using Boutique.Services;
+using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
@@ -17,8 +21,10 @@ public enum RankingCategory
 
 public partial class DistributionReportCardTabViewModel : ReactiveObject
 {
+  private readonly ArmorPreviewService  _armorPreviewService;
   private readonly GameDataCacheService _cache;
   private readonly ILogger              _logger;
+  private readonly MutagenService       _mutagenService;
   private readonly IObservable<bool>    _notLoading;
 
   [Reactive] private bool   _isLoading;
@@ -42,13 +48,19 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
   [Reactive] private bool _hasModOutfits;
 
   public DistributionReportCardTabViewModel(
+    ArmorPreviewService armorPreviewService,
+    MutagenService mutagenService,
     GameDataCacheService cache,
     ILogger logger)
   {
-    _cache      = cache;
-    _logger     = logger.ForContext<DistributionReportCardTabViewModel>();
-    _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
+    _armorPreviewService = armorPreviewService;
+    _mutagenService      = mutagenService;
+    _cache               = cache;
+    _logger              = logger.ForContext<DistributionReportCardTabViewModel>();
+    _notLoading          = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
   }
+
+  public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
   public event EventHandler<(RankingCategory Category, string Label)>? RankingClicked;
 
@@ -68,7 +80,80 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
   public ObservableCollection<UncoveredAttributeRanking> UncoveredByClass { get; } = [];
   public ObservableCollection<UncoveredAttributeRanking> UncoveredByRace { get; } = [];
   public ObservableCollection<UncoveredAttributeRanking> UncoveredByMod { get; } = [];
-  public ObservableCollection<UnusedOutfitGroup> UnusedOutfitGroups { get; } = [];
+  public ObservableCollection<OutfitRecordViewModel> UnusedOutfits { get; } = [];
+  public ObservableCollection<ArmorRecordViewModel> UnusedArmors { get; } = [];
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private async Task PreviewOutfitAsync(OutfitRecordViewModel? outfitVm)
+  {
+    if (outfitVm == null || _mutagenService.LinkCache is not { } linkCache)
+    {
+      return;
+    }
+
+    var outfit        = outfitVm.Outfit;
+    var label         = outfit.EditorID ?? outfit.FormKey.ToString();
+    var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+
+    if (initialResult.ArmorPieces.Count == 0)
+    {
+      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      return;
+    }
+
+    var metadata = new OutfitMetadata(
+      label,
+      outfit.FormKey.ModKey.FileName.String,
+      false,
+      initialResult.ContainsLeveledItems);
+    await ShowArmorPreviewAsync(
+      metadata,
+      label,
+      gender =>
+      {
+        var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
+        return _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+      });
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_notLoading))]
+  private async Task PreviewArmorAsync(ArmorRecordViewModel? armorVm)
+  {
+    if (armorVm == null || _mutagenService.LinkCache is null)
+    {
+      return;
+    }
+
+    var label    = armorVm.DisplayName;
+    var metadata = new OutfitMetadata(label, armorVm.ModDisplayName, false);
+    await ShowArmorPreviewAsync(
+      metadata,
+      label,
+      gender => _armorPreviewService.BuildPreviewAsync([armorVm], gender));
+  }
+
+  private async Task ShowArmorPreviewAsync(
+    OutfitMetadata metadata,
+    string label,
+    Func<GenderedModelVariant, Task<ArmorPreviewScene>> sceneBuilder)
+  {
+    try
+    {
+      StatusMessage = $"Building preview for {label}…";
+      var collection = new ArmorPreviewSceneCollection(
+        1,
+        0,
+        [metadata],
+        async (_, gender) => await sceneBuilder(gender));
+      await ShowPreview.Handle(collection);
+      StatusMessage = $"Preview ready for {label}.";
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Failed to preview {Label}", label);
+      StatusMessage = $"Failed to preview: {ex.Message}";
+    }
+  }
 
   [ReactiveCommand(CanExecute = nameof(_notLoading))]
   public async Task CalculateAsync()
@@ -78,7 +163,7 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
 
     try
     {
-      var result = await Task.Run(ComputeMetrics);
+      var (result, unusedOutfits, unusedArmors) = await Task.Run(ComputeMetrics);
 
       NpcCoveragePercent    = result.NpcCoveragePercent;
       ModUtilizationPercent = result.ModUtilizationPercent;
@@ -102,11 +187,8 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
       ReplaceCollection(UncoveredByRace, result.UncoveredByRace);
       ReplaceCollection(UncoveredByMod, result.UncoveredByMod);
 
-      UnusedOutfitGroups.Clear();
-      foreach (var group in result.UnusedOutfitGroups)
-      {
-        UnusedOutfitGroups.Add(group);
-      }
+      ReplaceCollection(UnusedOutfits, unusedOutfits);
+      ReplaceCollection(UnusedArmors, unusedArmors);
 
       HasResults    = true;
       StatusMessage = $"Grade: {OverallGrade} — " +
@@ -132,7 +214,8 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
     }
   }
 
-  private ReportCardResult ComputeMetrics()
+  private (ReportCardResult Result, List<OutfitRecordViewModel> UnusedOutfits, List<ArmorRecordViewModel> UnusedArmors)
+    ComputeMetrics()
   {
     var allNpcs        = _cache.AllNpcs.ToList();
     var allAssignments = _cache.AllNpcOutfitAssignments.ToList();
@@ -205,10 +288,15 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
     var (byFaction, byClass, byRace, byMod) = BuildAttributeRankings(eligibleNpcs, coveredNpcSet);
 
     var usedModOutfitKeys = new HashSet<FormKey>(usedModOutfits.Select(o => o.FormKey));
-    var unusedModOutfits  = modOutfits.Where(o => !usedModOutfitKeys.Contains(o.FormKey)).ToList();
-    var unusedOutfitGroups = BuildUnusedOutfitGroups(unusedModOutfits);
+    var unusedOutfits = modOutfits
+      .Where(o => !usedModOutfitKeys.Contains(o.FormKey))
+      .OrderBy(o => o.ModDisplayName, StringComparer.OrdinalIgnoreCase)
+      .ThenBy(o => o.EditorID, StringComparer.OrdinalIgnoreCase)
+      .ToList();
 
-    return new ReportCardResult(
+    var unusedArmors = BuildUnusedArmors(allOutfitRecords);
+
+    var result = new ReportCardResult(
       npcCoveragePercent,
       modUtilizationPercent,
       varietyPercent,
@@ -221,9 +309,47 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
       byFaction,
       byClass,
       byRace,
-      byMod,
-      unusedOutfitGroups);
+      byMod);
+
+    return (result, unusedOutfits, unusedArmors);
   }
+
+  private List<ArmorRecordViewModel> BuildUnusedArmors(List<OutfitRecordViewModel> allOutfitRecords)
+  {
+    if (_cache.LinkCache is not { } linkCache)
+    {
+      _logger.Debug("Skipping unused-armor analysis: link cache unavailable.");
+      return [];
+    }
+
+    var usedArmorKeys = new HashSet<FormKey>();
+    foreach (var outfit in allOutfitRecords)
+    {
+      OutfitResolver.CollectArmorFormKeys(outfit.Outfit, linkCache, usedArmorKeys);
+    }
+
+    var unusedArmors = linkCache.WinningOverrides<IArmorGetter>()
+      .Where(IsDistributableModArmor)
+      .Where(armor => !usedArmorKeys.Contains(armor.FormKey))
+      .Select(armor => new ArmorRecordViewModel(armor, linkCache))
+      .OrderBy(a => a.ModDisplayName, StringComparer.OrdinalIgnoreCase)
+      .ThenBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
+      .ToList();
+
+    _logger.Debug(
+      "Unused armor analysis: UsedArmors={Used}, UnusedArmors={Unused}",
+      usedArmorKeys.Count,
+      unusedArmors.Count);
+
+    return unusedArmors;
+  }
+
+  private bool IsDistributableModArmor(IArmorGetter armor) =>
+    !IsVanillaOrCreationClub(armor.FormKey.ModKey) &&
+    !_cache.IsPluginBlacklisted(armor.FormKey.ModKey) &&
+    !armor.MajorFlags.HasFlag(Armor.MajorFlag.NonPlayable) &&
+    armor.ObjectEffect.IsNull &&
+    !string.IsNullOrWhiteSpace(armor.Name.SafeString(armor));
 
   private void LogMetricsBreakdown(
     List<NpcFilterData> allNpcs,
@@ -356,20 +482,6 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
     {
       target.Add(item);
     }
-  }
-
-  private static List<UnusedOutfitGroup> BuildUnusedOutfitGroups(List<OutfitRecordViewModel> unusedOutfits)
-  {
-    var groups = unusedOutfits
-      .GroupBy(o => o.FormKey.ModKey.FileName)
-      .Select(g => new UnusedOutfitGroup(
-        g.Key,
-        g.Count(),
-        g.Select(o => o.EditorID).OrderBy(id => id).ToList()))
-      .OrderByDescending(g => g.Count)
-      .ToList();
-
-    return groups;
   }
 
   internal static string PercentToGrade(double pct) => pct switch
