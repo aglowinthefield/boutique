@@ -31,7 +31,13 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string outputPath,
     string operationName)
   {
-    var       modKey = ModKey.FromFileName(Path.GetFileName(outputPath));
+    var fileName = Path.GetFileName(outputPath);
+    if (!ModKey.TryFromFileName(fileName, out var modKey))
+    {
+      throw new InvalidOperationException(
+        $"'{fileName}' is not a valid plugin name. The patch file name must end in .esp, .esm, or .esl.");
+    }
+
     SkyrimMod patchMod;
 
     if (File.Exists(outputPath))

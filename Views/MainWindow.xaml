@@ -59,8 +59,11 @@
       <StackPanel x:Name="PatchFileNamePanel" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
         <TextBlock Text="{lex:Loc Status_Patch}" Margin="0,0,6,0" VerticalAlignment="Center"
                    Foreground="{StaticResource Brush.TextSecondary}" />
-        <TextBox Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}"
-                 MinWidth="160" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center" />
+        <TextBox Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged}"
+                 MinWidth="120" FontFamily="Consolas" FontSize="11" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding Settings.PatchExtensions}"
+                  SelectedItem="{Binding Settings.SelectedPatchExtension}"
+                  FontFamily="Consolas" FontSize="11" VerticalAlignment="Center" Margin="4,0,0,0" />
         <Button x:Name="RefreshButton" Command="{Binding Distribution.RefreshCommand}"
                 ToolTip="{lex:Loc Button_Refresh}"
                 MinWidth="0" Width="24" Height="24" Padding="0" Margin="8,0,0,0"

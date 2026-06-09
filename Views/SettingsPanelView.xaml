@@ -100,8 +100,13 @@
             <!-- Row 0: Patch File Name -->
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,12,12"
-                     Text="{Binding Settings.PatchFileName, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,12">
+              <TextBox Width="200"
+                       Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged}" />
+              <ComboBox ItemsSource="{Binding Settings.PatchExtensions}"
+                        SelectedItem="{Binding Settings.SelectedPatchExtension}"
+                        VerticalAlignment="Center" Margin="6,0,0,0" />
+            </StackPanel>
             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
                        VerticalAlignment="Center" Margin="0,0,0,12" />

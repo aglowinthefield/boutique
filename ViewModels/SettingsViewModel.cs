@@ -28,6 +28,8 @@ public enum ThemeOption
 
 public partial class SettingsViewModel : ReactiveObject
 {
+  private const string DefaultPatchExtension = ".esp";
+
   private readonly IDialogService      _dialogService;
   private readonly GuiSettingsService  _guiSettings;
   private readonly LocalizationService _localizationService;
@@ -35,6 +37,8 @@ public partial class SettingsViewModel : ReactiveObject
   private readonly MutagenService      _mutagenService;
   private readonly PatcherSettings     _settings;
   private readonly ThemeService        _themeService;
+
+  private bool _isSyncingPatchName;
 
   [ReactiveCollection] private ObservableCollection<string> _availableBlacklistPlugins = [];
   [ReactiveCollection] private ObservableCollection<string> _blacklistedPluginNames    = [];
@@ -44,10 +48,14 @@ public partial class SettingsViewModel : ReactiveObject
   [Reactive] private bool            _isRunningFromMO2;
   [Reactive] private string          _outputPatchPath = string.Empty;
   [Reactive] private string          _patchFileName   = string.Empty;
+  [Reactive] private string          _patchFileBaseName = string.Empty;
+  [Reactive] private string          _selectedPatchExtension = DefaultPatchExtension;
   [Reactive] private LanguageOption? _selectedLanguage;
   [Reactive] private SkyrimRelease   _selectedSkyrimRelease;
   [Reactive] private ThemeOption     _selectedTheme;
   [Reactive] private string          _skyrimDataPath = string.Empty;
+
+  public IReadOnlyList<string> PatchExtensions { get; } = [".esp", ".esm", ".esl"];
 
   public SettingsViewModel(
     PatcherSettings settings,
@@ -81,6 +89,7 @@ public partial class SettingsViewModel : ReactiveObject
     PatchFileName = !string.IsNullOrEmpty(guiSettings.PatchFileName)
                       ? guiSettings.PatchFileName
                       : settings.PatchFileName;
+    (PatchFileBaseName, SelectedPatchExtension) = SplitPatchFileName(PatchFileName);
     OutputPatchPath = guiSettings.OutputPatchPath ?? string.Empty;
     SelectedSkyrimRelease = guiSettings.SelectedSkyrimRelease != default
                               ? guiSettings.SelectedSkyrimRelease
@@ -118,6 +127,19 @@ public partial class SettingsViewModel : ReactiveObject
           {
             ShowPatchNameCollisionDialog(v, oldValue);
           }
+        });
+
+    this.WhenAnyValue(x => x.PatchFileBaseName, x => x.SelectedPatchExtension)
+        .Skip(1)
+        .Subscribe(t =>
+        {
+          if (_isSyncingPatchName)
+          {
+            return;
+          }
+
+          var (baseName, extension) = t;
+          PatchFileName = $"{baseName}{extension}";
         });
 
     this.WhenAnyValue(x => x.OutputPatchPath)
@@ -357,6 +379,22 @@ public partial class SettingsViewModel : ReactiveObject
     }
   }
 
+  private (string baseName, string extension) SplitPatchFileName(string fileName)
+  {
+    if (string.IsNullOrWhiteSpace(fileName))
+    {
+      return (string.Empty, DefaultPatchExtension);
+    }
+
+    var extension = Path.GetExtension(fileName);
+    var matched = PatchExtensions.FirstOrDefault(
+      e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase));
+
+    return matched is null
+             ? (fileName, DefaultPatchExtension)
+             : (Path.GetFileNameWithoutExtension(fileName), matched);
+  }
+
   private static string NormalizeDataPath(string path)
   {
     if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
@@ -443,7 +481,10 @@ public partial class SettingsViewModel : ReactiveObject
 
     if (dialog.ShouldRevert && !string.IsNullOrWhiteSpace(previousFileName))
     {
+      _isSyncingPatchName = true;
+      (PatchFileBaseName, SelectedPatchExtension) = SplitPatchFileName(previousFileName);
       PatchFileName = previousFileName;
+      _isSyncingPatchName = false;
     }
   }
 
