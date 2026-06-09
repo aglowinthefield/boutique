@@ -24,6 +24,7 @@ namespace Boutique.Views;
 public sealed partial class OutfitPreviewWindow : IDisposable
 {
   private const string WindowGeometryKey = "OutfitPreview";
+  private const string BaseBodyMarker    = "Base Body";
   private const float  AmbientSrgb       = 0.2f;
   private const float  KeyFillSrgb       = 0.6f;
   private const float  RimSrgb           = 0.85f;
@@ -41,6 +42,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private readonly DirectionalLight3D          _frontLeftLight  = new();
   private readonly DirectionalLight3D          _frontRightLight = new();
   private readonly GroupModel3D                _meshGroup       = new();
+  private readonly List<MeshGeometryModel3D>   _baseBodyModels  = [];
   private readonly ArmorPreviewSceneCollection _sceneCollection;
   private readonly ThemeService                _themeService;
 
@@ -48,6 +50,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
   private GenderedModelVariant _currentGender;
   private int                  _currentSceneIndex;
   private bool                 _disposed;
+  private bool                 _showBaseBody = true;
   private float                _frontalMultiplier = 7f;
   private PerspectiveCamera?   _initialCamera;
   private float                _keyFillMultiplier = 1.6f;
@@ -235,7 +238,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
   private void RenderScene(ArmorPreviewScene scene)
   {
-    var evaluatedMeshes = EvaluateMeshes(scene, out var center, out var radius);
+    var evaluatedMeshes = EvaluateMeshes(scene.Meshes, out var center, out var radius);
     DisposeMeshChildren();
 
     if (evaluatedMeshes.Count == 0)
@@ -254,14 +257,21 @@ public sealed partial class OutfitPreviewWindow : IDisposable
       }
 
       var (material, needsTransparency) = CreateMaterialForMesh(evaluated.Shape);
+      var isBaseBody = evaluated.Shape.Name.Contains(BaseBodyMarker, StringComparison.OrdinalIgnoreCase);
       var model = new MeshGeometryModel3D
                   {
                     Geometry         = geometry,
                     Material         = material,
                     CullMode         = CullMode.None,
                     IsHitTestVisible = false,
-                    IsTransparent    = needsTransparency
+                    IsTransparent    = needsTransparency,
+                    Visibility       = isBaseBody && !_showBaseBody ? Visibility.Collapsed : Visibility.Visible
                   };
+
+      if (isBaseBody)
+      {
+        _baseBodyModels.Add(model);
+      }
 
       _meshGroup.Children.Add(model);
     }
@@ -270,13 +280,16 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     PreviewViewport.InvalidateRender();
   }
 
-  private static List<EvaluatedMesh> EvaluateMeshes(ArmorPreviewScene scene, out Vector3 center, out float radius)
+  private static List<EvaluatedMesh> EvaluateMeshes(
+    IReadOnlyList<PreviewMeshShape> meshes,
+    out Vector3 center,
+    out float radius)
   {
     var evaluatedMeshes = new List<EvaluatedMesh>();
     var min             = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
     var max             = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
-    foreach (var mesh in scene.Meshes)
+    foreach (var mesh in meshes)
     {
       var transformedVertices = new List<Vector3>(mesh.Vertices.Count);
       var transformedNormals  = new List<Vector3>(mesh.Normals.Count);
@@ -565,7 +578,7 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
   private static Color GetFallbackColor(PreviewMeshShape mesh)
   {
-    if (mesh.Name.Contains("Base Body", StringComparison.OrdinalIgnoreCase))
+    if (mesh.Name.Contains(BaseBodyMarker, StringComparison.OrdinalIgnoreCase))
     {
       return Color.FromRgb(200, 200, 200);
     }
@@ -635,6 +648,24 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
     _currentGender = newGender;
     _ = BuildScene();
+  }
+
+  private void OnShowBaseBodyChanged(object sender, RoutedEventArgs e)
+  {
+    _showBaseBody = ShowBaseBodyCheckBox.IsChecked == true;
+
+    if (!IsLoaded)
+    {
+      return;
+    }
+
+    var visibility = _showBaseBody ? Visibility.Visible : Visibility.Collapsed;
+    foreach (var model in _baseBodyModels)
+    {
+      model.Visibility = visibility;
+    }
+
+    PreviewViewport.InvalidateRender();
   }
 
   private void ToggleGender()
@@ -751,6 +782,8 @@ public sealed partial class OutfitPreviewWindow : IDisposable
 
   private void DisposeMeshChildren()
   {
+    _baseBodyModels.Clear();
+
     var meshes = _meshGroup.Children.OfType<MeshGeometryModel3D>().ToList();
     _meshGroup.Children.Clear();
 

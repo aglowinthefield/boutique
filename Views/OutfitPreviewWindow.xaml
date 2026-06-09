@@ -242,6 +242,15 @@
               <ComboBoxItem Content="Female" Tag="Female" />
               <ComboBoxItem Content="Male" Tag="Male" />
             </ComboBox>
+            <CheckBox x:Name="ShowBaseBodyCheckBox"
+                      Content="Show base body"
+                      Margin="16,0,0,0"
+                      IsChecked="True"
+                      VerticalAlignment="Center"
+                      Foreground="{DynamicResource Brush.TextPrimary}"
+                      Checked="OnShowBaseBodyChanged"
+                      Unchecked="OnShowBaseBodyChanged"
+                      ToolTip="Hide the default body mesh when it clips through armor" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
