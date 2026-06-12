@@ -197,6 +197,17 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
   public Task<IEnumerable<IOutfitGetter>> LoadOutfitsFromPluginAsync(string pluginFileName) =>
     LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Outfits);
 
+  public Task<IEnumerable<ILeveledItemGetter>> LoadLeveledItemsFromPluginAsync(string pluginFileName) =>
+    LoadRecordsFromPluginAsync(pluginFileName, mod => mod.LeveledItems);
+
+  public Task<IEnumerable<ILeveledItemGetter>> LoadAllLeveledItemsAsync() =>
+    Task.Run<IEnumerable<ILeveledItemGetter>>(() =>
+      LinkCache is null
+        ? []
+        : LinkCache.WinningOverrides<ILeveledItemGetter>()
+                   .Where(list => !IsBlacklisted(list.FormKey.ModKey.FileName))
+                   .ToList());
+
   private async Task<IEnumerable<T>> LoadRecordsFromPluginAsync<T>(
     string pluginFileName,
     Func<ISkyrimModGetter, IEnumerable<T>> recordSelector)

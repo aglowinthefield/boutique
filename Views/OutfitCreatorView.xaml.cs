@@ -58,10 +58,7 @@ public partial class OutfitCreatorView
       return;
     }
 
-    if (_currentViewModel is not null)
-    {
-      _currentViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
-    }
+    _currentViewModel?.PropertyChanged -= ViewModelOnPropertyChanged;
 
     _currentViewModel = viewModel;
 
@@ -232,6 +229,36 @@ public partial class OutfitCreatorView
 
   private void AddSeparator_Click(object sender, RoutedEventArgs e) => ViewModel?.AddSeparator();
 
+  private void LeveledListPicker_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+  {
+    if (sender is not ComboBox { SelectedItem: LeveledListDraftViewModel list } combo)
+    {
+      return;
+    }
+
+    if (combo.DataContext is OutfitDraftViewModel outfit && ViewModel is { } viewModel)
+    {
+      viewModel.AddLeveledListToOutfit(outfit, list);
+    }
+
+    combo.SelectedItem = null;
+  }
+
+  private void NestedListPicker_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+  {
+    if (sender is not ComboBox { SelectedItem: LeveledListDraftViewModel child } combo)
+    {
+      return;
+    }
+
+    if (combo.DataContext is LeveledListDraftViewModel parent && ViewModel is { } viewModel)
+    {
+      viewModel.AddNestedLeveledList(parent, child);
+    }
+
+    combo.SelectedItem = null;
+  }
+
   private void ClearOutfitFilters_Click(object sender, RoutedEventArgs e)
   {
     if (ViewModel is not { } viewModel)
@@ -394,6 +421,84 @@ public partial class OutfitCreatorView
     _ = Dispatcher.InvokeAsync(
       async () => await viewModel.CreateOutfitFromPiecesAsync(pieces),
       DispatcherPriority.Background);
+  }
+
+  private void NewLeveledListDropZone_OnDragEnter(object sender, DragEventArgs e) =>
+    HandleDropTargetDrag(sender as Border, e);
+
+  private void NewLeveledListDropZone_OnDragOver(object sender, DragEventArgs e) =>
+    HandleDropTargetDrag(sender as Border, e);
+
+  private void NewLeveledListDropZone_OnDragLeave(object sender, DragEventArgs e)
+  {
+    if (sender is Border border)
+    {
+      SetDropTargetState(border, false);
+    }
+
+    e.Handled = true;
+  }
+
+  private void NewLeveledListDropZone_OnDrop(object sender, DragEventArgs e)
+  {
+    if (sender is Border border)
+    {
+      SetDropTargetState(border, false);
+    }
+
+    e.Handled = true;
+
+    if (ViewModel is not { } viewModel)
+    {
+      return;
+    }
+
+    if (!TryExtractArmorRecords(e.Data, out var pieces) || pieces.Count == 0)
+    {
+      return;
+    }
+
+    _ = Dispatcher.InvokeAsync(
+      () => viewModel.CreateLeveledListFromPieces(pieces),
+      DispatcherPriority.Background);
+  }
+
+  private void LeveledListItem_OnDragEnter(object sender, DragEventArgs e) =>
+    HandleDropTargetDrag(sender as Border, e);
+
+  private void LeveledListItem_OnDragOver(object sender, DragEventArgs e) =>
+    HandleDropTargetDrag(sender as Border, e);
+
+  private void LeveledListItem_OnDragLeave(object sender, DragEventArgs e)
+  {
+    if (sender is Border border)
+    {
+      SetDropTargetState(border, false);
+    }
+
+    e.Handled = true;
+  }
+
+  private void LeveledListItem_OnDrop(object sender, DragEventArgs e)
+  {
+    if (sender is Border border)
+    {
+      SetDropTargetState(border, false);
+    }
+
+    e.Handled = true;
+
+    if (sender is not Border { DataContext: LeveledListDraftViewModel draft } || ViewModel is not { } viewModel)
+    {
+      return;
+    }
+
+    if (!TryExtractArmorRecords(e.Data, out var pieces) || pieces.Count == 0)
+    {
+      return;
+    }
+
+    viewModel.AddArmorsToLeveledList(draft, pieces);
   }
 
   private void QueueItem_OnDragEnter(object sender, DragEventArgs e) =>

@@ -3,18 +3,24 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Models;
 
+/// <summary>
+/// References a leveled list as an outfit item or a leveled list entry. The list is identified either
+/// by an existing FormKey or by the <see cref="DraftId"/> of a list being created in the same save batch.
+/// </summary>
+public record LeveledListRef(FormKey? ExistingFormKey = null, Guid? DraftId = null);
+
 public record LeveledListCreationRequest(
-  string Name,
   string EditorId,
   IReadOnlyList<LeveledListEntryRequest> Entries,
-  bool UseAll = false,
   LeveledItem.Flag Flags = LeveledItem.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer,
-  FormKey? ExistingFormKey = null);
+  FormKey? ExistingFormKey = null,
+  Guid? DraftId = null);
 
 public record LeveledListEntryRequest(
-  FormKey ItemFormKey,
+  FormKey? ItemFormKey,
   short Level = 1,
-  short Count = 1);
+  short Count = 1,
+  Guid? DraftListId = null);
 
 public record LeveledListCreationResult(
   string EditorId,

@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Обновить все данные (включая выходной патч)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Наряды</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Уровневые списки</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Создать уровневый список</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Сохранить уровневые списки</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Импорт из плагина</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Импортировать уровневые списки из выбранного исходного плагина как редактируемые черновики-переопределения.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>Нет уровневых списков в очереди.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Перетащите броню сюда, чтобы создать новый уровневый список</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Выберите броню слева, затем нажмите «Создать уровневый список» (или перетащите её ниже). Каждая запись может иметь свой уровень и количество. «Использовать все» добавляет в наряд все записи; снимите флажок, чтобы движок выбирал одну случайно.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Уровневые списки нельзя распространять отдельно. Чтобы выдать его NPC, добавьте его в наряд (используйте «Добавить список» в черновике наряда на вкладке «Наряды»), затем распространите этот наряд на вкладке «Распространение».</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Использовать все</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Отмечено: добавить все записи. Снято: движок выбирает одну случайно.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Удалить уровневый список</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Удалить запись</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Ур.</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Вложить список:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Добавить другой уровневый список как запись этого списка</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Добавить список:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Добавить уровневый список как предмет этого наряда</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Удалить уровневый список из наряда</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Использует тот же biped-слот, что и другой предмет — при включённом «Использовать все» будет надет только один из них.</value>
+  </data>
 </root>

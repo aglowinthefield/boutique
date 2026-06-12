@@ -12,6 +12,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 {
   private readonly   Func<OutfitDraftViewModel, Task>                   _duplicateDraft;
   private readonly   ObservableCollection<ArmorRecordViewModel>         _pieces;
+  private readonly   ObservableCollection<OutfitLeveledListRefViewModel> _leveledLists = [];
   private readonly   Func<OutfitDraftViewModel, Task>                   _previewDraft;
   private readonly   Action<OutfitDraftViewModel>                       _removeDraft;
   private readonly   Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
@@ -42,6 +43,9 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     _pieces.CollectionChanged += PiecesOnCollectionChanged;
     Pieces                    =  new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
 
+    _leveledLists.CollectionChanged += LeveledListsOnCollectionChanged;
+    LeveledLists                    =  new ReadOnlyObservableCollection<OutfitLeveledListRefViewModel>(_leveledLists);
+
     this.WhenAnyValue(x => x.FormKey)
         .Subscribe(_ =>
         {
@@ -69,9 +73,17 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 
   public ReadOnlyObservableCollection<ArmorRecordViewModel> Pieces { get; }
 
+  public ReadOnlyObservableCollection<OutfitLeveledListRefViewModel> LeveledLists { get; }
+
   public bool HasPieces => _pieces.Count > 0;
 
   public int PieceCount => _pieces.Count;
+
+  public bool HasLeveledLists => _leveledLists.Count > 0;
+
+  public int LeveledListCount => _leveledLists.Count;
+
+  public bool HasContent => HasPieces || HasLeveledLists;
 
   public bool IsOverride { get; init; }
 
@@ -129,10 +141,34 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     return (added, []);
   }
 
+  public bool AddLeveledList(LeveledListReference reference)
+  {
+    if (_leveledLists.Any(l => string.Equals(l.Reference.DedupKey, reference.DedupKey, StringComparison.OrdinalIgnoreCase)))
+    {
+      return false;
+    }
+
+    _leveledLists.Add(new OutfitLeveledListRefViewModel(reference, RemoveLeveledList));
+    return true;
+  }
+
+  public IReadOnlyList<LeveledListReference> GetLeveledListReferences() =>
+    _leveledLists.Select(l => l.Reference).ToList();
+
+  private void RemoveLeveledList(OutfitLeveledListRefViewModel item) => _leveledLists.Remove(item);
+
   private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
     this.RaisePropertyChanged(nameof(HasPieces));
     this.RaisePropertyChanged(nameof(PieceCount));
+    this.RaisePropertyChanged(nameof(HasContent));
+  }
+
+  private void LeveledListsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+  {
+    this.RaisePropertyChanged(nameof(HasLeveledLists));
+    this.RaisePropertyChanged(nameof(LeveledListCount));
+    this.RaisePropertyChanged(nameof(HasContent));
   }
 
   private void SetNameInternal(string? value)
@@ -155,4 +191,19 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   }
 
   private static string Sanitize(string? value) => InputPatterns.Identifier.Sanitize(value);
+}
+
+public class OutfitLeveledListRefViewModel : ReactiveObject
+{
+  public OutfitLeveledListRefViewModel(LeveledListReference reference, Action<OutfitLeveledListRefViewModel> remove)
+  {
+    Reference     = reference;
+    RemoveCommand = ReactiveCommand.Create(() => remove(this));
+  }
+
+  public LeveledListReference Reference { get; }
+
+  public string DisplayName => Reference.DisplayName;
+
+  public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
 }

@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>すべてのデータを更新（出力パッチを含む）</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>衣装</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>レベルドリスト</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>レベルドリストを作成</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>レベルドリストを保存</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>プラグインからインポート</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>選択したソースプラグインからレベルドリストを編集可能なオーバーライド下書きとしてインポートします。</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>キューにレベルドリストがありません。</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>防具をここにドロップして新しいレベルドリストを作成</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>左側で防具を選択し、「レベルドリストを作成」をクリック（または下にドロップ）します。各エントリは独自のレベルと数を持てます。「すべて使用」はすべてのエントリを衣装に追加します。チェックを外すと、エンジンがランダムに1つを選びます。</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>レベルドリストは単独では配布できません。NPCに付与するには、衣装に追加し（「衣装」タブの衣装下書きで「リストを追加」を使用）、その衣装を「配布」タブから配布してください。</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>すべて使用</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>オン：すべてのエントリを追加。オフ：エンジンがランダムに1つを選択。</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>レベルドリストを削除</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>エントリを削除</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Lv</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>数</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>リストを入れ子:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>このリストのエントリとして別のレベルドリストを追加</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>リストを追加:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>この衣装のアイテムとしてレベルドリストを追加</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>衣装からレベルドリストを削除</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>リスト</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>別のアイテムとバイプ部位スロットが重複しています。「すべて使用」がオンの場合、どちらか一方しか装備されません。</value>
+  </data>
 </root>

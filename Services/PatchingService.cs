@@ -178,6 +178,35 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       string outputPath,
       IProgress<(int current, int total, string message)>? progress = null)
   {
+    var (success, message, outfitResults, _) =
+      await SaveOutfitsAndLeveledListsAsync(outfits, [], outputPath, progress);
+    return (success, message, outfitResults);
+  }
+
+  public async Task<(bool success, string message, IReadOnlyList<LeveledListCreationResult> results)>
+    CreateOrUpdateLeveledListsAsync(
+      IEnumerable<LeveledListCreationRequest> lists,
+      string outputPath,
+      IProgress<(int current, int total, string message)>? progress = null)
+  {
+    var (success, message, _, listResults) =
+      await SaveOutfitsAndLeveledListsAsync([], lists, outputPath, progress);
+    return (success, message, listResults);
+  }
+
+  /// <summary>
+  /// Writes outfits and leveled lists into a single patch. Leveled lists are written first so that
+  /// outfits (and other leveled lists) can reference lists created in the same batch via their draft id.
+  /// </summary>
+  public async Task<(bool success, string message,
+      IReadOnlyList<OutfitCreationResult> outfitResults,
+      IReadOnlyList<LeveledListCreationResult> listResults)>
+    SaveOutfitsAndLeveledListsAsync(
+      IEnumerable<OutfitCreationRequest> outfits,
+      IEnumerable<LeveledListCreationRequest> lists,
+      string outputPath,
+      IProgress<(int current, int total, string message)>? progress = null)
+  {
     var result = await Task.Run(() =>
     {
       try
@@ -185,152 +214,58 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         RequireInitialized();
 
         var outfitList = outfits.ToList();
-        if (outfitList.Count == 0)
+        var listList   = lists.ToList();
+        if (outfitList.Count == 0 && listList.Count == 0)
         {
-          return (false, "No outfits to create.", []);
+          return (false, "Nothing to save.",
+                  (IReadOnlyList<OutfitCreationResult>)[],
+                  (IReadOnlyList<LeveledListCreationResult>)[]);
         }
 
         _logger.Information(
-          "Beginning outfit creation. Destination: {OutputPath}. OutfitCount={Count}",
+          "Beginning save. Destination: {OutputPath}. Outfits={OutfitCount}, LeveledLists={ListCount}",
           outputPath,
-          outfitList.Count);
+          outfitList.Count,
+          listList.Count);
 
-        var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit creation");
+        var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit/leveled list save");
 
-        var results = new List<OutfitCreationResult>();
-        var total   = outfitList.Count;
-        var current = 0;
-
-        foreach (var (name, editorId, pieces, existingFormKey, isOverride, overrideSourceMod) in outfitList)
-        {
-          current++;
-          progress?.Report((current, total, $"Writing outfit {name}..."));
-
-          if (isOverride && existingFormKey.HasValue)
-          {
-            if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(
-                  existingFormKey.Value,
-                  out var sourceOutfit))
-            {
-              _logger.Warning(
-                "Override outfit {FormKey} not found in LinkCache, skipping.",
-                existingFormKey.Value);
-              continue;
-            }
-
-            var overrideOutfit = patchMod.Outfits.GetOrAddAsOverride(sourceOutfit);
-
-            requiredMasters.Add(sourceOutfit.FormKey.ModKey);
-
-            if (overrideSourceMod.HasValue)
-            {
-              requiredMasters.Add(overrideSourceMod.Value);
-              _logger.Debug(
-                "Adding override source mod {SourceMod} as master for outfit {FormKey}",
-                overrideSourceMod.Value.FileName,
-                existingFormKey.Value);
-            }
-
-            var overrideItems = overrideOutfit.Items ??= [];
-            overrideItems.Clear();
-            foreach (var armor in pieces)
-            {
-              overrideItems.Add(armor.ToLink());
-              requiredMasters.Add(armor.FormKey.ModKey);
-            }
-
-            results.Add(new OutfitCreationResult(editorId, overrideOutfit.FormKey));
-            _logger.Information(
-              "Created override for outfit {EditorId} ({FormKey}) with {PieceCount} piece(s).",
-              editorId,
-              existingFormKey.Value,
-              pieces.Count);
-            continue;
-          }
-
-          Outfit? existing = null;
-          if (existingFormKey.HasValue)
-          {
-            existing = patchMod.Outfits
-                               .FirstOrDefault(o => o.FormKey == existingFormKey.Value);
-          }
-
-          existing ??= patchMod.Outfits
-                               .FirstOrDefault(o =>
-                                                 string.Equals(
-                                                   o.EditorID,
-                                                   editorId,
-                                                   StringComparison.OrdinalIgnoreCase));
-
-          if (pieces.Count == 0)
-          {
-            if (existing != null)
-            {
-              patchMod.Outfits.Remove(existing);
-              _logger.Information("Deleted outfit {EditorId}.", editorId);
-              results.Add(new OutfitCreationResult(editorId, existing.FormKey));
-            }
-            else
-            {
-              _logger.Debug("Skipping deletion of {EditorId} — not in patch.", editorId);
-            }
-
-            continue;
-          }
-
-          Outfit outfit;
-          if (existing != null)
-          {
-            outfit = existing;
-            if (!string.Equals(outfit.EditorID, editorId, StringComparison.OrdinalIgnoreCase))
-            {
-              _logger.Information(
-                "Renaming outfit {OldEditorId} to {NewEditorId}.",
-                outfit.EditorID,
-                editorId);
-              outfit.EditorID = editorId;
-            }
-
-            _logger.Information(
-              "Updating existing outfit {EditorId} with {PieceCount} piece(s).",
-              editorId,
-              pieces.Count);
-          }
-          else
-          {
-            outfit          = patchMod.Outfits.AddNew();
-            outfit.EditorID = editorId;
-            _logger.Information(
-              "Creating new outfit {EditorId} with {PieceCount} piece(s).",
-              editorId,
-              pieces.Count);
-          }
-
-          var items = outfit.Items ??= [];
-          items.Clear();
-          foreach (var armor in pieces)
-          {
-            items.Add(armor.ToLink());
-            requiredMasters.Add(armor.FormKey.ModKey);
-          }
-
-          results.Add(new OutfitCreationResult(editorId, outfit.FormKey));
-        }
+        var draftMap    = new Dictionary<Guid, FormKey>();
+        var listResults = WriteLeveledLists(patchMod, requiredMasters, listList, draftMap, progress);
+        var outfitResults = WriteOutfits(patchMod, requiredMasters, outfitList, draftMap, progress);
 
         FinalizePatch(patchMod, requiredMasters, outputPath, progress);
 
-        _logger.Information("Outfit creation completed successfully. File: {OutputPath}", outputPath);
+        _logger.Information("Save completed successfully. File: {OutputPath}", outputPath);
 
-        return (true, $"Saved {results.Count} outfit(s) to {outputPath}", results);
+        var savedParts = new List<string>();
+        if (outfitResults.Count > 0)
+        {
+          savedParts.Add($"{outfitResults.Count} outfit(s)");
+        }
+
+        if (listResults.Count > 0)
+        {
+          savedParts.Add($"{listResults.Count} leveled list(s)");
+        }
+
+        var summary = savedParts.Count > 0 ? string.Join(" and ", savedParts) : "0 records";
+        return (true, $"Saved {summary} to {outputPath}",
+                (IReadOnlyList<OutfitCreationResult>)outfitResults,
+                (IReadOnlyList<LeveledListCreationResult>)listResults);
       }
       catch (InvalidOperationException ex)
       {
-        return (false, ex.Message, []);
+        return (false, ex.Message,
+                (IReadOnlyList<OutfitCreationResult>)[],
+                (IReadOnlyList<LeveledListCreationResult>)[]);
       }
       catch (Exception ex)
       {
-        _logger.Error(ex, "Error creating outfits destined for {OutputPath}", outputPath);
-        return (false, $"Error creating outfits: {ex.Message}", (IReadOnlyList<OutfitCreationResult>)[]);
+        _logger.Error(ex, "Error saving outfits/leveled lists destined for {OutputPath}", outputPath);
+        return (false, $"Error saving: {ex.Message}",
+                (IReadOnlyList<OutfitCreationResult>)[],
+                (IReadOnlyList<LeveledListCreationResult>)[]);
       }
     });
 
@@ -344,6 +279,294 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     }
 
     return result;
+  }
+
+  private List<OutfitCreationResult> WriteOutfits(
+    SkyrimMod patchMod,
+    HashSet<ModKey> requiredMasters,
+    IReadOnlyList<OutfitCreationRequest> outfitList,
+    Dictionary<Guid, FormKey> draftMap,
+    IProgress<(int current, int total, string message)>? progress)
+  {
+    var results = new List<OutfitCreationResult>();
+    var total   = outfitList.Count;
+    var current = 0;
+
+    foreach (var request in outfitList)
+    {
+      current++;
+      progress?.Report((current, total, $"Writing outfit {request.Name}..."));
+
+      var contentCount = request.Pieces.Count + (request.LeveledLists?.Count ?? 0);
+
+      if (request.IsOverride && request.ExistingFormKey.HasValue)
+      {
+        if (!mutagenService.LinkCache!.TryResolve<IOutfitGetter>(
+              request.ExistingFormKey.Value,
+              out var sourceOutfit))
+        {
+          _logger.Warning(
+            "Override outfit {FormKey} not found in LinkCache, skipping.",
+            request.ExistingFormKey.Value);
+          continue;
+        }
+
+        var overrideOutfit = patchMod.Outfits.GetOrAddAsOverride(sourceOutfit);
+        requiredMasters.Add(sourceOutfit.FormKey.ModKey);
+
+        if (request.OverrideSourceMod.HasValue)
+        {
+          requiredMasters.Add(request.OverrideSourceMod.Value);
+        }
+
+        PopulateOutfitItems(overrideOutfit.Items ??= [], request, requiredMasters, draftMap);
+
+        results.Add(new OutfitCreationResult(request.EditorId, overrideOutfit.FormKey));
+        _logger.Information(
+          "Created override for outfit {EditorId} ({FormKey}) with {Count} item(s).",
+          request.EditorId,
+          request.ExistingFormKey.Value,
+          contentCount);
+        continue;
+      }
+
+      Outfit? existing = null;
+      if (request.ExistingFormKey.HasValue)
+      {
+        existing = patchMod.Outfits.FirstOrDefault(o => o.FormKey == request.ExistingFormKey.Value);
+      }
+
+      existing ??= patchMod.Outfits
+                           .FirstOrDefault(o =>
+                                             string.Equals(
+                                               o.EditorID,
+                                               request.EditorId,
+                                               StringComparison.OrdinalIgnoreCase));
+
+      if (contentCount == 0)
+      {
+        if (existing != null)
+        {
+          patchMod.Outfits.Remove(existing);
+          _logger.Information("Deleted outfit {EditorId}.", request.EditorId);
+          results.Add(new OutfitCreationResult(request.EditorId, existing.FormKey));
+        }
+        else
+        {
+          _logger.Debug("Skipping deletion of {EditorId} — not in patch.", request.EditorId);
+        }
+
+        continue;
+      }
+
+      Outfit outfit;
+      if (existing != null)
+      {
+        outfit = existing;
+        if (!string.Equals(outfit.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase))
+        {
+          _logger.Information(
+            "Renaming outfit {OldEditorId} to {NewEditorId}.",
+            outfit.EditorID,
+            request.EditorId);
+          outfit.EditorID = request.EditorId;
+        }
+
+        _logger.Information(
+          "Updating existing outfit {EditorId} with {Count} item(s).",
+          request.EditorId,
+          contentCount);
+      }
+      else
+      {
+        outfit          = patchMod.Outfits.AddNew();
+        outfit.EditorID = request.EditorId;
+        _logger.Information(
+          "Creating new outfit {EditorId} with {Count} item(s).",
+          request.EditorId,
+          contentCount);
+      }
+
+      PopulateOutfitItems(outfit.Items ??= [], request, requiredMasters, draftMap);
+
+      results.Add(new OutfitCreationResult(request.EditorId, outfit.FormKey));
+    }
+
+    return results;
+  }
+
+  private void PopulateOutfitItems(
+    IList<IFormLinkGetter<IOutfitTargetGetter>> items,
+    OutfitCreationRequest request,
+    HashSet<ModKey> requiredMasters,
+    Dictionary<Guid, FormKey> draftMap)
+  {
+    items.Clear();
+
+    foreach (var armor in request.Pieces)
+    {
+      items.Add(armor.ToLink());
+      requiredMasters.Add(armor.FormKey.ModKey);
+    }
+
+    if (request.LeveledLists == null)
+    {
+      return;
+    }
+
+    foreach (var listRef in request.LeveledLists)
+    {
+      var formKey = ResolveItemRef(listRef.ExistingFormKey, listRef.DraftId, draftMap);
+      if (formKey == null)
+      {
+        _logger.Warning("Outfit {EditorId} references an unresolved leveled list; skipping.", request.EditorId);
+        continue;
+      }
+
+      items.Add(formKey.Value.ToLink<IOutfitTargetGetter>());
+      requiredMasters.Add(formKey.Value.ModKey);
+    }
+  }
+
+  private List<LeveledListCreationResult> WriteLeveledLists(
+    SkyrimMod patchMod,
+    HashSet<ModKey> requiredMasters,
+    IReadOnlyList<LeveledListCreationRequest> listRequests,
+    Dictionary<Guid, FormKey> draftMap,
+    IProgress<(int current, int total, string message)>? progress)
+  {
+    var results = new List<LeveledListCreationResult>();
+    var pending = new List<(LeveledListCreationRequest request, LeveledItem item)>();
+
+    foreach (var request in listRequests)
+    {
+      var existing = ResolveExistingLeveledItem(patchMod, request, requiredMasters);
+
+      if (request.Entries.Count == 0)
+      {
+        if (existing != null)
+        {
+          patchMod.LeveledItems.Remove(existing);
+          _logger.Information("Deleted leveled list {EditorId}.", request.EditorId);
+          results.Add(new LeveledListCreationResult(request.EditorId, existing.FormKey));
+        }
+        else
+        {
+          _logger.Debug("Skipping deletion of {EditorId} — not in patch.", request.EditorId);
+        }
+
+        continue;
+      }
+
+      LeveledItem item;
+      if (existing != null)
+      {
+        item = existing;
+        if (!string.Equals(item.EditorID, request.EditorId, StringComparison.OrdinalIgnoreCase))
+        {
+          _logger.Information(
+            "Renaming leveled list {OldEditorId} to {NewEditorId}.",
+            item.EditorID,
+            request.EditorId);
+          item.EditorID = request.EditorId;
+        }
+      }
+      else
+      {
+        item          = patchMod.LeveledItems.AddNew();
+        item.EditorID = request.EditorId;
+      }
+
+      if (request.DraftId.HasValue)
+      {
+        draftMap[request.DraftId.Value] = item.FormKey;
+      }
+
+      pending.Add((request, item));
+    }
+
+    var total   = pending.Count;
+    var current = 0;
+    foreach (var (request, item) in pending)
+    {
+      current++;
+      progress?.Report((current, total, $"Writing leveled list {request.EditorId}..."));
+
+      item.Flags = request.Flags;
+
+      var entries = item.Entries ??= [];
+      entries.Clear();
+      foreach (var entry in request.Entries)
+      {
+        var formKey = ResolveItemRef(entry.ItemFormKey, entry.DraftListId, draftMap);
+        if (formKey == null)
+        {
+          _logger.Warning("Leveled list {EditorId} has an unresolved entry; skipping.", request.EditorId);
+          continue;
+        }
+
+        entries.Add(new LeveledItemEntry
+                    {
+                      Data = new LeveledItemEntryData
+                             {
+                               Reference = formKey.Value.ToLink<IItemGetter>(),
+                               Level     = entry.Level,
+                               Count     = entry.Count
+                             }
+                    });
+        requiredMasters.Add(formKey.Value.ModKey);
+      }
+
+      results.Add(new LeveledListCreationResult(request.EditorId, item.FormKey));
+    }
+
+    return results;
+  }
+
+  private LeveledItem? ResolveExistingLeveledItem(
+    SkyrimMod patchMod,
+    LeveledListCreationRequest request,
+    HashSet<ModKey> requiredMasters)
+  {
+    LeveledItem? existing = null;
+
+    if (request.ExistingFormKey.HasValue)
+    {
+      existing = patchMod.LeveledItems.FirstOrDefault(l => l.FormKey == request.ExistingFormKey.Value);
+
+      if (existing == null &&
+          mutagenService.LinkCache!.TryResolve<ILeveledItemGetter>(
+            request.ExistingFormKey.Value,
+            out var sourceList))
+      {
+        existing = patchMod.LeveledItems.GetOrAddAsOverride(sourceList);
+        requiredMasters.Add(sourceList.FormKey.ModKey);
+      }
+    }
+
+    existing ??= patchMod.LeveledItems
+                         .FirstOrDefault(l =>
+                                           string.Equals(
+                                             l.EditorID,
+                                             request.EditorId,
+                                             StringComparison.OrdinalIgnoreCase));
+
+    return existing;
+  }
+
+  private static FormKey? ResolveItemRef(FormKey? formKey, Guid? draftId, Dictionary<Guid, FormKey> draftMap)
+  {
+    if (draftId.HasValue && draftMap.TryGetValue(draftId.Value, out var mapped))
+    {
+      return mapped;
+    }
+
+    if (formKey.HasValue && formKey.Value != FormKey.Null)
+    {
+      return formKey.Value;
+    }
+
+    return null;
   }
 
   private void EnsureMinimumFormId(SkyrimMod patchMod)
@@ -773,6 +996,19 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
                      .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
           {
             AddMaster(formKey!.Value.ModKey);
+          }
+
+          break;
+        }
+
+        case ILeveledItemGetter { Entries: not null } leveledItem:
+        {
+          foreach (var entry in leveledItem.Entries)
+          {
+            if (entry.Data?.Reference.FormKeyNullable is { } refKey && refKey != FormKey.Null)
+            {
+              AddMaster(refKey.ModKey);
+            }
           }
 
           break;

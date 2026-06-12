@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Actualiser toutes les données (y compris le patch de sortie)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Tenues</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Listes de niveau</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Créer une liste de niveau</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Enregistrer les listes de niveau</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Importer depuis le plugin</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Importer les listes de niveau du plugin source sélectionné en tant que brouillons de remplacement modifiables.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>Aucune liste de niveau en file d'attente.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Déposez des armures ici pour créer une nouvelle liste de niveau</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Sélectionnez des armures à gauche, puis « Créer une liste de niveau » (ou déposez-les ci-dessous). Chaque entrée peut avoir son propre niveau et quantité. « Tout utiliser » ajoute chaque entrée à la tenue ; décochez-la pour que le moteur en choisisse une au hasard.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Les listes de niveau ne peuvent pas être distribuées seules. Pour en attribuer une à des PNJ, ajoutez-la à une tenue (utilisez « Ajouter une liste » sur un brouillon de tenue dans l'onglet Tenues), puis distribuez cette tenue depuis l'onglet Distribution.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Tout utiliser</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Coché : ajoute chaque entrée. Décoché : le moteur en choisit une au hasard.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Supprimer la liste de niveau</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Supprimer l'entrée</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Niv</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Quantité</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Imbriquer une liste :</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Ajouter une autre liste de niveau comme entrée de cette liste</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Ajouter une liste :</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Ajouter une liste de niveau comme objet de cette tenue</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Retirer la liste de niveau de la tenue</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>Liste</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Partage un emplacement biped avec un autre objet — avec « Tout utiliser » activé, un seul sera porté.</value>
+  </data>
 </root>

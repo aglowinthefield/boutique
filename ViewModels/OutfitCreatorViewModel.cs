@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -28,6 +29,8 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private readonly IObservable<bool>                _canSaveOutfits;
   private readonly CompositeDisposable              _disposables = new();
   private readonly OutfitDraftManager               _draftManager;
+  private readonly LeveledListDraftManager          _leveledListManager;
+  private readonly IObservable<bool>                _canSaveLeveledLists;
   private readonly ILogger                          _logger;
   private readonly MutagenService                   _mutagenService;
   private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource  = new();
@@ -37,8 +40,11 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   [Reactive] private bool _hasExistingPluginOutfits;
   [Reactive] private bool _hasOutfitDrafts;
+  [Reactive] private bool _hasLeveledListDrafts;
   [Reactive] private bool _hasPendingOutfitDeletions;
   [Reactive] private bool _isCreatingOutfits;
+  [Reactive] private int  _outfitDraftCount;
+  [Reactive] private int  _leveledListDraftCount;
 
   private            string? _lastLoadedOutfitPlugin;
   [Reactive] private int     _outfitArmorsTotalCount;
@@ -54,18 +60,20 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   public OutfitCreatorViewModel(
     OutfitDraftManager draftManager,
+    LeveledListDraftManager leveledListManager,
     MutagenService mutagenService,
     ArmorPreviewService previewService,
     PatchingService patchingService,
     SettingsViewModel settings,
     ILogger logger)
   {
-    _draftManager    = draftManager;
-    _mutagenService  = mutagenService;
-    _previewService  = previewService;
-    _patchingService = patchingService;
-    Settings         = settings;
-    _logger          = logger.ForContext<OutfitCreatorViewModel>();
+    _draftManager       = draftManager;
+    _leveledListManager = leveledListManager;
+    _mutagenService     = mutagenService;
+    _previewService     = previewService;
+    _patchingService    = patchingService;
+    Settings            = settings;
+    _logger             = logger.ForContext<OutfitCreatorViewModel>();
 
     // Wire up draft manager events
     _draftManager.StatusChanged += message => StatusMessage = message;
@@ -89,6 +97,21 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     HasExistingPluginOutfits  = _draftManager.HasExistingOutfits;
     HasPendingOutfitDeletions = _draftManager.HasPendingDeletions;
 
+    _leveledListManager.StatusChanged += message => StatusMessage = message;
+    _leveledListManager.DraftModified += TriggerAutoSave;
+    _leveledListManager.WhenAnyValue(m => m.HasDrafts)
+                       .Subscribe(v => HasLeveledListDrafts = v);
+    LeveledListDrafts    = _leveledListManager.Drafts;
+    HasLeveledListDrafts = _leveledListManager.HasDrafts;
+
+    ((INotifyCollectionChanged)OutfitDrafts).CollectionChanged += (_, _) =>
+      OutfitDraftCount = OutfitDrafts.OfType<OutfitDraftViewModel>().Count();
+    OutfitDraftCount = OutfitDrafts.OfType<OutfitDraftViewModel>().Count();
+
+    ((INotifyCollectionChanged)LeveledListDrafts).CollectionChanged += (_, _) =>
+      LeveledListDraftCount = LeveledListDrafts.Count;
+    LeveledListDraftCount = LeveledListDrafts.Count;
+
     // Outfit draft search filter
     _disposables.Add(
       this.WhenAnyValue(x => x.OutfitDraftSearchText)
@@ -101,8 +124,8 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       _autoSaveTrigger
         .Throttle(TimeSpan.FromMilliseconds(1500))
         .ObserveOn(RxApp.MainThreadScheduler)
-        .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions) && !IsCreatingOutfits)
-        .SelectMany(_ => Observable.FromAsync(SaveOutfitsAsync))
+        .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions || HasLeveledListDrafts) && !IsCreatingOutfits)
+        .SelectMany(_ => Observable.FromAsync(SaveAllAsync))
         .Subscribe());
 
     // Configure filtering
@@ -118,6 +141,10 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     _canLoadOutfitPlugin =
       this.WhenAnyValue(x => x.SelectedOutfitPlugin, plugin => !string.IsNullOrWhiteSpace(plugin));
     _canCopyExistingOutfits = this.WhenAnyValue(x => x.HasExistingPluginOutfits);
+    _canSaveLeveledLists = this.WhenAnyValue(
+      x => x.HasLeveledListDrafts,
+      x => x.IsCreatingOutfits,
+      (hasDrafts, isBusy) => hasDrafts && !isBusy);
 
     // Auto-load from output plugin when patch filename changes or on initialization
     Settings.WhenAnyValue(x => x.PatchFileName)
@@ -209,6 +236,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   public ReadOnlyObservableCollection<IOutfitQueueItem> OutfitDrafts { get; }
   public ReadOnlyObservableCollection<ExistingOutfitViewModel> ExistingOutfits { get; }
+  public ReadOnlyObservableCollection<LeveledListDraftViewModel> LeveledListDrafts { get; } = null!;
 
   public void Dispose()
   {
@@ -523,7 +551,19 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       targetModKey,
       (formKey, _) => GetWinningModForOutfit(formKey));
 
-    _logger.Information("Auto-loaded outfits from {Plugin}", outputPlugin);
+    var leveledItems = await _mutagenService.LoadLeveledItemsFromPluginAsync(outputPlugin);
+    _leveledListManager.SuppressAutoSave = true;
+    try
+    {
+      _leveledListManager.ClearDraftsFromOtherPlugins(targetModKey);
+      _leveledListManager.AddDraftsFromLeveledItems(leveledItems, _mutagenService.LinkCache!);
+    }
+    finally
+    {
+      _leveledListManager.SuppressAutoSave = false;
+    }
+
+    _logger.Information("Auto-loaded outfits and leveled lists from {Plugin}", outputPlugin);
   }
 
   public async Task SyncOutfitPluginWithTargetAsync(string targetPlugin, bool forceOutfitReload)
@@ -573,6 +613,16 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     if (selectedArmors.Count > 0)
     {
       await CreateOutfitFromPiecesAsync(selectedArmors);
+    }
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_canCreateOutfit))]
+  private void CreateLeveledList()
+  {
+    var selectedArmors = SelectedOutfitArmors.OfType<ArmorRecordViewModel>().ToList();
+    if (selectedArmors.Count > 0)
+    {
+      _leveledListManager.CreateDraft(selectedArmors);
     }
   }
 
@@ -642,53 +692,117 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private void TriggerAutoSave() => _autoSaveTrigger.OnNext(Unit.Default);
 
   [ReactiveCommand(CanExecute = nameof(_canSaveOutfits))]
-  private async Task SaveOutfitsAsync()
+  private Task SaveOutfitsAsync() => SaveAllAsync();
+
+  private async Task SaveAllAsync()
   {
-    if (!_draftManager.HasUnsavedChanges())
+    var hasOutfitChanges = _draftManager.HasUnsavedChanges();
+    var hasListChanges   = _leveledListManager.HasUnsavedChanges();
+    if (!hasOutfitChanges && !hasListChanges)
     {
-      StatusMessage = "No outfits to save or delete.";
-      _logger.Debug("SaveOutfitsAsync invoked with no drafts or deletions.");
+      StatusMessage = "Nothing to save.";
+      _logger.Debug("SaveAllAsync invoked with no outfit or leveled list changes.");
       return;
     }
 
     IsCreatingOutfits = true;
-    StatusMessage     = "Saving outfits...";
-    _logger.Information("Starting outfit save operation.");
+    StatusMessage     = "Saving...";
+    _logger.Information("Starting save operation.");
 
     try
     {
-      var requests = _draftManager.BuildSaveRequests();
-      var (success, message, results) = await _patchingService.CreateOrUpdateOutfitsAsync(
-                                          requests,
-                                          Settings.FullOutputPath);
+      var outfitRequests = _draftManager.BuildSaveRequests();
+      var listRequests   = _leveledListManager.BuildSaveRequests();
+      var (success, message, outfitResults, listResults) =
+        await _patchingService.SaveOutfitsAndLeveledListsAsync(
+          outfitRequests,
+          listRequests,
+          Settings.FullOutputPath);
 
       if (success)
       {
-        _draftManager.ProcessSaveResults(results);
+        _draftManager.ProcessSaveResults(outfitResults);
+        _leveledListManager.ProcessSaveResults(listResults);
         StatusMessage = message;
-        _logger.Information("Outfit save completed: {Message}", message);
+        _logger.Information("Save completed: {Message}", message);
 
-        if (results.Count > 0)
+        if (outfitResults.Count > 0 || listResults.Count > 0)
         {
           await LoadOutfitsFromOutputPluginAsync();
         }
       }
       else
       {
-        _logger.Error("Outfit save failed: {Message}", message);
+        _logger.Error("Save failed: {Message}", message);
         StatusMessage = $"Error: {message}";
-        await ShowError.Handle(("Error Saving Outfits", message));
+        await ShowError.Handle(("Error Saving", message));
       }
     }
     catch (Exception ex)
     {
-      _logger.Error(ex, "Exception during outfit save operation");
-      StatusMessage = $"Error saving outfits: {ex.Message}";
-      await ShowError.Handle(("Error Saving Outfits", $"An unexpected error occurred:\n{ex.Message}"));
+      _logger.Error(ex, "Exception during save operation");
+      StatusMessage = $"Error saving: {ex.Message}";
+      await ShowError.Handle(("Error Saving", $"An unexpected error occurred:\n{ex.Message}"));
     }
     finally
     {
       IsCreatingOutfits = false;
+    }
+  }
+
+  [ReactiveCommand(CanExecute = nameof(_canSaveLeveledLists))]
+  private Task SaveLeveledListsAsync() => SaveAllAsync();
+
+  public void AddLeveledListToOutfit(OutfitDraftViewModel outfit, LeveledListDraftViewModel list) =>
+    _draftManager.AddLeveledListToDraft(outfit, new LeveledListReference(list));
+
+  public void CreateLeveledListFromPieces(IReadOnlyList<ArmorRecordViewModel> pieces) =>
+    _leveledListManager.CreateDraft(pieces);
+
+  public void AddArmorsToLeveledList(LeveledListDraftViewModel draft, IReadOnlyList<ArmorRecordViewModel> pieces) =>
+    _leveledListManager.AddArmorsToDraft(draft, pieces);
+
+  public void AddNestedLeveledList(LeveledListDraftViewModel parent, LeveledListDraftViewModel child) =>
+    _leveledListManager.AddNestedList(parent, child);
+
+  [ReactiveCommand(CanExecute = nameof(_canLoadOutfitPlugin))]
+  private async Task ImportLeveledListsAsync()
+  {
+    var plugin = SelectedOutfitPlugin;
+    if (string.IsNullOrWhiteSpace(plugin) || _mutagenService.LinkCache is null)
+    {
+      StatusMessage = "Select a source plugin to import leveled lists.";
+      return;
+    }
+
+    if (IsAllPlugins(plugin))
+    {
+      StatusMessage = "Select a specific plugin (not All Plugins) to import leveled lists.";
+      return;
+    }
+
+    StatusMessage = $"Importing leveled lists from {plugin}...";
+
+    var lists = await _mutagenService.LoadLeveledItemsFromPluginAsync(plugin);
+
+    var listVms = lists.ToList();
+    if (listVms.Count == 0)
+    {
+      StatusMessage = $"No leveled lists found in {plugin}.";
+      return;
+    }
+
+    _leveledListManager.SuppressAutoSave = true;
+    try
+    {
+      var added = _leveledListManager.AddDraftsFromLeveledItems(listVms, _mutagenService.LinkCache);
+      StatusMessage = added > 0
+                        ? $"Imported {added} leveled list(s) from {plugin}."
+                        : $"All leveled lists from {plugin} are already loaded.";
+    }
+    finally
+    {
+      _leveledListManager.SuppressAutoSave = false;
     }
   }
 

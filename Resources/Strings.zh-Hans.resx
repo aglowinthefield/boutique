@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>刷新所有数据（包括输出补丁）</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>服装</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>等级列表</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>创建等级列表</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>保存等级列表</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>从插件导入</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>从所选源插件导入等级列表，作为可编辑的覆盖草稿。</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>队列中没有等级列表。</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>将护甲拖放到此处以创建新的等级列表</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>在左侧选择护甲，然后点击"创建等级列表"（或拖放到下方）。每个条目可设置自己的等级和数量。"全部使用"会将所有条目添加到服装；取消勾选则由引擎随机选择一个。</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>等级列表无法单独分发。要让 NPC 穿戴，请将其添加到服装中（在"服装"选项卡的服装草稿上使用"添加列表"），然后从"分发"选项卡分发该服装。</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>全部使用</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>勾选：添加所有条目。取消：引擎随机选择一个。</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>移除等级列表</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>移除条目</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>嵌套列表：</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>将另一个等级列表添加为此列表的条目</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>添加列表：</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>将等级列表作为此服装的一项添加</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>从服装中移除等级列表</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>列表</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>与另一个物品共用同一身体部位槽——启用"全部使用"时只会穿戴其中一个。</value>
+  </data>
 </root>

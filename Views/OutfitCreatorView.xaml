@@ -188,6 +188,44 @@
                                Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
                                HorizontalAlignment="Left" FontSize="{DynamicResource FontSize.Small}" Margin="26,2,0,0"
                                Visibility="{Binding HasPieces, Converter={StaticResource InverseBoolToVisConverter}}" />
+
+                    <ItemsControl ItemsSource="{Binding LeveledLists}" Margin="26,2,0,0"
+                                  Visibility="{Binding HasLeveledLists, Converter={StaticResource BoolToVisConverter}}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:OutfitLeveledListRefViewModel}">
+                          <Grid Margin="0,1,0,1">
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="70" />
+                              <ColumnDefinition Width="*" />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.ListBadge}}"
+                                       VerticalAlignment="Center"
+                                       FontSize="{DynamicResource FontSize.Small}"
+                                       Foreground="{DynamicResource Brush.Type.Outfit}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" FontSize="{DynamicResource FontSize.Small}"
+                                       FontFamily="{DynamicResource Font.Mono}" />
+                            <Button Grid.Column="2" Command="{Binding RemoveCommand}"
+                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                    Margin="4,0,0,0" FontSize="{DynamicResource FontSize.Small}"
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.RemoveFromOutfit}}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" Margin="26,4,0,0"
+                                Visibility="{Binding DataContext.HasLeveledListDrafts, RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}, Converter={StaticResource BoolToVisConverter}}">
+                      <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.AddListLabel}}"
+                                 VerticalAlignment="Center" Margin="0,0,6,0"
+                                 FontSize="{DynamicResource FontSize.Small}"
+                                 Foreground="{DynamicResource Brush.TextSecondary}" />
+                      <ComboBox Width="200" DisplayMemberPath="EditorId"
+                                SelectionChanged="LeveledListPicker_OnSelectionChanged"
+                                ItemsSource="{Binding DataContext.LeveledListDrafts, RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}"
+                                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.AddListTooltip}}" />
+                    </StackPanel>
                   </StackPanel>
                 </StackPanel>
               </Border>
@@ -465,12 +503,15 @@
             </DataGrid.Columns>
           </DataGrid>
 
-          <Button Grid.Row="2"
-                  Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.CreateNewOutfit}}"
-                  Command="{Binding CreateOutfitCommand}"
-                  HorizontalAlignment="Right"
-                  Margin="0,4,0,0"
-                  Padding="12,6" />
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.CreateLeveledList}}"
+                    Command="{Binding CreateLeveledListCommand}"
+                    Margin="0,0,8,0"
+                    Padding="12,6" />
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.CreateNewOutfit}}"
+                    Command="{Binding CreateOutfitCommand}"
+                    Padding="12,6" />
+          </StackPanel>
         </Grid>
       </GroupBox>
 
@@ -481,7 +522,15 @@
       <GroupBox Grid.Column="4" Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.OutfitQueue}}"
                 Padding="6" BorderThickness="0"
                 IsEnabled="{Binding IsCreatingOutfits, Converter={StaticResource InverseBoolConverter}}">
-        <Grid>
+        <TabControl>
+        <TabItem>
+        <TabItem.Header>
+          <TextBlock>
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.OutfitsTab}}" />
+            <Run Text="{Binding OutfitDraftCount, StringFormat=' ({0})'}" />
+          </TextBlock>
+        </TabItem.Header>
+        <Grid Margin="0,6,0,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -544,6 +593,234 @@
             </ScrollViewer>
           </Grid>
         </Grid>
+        </TabItem>
+
+        <TabItem>
+        <TabItem.Header>
+          <TextBlock>
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.LeveledListsTab}}" />
+            <Run Text="{Binding LeveledListDraftCount, StringFormat=' ({0})'}" />
+          </TextBlock>
+        </TabItem.Header>
+          <Grid Margin="0,6,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+              <Border Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,0,0,6">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="&#x2139;" Margin="0,0,8,0" VerticalAlignment="Top"
+                             FontWeight="Bold" Foreground="{DynamicResource Brush.Info}" />
+                  <TextBlock Grid.Column="1" TextWrapping="Wrap"
+                             Foreground="{DynamicResource Brush.TextSecondary}"
+                             FontSize="{DynamicResource FontSize.Small}"
+                             Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.DistributionHint}}" />
+                </Grid>
+              </Border>
+              <TextBlock Margin="0,0,0,6" TextWrapping="Wrap"
+                         Foreground="{DynamicResource Brush.TextSecondary}"
+                         FontSize="{DynamicResource FontSize.Small}"
+                         Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.CreateHint}}" />
+              <Border Style="{DynamicResource {x:Static themes:ResourceKeys.DropZoneStyleKey}}"
+                      Margin="0,0,0,6"
+                      AllowDrop="True"
+                      DragEnter="NewLeveledListDropZone_OnDragEnter"
+                      DragLeave="NewLeveledListDropZone_OnDragLeave"
+                      DragOver="NewLeveledListDropZone_OnDragOver"
+                      Drop="NewLeveledListDropZone_OnDrop">
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.DropArmorsHere}}"
+                           Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+                           TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.NoListsQueued}}"
+                         Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
+                         Visibility="{Binding HasLeveledListDrafts, Converter={StaticResource InverseBoolToVisConverter}}" />
+
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding LeveledListDrafts}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LeveledListDraftViewModel}">
+                      <Border Padding="6" Margin="0,0,0,6" BorderBrush="{DynamicResource Brush.Border}"
+                              BorderThickness="1" CornerRadius="3" Opacity="0.85"
+                              AllowDrop="True"
+                              DragEnter="LeveledListItem_OnDragEnter"
+                              DragOver="LeveledListItem_OnDragOver"
+                              DragLeave="LeveledListItem_OnDragLeave"
+                              Drop="LeveledListItem_OnDrop">
+                        <StackPanel>
+                          <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto" />
+                              <ColumnDefinition Width="*" />
+                              <ColumnDefinition Width="Auto" />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ToggleButton Grid.Column="0"
+                                          IsChecked="{Binding IsExpanded}"
+                                          Width="20" Height="20" Margin="0,0,6,0"
+                                          VerticalAlignment="Top"
+                                          Background="Transparent" BorderThickness="0" Cursor="Hand">
+                              <ToggleButton.Style>
+                                <Style TargetType="ToggleButton">
+                                  <Setter Property="Template">
+                                    <Setter.Value>
+                                      <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}">
+                                          <TextBlock x:Name="Arrow" Text="▶" FontSize="{DynamicResource FontSize.Small}"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                     Foreground="{DynamicResource Brush.TextSecondary}" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                          <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Arrow" Property="Text" Value="▼" />
+                                          </Trigger>
+                                        </ControlTemplate.Triggers>
+                                      </ControlTemplate>
+                                    </Setter.Value>
+                                  </Setter>
+                                </Style>
+                              </ToggleButton.Style>
+                            </ToggleButton>
+
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding EditorId, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                     MaxLength="80" VerticalAlignment="Center"
+                                     FontFamily="{DynamicResource Font.Mono}" />
+
+                            <CheckBox Grid.Column="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.UseAll}}"
+                                      IsChecked="{Binding UseAll}"
+                                      VerticalAlignment="Center" Margin="8,0,4,0"
+                                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.UseAllTooltip}}" />
+
+                            <Button Grid.Column="3"
+                                    Command="{Binding RemoveSelfCommand}"
+                                    Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                    Width="28" Height="28" FontSize="{DynamicResource FontSize.Medium}"
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.RemoveList}}" />
+                          </Grid>
+
+                          <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
+                            <Grid Margin="26,2,0,2">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Slots}}"
+                                         FontSize="{DynamicResource FontSize.Small}"
+                                         Foreground="{DynamicResource Brush.TextDisabled}" />
+                              <TextBlock Grid.Column="2" Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.LevelShort}}"
+                                         Width="44" Margin="2,0,2,0" TextAlignment="Center"
+                                         FontSize="{DynamicResource FontSize.Small}"
+                                         Foreground="{DynamicResource Brush.TextDisabled}" />
+                              <TextBlock Grid.Column="3" Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.CountHeader}}"
+                                         Width="44" Margin="2,0,2,0" TextAlignment="Center"
+                                         FontSize="{DynamicResource FontSize.Small}"
+                                         Foreground="{DynamicResource Brush.TextDisabled}" />
+                              <TextBlock Grid.Column="4" Text="" Width="28" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Entries}" Margin="26,0,0,0">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:LeveledListEntryViewModel}">
+                                  <Grid Margin="0,1,0,1">
+                                    <Grid.ColumnDefinitions>
+                                      <ColumnDefinition Width="70" />
+                                      <ColumnDefinition Width="*" />
+                                      <ColumnDefinition Width="Auto" />
+                                      <ColumnDefinition Width="Auto" />
+                                      <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding SlotSummary}"
+                                               VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
+                                               TextTrimming="CharacterEllipsis">
+                                      <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                          <Setter Property="Foreground" Value="{DynamicResource Brush.TextDisabled}" />
+                                          <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                              <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
+                                              <Setter Property="FontWeight" Value="SemiBold" />
+                                              <Setter Property="ToolTip"
+                                                      Value="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.SlotConflictTooltip}}" />
+                                            </DataTrigger>
+                                          </Style.Triggers>
+                                        </Style>
+                                      </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               FontSize="{DynamicResource FontSize.Small}">
+                                      <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                          <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsConflicting}" Value="True">
+                                              <Setter Property="Foreground" Value="{DynamicResource Brush.Warning}" />
+                                            </DataTrigger>
+                                          </Style.Triggers>
+                                        </Style>
+                                      </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBox Grid.Column="2" Width="44" Margin="2,0,2,0"
+                                             TextAlignment="Center"
+                                             Text="{Binding Level, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Grid.Column="3" Width="44" Margin="2,0,2,0"
+                                             TextAlignment="Center"
+                                             Text="{Binding Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Grid.Column="4"
+                                            Command="{Binding RemoveCommand}"
+                                            Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
+                                            Margin="4,0,0,0" FontSize="{DynamicResource FontSize.Small}"
+                                            ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.RemoveEntry}}" />
+                                  </Grid>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Margin="26,4,0,0"
+                                        Visibility="{Binding DataContext.HasLeveledListDrafts, RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}, Converter={StaticResource BoolToVisConverter}}">
+                              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.NestListLabel}}"
+                                         VerticalAlignment="Center" Margin="0,0,6,0"
+                                         FontSize="{DynamicResource FontSize.Small}"
+                                         Foreground="{DynamicResource Brush.TextSecondary}" />
+                              <ComboBox Width="200" DisplayMemberPath="EditorId"
+                                        SelectionChanged="NestedListPicker_OnSelectionChanged"
+                                        ItemsSource="{Binding DataContext.LeveledListDrafts, RelativeSource={RelativeSource AncestorType=views:OutfitCreatorView}}"
+                                        ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.NestListTooltip}}" />
+                            </StackPanel>
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Grid>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+              <Button Command="{Binding ImportLeveledListsCommand}"
+                      Margin="0,0,8,0" Padding="12,8"
+                      Content="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.ImportFromPlugin}}"
+                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.ImportTooltip}}" />
+              <Button Command="{Binding SaveLeveledListsCommand}"
+                      Padding="16,8"
+                      Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
+                      Content="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.SaveLeveledLists}}" />
+            </StackPanel>
+          </Grid>
+        </TabItem>
+        </TabControl>
       </GroupBox>
     </Grid>
 

@@ -49,6 +49,7 @@ public partial class App
     builder.RegisterType<KeywordDistributionResolver>().SingleInstance();
     builder.RegisterType<GameDataCacheService>().SingleInstance();
     builder.RegisterType<OutfitDraftManager>().SingleInstance();
+    builder.RegisterType<LeveledListDraftManager>().SingleInstance();
     builder.RegisterType<DistributionEntryHydrationService>().SingleInstance();
     builder.RegisterType<DistributionFilePathService>().SingleInstance();
     builder.RegisterType<ThemeService>().SingleInstance();

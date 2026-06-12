@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Atualizar todos os dados (incluindo patch de saída)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Trajes</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Listas niveladas</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Criar lista nivelada</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Salvar listas niveladas</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Importar do plugin</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Importa as listas niveladas do plugin de origem selecionado como rascunhos de substituição editáveis.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>Nenhuma lista nivelada na fila.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Solte armaduras aqui para criar uma nova lista nivelada</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Selecione armaduras à esquerda e clique em "Criar lista nivelada" (ou solte-as abaixo). Cada entrada pode ter seu próprio nível e quantidade. "Usar todas" adiciona todas as entradas ao traje; desmarque para o motor escolher uma aleatoriamente.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Listas niveladas não podem ser distribuídas sozinhas. Para colocá-la em NPCs, adicione-a a um traje (use "Adicionar lista" em um rascunho de traje na aba Trajes) e depois distribua esse traje pela aba Distribuição.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Usar todas</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Marcado: adiciona todas as entradas. Desmarcado: o motor escolhe uma aleatoriamente.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Remover lista nivelada</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Remover entrada</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Nív</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Qtd</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Aninhar lista:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Adicionar outra lista nivelada como entrada desta lista</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Adicionar lista:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Adicionar uma lista nivelada como item deste traje</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Remover lista nivelada do traje</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>Lista</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Compartilha um slot biped com outro item — com "Usar todas" ativado, apenas um deles será usado.</value>
+  </data>
 </root>

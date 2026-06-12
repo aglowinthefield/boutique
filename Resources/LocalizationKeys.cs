@@ -142,6 +142,33 @@ public static class LocalizationKeys
     public const string FilterPlugins         = "OutfitCreator_FilterPlugins";
   }
 
+  public static class LeveledList
+  {
+    public const string OutfitsTab          = "LeveledList_OutfitsTab";
+    public const string LeveledListsTab      = "LeveledList_LeveledListsTab";
+    public const string CreateLeveledList    = "LeveledList_CreateLeveledList";
+    public const string SaveLeveledLists     = "LeveledList_SaveLeveledLists";
+    public const string ImportFromPlugin     = "LeveledList_ImportFromPlugin";
+    public const string ImportTooltip        = "LeveledList_ImportTooltip";
+    public const string NoListsQueued        = "LeveledList_NoListsQueued";
+    public const string DropArmorsHere       = "LeveledList_DropArmorsHere";
+    public const string CreateHint           = "LeveledList_CreateHint";
+    public const string DistributionHint     = "LeveledList_DistributionHint";
+    public const string UseAll               = "LeveledList_UseAll";
+    public const string UseAllTooltip        = "LeveledList_UseAllTooltip";
+    public const string RemoveList           = "LeveledList_RemoveList";
+    public const string RemoveEntry          = "LeveledList_RemoveEntry";
+    public const string LevelShort           = "LeveledList_LevelShort";
+    public const string CountHeader          = "LeveledList_CountHeader";
+    public const string NestListLabel        = "LeveledList_NestListLabel";
+    public const string NestListTooltip      = "LeveledList_NestListTooltip";
+    public const string AddListLabel         = "LeveledList_AddListLabel";
+    public const string AddListTooltip       = "LeveledList_AddListTooltip";
+    public const string RemoveFromOutfit     = "LeveledList_RemoveFromOutfit";
+    public const string ListBadge            = "LeveledList_ListBadge";
+    public const string SlotConflictTooltip  = "LeveledList_SlotConflictTooltip";
+  }
+
   public static class Distribution
   {
     public const string DistributionEntries  = "Distribution_DistributionEntries";

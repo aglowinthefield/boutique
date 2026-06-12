@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Alle Daten aktualisieren (inkl. Ausgabe-Patch)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Outfits</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Stufenlisten</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Stufenliste erstellen</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Stufenlisten speichern</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Aus Plugin importieren</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Stufenlisten aus dem ausgewählten Quell-Plugin als bearbeitbare Überschreibungs-Entwürfe importieren.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>Keine Stufenlisten in der Warteschlange.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Rüstungen hierher ziehen, um eine neue Stufenliste zu erstellen</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Wähle links Rüstungen aus und klicke dann auf „Stufenliste erstellen" (oder ziehe sie unten hinein). Jeder Eintrag kann eigene Stufe und Anzahl haben. „Alle verwenden" fügt dem Outfit jeden Eintrag hinzu; deaktiviere es, damit das Spiel zufällig einen auswählt.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Stufenlisten können nicht eigenständig verteilt werden. Um eine an NPCs zu vergeben, füge sie einem Outfit hinzu (nutze „Liste hinzufügen" bei einem Outfit-Entwurf im Outfits-Tab) und verteile dann dieses Outfit über den Verteilungs-Tab.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Alle verwenden</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Aktiviert: jeden Eintrag hinzufügen. Deaktiviert: das Spiel wählt zufällig einen aus.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Stufenliste entfernen</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Eintrag entfernen</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Stufe</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Anzahl</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Liste verschachteln:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Eine weitere Stufenliste als Eintrag dieser Liste hinzufügen</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Liste hinzufügen:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Eine Stufenliste als Gegenstand zu diesem Outfit hinzufügen</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Stufenliste aus Outfit entfernen</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>Liste</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Teilt einen Biped-Slot mit einem anderen Gegenstand – bei aktiviertem „Alle verwenden" wird nur einer davon getragen.</value>
+  </data>
 </root>

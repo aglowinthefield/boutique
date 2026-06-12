@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>모든 데이터 새로고침 (출력 패치 포함)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>의상</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>레벨 리스트</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>레벨 리스트 생성</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>레벨 리스트 저장</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>플러그인에서 가져오기</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>선택한 소스 플러그인에서 레벨 리스트를 편집 가능한 재정의 초안으로 가져옵니다.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>대기 중인 레벨 리스트가 없습니다.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>여기에 방어구를 놓아 새 레벨 리스트 생성</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>왼쪽에서 방어구를 선택한 다음 '레벨 리스트 생성'을 클릭하세요(또는 아래에 놓으세요). 각 항목은 고유한 레벨과 수량을 가질 수 있습니다. '모두 사용'은 모든 항목을 의상에 추가합니다. 체크를 해제하면 엔진이 무작위로 하나를 선택합니다.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>레벨 리스트는 단독으로 배포할 수 없습니다. NPC에 적용하려면 의상에 추가한 다음(의상 탭의 의상 초안에서 '리스트 추가' 사용), 배포 탭에서 해당 의상을 배포하세요.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>모두 사용</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>체크: 모든 항목 추가. 해제: 엔진이 무작위로 하나 선택.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>레벨 리스트 제거</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>항목 제거</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>레벨</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>리스트 중첩:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>이 리스트의 항목으로 다른 레벨 리스트 추가</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>리스트 추가:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>이 의상의 항목으로 레벨 리스트 추가</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>의상에서 레벨 리스트 제거</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>리스트</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>다른 아이템과 바이패드 슬롯을 공유합니다. '모두 사용'이 켜져 있으면 그 중 하나만 착용됩니다.</value>
+  </data>
 </root>

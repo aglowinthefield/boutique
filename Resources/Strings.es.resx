@@ -777,5 +777,73 @@
   <data name="Refresh_Tooltip" xml:space="preserve">
     <value>Actualizar todos los datos (incluyendo el parche de salida)</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Atuendos</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Listas niveladas</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Crear lista nivelada</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Guardar listas niveladas</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Importar del plugin</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Importa las listas niveladas del plugin de origen seleccionado como borradores de sobrescritura editables.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>No hay listas niveladas en cola.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Suelta armaduras aquí para crear una nueva lista nivelada</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Selecciona armaduras a la izquierda y luego pulsa «Crear lista nivelada» (o suéltalas abajo). Cada entrada puede tener su propio nivel y cantidad. «Usar todas» añade todas las entradas al atuendo; desmárcala para que el motor elija una al azar.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Las listas niveladas no se pueden distribuir por sí solas. Para asignarla a PNJ, añádela a un atuendo (usa «Añadir lista» en un borrador de atuendo en la pestaña Atuendos) y luego distribuye ese atuendo desde la pestaña Distribución.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Usar todas</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Marcado: añade todas las entradas. Sin marcar: el motor elige una al azar.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Eliminar lista nivelada</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Eliminar entrada</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Nvl</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Anidar lista:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Añadir otra lista nivelada como entrada de esta lista</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Añadir lista:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Añadir una lista nivelada como objeto de este atuendo</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Quitar lista nivelada del atuendo</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>Lista</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Comparte una ranura biped con otro objeto: con «Usar todas» activado, solo se llevará uno de ellos.</value>
+  </data>
 </root>

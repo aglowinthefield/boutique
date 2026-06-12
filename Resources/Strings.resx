@@ -809,5 +809,73 @@
   <data name="PatchNameCollision_KeepName" xml:space="preserve">
     <value>Keep This Name</value>
   </data>
-
+  <data name="LeveledList_OutfitsTab" xml:space="preserve">
+    <value>Outfits</value>
+  </data>
+  <data name="LeveledList_LeveledListsTab" xml:space="preserve">
+    <value>Leveled Lists</value>
+  </data>
+  <data name="LeveledList_CreateLeveledList" xml:space="preserve">
+    <value>Create Leveled List</value>
+  </data>
+  <data name="LeveledList_SaveLeveledLists" xml:space="preserve">
+    <value>Save Leveled Lists</value>
+  </data>
+  <data name="LeveledList_ImportFromPlugin" xml:space="preserve">
+    <value>Import from plugin</value>
+  </data>
+  <data name="LeveledList_ImportTooltip" xml:space="preserve">
+    <value>Import leveled lists from the selected source plugin as editable override drafts.</value>
+  </data>
+  <data name="LeveledList_NoListsQueued" xml:space="preserve">
+    <value>No leveled lists queued.</value>
+  </data>
+  <data name="LeveledList_DropArmorsHere" xml:space="preserve">
+    <value>Drop armors here to create a new leveled list</value>
+  </data>
+  <data name="LeveledList_CreateHint" xml:space="preserve">
+    <value>Select armors on the left, then 'Create Leveled List' (or drop them below). Each entry can carry its own level and count. 'Use all' adds every entry to the outfit; uncheck it for the engine to randomly pick one.</value>
+  </data>
+  <data name="LeveledList_DistributionHint" xml:space="preserve">
+    <value>Leveled lists can't be distributed on their own. To get one onto NPCs, add it to an outfit (use 'Add list' on an outfit draft in the Outfits tab), then distribute that outfit from the Distribution tab.</value>
+  </data>
+  <data name="LeveledList_UseAll" xml:space="preserve">
+    <value>Use all</value>
+  </data>
+  <data name="LeveledList_UseAllTooltip" xml:space="preserve">
+    <value>Checked: add every entry. Unchecked: the engine picks one at random.</value>
+  </data>
+  <data name="LeveledList_RemoveList" xml:space="preserve">
+    <value>Remove leveled list</value>
+  </data>
+  <data name="LeveledList_RemoveEntry" xml:space="preserve">
+    <value>Remove entry</value>
+  </data>
+  <data name="LeveledList_LevelShort" xml:space="preserve">
+    <value>Lvl</value>
+  </data>
+  <data name="LeveledList_CountHeader" xml:space="preserve">
+    <value>Count</value>
+  </data>
+  <data name="LeveledList_NestListLabel" xml:space="preserve">
+    <value>Nest list:</value>
+  </data>
+  <data name="LeveledList_NestListTooltip" xml:space="preserve">
+    <value>Add another leveled list as an entry of this list</value>
+  </data>
+  <data name="LeveledList_AddListLabel" xml:space="preserve">
+    <value>Add list:</value>
+  </data>
+  <data name="LeveledList_AddListTooltip" xml:space="preserve">
+    <value>Add a leveled list as an item in this outfit</value>
+  </data>
+  <data name="LeveledList_RemoveFromOutfit" xml:space="preserve">
+    <value>Remove leveled list from outfit</value>
+  </data>
+  <data name="LeveledList_ListBadge" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
+    <value>Shares a biped slot with another item — with 'Use all' on, only one of them will be worn.</value>
+  </data>
 </root>

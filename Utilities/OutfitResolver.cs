@@ -42,6 +42,42 @@ public static class OutfitResolver
   }
 
   /// <summary>
+  ///   Splits an outfit's direct (top-level) items into armor pieces and leveled-list records, without
+  ///   flattening the leveled lists. Used to round-trip outfit drafts that reference leveled lists so the
+  ///   reference structure is preserved instead of being resolved into individual armors.
+  /// </summary>
+  public static OutfitContentsResult ResolveOutfitContents(
+    IOutfitGetter outfit,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+  {
+    var armors = new List<ArmorRecordViewModel>();
+    var lists  = new List<ILeveledItemGetter>();
+
+    foreach (var formKey in (outfit.Items ?? [])
+               .Select(itemLink => itemLink.FormKeyNullable)
+               .Where(fk => fk.HasValue && fk.Value != FormKey.Null)
+               .Select(fk => fk!.Value))
+    {
+      if (!linkCache.TryResolve<IItemGetter>(formKey, out var item))
+      {
+        continue;
+      }
+
+      switch (item)
+      {
+        case IArmorGetter armor:
+          armors.Add(new ArmorRecordViewModel(armor, linkCache));
+          break;
+        case ILeveledItemGetter leveledItem:
+          lists.Add(leveledItem);
+          break;
+      }
+    }
+
+    return new OutfitContentsResult(armors, lists);
+  }
+
+  /// <summary>
   ///   Collects the FormKeys of every armor an outfit can grant, traversing all leveled-list and
   ///   form-list branches (no random selection). Intended for usage detection ("is this armor used
   ///   in any outfit?"), where an armor counts if any branch could distribute it.
@@ -466,3 +502,7 @@ public sealed class OutfitTreeNode(string name, OutfitTreeNodeType nodeType, For
 public sealed record OutfitArmorResult(
   List<ArmorRecordViewModel> ArmorPieces,
   bool ContainsLeveledItems);
+
+public sealed record OutfitContentsResult(
+  List<ArmorRecordViewModel> DirectArmors,
+  List<ILeveledItemGetter> LeveledLists);

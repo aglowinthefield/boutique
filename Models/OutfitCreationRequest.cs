@@ -9,4 +9,5 @@ public record OutfitCreationRequest(
   IReadOnlyList<IArmorGetter> Pieces,
   FormKey? ExistingFormKey = null,
   bool IsOverride = false,
-  ModKey? OverrideSourceMod = null);
+  ModKey? OverrideSourceMod = null,
+  IReadOnlyList<LeveledListRef>? LeveledLists = null);

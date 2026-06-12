@@ -743,15 +743,15 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
                      return null;
                    }
 
-                   var result = OutfitResolver.GatherArmorPieces(outfit, linkCache);
-                   if (result.ArmorPieces.Count == 0)
+                   var result = OutfitResolver.ResolveOutfitContents(outfit, linkCache);
+                   if (result.DirectArmors.Count == 0 && result.LeveledLists.Count == 0)
                    {
                      return null;
                    }
 
                    var editorId = outfit.EditorID ?? SanitizeOutfitName(outfit.FormKey.ToString());
 
-                   if (!ValidateOutfitPieces(result.ArmorPieces, out var validationMessage))
+                   if (!ValidateOutfitPieces(result.DirectArmors, out var validationMessage))
                    {
                      _logger.Warning(
                        "Skipping outfit {EditorId} due to slot conflict: {Message}",
@@ -763,10 +763,17 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
                    var isOverride        = outfit.FormKey.ModKey != targetModKey;
                    var overrideSourceMod = isOverride ? getWinningMod(outfit.FormKey, targetModKey) : null;
 
+                   var leveledLists = result.LeveledLists
+                                            .Select(l => new LeveledListReference(
+                                                      l.FormKey,
+                                                      l.EditorID ?? l.FormKey.ToString()))
+                                            .ToList();
+
                    return new
                           {
                             EditorId = editorId,
-                            Pieces   = result.ArmorPieces,
+                            Pieces   = result.DirectArmors,
+                            LeveledLists = leveledLists,
                             outfit.FormKey,
                             IsOverride        = isOverride,
                             OverrideSourceMod = overrideSourceMod
@@ -783,7 +790,7 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
         continue;
       }
 
-      var draft = CreateDraftViewModel(d.EditorId, d.Pieces, d.FormKey, d.IsOverride, d.OverrideSourceMod);
+      var draft = CreateDraftViewModel(d.EditorId, d.Pieces, d.FormKey, d.IsOverride, d.OverrideSourceMod, d.LeveledLists);
       draftViewModels.Add(draft);
 
       _logger.Debug("Loaded outfit {EditorId} from output plugin.", d.EditorId);
@@ -798,7 +805,7 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
 
   public List<OutfitCreationRequest> BuildSaveRequests()
   {
-    var populatedDrafts    = _queueSource.Items.OfType<OutfitDraftViewModel>().Where(d => d.HasPieces).ToList();
+    var populatedDrafts    = _queueSource.Items.OfType<OutfitDraftViewModel>().Where(d => d.HasContent).ToList();
     var deletionsToProcess = _pendingDeletions.ToList();
 
     var requests = populatedDrafts
@@ -808,7 +815,8 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
                     [.. d.GetPieces().Select(p => p.Armor)],
                     d.FormKey,
                     d.IsOverride,
-                    d.OverrideSourceMod));
+                    d.OverrideSourceMod,
+                    [.. d.GetLeveledListReferences().Select(r => r.ToRef())]));
 
     requests.AddRange(deletionsToProcess.Select(editorId => new OutfitCreationRequest(editorId, editorId, [])));
 
@@ -837,14 +845,28 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
   }
 
   public bool HasUnsavedChanges() =>
-    _queueSource.Items.OfType<OutfitDraftViewModel>().Any(d => d.HasPieces) || _pendingDeletions.Count > 0;
+    _queueSource.Items.OfType<OutfitDraftViewModel>().Any(d => d.HasContent) || _pendingDeletions.Count > 0;
+
+  public bool AddLeveledListToDraft(OutfitDraftViewModel draft, LeveledListReference reference)
+  {
+    if (!draft.AddLeveledList(reference))
+    {
+      RaiseStatus($"'{reference.DisplayName}' is already in outfit '{draft.EditorId}'.");
+      return false;
+    }
+
+    RaiseStatus($"Added leveled list '{reference.DisplayName}' to outfit '{draft.EditorId}'.");
+    RaiseDraftModified();
+    return true;
+  }
 
   private OutfitDraftViewModel CreateDraftViewModel(
     string name,
     IReadOnlyList<ArmorRecordViewModel> pieces,
     FormKey? formKey = null,
     bool isOverride = false,
-    ModKey? overrideSourceMod = null)
+    ModKey? overrideSourceMod = null,
+    IReadOnlyList<LeveledListReference>? leveledLists = null)
   {
     var draft = new OutfitDraftViewModel(
                   name,
@@ -857,6 +879,14 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
                 {
                   FormKey = formKey, IsOverride = isOverride, OverrideSourceMod = overrideSourceMod
                 };
+
+    if (leveledLists != null)
+    {
+      foreach (var reference in leveledLists)
+      {
+        draft.AddLeveledList(reference);
+      }
+    }
 
     draft.PropertyChanged += OnItemPropertyChanged;
     return draft;
@@ -875,6 +905,9 @@ public sealed class OutfitDraftManager : ReactiveObject, IDisposable
             break;
           case nameof(OutfitDraftViewModel.IsExpanded):
             PersistCollapsedState(draft);
+            break;
+          case nameof(OutfitDraftViewModel.LeveledListCount):
+            RaiseDraftModified();
             break;
         }
 
