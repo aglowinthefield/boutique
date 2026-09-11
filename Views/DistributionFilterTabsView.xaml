@@ -46,6 +46,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <StackPanel Grid.Row="2" Margin="0,6,0,0">
@@ -85,6 +87,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedFactions}}"
@@ -118,6 +122,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedKeywords}}"
@@ -151,6 +157,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedRaces}}"
@@ -184,6 +192,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedClasses}}"
@@ -217,6 +227,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.AddSelectedLocations}}"
@@ -252,6 +264,8 @@
               <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}"
                                   Binding="{Binding FormKeyString}" Width="1*" IsReadOnly="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Mod}}"
+                                  Binding="{Binding ModDisplayName}" Width="1.2*" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
           <Button Grid.Row="2" Content="Add Selected Outfits"

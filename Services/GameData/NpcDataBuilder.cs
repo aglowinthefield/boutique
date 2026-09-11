@@ -88,20 +88,24 @@ public static class NpcDataBuilder
     Dictionary<FormKey, HashSet<FormKey>> npcLocationLookup,
     Func<ModKey, bool> isBlacklisted)
   {
-    var validNpcs = linkCache.WinningOverrides<INpcGetter>()
-                             .Where(npc => npc.FormKey != FormKey.Null && !string.IsNullOrWhiteSpace(npc.EditorID) &&
-                                           !isBlacklisted(npc.FormKey.ModKey));
+    var validNpcs = linkCache.WinningContextOverrides<INpc, INpcGetter>(linkCache)
+                             .Where(ctx => ctx.Record.FormKey != FormKey.Null &&
+                                           !string.IsNullOrWhiteSpace(ctx.Record.EditorID) &&
+                                           !isBlacklisted(ctx.Record.FormKey.ModKey));
 
     var filterDataBag = new ConcurrentBag<NpcFilterData>();
     var recordsBag    = new ConcurrentBag<NpcRecordViewModel>();
 
     Parallel.ForEach(
       validNpcs,
-      npc =>
+      ctx =>
       {
         try
         {
-          var originalModKey = npc.FormKey.ModKey;
+          // FormKey.ModKey is the mod that first defined the NPC; the winning override's
+          // mod is what users expect as the source (e.g. NPC overhaul ESPs).
+          var npc            = ctx.Record;
+          var originalModKey = ctx.ModKey;
           var filterData = BuildNpcFilterData(
             npc,
             originalModKey,

@@ -373,6 +373,16 @@ public sealed class GameDataCacheService : IDisposable
       });
       var (npcFilterDataList, npcRecordsList) = npcsResult;
 
+      var bySourceMod = npcFilterDataList
+                        .GroupBy(n => n.SourceMod)
+                        .OrderByDescending(g => g.Count())
+                        .ToList();
+      _logger.Information(
+        "NPC sources: {TotalNpcCount} NPCs across {ModCount} mods. Top: {TopMods}",
+        npcFilterDataList.Count,
+        bySourceMod.Count,
+        string.Join(", ", bySourceMod.Take(25).Select(g => $"{g.Key.FileName}={g.Count()}")));
+
       _npcsSource.Edit(cache =>
       {
         cache.Clear();
