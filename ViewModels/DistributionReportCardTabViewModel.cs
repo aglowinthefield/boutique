@@ -238,7 +238,7 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
       : 0;
 
     var modOutfits = allOutfitRecords
-      .Where(o => !IsVanillaOrCreationClub(o.FormKey.ModKey))
+      .Where(o => !IsVanillaOrCreationClub(o.SourceMod))
       .ToList();
 
     var usedOutfitKeys = new HashSet<FormKey>(
@@ -328,10 +328,10 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
       OutfitResolver.CollectArmorFormKeys(outfit.Outfit, linkCache, usedArmorKeys);
     }
 
-    var unusedArmors = linkCache.WinningOverrides<IArmorGetter>()
-      .Where(IsDistributableModArmor)
-      .Where(armor => !usedArmorKeys.Contains(armor.FormKey))
-      .Select(armor => new ArmorRecordViewModel(armor, linkCache))
+    var unusedArmors = linkCache.WinningContextOverrides<IArmor, IArmorGetter>(linkCache)
+      .Where(ctx => IsDistributableModArmor(ctx.Record, ctx.ModKey))
+      .Where(ctx => !usedArmorKeys.Contains(ctx.Record.FormKey))
+      .Select(ctx => new ArmorRecordViewModel(ctx.Record, linkCache, ctx.ModKey))
       .OrderBy(a => a.ModDisplayName, StringComparer.OrdinalIgnoreCase)
       .ThenBy(a => a.DisplayName, StringComparer.OrdinalIgnoreCase)
       .ToList();
@@ -344,9 +344,10 @@ public partial class DistributionReportCardTabViewModel : ReactiveObject
     return unusedArmors;
   }
 
-  private bool IsDistributableModArmor(IArmorGetter armor) =>
-    !IsVanillaOrCreationClub(armor.FormKey.ModKey) &&
+  private bool IsDistributableModArmor(IArmorGetter armor, ModKey winningModKey) =>
+    !IsVanillaOrCreationClub(winningModKey) &&
     !_cache.IsPluginBlacklisted(armor.FormKey.ModKey) &&
+    !_cache.IsPluginBlacklisted(winningModKey) &&
     !armor.MajorFlags.HasFlag(Armor.MajorFlag.NonPlayable) &&
     armor.ObjectEffect.IsNull &&
     !string.IsNullOrWhiteSpace(armor.Name.SafeString(armor));

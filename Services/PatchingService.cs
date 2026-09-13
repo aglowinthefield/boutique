@@ -894,8 +894,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       }
       catch (Exception ex)
       {
+        // A failed check must not be reported as "no missing masters" — surface the error
+        // so the caller can show it instead of treating a broken patch as healthy.
         _logger.Error(ex, "Error checking missing masters for patch {Path}.", patchPath);
-        return new MissingMastersResult(false, [], []);
+        throw;
       }
     });
   }

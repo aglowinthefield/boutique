@@ -441,11 +441,14 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       StatusMessage = $"Loading armors from {plugin}...";
       _logger.Information("Loading outfit armors from plugin {Plugin}", plugin);
 
+      var pluginModKey = ModKey.FromNameAndExtension(plugin);
       var armorsFromPlugin = IsAllPlugins(plugin)
-                               ? await _mutagenService.LoadAllArmorsAsync()
-                               : await _mutagenService.LoadArmorsFromPluginAsync(plugin);
+                               ? (await _mutagenService.LoadAllArmorsWithContextAsync())
+                                 .Select(a => (a.Armor, (ModKey?)a.SourceMod))
+                               : (await _mutagenService.LoadArmorsFromPluginAsync(plugin))
+                                 .Select(a => (a, (ModKey?)pluginModKey));
       var armors = armorsFromPlugin
-                   .Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache))
+                   .Select(pair => new ArmorRecordViewModel(pair.Item1, _mutagenService.LinkCache, pair.Item2))
                    .ToList();
 
       _logger.Debug("Found {Count} armors in {Plugin}", armors.Count, plugin);
@@ -507,7 +510,20 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
+    MissingMastersResult missingMastersResult;
+    try
+    {
+      missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Missing masters check failed for patch {Plugin}.", outputPlugin);
+      await ShowError.Handle(
+        ("Missing Masters Check Failed",
+         $"Could not verify the patch's masters (the file may be corrupt or locked):\n{ex.Message}"));
+      return;
+    }
+
     if (missingMastersResult.HasMissingMasters)
     {
       _logger.Warning(
@@ -549,7 +565,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       outfits,
       _mutagenService.LinkCache!,
       targetModKey,
-      (formKey, _) => GetWinningModForOutfit(formKey));
+      (formKey, target) => GetWinningModForOutfit(formKey, target));
 
     var leveledItems = await _mutagenService.LoadLeveledItemsFromPluginAsync(outputPlugin);
     _leveledListManager.SuppressAutoSave = true;
@@ -823,7 +839,13 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var winningMod = GetWinningModForOutfit(copiedOutfit.OutfitFormKey);
+    ModKey? patchTargetModKey = null;
+    if (!string.IsNullOrWhiteSpace(Settings.PatchFileName))
+    {
+      patchTargetModKey = ModKey.FromFileName(Settings.PatchFileName);
+    }
+
+    var winningMod = GetWinningModForOutfit(copiedOutfit.OutfitFormKey, patchTargetModKey);
     if (winningMod != null && copiedOutfit.IsOverride)
     {
       CreateOverrideDraft(outfit, result.ArmorPieces, winningMod);
@@ -840,11 +862,27 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     IReadOnlyList<ArmorRecordViewModel> armorPieces,
     ModKey? winningMod) => _draftManager.CreateOverrideDraft(outfit, armorPieces, winningMod);
 
-  private ModKey? GetWinningModForOutfit(FormKey formKey)
+  /// <summary>
+  ///   Resolves the mod whose override of this outfit is currently being replaced. When the
+  ///   winning override is the output plugin itself, falls back to the FormKey's origin so the
+  ///   "Overrides X in Y" label points at the original authoring mod.
+  /// </summary>
+  private ModKey? GetWinningModForOutfit(FormKey formKey, ModKey? targetModKey)
   {
-    if (_mutagenService.LinkCache!.TryResolve<IOutfitGetter>(formKey, out var resolved))
+    if (_mutagenService.LinkCache is { } linkCache)
     {
-      return resolved.FormKey.ModKey;
+      try
+      {
+        if (linkCache.ResolveSimpleContext<IOutfitGetter>(formKey) is { } context &&
+            context.ModKey != targetModKey)
+        {
+          return context.ModKey;
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.Warning(ex, "Failed to resolve winning context for outfit {FormKey}", formKey);
+      }
     }
 
     return formKey.ModKey;

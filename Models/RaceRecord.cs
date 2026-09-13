@@ -15,6 +15,6 @@ public sealed record RaceRecord(FormKey FormKey, string? EditorID, string? Name,
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => ModKey.FileName;
 
-  public static RaceRecord FromGetter(IRaceGetter race) =>
-    new(race.FormKey, race.EditorID, race.Name.SafeString(race), race.FormKey.ModKey);
+  public static RaceRecord FromGetter(IRaceGetter race, ModKey? winningModKey = null) =>
+    new(race.FormKey, race.EditorID, race.Name.SafeString(race), winningModKey ?? race.FormKey.ModKey);
 }

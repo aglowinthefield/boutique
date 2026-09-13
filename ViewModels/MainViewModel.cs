@@ -13,6 +13,7 @@ using Boutique.Models;
 using Boutique.Services;
 using DynamicData;
 using DynamicData.Binding;
+using Mutagen.Bethesda.Plugins;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
@@ -508,10 +509,14 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         return 0;
       }
 
+      var pluginModKey = ModKey.FromNameAndExtension(plugin);
       sourceList.Edit(list =>
       {
         list.Clear();
-        list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+        list.AddRange(armors.Select(a => new ArmorRecordViewModel(
+                               a,
+                               _mutagenService.LinkCache,
+                               pluginModKey)));
       });
 
       return sourceList.Count;

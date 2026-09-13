@@ -8,58 +8,59 @@ using Mutagen.Bethesda.Skyrim;
 namespace Boutique.Services.GameData;
 
 /// <summary>
-/// Loads game records (factions, keywords, races, classes) from the link cache
-/// and converts them into view model objects for use in filter dropdowns and selection lists.
+///   Loads game records (factions, keywords, races, classes) from the link cache
+///   and converts them into view model objects for use in filter dropdowns and selection lists.
+///   Records are attributed to the mod supplying their winning override.
 /// </summary>
 public static class RecordLoaders
 {
   public static List<FactionRecordViewModel> LoadFactions(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRecords<IFactionGetter, FactionRecordViewModel>(
+    RecordLoader.LoadRecords<IFaction, IFactionGetter, FactionRecordViewModel>(
       linkCache,
-      f => new FactionRecordViewModel(FactionRecord.FromGetter(f)),
+      (f, sourceMod) => new FactionRecordViewModel(FactionRecord.FromGetter(f, sourceMod)),
       f => f.DisplayName,
       isBlacklisted);
 
   public static List<RaceRecordViewModel> LoadRaces(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRecords<IRaceGetter, RaceRecordViewModel>(
+    RecordLoader.LoadRecords<IRace, IRaceGetter, RaceRecordViewModel>(
       linkCache,
-      r => new RaceRecordViewModel(RaceRecord.FromGetter(r)),
+      (r, sourceMod) => new RaceRecordViewModel(RaceRecord.FromGetter(r, sourceMod)),
       r => r.DisplayName,
       isBlacklisted);
 
   public static List<KeywordRecordViewModel> LoadKeywords(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRecords<IKeywordGetter, KeywordRecordViewModel>(
+    RecordLoader.LoadRecords<IKeyword, IKeywordGetter, KeywordRecordViewModel>(
       linkCache,
-      k => new KeywordRecordViewModel(KeywordRecord.FromGetter(k)),
+      (k, sourceMod) => new KeywordRecordViewModel(KeywordRecord.FromGetter(k, sourceMod)),
       k => k.DisplayName,
       isBlacklisted);
 
   public static List<ClassRecordViewModel> LoadClasses(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRecords<IClassGetter, ClassRecordViewModel>(
+    RecordLoader.LoadRecords<IClass, IClassGetter, ClassRecordViewModel>(
       linkCache,
-      c => new ClassRecordViewModel(ClassRecord.FromGetter(c)),
+      (c, sourceMod) => new ClassRecordViewModel(ClassRecord.FromGetter(c, sourceMod)),
       c => c.DisplayName,
       isBlacklisted);
 
   public static List<LocationRecordViewModel> LoadLocations(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRecords<ILocationGetter, LocationRecordViewModel>(
+    RecordLoader.LoadRecords<ILocation, ILocationGetter, LocationRecordViewModel>(
       linkCache,
-      l => new LocationRecordViewModel(LocationRecord.FromGetter(l)),
+      (l, sourceMod) => new LocationRecordViewModel(LocationRecord.FromGetter(l, sourceMod)),
       l => l.DisplayName,
       isBlacklisted);
 
-  public static List<IOutfitGetter> LoadOutfits(
+  public static List<(IOutfitGetter Record, ModKey SourceMod)> LoadOutfits(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     Func<ModKey, bool> isBlacklisted) =>
-    RecordLoader.LoadRawRecords<IOutfitGetter>(linkCache, isBlacklisted);
+    RecordLoader.LoadRawRecords<IOutfit, IOutfitGetter>(linkCache, isBlacklisted);
 }

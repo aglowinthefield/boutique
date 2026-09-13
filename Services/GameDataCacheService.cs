@@ -273,7 +273,7 @@ public sealed class GameDataCacheService : IDisposable
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
       var raceLookup    = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
       var classLookup   = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
-      var outfitLookup  = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
+      var outfitLookup  = outfitsList.ToDictionary(o => o.Record.FormKey, o => o.Record.EditorID ?? string.Empty);
 
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
@@ -371,7 +371,24 @@ public sealed class GameDataCacheService : IDisposable
           npcLocationLookup,
           IsBlacklisted);
       });
-      var (npcFilterDataList, npcRecordsList) = npcsResult;
+      var (npcFilterDataList, npcRecordsList, npcParseFailures) = npcsResult;
+
+      if (npcParseFailures > 0)
+      {
+        _logger.Warning(
+          "{FailureCount} NPC record(s) failed to parse and were skipped — the NPC list may be incomplete.",
+          npcParseFailures);
+      }
+
+      var bySourceMod = npcFilterDataList
+                        .GroupBy(n => n.SourceMod)
+                        .OrderByDescending(g => g.Count())
+                        .ToList();
+      _logger.Information(
+        "NPC sources: {TotalNpcCount} NPCs across {ModCount} mods. Top: {TopMods}",
+        npcFilterDataList.Count,
+        bySourceMod.Count,
+        string.Join(", ", bySourceMod.Take(25).Select(g => $"{g.Key.FileName}={g.Count()}")));
 
       _npcsSource.Edit(cache =>
       {
@@ -418,13 +435,13 @@ public sealed class GameDataCacheService : IDisposable
       _outfitsSource.Edit(cache =>
       {
         cache.Clear();
-        cache.AddOrUpdate(outfitsList);
+        cache.AddOrUpdate(outfitsList.Select(o => o.Record));
       });
 
       _outfitRecordsSource.Edit(cache =>
       {
         cache.Clear();
-        cache.AddOrUpdate(outfitsList.Select(o => new OutfitRecordViewModel(o)));
+        cache.AddOrUpdate(outfitsList.Select(o => new OutfitRecordViewModel(o.Record, sourceMod: o.SourceMod)));
       });
 
       await LoadDistributionDataAsync(npcFilterDataList);

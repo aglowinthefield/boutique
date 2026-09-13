@@ -13,6 +13,6 @@ public sealed record KeywordRecord(
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => SourceName ?? (ModKey.IsNull ? string.Empty : ModKey.FileName);
 
-  public static KeywordRecord FromGetter(IKeywordGetter keyword) =>
-    new(keyword.FormKey, keyword.EditorID, keyword.FormKey.ModKey);
+  public static KeywordRecord FromGetter(IKeywordGetter keyword, ModKey? winningModKey = null) =>
+    new(keyword.FormKey, keyword.EditorID, winningModKey ?? keyword.FormKey.ModKey);
 }

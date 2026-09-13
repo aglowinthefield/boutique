@@ -16,10 +16,11 @@ public partial class ArmorRecordViewModel : ReactiveObject
   [Reactive] private bool    _isSlotCompatible = true;
   private            string? _searchCache;
 
-  public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null)
+  public ArmorRecordViewModel(IArmorGetter armor, ILinkCache? linkCache = null, ModKey? sourceMod = null)
   {
     Armor          = armor;
     _linkCache     = linkCache;
+    SourceMod      = sourceMod ?? armor.FormKey.ModKey;
     FormIdSortable = armor.FormKey.ID;
     FormIdDisplay  = $"0x{FormIdSortable:X8}";
     ArmorType      = ResolveArmorType();
@@ -30,6 +31,9 @@ public partial class ArmorRecordViewModel : ReactiveObject
 
   public IArmorGetter Armor { get; }
 
+  /// <summary>Mod supplying the winning override of this armor.</summary>
+  public ModKey SourceMod { get; }
+
   public string EditorID => Armor.EditorID ?? "(No EditorID)";
   public string Name => Armor.Name.SafeString(Armor) ?? string.Empty;
   public string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : EditorID;
@@ -38,7 +42,7 @@ public partial class ArmorRecordViewModel : ReactiveObject
   public uint Value => Armor.Value;
   public BipedObjectFlag SlotMask => Armor.BodyTemplate?.FirstPersonFlags ?? 0;
   public string SlotSummary => SlotMask == 0 ? "Unassigned" : FormatSlotMask(SlotMask);
-  public string ModDisplayName => Armor.FormKey.ModKey.FileName;
+  public string ModDisplayName => SourceMod.FileName;
   public string ArmorType { get; }
   public string FormIdDisplay { get; }
 

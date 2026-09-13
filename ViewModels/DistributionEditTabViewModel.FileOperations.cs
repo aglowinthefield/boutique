@@ -145,7 +145,8 @@ public sealed partial class DistributionEditTabViewModel
 
         return true;
       case false:
-        _lastSavedContent = DistributionFileContent;
+        // "Don't save" must not mark the buffer as saved — the unsaved-changes flag
+        // has to survive so later prompts still warn about the discarded content.
         return true;
       default:
         return false;
@@ -428,10 +429,6 @@ public sealed partial class DistributionEditTabViewModel
     {
       return;
     }
-
-    var lines = DistributionFileContent.Split('\n');
-
-    _ = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
     _logger.Information("RaiseHighlightRequest: line {LineNumber}", lineNumber);
     HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
@@ -761,13 +758,16 @@ public sealed partial class DistributionEditTabViewModel
 
     var entryCountAtStart = DistributionEntries.Count;
     var entriesSnapshot   = DistributionEntries.ToList();
+    // Snapshot the distribution file list on the UI thread: the cache behind DistributionFiles
+    // is mutated on the UI thread during saves, and enumerating it on a worker thread races.
+    var filesSnapshot = DistributionFiles.ToList();
     Task.Run(() =>
     {
       try
       {
         var result = DistributionConflictDetectionService.DetectConflicts(
           entriesSnapshot,
-          [.. DistributionFiles],
+          filesSnapshot,
           NewFileName,
           linkCache);
         Application.Current?.Dispatcher.Invoke(() =>

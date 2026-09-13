@@ -14,6 +14,6 @@ public sealed record ClassRecord(
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => ModKey.FileName;
 
-  public static ClassRecord FromGetter(IClassGetter classRecord) =>
-    new(classRecord.FormKey, classRecord.EditorID, classRecord.Name.SafeString(classRecord), classRecord.FormKey.ModKey);
+  public static ClassRecord FromGetter(IClassGetter classRecord, ModKey? winningModKey = null) =>
+    new(classRecord.FormKey, classRecord.EditorID, classRecord.Name.SafeString(classRecord), winningModKey ?? classRecord.FormKey.ModKey);
 }

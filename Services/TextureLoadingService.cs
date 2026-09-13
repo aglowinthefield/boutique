@@ -91,6 +91,14 @@ public static class TextureLoadingService
     var result = LoadDdsTextureCore(texturePath);
     var isBodyTexture = IsBodyTexture(texturePath);
 
+    if (result.Texture is null)
+    {
+      // Don't cache failures: a transient error (file locked by MO2/VFS, partially written
+      // BSA extraction) would otherwise stick until restart, especially for body textures.
+      Log.Debug("Texture load failed, not caching: {Path}", texturePath);
+      return result;
+    }
+
     lock (_textureCacheLock)
     {
       if (isBodyTexture)
