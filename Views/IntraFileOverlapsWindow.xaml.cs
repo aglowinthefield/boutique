@@ -20,7 +20,10 @@ public partial class IntraFileOverlapsWindow : Window
       SourceInitialized += (_, _) => themeService.ApplyTitleBarTheme(this);
     }
 
-    HeaderText.Text = $"{result.TotalOverlappingNpcCount} NPC(s) targeted by multiple outfits";
+    HeaderText.Text = LocalizationService.GetFormatted(
+      Boutique.Resources.LocalizationKeys.View.IntraFileOverlapsHeaderFormat,
+      "{0} NPC(s) targeted by multiple outfits",
+      result.TotalOverlappingNpcCount);
     BuildMatrix(result);
   }
 

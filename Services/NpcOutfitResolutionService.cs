@@ -416,7 +416,7 @@ public class NpcOutfitResolutionService(
     return BuildNpcOutfitAssignmentsCore(npcDistributions, npcLookup);
   }
 
-  private static List<NpcOutfitAssignment> BuildNpcOutfitAssignmentsCore(
+  internal static List<NpcOutfitAssignment> BuildNpcOutfitAssignmentsCore(
     Dictionary<FormKey, List<OutfitDistribution>> npcDistributions,
     IReadOnlyDictionary<FormKey, NpcBasicInfo> npcLookup)
   {
@@ -436,12 +436,15 @@ public class NpcOutfitResolutionService(
       var distributionsToUse  = hasIniDistributions ? iniDistributions : sortedDistributions;
 
       var winnerIndex = distributionsToUse.Count - 1;
+      // Locate the winning row by reference — OutfitDistribution records compare by value,
+      // so IndexOf would match a different row carrying identical data.
+      var winnerIndexInSorted = sortedDistributions.FindIndex(d => ReferenceEquals(d, distributionsToUse[winnerIndex]));
       var updatedDistributions = sortedDistributions
                                  .Select((d, i) =>
                                  {
                                    var isWinner = hasIniDistributions
                                                     ? d.FileType != DistributionFileType.Esp &&
-                                                      i == sortedDistributions.IndexOf(distributionsToUse[winnerIndex])
+                                                      i == winnerIndexInSorted
                                                     : i == sortedDistributions.Count - 1;
                                    return d with { IsWinner = isWinner };
                                  })
@@ -548,7 +551,7 @@ public class NpcOutfitResolutionService(
     _logger.Debug("Found {Count} NPCs with ESP-provided default outfits", espOutfitCount);
   }
 
-  private sealed record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
+  internal sealed record NpcBasicInfo(string? EditorId, string? Name, ModKey SourceMod);
 
   private sealed record SpidOutfitLine(
     DistributionLine Line,

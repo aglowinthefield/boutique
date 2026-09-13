@@ -13,9 +13,11 @@ using Boutique.Models;
 using Boutique.Services;
 using DynamicData;
 using DynamicData.Binding;
+using Mutagen.Bethesda.Plugins;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -59,7 +61,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
 
   [Reactive] private string _sourceSearchText = string.Empty;
 
-  [Reactive] private string _statusMessage = "Ready";
+  [Reactive] private string _statusMessage = LocalizationService.Get(Messages.Ready, "Ready");
 
   [Reactive] private int _targetArmorsTotalCount;
 
@@ -400,7 +402,11 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         source.IsMapped = true;
       }
 
-      StatusMessage = $"Mapped {sources.Count} armors to {target.DisplayName}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.MappedArmorsTo,
+        "Mapped {0} armors to {1}",
+        sources.Count,
+        target.DisplayName);
       _logger.Information(
         "Mapped {SourceCount} armor(s) to target {TargetName} ({TargetFormKey})",
         sources.Count,
@@ -414,7 +420,10 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         "Failed to map {SourceCount} armor(s) to {TargetName}",
         sources.Count,
         target.DisplayName);
-      StatusMessage = $"Error mapping armors: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorMappingArmors,
+        "Error mapping armors: {0}",
+        ex.Message);
     }
   }
 
@@ -448,12 +457,18 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         source.IsMapped = true;
       }
 
-      StatusMessage = $"Marked {sources.Count} armor(s) as glam-only.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.MarkedGlamOnly,
+        "Marked {0} armor(s) as glam-only.",
+        sources.Count);
       _logger.Information("Marked {SourceCount} armor(s) as glam-only.", sources.Count);
     }
     catch (Exception ex)
     {
-      StatusMessage = $"Error marking glam-only: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorMarkingGlamOnly,
+        "Error marking glam-only: {0}",
+        ex.Message);
       _logger.Error(ex, "Failed to mark {SourceCount} armor(s) as glam-only.", sources.Count);
     }
   }
@@ -466,7 +481,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    StatusMessage = "Cleared all mappings.";
+    StatusMessage = LocalizationService.Get(Messages.ClearedMappings, "Cleared all mappings.");
     _logger.Information("Cleared all manual mappings.");
   }
 
@@ -508,10 +523,14 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         return 0;
       }
 
+      var pluginModKey = ModKey.FromNameAndExtension(plugin);
       sourceList.Edit(list =>
       {
         list.Clear();
-        list.AddRange(armors.Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache)));
+        list.AddRange(armors.Select(a => new ArmorRecordViewModel(
+                               a,
+                               _mutagenService.LinkCache,
+                               pluginModKey)));
       });
 
       return sourceList.Count;
@@ -553,7 +572,10 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
 
     Matches.Remove(mapping);
     mapping.Source.IsMapped = Matches.Any(m => m.Source.Armor.FormKey == mapping.Source.Armor.FormKey);
-    StatusMessage           = $"Removed mapping for {mapping.Source.DisplayName}";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.RemovedMappingFor,
+      "Removed mapping for {0}",
+      mapping.Source.DisplayName);
     _logger.Information(
       "Removed mapping for source {SourceName} ({SourceFormKey})",
       mapping.Source.DisplayName,
@@ -588,7 +610,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
   private async Task InitializeAsync()
   {
     BeginLoading();
-    StatusMessage = "Initializing Mutagen...";
+    StatusMessage = LocalizationService.Get(Messages.InitializingMutagen, "Initializing Mutagen...");
     var totalSw = Stopwatch.StartNew();
     _logger.Information("Initializing Mutagen with data path {DataPath}", Settings.SkyrimDataPath);
 
@@ -606,7 +628,10 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
       });
       this.RaisePropertyChanged(nameof(AvailablePluginsTotalCount));
 
-      StatusMessage = $"Loaded {pluginList.Count} plugins with armors/outfits";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.LoadedPluginsWithArmors,
+        "Loaded {0} plugins with armors/outfits",
+        pluginList.Count);
       _logger.Information(
         "Startup completed in {Elapsed}ms: {PluginCount} plugins with armors/outfits from {DataPath}",
         totalSw.ElapsedMilliseconds,
@@ -615,7 +640,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
     }
     catch (Exception ex)
     {
-      StatusMessage = $"Error: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(Messages.ErrorGeneric, "Error: {0}", ex.Message);
       _logger.Error(ex, "Failed to initialize Mutagen services.");
     }
     finally
@@ -667,7 +692,10 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
   private async Task LoadSourceArmorsAsync(string plugin)
   {
     SourceSearchText = string.Empty;
-    StatusMessage    = $"Loading armors from {plugin}...";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.LoadingArmorsFrom,
+      "Loading armors from {0}...",
+      plugin);
     _logger.Information("Loading source armors from {Plugin}", plugin);
 
     var count = await LoadArmorsIntoSourceListAsync(plugin, () => SelectedSourcePlugin, _sourceArmorsSource);
@@ -684,14 +712,21 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
                              ? new List<ArmorRecordViewModel> { firstSource }
                              : Array.Empty<ArmorRecordViewModel>();
 
-    StatusMessage = $"Loaded {count} armors from {plugin}";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.LoadedArmorsFrom,
+      "Loaded {0} armors from {1}",
+      count,
+      plugin);
     _logger.Information("Loaded {ArmorCount} source armors from {Plugin}", count, plugin);
   }
 
   private async Task LoadTargetArmorsAsync(string plugin)
   {
     TargetSearchText = string.Empty;
-    StatusMessage    = $"Loading armors from {plugin}...";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.LoadingArmorsFrom,
+      "Loading armors from {0}...",
+      plugin);
     _logger.Information("Loading target armors from {Plugin}", plugin);
 
     var count = await LoadArmorsIntoSourceListAsync(plugin, () => SelectedTargetPlugin, _targetArmorsSource);
@@ -710,7 +745,11 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
                             ? FilteredTargetArmors.FirstOrDefault(t => primary.SharesSlotWith(t))
                             : FilteredTargetArmors.FirstOrDefault();
 
-    StatusMessage = $"Loaded {count} armors from {plugin}";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.LoadedArmorsFrom,
+      "Loaded {0} armors from {1}",
+      count,
+      plugin);
     _logger.Information("Loaded {ArmorCount} target armors from {Plugin}", count, plugin);
   }
 
@@ -718,7 +757,10 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
   {
     try
     {
-      StatusMessage = $"Building preview for '{armor.DisplayName}'...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreviewQuoted,
+        "Building preview for '{0}'...",
+        armor.DisplayName);
 
       var metadata = new OutfitMetadata(armor.DisplayName, armor.Armor.FormKey.ModKey.FileName.String, false);
       var collection = new ArmorPreviewSceneCollection(
@@ -734,11 +776,14 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
         });
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for '{armor.DisplayName}'.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.PreviewReadyQuoted,
+        "Preview ready for '{0}'.",
+        armor.DisplayName);
     }
     catch (Exception ex)
     {
-      StatusMessage = $"Preview error: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewError, "Preview error: {0}", ex.Message);
       _logger.Error(ex, "Failed to build armor preview for {Armor}.", armor.DisplayName);
     }
   }
@@ -755,7 +800,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
   private async Task CreatePatchAsync()
   {
     IsPatching    = true;
-    StatusMessage = "Creating patch...";
+    StatusMessage = LocalizationService.Get(Messages.CreatingPatch, "Creating patch...");
 
     try
     {
@@ -773,7 +818,7 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
 
       if (matchesToPatch.Count == 0)
       {
-        StatusMessage = "No mapped armors to patch.";
+        StatusMessage = LocalizationService.Get(Messages.NoMappedArmors, "No mapped armors to patch.");
         _logger.Warning("Patch creation aborted - no mapped armors available.");
         return;
       }
@@ -781,12 +826,13 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
       var outputPath = Settings.FullOutputPath;
       if (File.Exists(outputPath))
       {
-        const string confirmationMessage =
-          "The selected patch file already exists. Adding new data will overwrite any records with matching FormIDs in that ESP.\n\nDo you want to continue?";
+        var confirmationMessage = LocalizationService.Get(
+          Messages.OverwritePatchConfirm,
+          "The selected patch file already exists. Adding new data will overwrite any records with matching FormIDs in that ESP.\n\nDo you want to continue?");
         var confirmed = await ConfirmOverwritePatch.Handle(confirmationMessage).ToTask();
         if (!confirmed)
         {
-          StatusMessage = "Patch creation canceled.";
+          StatusMessage = LocalizationService.Get(Messages.PatchCanceled, "Patch creation canceled.");
           _logger.Information(
             "Patch creation canceled by user to avoid overwriting existing patch at {OutputPath}",
             outputPath);
@@ -814,15 +860,26 @@ public sealed partial class MainViewModel : ReactiveObject, IDisposable
       else
       {
         _logger.Warning("Patch creation failed: {Message}", message);
-        await ShowError.Handle(("Failed to Create Patch", message));
+        await ShowError.Handle(
+          (
+            LocalizationService.Get(Messages.FailedToCreatePatch, "Failed to Create Patch"),
+            message
+          ));
       }
     }
     catch (Exception ex)
     {
-      var errorMessage = $"Error creating patch: {ex.Message}";
+      var errorMessage = LocalizationService.GetFormatted(
+        Messages.ErrorCreatingPatch,
+        "Error creating patch: {0}",
+        ex.Message);
       StatusMessage = errorMessage;
       _logger.Error(ex, "Unexpected error while creating patch.");
-      await ShowError.Handle(("Unexpected Error", errorMessage));
+      await ShowError.Handle(
+        (
+          LocalizationService.Get(Messages.UnexpectedError, "Unexpected Error"),
+          errorMessage
+        ));
     }
     finally
     {
@@ -870,7 +927,9 @@ public partial class ArmorMatchViewModel : ReactiveObject
     {
       if (Match.IsGlamOnly)
       {
-        return "✨ Glam-only (armor rating set to 0)";
+        return LocalizationService.Get(
+          Messages.GlamOnlySummary,
+          "✨ Glam-only (armor rating set to 0)");
       }
 
       if (Target is not null)
@@ -878,7 +937,7 @@ public partial class ArmorMatchViewModel : ReactiveObject
         return Target.SummaryLine;
       }
 
-      return "Not mapped";
+      return LocalizationService.Get(Messages.NotMapped, "Not mapped");
     }
   }
 

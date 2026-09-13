@@ -846,4 +846,828 @@
   <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
     <value>Teilt einen Biped-Slot mit einem anderen Gegenstand – bei aktiviertem „Alle verwenden" wird nur einer davon getragen.</value>
   </data>
+
+  <!-- Code-behind Messages -->
+  <data name="Msg_Ready" xml:space="preserve">
+    <value>Bereit</value>
+  </data>
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>Speichern...</value>
+  </data>
+  <data name="Msg_ErrorGeneric" xml:space="preserve">
+    <value>Fehler: {0}</value>
+  </data>
+  <data name="Msg_ErrorTitle" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="Msg_InitializingMutagen" xml:space="preserve">
+    <value>Mutagen wird initialisiert...</value>
+  </data>
+  <data name="Msg_LoadedPluginsWithArmors" xml:space="preserve">
+    <value>{0} Plugins mit Rüstungen/Outfits geladen</value>
+  </data>
+  <data name="Msg_LoadingArmorsFrom" xml:space="preserve">
+    <value>Rüstungen werden geladen von {0}...</value>
+  </data>
+  <data name="Msg_LoadedArmorsFrom" xml:space="preserve">
+    <value>{0} Rüstungen geladen von {1}</value>
+  </data>
+  <data name="Msg_LoadedArmorsFromOutfit" xml:space="preserve">
+    <value>{0} Rüstungen aus {1} geladen.</value>
+  </data>
+  <data name="Msg_ErrorLoadingArmorsFrom" xml:space="preserve">
+    <value>Fehler beim Laden der Rüstungen aus {0}: {1}</value>
+  </data>
+  <data name="Msg_ErrorLoadingPluginTitle" xml:space="preserve">
+    <value>Fehler beim Laden des Plugins</value>
+  </data>
+  <data name="Msg_FailedLoadArmors" xml:space="preserve">
+    <value>Rüstungen konnten nicht aus {0} geladen werden:&#10;{1}</value>
+  </data>
+  <data name="Msg_MappedArmorsTo" xml:space="preserve">
+    <value>{0} Rüstungen zu {1} zugeordnet</value>
+  </data>
+  <data name="Msg_ErrorMappingArmors" xml:space="preserve">
+    <value>Fehler beim Zuordnen der Rüstungen: {0}</value>
+  </data>
+  <data name="Msg_MarkedGlamOnly" xml:space="preserve">
+    <value>{0} Rüstung(en) als Nur Glam markiert.</value>
+  </data>
+  <data name="Msg_ErrorMarkingGlamOnly" xml:space="preserve">
+    <value>Fehler beim Markieren als Nur Glam: {0}</value>
+  </data>
+  <data name="Msg_ClearedMappings" xml:space="preserve">
+    <value>Alle Zuordnungen entfernt.</value>
+  </data>
+  <data name="Msg_RemovedMappingFor" xml:space="preserve">
+    <value>Zuordnung für {0} entfernt</value>
+  </data>
+  <data name="Msg_GlamOnlySummary" xml:space="preserve">
+    <value>✨ Nur Glam (Rüstungswert auf 0 gesetzt)</value>
+  </data>
+  <data name="Msg_NotMapped" xml:space="preserve">
+    <value>Nicht zugeordnet</value>
+  </data>
+  <data name="Msg_BuildingPreviewQuoted" xml:space="preserve">
+    <value>Vorschau wird erstellt für '{0}'...</value>
+  </data>
+  <data name="Msg_PreviewReadyQuoted" xml:space="preserve">
+    <value>Vorschau bereit für '{0}'.</value>
+  </data>
+  <data name="Msg_PreviewError" xml:space="preserve">
+    <value>Vorschaufehler: {0}</value>
+  </data>
+  <data name="Msg_CreatingPatch" xml:space="preserve">
+    <value>Patch wird erstellt...</value>
+  </data>
+  <data name="Msg_NoMappedArmors" xml:space="preserve">
+    <value>Keine zugeordneten Rüstungen zum Patchen.</value>
+  </data>
+  <data name="Msg_OverwritePatchConfirm" xml:space="preserve">
+    <value>Die ausgewählte Patch-Datei existiert bereits. Das Hinzufügen neuer Daten überschreibt alle Datensätze mit übereinstimmenden FormIDs in dieser ESP.&#10;&#10;Möchten Sie fortfahren?</value>
+  </data>
+  <data name="Msg_PatchCanceled" xml:space="preserve">
+    <value>Patcherstellung abgebrochen.</value>
+  </data>
+  <data name="Msg_FailedToCreatePatch" xml:space="preserve">
+    <value>Patch konnte nicht erstellt werden</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>Unerwarteter Fehler</value>
+  </data>
+  <data name="Msg_ErrorCreatingPatch" xml:space="preserve">
+    <value>Fehler beim Erstellen des Patches: {0}</value>
+  </data>
+  <data name="Msg_SelectFilePath" xml:space="preserve">
+    <value>Bitte wählen Sie einen Dateipfad.</value>
+  </data>
+  <data name="Msg_ConflictsDetectedHeader" xml:space="preserve">
+    <value>⚠ Verteilungskonflikte erkannt</value>
+  </data>
+  <data name="Msg_ConflictsRenameNote" xml:space="preserve">
+    <value>Damit Ihre neuen Verteilungen Vorrang haben (werden zuletzt geladen), wird der Dateiname geändert in:</value>
+  </data>
+  <data name="Msg_ConflictsZPrefixNote" xml:space="preserve">
+    <value>Dieses 'Z'-Präfix sorgt dafür, dass die alphabetische Sortierung Ihre Datei nach den Konfliktdateien platziert.</value>
+  </data>
+  <data name="Msg_ConflictsContinueFilename" xml:space="preserve">
+    <value>Möchten Sie mit diesem Dateinamen fortfahren?</value>
+  </data>
+  <data name="Msg_ConflictsTitle" xml:space="preserve">
+    <value>Konflikte erkannt - Dateinamenänderung erforderlich</value>
+  </data>
+  <data name="Msg_SaveCancelled" xml:space="preserve">
+    <value>Speichern abgebrochen.</value>
+  </data>
+  <data name="Msg_OverwriteFileConfirm" xml:space="preserve">
+    <value>Die Datei '{0}' existiert bereits.&#10;&#10;Möchten Sie sie überschreiben?</value>
+  </data>
+  <data name="Msg_ConfirmOverwriteTitle" xml:space="preserve">
+    <value>Überschreiben bestätigen</value>
+  </data>
+  <data name="Msg_SavingDistributionFile" xml:space="preserve">
+    <value>Verteilungsdatei wird gespeichert...</value>
+  </data>
+  <data name="Msg_SavedDistributionFile" xml:space="preserve">
+    <value>Verteilungsdatei erfolgreich gespeichert: {0}</value>
+  </data>
+  <data name="Msg_ErrorSavingFile" xml:space="preserve">
+    <value>Fehler beim Speichern der Datei: {0}</value>
+  </data>
+  <data name="Msg_UnsavedChangesPrompt" xml:space="preserve">
+    <value>Sie haben ungespeicherte Verteilungsänderungen. Möchten Sie vor dem Fortfahren speichern?</value>
+  </data>
+  <data name="Msg_UnsavedChangesTitle" xml:space="preserve">
+    <value>Ungespeicherte Änderungen</value>
+  </data>
+  <data name="Msg_SavedFile" xml:space="preserve">
+    <value>Gespeichert: {0}</value>
+  </data>
+  <data name="Msg_FileNotExist" xml:space="preserve">
+    <value>Datei existiert nicht. Bitte wählen Sie eine gültige Datei.</value>
+  </data>
+  <data name="Msg_LoadingDistributionFile" xml:space="preserve">
+    <value>Verteilungsdatei wird geladen...</value>
+  </data>
+  <data name="Msg_LoadedDistributionEntries" xml:space="preserve">
+    <value>{0} Verteilungseinträge geladen aus {1}</value>
+  </data>
+  <data name="Msg_ParseErrorsSuffix" xml:space="preserve">
+    <value>({0} Zeile(n) konnten nicht geparst werden)</value>
+  </data>
+  <data name="Msg_ErrorLoadingFile" xml:space="preserve">
+    <value>Fehler beim Laden der Datei: {0}</value>
+  </data>
+  <data name="Msg_ErrorGeneratingContent" xml:space="preserve">
+    <value>; Fehler beim Generieren des Dateiinhalts: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathScanNpcs" xml:space="preserve">
+    <value>Bitte legen Sie den Skyrim-Datenpfad in den Einstellungen fest, bevor Sie NPCs scannen.</value>
+  </data>
+  <data name="Msg_DataPathNotExist" xml:space="preserve">
+    <value>Skyrim-Datenpfad existiert nicht: {0}</value>
+  </data>
+  <data name="Msg_InitializingSkyrim" xml:space="preserve">
+    <value>Skyrim-Umgebung wird initialisiert...</value>
+  </data>
+  <data name="Msg_LoadingGameData" xml:space="preserve">
+    <value>Spieldaten werden geladen (NPCs, Fraktionen, Stichwörter, Rassen, Klassen)...</value>
+  </data>
+  <data name="Msg_LoadingGameDataPlugins" xml:space="preserve">
+    <value>Spieldaten werden aus Plugins geladen...</value>
+  </data>
+  <data name="Msg_LoadedGameData" xml:space="preserve">
+    <value>Geladen: {0:N0} NPCs, {1:N0} Fraktionen, {2:N0} Rassen, {3:N0} Klassen, {4:N0} Stichwörter.</value>
+  </data>
+  <data name="Msg_ErrorScanningNpcs" xml:space="preserve">
+    <value>Fehler beim Scannen der NPCs: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitSelectedPreview" xml:space="preserve">
+    <value>Kein Outfit für die Vorschau ausgewählt.</value>
+  </data>
+  <data name="Msg_InitializeBeforePreview" xml:space="preserve">
+    <value>Initialisieren Sie den Skyrim-Datenpfad, bevor Sie Outfits in der Vorschau anzeigen.</value>
+  </data>
+  <data name="Msg_NoArmorPieces" xml:space="preserve">
+    <value>Outfit '{0}' enthält keine Rüstungsteile für die Vorschau.</value>
+  </data>
+  <data name="Msg_BuildingPreview" xml:space="preserve">
+    <value>Vorschau wird erstellt für {0}...</value>
+  </data>
+  <data name="Msg_PreviewReady" xml:space="preserve">
+    <value>Vorschau bereit für {0}.</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfit" xml:space="preserve">
+    <value>Outfit-Vorschau fehlgeschlagen: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitForNpc" xml:space="preserve">
+    <value>Kein Outfit für diesen NPC in der Vorschau.</value>
+  </data>
+  <data name="Msg_CouldNotResolveOutfit" xml:space="preserve">
+    <value>Outfit konnte nicht aufgelöst werden: {0}</value>
+  </data>
+  <data name="Msg_NoDistributionToPreview" xml:space="preserve">
+    <value>Keine Verteilung für die Vorschau.</value>
+  </data>
+  <data name="Msg_BuildingOutfitPreview" xml:space="preserve">
+    <value>Outfit-Vorschau wird erstellt...</value>
+  </data>
+  <data name="Msg_PreviewReadyWithCount" xml:space="preserve">
+    <value>Vorschau bereit mit {0} Outfit(s).</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfits" xml:space="preserve">
+    <value>Outfit-Vorschau fehlgeschlagen: {0}</value>
+  </data>
+  <data name="Msg_FailedPreviewGeneric" xml:space="preserve">
+    <value>Vorschau fehlgeschlagen: {0}</value>
+  </data>
+  <data name="Msg_LinkCacheNotAvailable" xml:space="preserve">
+    <value>LinkCache nicht verfügbar.</value>
+  </data>
+  <data name="Msg_FoundNpcDistributions" xml:space="preserve">
+    <value>{0} NPCs mit Outfit-Verteilungen gefunden ({1} Konflikte).</value>
+  </data>
+  <data name="Msg_LoadingNpcOutfits" xml:space="preserve">
+    <value>NPC-Outfit-Daten werden geladen...</value>
+  </data>
+  <data name="Msg_ErrorLoadingNpcOutfits" xml:space="preserve">
+    <value>Fehler beim Laden der NPC-Outfits: {0}</value>
+  </data>
+  <data name="Msg_RefreshingNpcOutfits" xml:space="preserve">
+    <value>NPC-Outfit-Daten werden aktualisiert...</value>
+  </data>
+  <data name="Msg_ErrorRefreshingNpcOutfits" xml:space="preserve">
+    <value>Fehler beim Aktualisieren der NPC-Outfits: {0}</value>
+  </data>
+  <data name="Msg_NoFiltersActive" xml:space="preserve">
+    <value>Keine Filter aktiv</value>
+  </data>
+  <data name="Msg_NoFiltersToCopy" xml:space="preserve">
+    <value>Keine Filter zum Kopieren. Wenden Sie zuerst Filter an.</value>
+  </data>
+  <data name="Msg_FilterCopied" xml:space="preserve">
+    <value>Filter kopiert: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathLoadOutfits" xml:space="preserve">
+    <value>Bitte legen Sie den Skyrim-Datenpfad in den Einstellungen fest, bevor Sie Outfits laden.</value>
+  </data>
+  <data name="Msg_LoadingOutfits" xml:space="preserve">
+    <value>Outfits werden aus der Ladereihenfolge geladen...</value>
+  </data>
+  <data name="Msg_LoadedOutfits" xml:space="preserve">
+    <value>{0} Outfits geladen.</value>
+  </data>
+  <data name="Msg_ErrorLoadingOutfits" xml:space="preserve">
+    <value>Fehler beim Laden der Outfits: {0}</value>
+  </data>
+  <data name="Msg_NoContainers" xml:space="preserve">
+    <value>Keine Behälter geladen</value>
+  </data>
+  <data name="Msg_ContainersCount" xml:space="preserve">
+    <value>{0:N0} von {1:N0} Behältern</value>
+  </data>
+  <data name="Msg_CalculatingGrades" xml:space="preserve">
+    <value>Noten werden berechnet...</value>
+  </data>
+  <data name="Msg_GradeSummary" xml:space="preserve">
+    <value>Note: {0} — {1:N0}/{2:N0} NPCs abgedeckt, {3:N0}/{4:N0} Mod-Outfits verwendet, {5:N0} einzigartige Outfits</value>
+  </data>
+  <data name="Msg_CalculationFailed" xml:space="preserve">
+    <value>Berechnung fehlgeschlagen — Details finden Sie in den Protokollen</value>
+  </data>
+  <data name="Msg_NothingToSave" xml:space="preserve">
+    <value>Nichts zu speichern.</value>
+  </data>
+  <data name="Msg_ErrorSavingTitle" xml:space="preserve">
+    <value>Fehler beim Speichern</value>
+  </data>
+  <data name="Msg_UnexpectedErrorSaving" xml:space="preserve">
+    <value>Ein unerwarteter Fehler ist aufgetreten:&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorSaving" xml:space="preserve">
+    <value>Fehler beim Speichern: {0}</value>
+  </data>
+  <data name="Msg_MissingMastersCheckFailedTitle" xml:space="preserve">
+    <value>Prüfung fehlender Master fehlgeschlagen</value>
+  </data>
+  <data name="Msg_CouldNotVerifyMasters" xml:space="preserve">
+    <value>Die Master des Patches konnten nicht überprüft werden (die Datei ist möglicherweise beschädigt oder gesperrt):&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatchTitle" xml:space="preserve">
+    <value>Fehler beim Bereinigen des Patches</value>
+  </data>
+  <data name="Msg_SelectPluginImportLists" xml:space="preserve">
+    <value>Wählen Sie ein Quell-Plugin aus, um Stufenlisten zu importieren.</value>
+  </data>
+  <data name="Msg_SelectSpecificPlugin" xml:space="preserve">
+    <value>Wählen Sie ein bestimmtes Plugin (nicht Alle Plugins) aus, um Stufenlisten zu importieren.</value>
+  </data>
+  <data name="Msg_ImportingLeveledLists" xml:space="preserve">
+    <value>Stufenlisten werden aus {0} importiert...</value>
+  </data>
+  <data name="Msg_NoLeveledListsFound" xml:space="preserve">
+    <value>Keine Stufenlisten in {0} gefunden.</value>
+  </data>
+  <data name="Msg_ImportedLeveledLists" xml:space="preserve">
+    <value>{0} Stufenliste(n) aus {1} importiert.</value>
+  </data>
+  <data name="Msg_AllListsLoaded" xml:space="preserve">
+    <value>Alle Stufenlisten aus {0} sind bereits geladen.</value>
+  </data>
+  <data name="Msg_FailedOpenLogFile" xml:space="preserve">
+    <value>Protokolldatei konnte nicht geöffnet werden: {0}</value>
+  </data>
+  <data name="Msg_LogFileNotExist" xml:space="preserve">
+    <value>Die heutige Protokolldatei existiert noch nicht:&#10;{0}</value>
+  </data>
+  <data name="Msg_LogFileNotFoundTitle" xml:space="preserve">
+    <value>Protokolldatei nicht gefunden</value>
+  </data>
+  <data name="Msg_FailedOpenLogsFolder" xml:space="preserve">
+    <value>Protokollordner konnte nicht geöffnet werden: {0}</value>
+  </data>
+  <data name="Msg_LogsFolderNotExist" xml:space="preserve">
+    <value>Protokollordner existiert nicht:&#10;{0}</value>
+  </data>
+  <data name="Msg_FolderNotFoundTitle" xml:space="preserve">
+    <value>Ordner nicht gefunden</value>
+  </data>
+  <data name="Msg_FormatChangePrompt" xml:space="preserve">
+    <value>Das Aktivieren der zufallsbasierten Verteilung ändert das Dateiformat zu SPID.&#10;&#10;SkyPatcher unterstützt keine zufallsbasierte Outfit-Verteilung. Die Datei wird im SPID-Format gespeichert, um diese Funktion zu unterstützen.&#10;&#10;Möchten Sie fortfahren?</value>
+  </data>
+  <data name="Msg_FormatChangeTitle" xml:space="preserve">
+    <value>Formatänderung erforderlich</value>
+  </data>
+  <data name="Msg_WritingPatch" xml:space="preserve">
+    <value>Patch-Datei wird geschrieben...</value>
+  </data>
+  <data name="Msg_RefreshingLoadOrder" xml:space="preserve">
+    <value>Ladereihenfolge wird aktualisiert...</value>
+  </data>
+  <data name="Msg_NoValidMatches" xml:space="preserve">
+    <value>Keine gültigen Zuordnungen zum Patchen.</value>
+  </data>
+  <data name="Msg_PatchingArmor" xml:space="preserve">
+    <value>{0} wird gepatcht...</value>
+  </data>
+  <data name="Msg_PatchCreated" xml:space="preserve">
+    <value>Patch erfolgreich erstellt mit {0} Rüstung(en) unter {1}</value>
+  </data>
+  <data name="Msg_WritingOutfit" xml:space="preserve">
+    <value>Outfit {0} wird geschrieben...</value>
+  </data>
+  <data name="Msg_WritingLeveledList" xml:space="preserve">
+    <value>Stufenliste {0} wird geschrieben...</value>
+  </data>
+  <data name="Msg_SavedTo" xml:space="preserve">
+    <value>{0} gespeichert unter {1}</value>
+  </data>
+  <data name="Msg_OutfitsCount" xml:space="preserve">
+    <value>{0} Outfit(s)</value>
+  </data>
+  <data name="Msg_LeveledListsCount" xml:space="preserve">
+    <value>{0} Stufenliste(n)</value>
+  </data>
+  <data name="Msg_ListJoin" xml:space="preserve">
+    <value> und </value>
+  </data>
+  <data name="Msg_ZeroRecords" xml:space="preserve">
+    <value>0 Datensätze</value>
+  </data>
+  <data name="Msg_MutagenNotInitialized" xml:space="preserve">
+    <value>Der Mutagen-Dienst ist nicht initialisiert. Bitte legen Sie zuerst den Skyrim-Datenpfad fest.</value>
+  </data>
+  <data name="Msg_InvalidPluginName" xml:space="preserve">
+    <value>'{0}' ist kein gültiger Plugin-Name. Der Patch-Dateiname muss auf .esp, .esm oder .esl enden.</value>
+  </data>
+  <data name="Msg_CannotWriteFileLocked" xml:space="preserve">
+    <value>Schreiben in '{0}' nicht möglich. Die Datei ist möglicherweise von einem anderen Programm gesperrt (Skyrim, xEdit usw.). Bitte schließen Sie alle Programme, die die Datei geöffnet haben könnten, und versuchen Sie es erneut.</value>
+  </data>
+  <data name="Msg_CannotWriteFile" xml:space="preserve">
+    <value>Schreiben in '{0}' nicht möglich: {1}. Die Datei ist möglicherweise von einem anderen Programm gesperrt.</value>
+  </data>
+  <data name="Msg_CannotWriteUnknown" xml:space="preserve">
+    <value>Schreiben in '{0}' nicht möglich: Unbekannter Fehler.</value>
+  </data>
+  <data name="Msg_RemovedOutfitsMissingMasters" xml:space="preserve">
+    <value>{0} Outfit(s) mit fehlenden Mastern erfolgreich entfernt.</value>
+  </data>
+  <data name="Msg_PatchFileNotExist" xml:space="preserve">
+    <value>Patch-Datei existiert nicht.</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatch" xml:space="preserve">
+    <value>Fehler beim Bereinigen des Patches: {0}</value>
+  </data>
+  <data name="Msg_UpdateDownloadFailed" xml:space="preserve">
+    <value>Update konnte nicht heruntergeladen werden: {0}</value>
+  </data>
+  <data name="Msg_UpdateErrorTitle" xml:space="preserve">
+    <value>Update-Fehler</value>
+  </data>
+  <data name="Msg_LatestVersion" xml:space="preserve">
+    <value>Sie verwenden die neueste Version.</value>
+  </data>
+  <data name="Msg_NoUpdateTitle" xml:space="preserve">
+    <value>Kein Update verfügbar</value>
+  </data>
+  <data name="Msg_AutosaveNoticeBody" xml:space="preserve">
+    <value>Die Autospeicherung für Verteilungsdateien wurde entfernt.&#10;&#10;Verteilungsdateien werden jetzt nur noch gespeichert, wenn Sie explizit auf Speichern klicken. Vor jedem Speichern wird automatisch ein rotierendes Backup erstellt, das unter folgendem Pfad abgelegt wird:&#10;%LOCALAPPDATA%\Boutique\Backups\&#10;&#10;Diese Änderung verhindert den stillen Datenverlust, den einige Benutzer bei der Autospeicherung erlebt haben.</value>
+  </data>
+  <data name="Msg_AutosaveNoticeTitle" xml:space="preserve">
+    <value>Autospeichern für Verteilungsdateien entfernt</value>
+  </data>
+  <data name="View_EntryDetails" xml:space="preserve">
+    <value>Eintragsdetails</value>
+  </data>
+  <data name="View_Filters" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="View_SelectEntryHint" xml:space="preserve">
+    <value>Wählen Sie einen Eintrag aus der Liste, um seine Details zu bearbeiten</value>
+  </data>
+  <data name="View_ExclusiveGroupNameTooltip" xml:space="preserve">
+    <value>Name der ExclusiveGroup.</value>
+  </data>
+  <data name="View_ExclusiveGroupFormsTooltip" xml:space="preserve">
+    <value>Kommagetrennte Formularliste.</value>
+  </data>
+  <data name="View_FormsLabel" xml:space="preserve">
+    <value>Formen:</value>
+  </data>
+  <data name="View_ChanceLabel" xml:space="preserve">
+    <value>Chance:</value>
+  </data>
+  <data name="View_Traits" xml:space="preserve">
+    <value>Merkmale</value>
+  </data>
+  <data name="View_GenderLabel" xml:space="preserve">
+    <value>Geschlecht:</value>
+  </data>
+  <data name="View_UniqueLabel" xml:space="preserve">
+    <value>Einzigartig:</value>
+  </data>
+  <data name="View_LevelLabel" xml:space="preserve">
+    <value>Stufe:</value>
+  </data>
+  <data name="View_LevelNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="View_LevelLevel" xml:space="preserve">
+    <value>Stufe</value>
+  </data>
+  <data name="View_LevelSkillLevel" xml:space="preserve">
+    <value>Fähigkeitsstufe</value>
+  </data>
+  <data name="View_LevelSkillWeight" xml:space="preserve">
+    <value>Fähigkeitsgewicht</value>
+  </data>
+  <data name="View_LevelRaw" xml:space="preserve">
+    <value>Roh</value>
+  </data>
+  <data name="View_Min" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="View_Max" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="View_ToggleNegationTooltip" xml:space="preserve">
+    <value>Klicken, um die Negation umzuschalten</value>
+  </data>
+  <data name="View_AndOrLogicFormat" xml:space="preserve">
+    <value>UND: Alle {0} müssen übereinstimmen | ODER: Mindestens ein {0} muss übereinstimmen</value>
+  </data>
+  <data name="View_OutfitFilters" xml:space="preserve">
+    <value>Outfit-Filter</value>
+  </data>
+  <data name="View_RawFilters" xml:space="preserve">
+    <value>Rohe Filter</value>
+  </data>
+  <data name="View_StringLabel" xml:space="preserve">
+    <value>Zeichenfolge:</value>
+  </data>
+  <data name="View_FormLabel" xml:space="preserve">
+    <value>Formular:</value>
+  </data>
+  <data name="View_RawStringFiltersTooltip" xml:space="preserve">
+    <value>Rohe Zeichenfolgenfilter: Platzhalter (*Mage), Negationen (-Exclude) und SPID-verteilte Schlüsselwörter. Komma für ODER, Plus für UND.</value>
+  </data>
+  <data name="View_RawFormFiltersTooltip" xml:space="preserve">
+    <value>Rohe Formularfilter: negierte Fraktionen (-FactionName), Rassen usw. Komma für ODER.</value>
+  </data>
+  <data name="View_Results" xml:space="preserve">
+    <value>Ergebnisse</value>
+  </data>
+  <data name="View_TotalNpcsFormat" xml:space="preserve">
+    <value>Gesamt: {0} NPCs</value>
+  </data>
+  <data name="View_Criteria" xml:space="preserve">
+    <value>Kriterien</value>
+  </data>
+  <data name="View_TargetFormat" xml:space="preserve">
+    <value>Ziel: {0}</value>
+  </data>
+  <data name="View_TargetNone" xml:space="preserve">
+    <value>Ziel: (Keine ausgewählt)</value>
+  </data>
+  <data name="View_TargetOutfitsHint" xml:space="preserve">
+    <value>Ziel-NPCs, die ein bestimmtes vorhandenes Outfit tragen und dieses effektiv ersetzen.</value>
+  </data>
+  <data name="View_AddSelectedOutfits" xml:space="preserve">
+    <value>Ausgewählte Outfits hinzufügen</value>
+  </data>
+  <data name="View_ShowingPrefix" xml:space="preserve">
+    <value>Angezeigt </value>
+  </data>
+  <data name="View_OfSeparator" xml:space="preserve">
+    <value> von </value>
+  </data>
+  <data name="View_NpcsSuffix" xml:space="preserve">
+    <value> NPCs</value>
+  </data>
+  <data name="View_OutfitFileTooltip" xml:space="preserve">
+    <value>Die Verteilungsdatei, die das Outfit dieses NPCs bestimmt</value>
+  </data>
+  <data name="View_ContainsLeveledLists" xml:space="preserve">
+    <value>Enthält gestufte Listen</value>
+  </data>
+  <data name="View_ContainsLeveledListsTooltip" xml:space="preserve">
+    <value>Nur Outfits anzeigen, die gestufte Listen oder Formularlisten enthalten</value>
+  </data>
+  <data name="View_MoreActions" xml:space="preserve">
+    <value>Weitere Aktionen</value>
+  </data>
+  <data name="View_NpcCountFormat" xml:space="preserve">
+    <value>({0} NPCs)</value>
+  </data>
+  <data name="View_UnresolvedFiltersTooltip" xml:space="preserve">
+    <value>Dieser Eintrag hat unaufgelöste Filter, die keinen bekannten NPCs oder Schlüsselwörtern zugeordnet werden konnten</value>
+  </data>
+  <data name="View_IntraFileOverlapsFormat" xml:space="preserve">
+    <value>{0} Intra-Datei-Überschneidungen</value>
+  </data>
+  <data name="View_ViewButton" xml:space="preserve">
+    <value>Anzeigen</value>
+  </data>
+  <data name="View_ParseErrorsSuffix" xml:space="preserve">
+    <value> Analysefehler - diese Zeilen werden beim Speichern beibehalten</value>
+  </data>
+  <data name="View_Plugin" xml:space="preserve">
+    <value>Plugin</value>
+  </data>
+  <data name="View_ArValFormat" xml:space="preserve">
+    <value> (AR: {0:F0}, Wert: {1})</value>
+  </data>
+  <data name="View_Overall" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="View_NpcCoverage" xml:space="preserve">
+    <value>NPC-Abdeckung</value>
+  </data>
+  <data name="View_ModUtilization" xml:space="preserve">
+    <value>Mod-Nutzung</value>
+  </data>
+  <data name="View_OutfitVariety" xml:space="preserve">
+    <value>Outfit-Vielfalt</value>
+  </data>
+  <data name="View_CalculateGrade" xml:space="preserve">
+    <value>Note berechnen</value>
+  </data>
+  <data name="View_CoverageSummaryFormat" xml:space="preserve">
+    <value>{0:N0}/{1:N0} NPCs abgedeckt · {2:N0}/{3:N0} Mod-Outfits verwendet · {4:N0} einzigartige Outfits</value>
+  </data>
+  <data name="View_ClickCalculateHint" xml:space="preserve">
+    <value>Klicken Sie auf „Note berechnen", um Ihr Verteilungs-Setup zu analysieren</value>
+  </data>
+  <data name="View_SourceMods" xml:space="preserve">
+    <value>Quell-Mods</value>
+  </data>
+  <data name="View_UnusedOutfitsFormat" xml:space="preserve">
+    <value>Ungenutzte Mod-Outfits ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsFormat" xml:space="preserve">
+    <value>Rüstungen in keinem Outfit ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsHint" xml:space="preserve">
+    <value>Spielbare, unverzauberte Rüstungen aus Mods, die kein Outfit gewährt. Einige sind absichtlich nur herstellbar.</value>
+  </data>
+  <data name="View_NotApplicable" xml:space="preserve">
+    <value>–</value>
+  </data>
+  <data name="View_HideEmptyContainers" xml:space="preserve">
+    <value>Leere Behälter ausblenden</value>
+  </data>
+  <data name="View_CellLabel" xml:space="preserve">
+    <value>Zelle:</value>
+  </data>
+  <data name="View_RespawnsLabel" xml:space="preserve">
+    <value>Respawns:</value>
+  </data>
+  <data name="View_ItemsHeader" xml:space="preserve">
+    <value>Objekte</value>
+  </data>
+  <data name="View_MerchantHeader" xml:space="preserve">
+    <value>Händler</value>
+  </data>
+  <data name="View_CellsHeader" xml:space="preserve">
+    <value>Zellen</value>
+  </data>
+  <data name="View_RespawnsHeader" xml:space="preserve">
+    <value>Respawns</value>
+  </data>
+  <data name="View_ItemHeader" xml:space="preserve">
+    <value>Objekt</value>
+  </data>
+  <data name="View_CountHeader" xml:space="preserve">
+    <value>Anzahl</value>
+  </data>
+  <data name="View_SelectContainer" xml:space="preserve">
+    <value>Wählen Sie einen Behälter</value>
+  </data>
+  <data name="View_SelectContainerHint" xml:space="preserve">
+    <value>Wählen Sie einen Behälter aus, um seinen Inhalt anzuzeigen</value>
+  </data>
+  <data name="View_PreviousOutfitTooltip" xml:space="preserve">
+    <value>Vorheriges Outfit (Pfeil links)</value>
+  </data>
+  <data name="View_NextOutfitTooltip" xml:space="preserve">
+    <value>Nächstes Outfit (Pfeil rechts)</value>
+  </data>
+  <data name="View_LoadingPreview" xml:space="preserve">
+    <value>Vorschau wird geladen...</value>
+  </data>
+  <data name="View_LeveledItemsNotice" xml:space="preserve">
+    <value>Dieses Outfit enthält gestufte Listen.</value>
+  </data>
+  <data name="View_LeveledItemsHint" xml:space="preserve">
+    <value>Das Erscheinungsbild im Spiel kann variieren. Klicken Sie auf „Zufällig", um verschiedene Kombinationen voranzuschauen.</value>
+  </data>
+  <data name="View_Randomize" xml:space="preserve">
+    <value>Zufällig</value>
+  </data>
+  <data name="View_ToggleTabTooltip" xml:space="preserve">
+    <value>Mit der Tab-Taste umschalten</value>
+  </data>
+  <data name="View_ShowBaseBody" xml:space="preserve">
+    <value>Basiskörper anzeigen</value>
+  </data>
+  <data name="View_HideBaseBodyTooltip" xml:space="preserve">
+    <value>Das Standard-Körpermesh ausblenden, wenn es durch die Rüstung clippt</value>
+  </data>
+  <data name="View_OutfitCounterFormat" xml:space="preserve">
+    <value>Outfit {0} von {1}</value>
+  </data>
+  <data name="View_UnknownOutfit" xml:space="preserve">
+    <value>Unbekanntes Outfit</value>
+  </data>
+  <data name="View_FromSourceFormat" xml:space="preserve">
+    <value>aus {0}</value>
+  </data>
+  <data name="View_FromSourceWinnerFormat" xml:space="preserve">
+    <value>aus {0} (Gewinner)</value>
+  </data>
+  <data name="View_NoGeometry" xml:space="preserve">
+    <value>Keine Geometrie zum Rendern vorhanden.</value>
+  </data>
+  <data name="View_AutoUpdate" xml:space="preserve">
+    <value>Automatisches Update</value>
+  </data>
+  <data name="View_CheckUpdatesOnStartup" xml:space="preserve">
+    <value>Beim Start nach Updates suchen</value>
+  </data>
+  <data name="View_CheckNow" xml:space="preserve">
+    <value>Jetzt prüfen</value>
+  </data>
+  <data name="View_Experimental" xml:space="preserve">
+    <value>Experimentell</value>
+  </data>
+  <data name="View_ShowContainersTab" xml:space="preserve">
+    <value>Registerkarte „Behälter" anzeigen (Neustart erforderlich)</value>
+  </data>
+  <data name="View_DebugGroup" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="View_DebugLogging" xml:space="preserve">
+    <value>Debug-Protokollierung</value>
+  </data>
+  <data name="View_EnableDebugLogging" xml:space="preserve">
+    <value>Debug-Protokollierung aktivieren (Neustart erforderlich)</value>
+  </data>
+  <data name="View_LogFiles" xml:space="preserve">
+    <value>Protokolldateien</value>
+  </data>
+  <data name="View_OpenTodaysLog" xml:space="preserve">
+    <value>Heutiges Protokoll öffnen</value>
+  </data>
+  <data name="View_OpenLogsFolder" xml:space="preserve">
+    <value>Protokollordner öffnen</value>
+  </data>
+  <data name="View_DragToReorder" xml:space="preserve">
+    <value>Zum Neuanordnen ziehen</value>
+  </data>
+  <data name="View_ClickChangeIcon" xml:space="preserve">
+    <value>Klicken, um das Symbol zu ändern</value>
+  </data>
+  <data name="View_ClickRename" xml:space="preserve">
+    <value>Klicken zum Umbenennen</value>
+  </data>
+  <data name="View_RemoveSeparator" xml:space="preserve">
+    <value>Trenner entfernen</value>
+  </data>
+  <data name="View_TypeLabel" xml:space="preserve">
+    <value>Typ:</value>
+  </data>
+  <data name="View_SlotLabel" xml:space="preserve">
+    <value>Slot:</value>
+  </data>
+  <data name="View_AddSeparator" xml:space="preserve">
+    <value>+ Trenner</value>
+  </data>
+  <data name="View_AddSeparatorTooltip" xml:space="preserve">
+    <value>Trenner zum Organisieren von Outfits hinzufügen</value>
+  </data>
+  <data name="View_PiecesFormat" xml:space="preserve">
+    <value>({0} Teile)</value>
+  </data>
+  <data name="View_ItemsCountFormat" xml:space="preserve">
+    <value>{0} Element(e)</value>
+  </data>
+  <data name="View_UpdateAvailableTitle" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="View_UpdateAvailableHeader" xml:space="preserve">
+    <value>Eine neue Version von Boutique ist verfügbar!</value>
+  </data>
+  <data name="View_CurrentVersionLabel" xml:space="preserve">
+    <value>Aktuelle Version: </value>
+  </data>
+  <data name="View_LatestVersionLabel" xml:space="preserve">
+    <value>Neueste Version: </value>
+  </data>
+  <data name="View_WhatsNew" xml:space="preserve">
+    <value>Neuigkeiten</value>
+  </data>
+  <data name="View_SkipThisVersion" xml:space="preserve">
+    <value>Diese Version überspringen</value>
+  </data>
+  <data name="View_RemindMeLater" xml:space="preserve">
+    <value>Später erinnern</value>
+  </data>
+  <data name="View_UpdateNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="View_SelectIconTitle" xml:space="preserve">
+    <value>Symbol auswählen</value>
+  </data>
+  <data name="View_FilterIcons" xml:space="preserve">
+    <value>Symbole filtern...</value>
+  </data>
+  <data name="View_ClearIcon" xml:space="preserve">
+    <value>Symbol entfernen</value>
+  </data>
+  <data name="View_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="View_InputTitle" xml:space="preserve">
+    <value>Eingabe</value>
+  </data>
+  <data name="View_IntraFileOverlapsTitle" xml:space="preserve">
+    <value>Intra-Datei-Überschneidungen</value>
+  </data>
+  <data name="View_IntraFileOverlapsDescription" xml:space="preserve">
+    <value>Gemeinsame NPC-Zahlen zwischen Outfit-Einträgen. Zellen ungleich null bedeuten NPCs, die von mehreren Outfits angesprochen werden.</value>
+  </data>
+  <data name="View_IntraFileOverlapsHeaderFormat" xml:space="preserve">
+    <value>{0} NPC(s), die von mehreren Outfits angesprochen werden</value>
+  </data>
+  <data name="View_ConfirmRemoveMessage" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie diesen Eintrag entfernen möchten?&#10;&#10;{0}</value>
+  </data>
+  <data name="View_ConfirmRemoveTitle" xml:space="preserve">
+    <value>Entfernen bestätigen</value>
+  </data>
+  <data name="View_PatchCreatedTitle" xml:space="preserve">
+    <value>Patch erstellt</value>
+  </data>
+  <data name="View_OverwritePatchTitle" xml:space="preserve">
+    <value>Vorhandenen Patch überschreiben?</value>
+  </data>
+  <data name="View_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Löschen bestätigen</value>
+  </data>
+  <data name="View_CreateOutfitTitle" xml:space="preserve">
+    <value>Outfit erstellen</value>
+  </data>
+  <data name="View_MissingMastersSummaryFormat" xml:space="preserve">
+    <value>{0} Outfit(s) werden entfernt, wenn Sie den Patch bereinigen. {1} fehlende Master müssen wieder hinzugefügt werden, um sie zu behalten.</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>Ausgewählte Orte zum Eintrag hinzufügen</value>
+  </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>Orte:</value>
+  </data>
+  <data name="Header_Type" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ Dieser Name steht in Konflikt mit einem vorhandenen Plugin</value>
+  </data>
+  <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>Diesen Namen behalten</value>
+  </data>
+  <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>"{0}" ist bereits in Ihrer Load Order vorhanden. Die Verwendung dieses Namens kann beim Erstellen eines Patches vorhandene Daten überschreiben. Wählen Sie nach Möglichkeit einen eindeutigen Namen.</value>
+  </data>
+  <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>Anderen Namen wählen</value>
+  </data>
+  <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>Plugin-Namenskonflikt</value>
+  </data>
+  <data name="Tab_Containers" xml:space="preserve">
+    <value>Behälter</value>
+  </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>Orte</value>
+  </data>
 </root>

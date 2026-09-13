@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Boutique.Views"
+        xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:res="clr-namespace:Boutique.Resources"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=views:UpdateDialog}"
-        Title="Update Available" Height="450" Width="550"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+View.UpdateAvailableTitle}}" Height="450" Width="550"
         WindowStartupLocation="CenterOwner"
         BorderThickness="0"
         Background="{DynamicResource Brush.Background}">
@@ -20,18 +22,18 @@
 
     <TextBlock Grid.Row="0" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"
                Foreground="{DynamicResource Brush.TextPrimary}">
-      <Run Text="A new version of Boutique is available!" />
+      <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.UpdateAvailableHeader}}" />
     </TextBlock>
 
     <TextBlock Grid.Row="1" Margin="0,0,0,12" Foreground="{DynamicResource Brush.TextSecondary}">
-      <Run Text="Current version: " />
+      <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.CurrentVersionLabel}}" />
       <Run Text="{Binding CurrentVersion}" FontWeight="SemiBold" />
       <Run Text="  →  " />
-      <Run Text="Latest version: " />
+      <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LatestVersionLabel}}" />
       <Run Text="{Binding LatestVersion}" FontWeight="SemiBold" Foreground="#4EC9B0" />
     </TextBlock>
 
-    <GroupBox Grid.Row="2" Header="What's New" Padding="8" Margin="0,0,0,12">
+    <GroupBox Grid.Row="2" Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.WhatsNew}}" Padding="8" Margin="0,0,0,12">
       <ScrollViewer VerticalScrollBarVisibility="Auto">
         <TextBlock Text="{Binding ReleaseNotes}" TextWrapping="Wrap"
                    Foreground="{DynamicResource Brush.TextPrimary}"
@@ -40,9 +42,9 @@
     </GroupBox>
 
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="Skip This Version" Click="Skip_Click" Padding="16,8" Margin="0,0,8,0" />
-      <Button Content="Remind Me Later" Click="Later_Click" Padding="16,8" Margin="0,0,8,0" />
-      <Button Content="Update Now" Click="Update_Click" Padding="16,8" IsDefault="True"
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.SkipThisVersion}}" Click="Skip_Click" Padding="16,8" Margin="0,0,8,0" />
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.RemindMeLater}}" Click="Later_Click" Padding="16,8" Margin="0,0,8,0" />
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.UpdateNow}}" Click="Update_Click" Padding="16,8" IsDefault="True"
               Background="#0078D4" Foreground="White" />
     </StackPanel>
   </Grid>

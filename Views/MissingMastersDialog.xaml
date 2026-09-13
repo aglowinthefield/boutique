@@ -76,9 +76,14 @@
                         <TextBlock Text="{Binding DisplayName}"
                                    Foreground="{StaticResource Brush.TextPrimary}"
                                    FontSize="13" />
-                        <TextBlock Text="{Binding OrphanedCount, StringFormat=' ({0} orphaned armor(s))'}"
-                                   Foreground="{StaticResource Brush.TextSecondary}"
-                                   FontSize="12" />
+                        <TextBlock Foreground="{StaticResource Brush.TextSecondary}"
+                                   FontSize="12">
+                          <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="MissingMasters_OrphanedFormat">
+                  <Binding Path="OrphanedCount" />
+                </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
                       </StackPanel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>

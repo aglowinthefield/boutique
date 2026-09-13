@@ -53,7 +53,7 @@
                     <TextBlock Grid.Column="0" Text="⠿" FontSize="{DynamicResource FontSize.Medium}" Margin="0,0,6,0"
                                Foreground="{DynamicResource Brush.TextSecondary}"
                                VerticalAlignment="Top" Cursor="SizeAll"
-                               ToolTip="Drag to reorder"
+                               ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.DragToReorder}}"
                                PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
                                PreviewMouseMove="DragHandle_PreviewMouseMove"
                                PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
@@ -112,10 +112,16 @@
                             </Style>
                           </TextBox.Style>
                         </TextBox>
-                        <TextBlock Text="{Binding PieceCount, StringFormat='({0} pieces)'}"
+                        <TextBlock
                                    Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Small}" Foreground="{DynamicResource Brush.TextDisabled}"
                                    VerticalAlignment="Center"
-                                   Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
+                                   Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}">
+                          <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_PiecesFormat">
+                  <Binding Path="PieceCount" />
+                </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
                       </StackPanel>
                       <TextBlock Text="{Binding OverrideDisplayText, Mode=OneWay}"
                                  Margin="0,2,0,0" FontSize="{DynamicResource FontSize.Small}" Foreground="{DynamicResource Brush.Conflict}" FontWeight="SemiBold"
@@ -270,7 +276,7 @@
                 <TextBlock Grid.Column="0" Text="⠿" FontSize="{DynamicResource FontSize.Small}" Margin="0"
                            Foreground="{DynamicResource Brush.TextDisabled}"
                            VerticalAlignment="Center" Cursor="SizeAll"
-                           ToolTip="Drag to reorder"
+                           ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.DragToReorder}}"
                            PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
                            PreviewMouseMove="DragHandle_PreviewMouseMove"
                            PreviewMouseLeftButtonUp="DragHandle_PreviewMouseLeftButtonUp" />
@@ -310,11 +316,11 @@
                        Cursor="Hand" Opacity="0.8" Margin="4,0,2,0"
                        VerticalAlignment="Center"
                        MouseLeftButtonDown="SeparatorIcon_MouseLeftButtonDown"
-                       ToolTip="Click to change icon" />
+                       ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ClickChangeIcon}}" />
 
                 <Grid Grid.Column="3" Margin="2,0,0,0" Background="Transparent"
                       MouseLeftButtonDown="SeparatorName_MouseLeftButtonDown"
-                      Cursor="Hand" ToolTip="Click to rename">
+                      Cursor="Hand" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ClickRename}}">
                   <TextBlock x:Name="SeparatorNameDisplay"
                              Text="{Binding Name}"
                              FontSize="{DynamicResource FontSize.Small}" FontWeight="SemiBold"
@@ -345,7 +351,7 @@
                         Command="{Binding RemoveSelfCommand}"
                         Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                         Width="20" Height="20" FontSize="{DynamicResource FontSize.Small}"
-                        ToolTip="Remove separator" />
+                        ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.RemoveSeparator}}" />
               </Grid>
             </Border>
 
@@ -435,14 +441,19 @@
                          Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
               <TextBox Grid.Column="1" Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}" />
               <TextBlock Grid.Column="2"
-                         Text="{Binding OutfitArmorsTotalCount, StringFormat='{}{0} armors'}"
-                         Margin="8,0,0,0" VerticalAlignment="Center" />
+                         Margin="8,0,0,0" VerticalAlignment="Center">
+                <TextBlock.Text>
+                  <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="ArmorPatch_ArmorsFormat">
+                  <Binding Path="OutfitArmorsTotalCount" />
+                </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
             </Grid>
 
             <!-- Filter Row -->
             <WrapPanel Grid.Row="1" Orientation="Horizontal">
               <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                <TextBlock Text="Type:"
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.TypeLabel}}"
                            Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                 <ComboBox ItemsSource="{Binding OutfitArmorTypeFilterOptions}"
                           SelectedItem="{Binding SelectedOutfitArmorType}"
@@ -450,14 +461,14 @@
               </StackPanel>
 
               <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-                <TextBlock Text="Slot:"
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.SlotLabel}}"
                            Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
                 <ComboBox ItemsSource="{Binding OutfitSlotFilterOptions}"
                           SelectedItem="{Binding SelectedOutfitSlot}"
                           MinWidth="110" />
               </StackPanel>
 
-              <Button Content="Clear Filters"
+              <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ClearFilters}}"
                       Click="ClearOutfitFilters_Click"
                       Padding="8,2" VerticalAlignment="Center" Margin="0,2,0,2" />
             </WrapPanel>
@@ -565,8 +576,13 @@
                   Visibility="{Binding HasExistingPluginOutfits, Converter={StaticResource BoolToVisConverter}}">
             <StackPanel>
               <TextBlock
-                Text="{Binding ExistingOutfits.Count, StringFormat='This plugin already defines {0} outfit(s).'}"
-                FontWeight="Bold" Margin="0,0,0,6" />
+                FontWeight="Bold" Margin="0,0,0,6">
+                <TextBlock.Text>
+                  <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="OutfitCreator_ExistingOutfitsFormat">
+                  <Binding Path="ExistingOutfits.Count" />
+                </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
               <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding ExistingOutfits}">
                   <ItemsControl.ItemTemplate>
@@ -833,11 +849,16 @@
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <TextBlock Grid.Column="0"
-                 Text="{Binding OutfitDrafts.Count, StringFormat='{}{0} item(s)'}"
-                 VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="+ Separator" Click="AddSeparator_Click"
+                 VerticalAlignment="Center">
+        <TextBlock.Text>
+          <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_ItemsCountFormat">
+                  <Binding Path="OutfitDrafts.Count" />
+                </MultiBinding>
+        </TextBlock.Text>
+      </TextBlock>
+      <Button Grid.Column="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.AddSeparator}}" Click="AddSeparator_Click"
               Padding="12,8" Margin="0,0,8,0"
-              ToolTip="Add a separator to organize outfits" />
+              ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.AddSeparatorTooltip}}" />
       <Button Grid.Column="2" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
               Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
               IsEnabled="{Binding HasOutfitDrafts}">

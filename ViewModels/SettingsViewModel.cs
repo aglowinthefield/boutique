@@ -4,6 +4,7 @@ using System.IO;
 using System.Reactive.Linq;
 using System.Windows;
 using Boutique.Models;
+using Boutique.Resources;
 using Boutique.Services;
 using Boutique.Utilities;
 using Boutique.Views;
@@ -15,6 +16,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -276,7 +278,9 @@ public partial class SettingsViewModel : ReactiveObject
   {
     var dialog = new OpenFileDialog
                  {
-                   Title           = "Select Skyrim Data Folder",
+                   Title           = LocalizationService.Get(
+                                       LocalizationKeys.Dialogs.SelectDataFolder,
+                                       "Select Skyrim Data Folder"),
                    FileName        = "Select Folder",
                    Filter          = "Folder|*.none",
                    CheckFileExists = false,
@@ -301,7 +305,9 @@ public partial class SettingsViewModel : ReactiveObject
   {
     var dialog = new OpenFileDialog
                  {
-                   Title           = "Select Output Folder for Patch",
+                   Title           = LocalizationService.Get(
+                                       LocalizationKeys.Dialogs.SelectOutputFolder,
+                                       "Select Output Folder for Patch"),
                    FileName        = "Select Folder",
                    Filter          = "Folder|*.none",
                    CheckFileExists = false,
@@ -345,12 +351,22 @@ public partial class SettingsViewModel : ReactiveObject
       }
       catch (Exception ex)
       {
-        _dialogService.ShowError($"Failed to open log file: {ex.Message}", "Error");
+        _dialogService.ShowError(
+          LocalizationService.GetFormatted(
+            Messages.FailedOpenLogFile,
+            "Failed to open log file: {0}",
+            ex.Message),
+          LocalizationService.Get(Messages.ErrorTitle, "Error"));
       }
     }
     else
     {
-      _dialogService.ShowInfo($"Today's log file does not exist yet:\n{todayLogFile}", "Log File Not Found");
+      _dialogService.ShowInfo(
+        LocalizationService.GetFormatted(
+          Messages.LogFileNotExist,
+          "Today's log file does not exist yet:\n{0}",
+          todayLogFile),
+        LocalizationService.Get(Messages.LogFileNotFoundTitle, "Log File Not Found"));
     }
   }
 
@@ -370,12 +386,22 @@ public partial class SettingsViewModel : ReactiveObject
       }
       catch (Exception ex)
       {
-        _dialogService.ShowError($"Failed to open logs folder: {ex.Message}", "Error");
+        _dialogService.ShowError(
+          LocalizationService.GetFormatted(
+            Messages.FailedOpenLogsFolder,
+            "Failed to open logs folder: {0}",
+            ex.Message),
+          LocalizationService.Get(Messages.ErrorTitle, "Error"));
       }
     }
     else
     {
-      _dialogService.ShowInfo($"Logs folder does not exist:\n{logsFolder}", "Folder Not Found");
+      _dialogService.ShowInfo(
+        LocalizationService.GetFormatted(
+          Messages.LogsFolderNotExist,
+          "Logs folder does not exist:\n{0}",
+          logsFolder),
+        LocalizationService.Get(Messages.FolderNotFoundTitle, "Folder Not Found"));
     }
   }
 
@@ -460,8 +486,14 @@ public partial class SettingsViewModel : ReactiveObject
 
   private static string GetDetectionMessage(string gameName, bool success) =>
     success
-      ? $"Detected {gameName} using Mutagen"
-      : $"Auto-detection failed for {gameName} - please set manually";
+      ? LocalizationService.GetFormatted(
+          LocalizationKeys.Detection.Mutagen,
+          "Detected {0} using Mutagen",
+          gameName)
+      : LocalizationService.GetFormatted(
+          LocalizationKeys.Detection.Failed,
+          "Auto-detection failed for {0} - please set manually",
+          gameName);
 
   private static void ShowRestartDialog()
   {

@@ -846,4 +846,828 @@
   <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
     <value>与另一个物品共用同一身体部位槽——启用"全部使用"时只会穿戴其中一个。</value>
   </data>
+
+  <!-- Code-behind Messages -->
+  <data name="Msg_Ready" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>保存中...</value>
+  </data>
+  <data name="Msg_ErrorGeneric" xml:space="preserve">
+    <value>错误：{0}</value>
+  </data>
+  <data name="Msg_ErrorTitle" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Msg_InitializingMutagen" xml:space="preserve">
+    <value>正在初始化 Mutagen...</value>
+  </data>
+  <data name="Msg_LoadedPluginsWithArmors" xml:space="preserve">
+    <value>已加载 {0} 个包含护甲/服装的插件</value>
+  </data>
+  <data name="Msg_LoadingArmorsFrom" xml:space="preserve">
+    <value>正在从 {0} 加载护甲...</value>
+  </data>
+  <data name="Msg_LoadedArmorsFrom" xml:space="preserve">
+    <value>已从 {1} 加载 {0} 件护甲</value>
+  </data>
+  <data name="Msg_LoadedArmorsFromOutfit" xml:space="preserve">
+    <value>已从 {1} 加载 {0} 件护甲。</value>
+  </data>
+  <data name="Msg_ErrorLoadingArmorsFrom" xml:space="preserve">
+    <value>从 {0} 加载护甲时出错：{1}</value>
+  </data>
+  <data name="Msg_ErrorLoadingPluginTitle" xml:space="preserve">
+    <value>加载插件出错</value>
+  </data>
+  <data name="Msg_FailedLoadArmors" xml:space="preserve">
+    <value>无法从 {0} 加载护甲：&#10;{1}</value>
+  </data>
+  <data name="Msg_MappedArmorsTo" xml:space="preserve">
+    <value>已将 {0} 件护甲映射到 {1}</value>
+  </data>
+  <data name="Msg_ErrorMappingArmors" xml:space="preserve">
+    <value>映射护甲时出错：{0}</value>
+  </data>
+  <data name="Msg_MarkedGlamOnly" xml:space="preserve">
+    <value>已将 {0} 件护甲标记为仅外观。</value>
+  </data>
+  <data name="Msg_ErrorMarkingGlamOnly" xml:space="preserve">
+    <value>标记为仅外观时出错：{0}</value>
+  </data>
+  <data name="Msg_ClearedMappings" xml:space="preserve">
+    <value>已清除所有映射。</value>
+  </data>
+  <data name="Msg_RemovedMappingFor" xml:space="preserve">
+    <value>已移除 {0} 的映射</value>
+  </data>
+  <data name="Msg_GlamOnlySummary" xml:space="preserve">
+    <value>✨ 仅外观（护甲值设为 0）</value>
+  </data>
+  <data name="Msg_NotMapped" xml:space="preserve">
+    <value>未映射</value>
+  </data>
+  <data name="Msg_BuildingPreviewQuoted" xml:space="preserve">
+    <value>正在为“{0}”生成预览...</value>
+  </data>
+  <data name="Msg_PreviewReadyQuoted" xml:space="preserve">
+    <value>“{0}”的预览已就绪。</value>
+  </data>
+  <data name="Msg_PreviewError" xml:space="preserve">
+    <value>预览错误：{0}</value>
+  </data>
+  <data name="Msg_CreatingPatch" xml:space="preserve">
+    <value>正在创建补丁...</value>
+  </data>
+  <data name="Msg_NoMappedArmors" xml:space="preserve">
+    <value>没有已映射的护甲可供生成补丁。</value>
+  </data>
+  <data name="Msg_OverwritePatchConfirm" xml:space="preserve">
+    <value>所选补丁文件已存在。添加新数据将覆盖该 ESP 中 FormID 相同的所有记录。&#10;&#10;是否继续？</value>
+  </data>
+  <data name="Msg_PatchCanceled" xml:space="preserve">
+    <value>补丁创建已取消。</value>
+  </data>
+  <data name="Msg_FailedToCreatePatch" xml:space="preserve">
+    <value>创建补丁失败</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>意外错误</value>
+  </data>
+  <data name="Msg_ErrorCreatingPatch" xml:space="preserve">
+    <value>创建补丁时出错：{0}</value>
+  </data>
+  <data name="Msg_SelectFilePath" xml:space="preserve">
+    <value>请选择文件路径。</value>
+  </data>
+  <data name="Msg_ConflictsDetectedHeader" xml:space="preserve">
+    <value>⚠ 检测到分布冲突</value>
+  </data>
+  <data name="Msg_ConflictsRenameNote" xml:space="preserve">
+    <value>为确保新的分布具有更高优先级（最后加载），文件名将更改为：</value>
+  </data>
+  <data name="Msg_ConflictsZPrefixNote" xml:space="preserve">
+    <value>此“Z”前缀可确保按字母排序时，您的文件排在冲突文件之后。</value>
+  </data>
+  <data name="Msg_ConflictsContinueFilename" xml:space="preserve">
+    <value>是否使用此文件名继续？</value>
+  </data>
+  <data name="Msg_ConflictsTitle" xml:space="preserve">
+    <value>检测到冲突 - 需要更改文件名</value>
+  </data>
+  <data name="Msg_SaveCancelled" xml:space="preserve">
+    <value>保存已取消。</value>
+  </data>
+  <data name="Msg_OverwriteFileConfirm" xml:space="preserve">
+    <value>文件“{0}”已存在。&#10;&#10;是否覆盖？</value>
+  </data>
+  <data name="Msg_ConfirmOverwriteTitle" xml:space="preserve">
+    <value>确认覆盖</value>
+  </data>
+  <data name="Msg_SavingDistributionFile" xml:space="preserve">
+    <value>正在保存分布文件...</value>
+  </data>
+  <data name="Msg_SavedDistributionFile" xml:space="preserve">
+    <value>分布文件保存成功：{0}</value>
+  </data>
+  <data name="Msg_ErrorSavingFile" xml:space="preserve">
+    <value>保存文件时出错：{0}</value>
+  </data>
+  <data name="Msg_UnsavedChangesPrompt" xml:space="preserve">
+    <value>您有未保存的分布更改。是否在继续之前保存？</value>
+  </data>
+  <data name="Msg_UnsavedChangesTitle" xml:space="preserve">
+    <value>未保存的更改</value>
+  </data>
+  <data name="Msg_SavedFile" xml:space="preserve">
+    <value>已保存 {0}</value>
+  </data>
+  <data name="Msg_FileNotExist" xml:space="preserve">
+    <value>文件不存在。请选择有效的文件。</value>
+  </data>
+  <data name="Msg_LoadingDistributionFile" xml:space="preserve">
+    <value>正在加载分布文件...</value>
+  </data>
+  <data name="Msg_LoadedDistributionEntries" xml:space="preserve">
+    <value>已从 {1} 加载 {0} 条分布条目</value>
+  </data>
+  <data name="Msg_ParseErrorsSuffix" xml:space="preserve">
+    <value>（有 {0} 行无法解析）</value>
+  </data>
+  <data name="Msg_ErrorLoadingFile" xml:space="preserve">
+    <value>加载文件时出错：{0}</value>
+  </data>
+  <data name="Msg_ErrorGeneratingContent" xml:space="preserve">
+    <value>；生成文件内容时出错：{0}</value>
+  </data>
+  <data name="Msg_SetDataPathScanNpcs" xml:space="preserve">
+    <value>扫描 NPC 之前，请先在设置中设置 Skyrim 数据路径。</value>
+  </data>
+  <data name="Msg_DataPathNotExist" xml:space="preserve">
+    <value>Skyrim 数据路径不存在：{0}</value>
+  </data>
+  <data name="Msg_InitializingSkyrim" xml:space="preserve">
+    <value>正在初始化 Skyrim 环境...</value>
+  </data>
+  <data name="Msg_LoadingGameData" xml:space="preserve">
+    <value>正在加载游戏数据（NPC、阵营、关键词、种族、职业）...</value>
+  </data>
+  <data name="Msg_LoadingGameDataPlugins" xml:space="preserve">
+    <value>正在从插件加载游戏数据...</value>
+  </data>
+  <data name="Msg_LoadedGameData" xml:space="preserve">
+    <value>已加载：NPC {0:N0} 个，阵营 {1:N0} 个，种族 {2:N0} 个，职业 {3:N0} 个，关键词 {4:N0} 个。</value>
+  </data>
+  <data name="Msg_ErrorScanningNpcs" xml:space="preserve">
+    <value>扫描 NPC 时出错：{0}</value>
+  </data>
+  <data name="Msg_NoOutfitSelectedPreview" xml:space="preserve">
+    <value>未选择要预览的服装。</value>
+  </data>
+  <data name="Msg_InitializeBeforePreview" xml:space="preserve">
+    <value>预览服装之前，请先初始化 Skyrim 数据路径。</value>
+  </data>
+  <data name="Msg_NoArmorPieces" xml:space="preserve">
+    <value>服装“{0}”没有可预览的护甲部件。</value>
+  </data>
+  <data name="Msg_BuildingPreview" xml:space="preserve">
+    <value>正在为 {0} 生成预览...</value>
+  </data>
+  <data name="Msg_PreviewReady" xml:space="preserve">
+    <value>{0} 的预览已就绪。</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfit" xml:space="preserve">
+    <value>预览服装失败：{0}</value>
+  </data>
+  <data name="Msg_NoOutfitForNpc" xml:space="preserve">
+    <value>该 NPC 没有可预览的服装。</value>
+  </data>
+  <data name="Msg_CouldNotResolveOutfit" xml:space="preserve">
+    <value>无法解析服装：{0}</value>
+  </data>
+  <data name="Msg_NoDistributionToPreview" xml:space="preserve">
+    <value>没有可预览的分布。</value>
+  </data>
+  <data name="Msg_BuildingOutfitPreview" xml:space="preserve">
+    <value>正在生成服装预览...</value>
+  </data>
+  <data name="Msg_PreviewReadyWithCount" xml:space="preserve">
+    <value>预览已就绪，共 {0} 套服装。</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfits" xml:space="preserve">
+    <value>预览服装失败：{0}</value>
+  </data>
+  <data name="Msg_FailedPreviewGeneric" xml:space="preserve">
+    <value>预览失败：{0}</value>
+  </data>
+  <data name="Msg_LinkCacheNotAvailable" xml:space="preserve">
+    <value>LinkCache 不可用。</value>
+  </data>
+  <data name="Msg_FoundNpcDistributions" xml:space="preserve">
+    <value>找到 {0} 个有服装分布的 NPC（{1} 处冲突）。</value>
+  </data>
+  <data name="Msg_LoadingNpcOutfits" xml:space="preserve">
+    <value>正在加载 NPC 服装数据...</value>
+  </data>
+  <data name="Msg_ErrorLoadingNpcOutfits" xml:space="preserve">
+    <value>加载 NPC 服装时出错：{0}</value>
+  </data>
+  <data name="Msg_RefreshingNpcOutfits" xml:space="preserve">
+    <value>正在刷新 NPC 服装数据...</value>
+  </data>
+  <data name="Msg_ErrorRefreshingNpcOutfits" xml:space="preserve">
+    <value>刷新 NPC 服装时出错：{0}</value>
+  </data>
+  <data name="Msg_NoFiltersActive" xml:space="preserve">
+    <value>无活动筛选器</value>
+  </data>
+  <data name="Msg_NoFiltersToCopy" xml:space="preserve">
+    <value>没有可复制的筛选器。请先应用筛选器。</value>
+  </data>
+  <data name="Msg_FilterCopied" xml:space="preserve">
+    <value>筛选器已复制：{0}</value>
+  </data>
+  <data name="Msg_SetDataPathLoadOutfits" xml:space="preserve">
+    <value>加载服装之前，请先在设置中设置 Skyrim 数据路径。</value>
+  </data>
+  <data name="Msg_LoadingOutfits" xml:space="preserve">
+    <value>正在从加载顺序加载服装...</value>
+  </data>
+  <data name="Msg_LoadedOutfits" xml:space="preserve">
+    <value>已加载 {0} 套服装。</value>
+  </data>
+  <data name="Msg_ErrorLoadingOutfits" xml:space="preserve">
+    <value>加载服装时出错：{0}</value>
+  </data>
+  <data name="Msg_NoContainers" xml:space="preserve">
+    <value>未加载任何容器</value>
+  </data>
+  <data name="Msg_ContainersCount" xml:space="preserve">
+    <value>容器 {0:N0} / {1:N0}</value>
+  </data>
+  <data name="Msg_CalculatingGrades" xml:space="preserve">
+    <value>正在计算评级...</value>
+  </data>
+  <data name="Msg_GradeSummary" xml:space="preserve">
+    <value>评级：{0} — 覆盖 NPC {1:N0}/{2:N0}，使用 Mod 服装 {3:N0}/{4:N0}，独特服装 {5:N0} 套</value>
+  </data>
+  <data name="Msg_CalculationFailed" xml:space="preserve">
+    <value>计算失败 — 详情请查看日志</value>
+  </data>
+  <data name="Msg_NothingToSave" xml:space="preserve">
+    <value>没有需要保存的内容。</value>
+  </data>
+  <data name="Msg_ErrorSavingTitle" xml:space="preserve">
+    <value>保存出错</value>
+  </data>
+  <data name="Msg_UnexpectedErrorSaving" xml:space="preserve">
+    <value>发生意外错误：&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorSaving" xml:space="preserve">
+    <value>保存时出错：{0}</value>
+  </data>
+  <data name="Msg_MissingMastersCheckFailedTitle" xml:space="preserve">
+    <value>缺失主插件检查失败</value>
+  </data>
+  <data name="Msg_CouldNotVerifyMasters" xml:space="preserve">
+    <value>无法验证补丁的主插件（文件可能已损坏或被锁定）：&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatchTitle" xml:space="preserve">
+    <value>清理补丁出错</value>
+  </data>
+  <data name="Msg_SelectPluginImportLists" xml:space="preserve">
+    <value>请选择一个源插件以导入等级列表。</value>
+  </data>
+  <data name="Msg_SelectSpecificPlugin" xml:space="preserve">
+    <value>请选择一个特定插件（不能是“所有插件”）以导入等级列表。</value>
+  </data>
+  <data name="Msg_ImportingLeveledLists" xml:space="preserve">
+    <value>正在从 {0} 导入等级列表...</value>
+  </data>
+  <data name="Msg_NoLeveledListsFound" xml:space="preserve">
+    <value>在 {0} 中未找到等级列表。</value>
+  </data>
+  <data name="Msg_ImportedLeveledLists" xml:space="preserve">
+    <value>已从 {1} 导入 {0} 个等级列表。</value>
+  </data>
+  <data name="Msg_AllListsLoaded" xml:space="preserve">
+    <value>{0} 中的所有等级列表均已加载。</value>
+  </data>
+  <data name="Msg_FailedOpenLogFile" xml:space="preserve">
+    <value>无法打开日志文件：{0}</value>
+  </data>
+  <data name="Msg_LogFileNotExist" xml:space="preserve">
+    <value>今天的日志文件尚不存在：&#10;{0}</value>
+  </data>
+  <data name="Msg_LogFileNotFoundTitle" xml:space="preserve">
+    <value>未找到日志文件</value>
+  </data>
+  <data name="Msg_FailedOpenLogsFolder" xml:space="preserve">
+    <value>无法打开日志文件夹：{0}</value>
+  </data>
+  <data name="Msg_LogsFolderNotExist" xml:space="preserve">
+    <value>日志文件夹不存在：&#10;{0}</value>
+  </data>
+  <data name="Msg_FolderNotFoundTitle" xml:space="preserve">
+    <value>未找到文件夹</value>
+  </data>
+  <data name="Msg_FormatChangePrompt" xml:space="preserve">
+    <value>启用基于几率的分布会将文件格式更改为 SPID。&#10;&#10;SkyPatcher 不支持基于几率的服装分布。为支持此功能，文件将以 SPID 格式保存。&#10;&#10;是否继续？</value>
+  </data>
+  <data name="Msg_FormatChangeTitle" xml:space="preserve">
+    <value>需要更改格式</value>
+  </data>
+  <data name="Msg_WritingPatch" xml:space="preserve">
+    <value>正在写入补丁文件...</value>
+  </data>
+  <data name="Msg_RefreshingLoadOrder" xml:space="preserve">
+    <value>正在刷新加载顺序...</value>
+  </data>
+  <data name="Msg_NoValidMatches" xml:space="preserve">
+    <value>没有可生成补丁的有效匹配。</value>
+  </data>
+  <data name="Msg_PatchingArmor" xml:space="preserve">
+    <value>正在为 {0} 生成补丁...</value>
+  </data>
+  <data name="Msg_PatchCreated" xml:space="preserve">
+    <value>已成功创建补丁，包含 {0} 件护甲，位于 {1}</value>
+  </data>
+  <data name="Msg_WritingOutfit" xml:space="preserve">
+    <value>正在写入服装 {0}...</value>
+  </data>
+  <data name="Msg_WritingLeveledList" xml:space="preserve">
+    <value>正在写入等级列表 {0}...</value>
+  </data>
+  <data name="Msg_SavedTo" xml:space="preserve">
+    <value>已将 {0} 保存到 {1}</value>
+  </data>
+  <data name="Msg_OutfitsCount" xml:space="preserve">
+    <value>{0} 套服装</value>
+  </data>
+  <data name="Msg_LeveledListsCount" xml:space="preserve">
+    <value>{0} 个等级列表</value>
+  </data>
+  <data name="Msg_ListJoin" xml:space="preserve">
+    <value>和</value>
+  </data>
+  <data name="Msg_ZeroRecords" xml:space="preserve">
+    <value>0 条记录</value>
+  </data>
+  <data name="Msg_MutagenNotInitialized" xml:space="preserve">
+    <value>Mutagen 服务未初始化。请先设置 Skyrim 数据路径。</value>
+  </data>
+  <data name="Msg_InvalidPluginName" xml:space="preserve">
+    <value>“{0}”不是有效的插件名称。补丁文件名必须以 .esp、.esm 或 .esl 结尾。</value>
+  </data>
+  <data name="Msg_CannotWriteFileLocked" xml:space="preserve">
+    <value>无法写入“{0}”。该文件可能正被其他程序（Skyrim、xEdit 等）占用。请关闭可能打开该文件的程序，然后重试。</value>
+  </data>
+  <data name="Msg_CannotWriteFile" xml:space="preserve">
+    <value>无法写入“{0}”：{1}。该文件可能正被其他程序占用。</value>
+  </data>
+  <data name="Msg_CannotWriteUnknown" xml:space="preserve">
+    <value>无法写入“{0}”：未知错误。</value>
+  </data>
+  <data name="Msg_RemovedOutfitsMissingMasters" xml:space="preserve">
+    <value>已成功移除 {0} 套存在缺失主插件的服装。</value>
+  </data>
+  <data name="Msg_PatchFileNotExist" xml:space="preserve">
+    <value>补丁文件不存在。</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatch" xml:space="preserve">
+    <value>清理补丁时出错：{0}</value>
+  </data>
+  <data name="Msg_UpdateDownloadFailed" xml:space="preserve">
+    <value>下载更新失败：{0}</value>
+  </data>
+  <data name="Msg_UpdateErrorTitle" xml:space="preserve">
+    <value>更新错误</value>
+  </data>
+  <data name="Msg_LatestVersion" xml:space="preserve">
+    <value>您正在使用最新版本。</value>
+  </data>
+  <data name="Msg_NoUpdateTitle" xml:space="preserve">
+    <value>没有可用更新</value>
+  </data>
+  <data name="Msg_AutosaveNoticeBody" xml:space="preserve">
+    <value>分布文件的自动保存功能已移除。&#10;&#10;现在，只有当您显式点击“保存”时才会保存分布文件。每次保存之前会自动创建一个轮换备份，保存在：&#10;%LOCALAPPDATA%\Boutique\Backups\&#10;&#10;此更改可避免部分用户在自动保存时遇到的静默数据丢失问题。</value>
+  </data>
+  <data name="Msg_AutosaveNoticeTitle" xml:space="preserve">
+    <value>分布文件自动保存已移除</value>
+  </data>
+  <data name="View_EntryDetails" xml:space="preserve">
+    <value>条目详情</value>
+  </data>
+  <data name="View_Filters" xml:space="preserve">
+    <value>筛选器</value>
+  </data>
+  <data name="View_SelectEntryHint" xml:space="preserve">
+    <value>从列表中选择一个条目以编辑其详情</value>
+  </data>
+  <data name="View_ExclusiveGroupNameTooltip" xml:space="preserve">
+    <value>ExclusiveGroup 名称。</value>
+  </data>
+  <data name="View_ExclusiveGroupFormsTooltip" xml:space="preserve">
+    <value>以逗号分隔的 Form 列表。</value>
+  </data>
+  <data name="View_FormsLabel" xml:space="preserve">
+    <value>Form：</value>
+  </data>
+  <data name="View_ChanceLabel" xml:space="preserve">
+    <value>概率：</value>
+  </data>
+  <data name="View_Traits" xml:space="preserve">
+    <value>特征</value>
+  </data>
+  <data name="View_GenderLabel" xml:space="preserve">
+    <value>性别：</value>
+  </data>
+  <data name="View_UniqueLabel" xml:space="preserve">
+    <value>唯一：</value>
+  </data>
+  <data name="View_LevelLabel" xml:space="preserve">
+    <value>等级：</value>
+  </data>
+  <data name="View_LevelNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="View_LevelLevel" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="View_LevelSkillLevel" xml:space="preserve">
+    <value>技能等级</value>
+  </data>
+  <data name="View_LevelSkillWeight" xml:space="preserve">
+    <value>技能权重</value>
+  </data>
+  <data name="View_LevelRaw" xml:space="preserve">
+    <value>原始</value>
+  </data>
+  <data name="View_Min" xml:space="preserve">
+    <value>最小</value>
+  </data>
+  <data name="View_Max" xml:space="preserve">
+    <value>最大</value>
+  </data>
+  <data name="View_ToggleNegationTooltip" xml:space="preserve">
+    <value>点击切换取反</value>
+  </data>
+  <data name="View_AndOrLogicFormat" xml:space="preserve">
+    <value>AND：所有{0}都必须匹配 | OR：至少一个{0}匹配</value>
+  </data>
+  <data name="View_OutfitFilters" xml:space="preserve">
+    <value>服装筛选器</value>
+  </data>
+  <data name="View_RawFilters" xml:space="preserve">
+    <value>原始筛选器</value>
+  </data>
+  <data name="View_StringLabel" xml:space="preserve">
+    <value>字符串：</value>
+  </data>
+  <data name="View_FormLabel" xml:space="preserve">
+    <value>Form：</value>
+  </data>
+  <data name="View_RawStringFiltersTooltip" xml:space="preserve">
+    <value>原始字符串筛选器：通配符(*Mage)、取反(-Exclude)和 SPID 分发关键字。逗号表示 OR，加号表示 AND。</value>
+  </data>
+  <data name="View_RawFormFiltersTooltip" xml:space="preserve">
+    <value>原始 Form 筛选器：取反阵营(-FactionName)、种族等。逗号表示 OR。</value>
+  </data>
+  <data name="View_Results" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="View_TotalNpcsFormat" xml:space="preserve">
+    <value>总计：{0} 个 NPC</value>
+  </data>
+  <data name="View_Criteria" xml:space="preserve">
+    <value>条件</value>
+  </data>
+  <data name="View_TargetFormat" xml:space="preserve">
+    <value>目标：{0}</value>
+  </data>
+  <data name="View_TargetNone" xml:space="preserve">
+    <value>目标：（未选择）</value>
+  </data>
+  <data name="View_TargetOutfitsHint" xml:space="preserve">
+    <value>以穿着指定现有服装的 NPC 为目标，实际替换该服装。</value>
+  </data>
+  <data name="View_AddSelectedOutfits" xml:space="preserve">
+    <value>添加所选服装</value>
+  </data>
+  <data name="View_ShowingPrefix" xml:space="preserve">
+    <value>显示 </value>
+  </data>
+  <data name="View_OfSeparator" xml:space="preserve">
+    <value> / </value>
+  </data>
+  <data name="View_NpcsSuffix" xml:space="preserve">
+    <value> 个 NPC</value>
+  </data>
+  <data name="View_OutfitFileTooltip" xml:space="preserve">
+    <value>决定此 NPC 服装的分发文件</value>
+  </data>
+  <data name="View_ContainsLeveledLists" xml:space="preserve">
+    <value>包含分级列表</value>
+  </data>
+  <data name="View_ContainsLeveledListsTooltip" xml:space="preserve">
+    <value>仅显示包含分级列表或 Form 列表的服装</value>
+  </data>
+  <data name="View_MoreActions" xml:space="preserve">
+    <value>更多操作</value>
+  </data>
+  <data name="View_NpcCountFormat" xml:space="preserve">
+    <value>({0} 个 NPC)</value>
+  </data>
+  <data name="View_UnresolvedFiltersTooltip" xml:space="preserve">
+    <value>此条目包含无法匹配到已知 NPC 或关键字的未解析筛选器</value>
+  </data>
+  <data name="View_IntraFileOverlapsFormat" xml:space="preserve">
+    <value>{0} 个文件内重叠</value>
+  </data>
+  <data name="View_ViewButton" xml:space="preserve">
+    <value>查看</value>
+  </data>
+  <data name="View_ParseErrorsSuffix" xml:space="preserve">
+    <value> 个解析错误 - 保存时将保留这些行</value>
+  </data>
+  <data name="View_Plugin" xml:space="preserve">
+    <value>插件</value>
+  </data>
+  <data name="View_ArValFormat" xml:space="preserve">
+    <value> (护甲：{0:F0}，价值：{1})</value>
+  </data>
+  <data name="View_Overall" xml:space="preserve">
+    <value>总体</value>
+  </data>
+  <data name="View_NpcCoverage" xml:space="preserve">
+    <value>NPC 覆盖率</value>
+  </data>
+  <data name="View_ModUtilization" xml:space="preserve">
+    <value>模组利用率</value>
+  </data>
+  <data name="View_OutfitVariety" xml:space="preserve">
+    <value>服装多样性</value>
+  </data>
+  <data name="View_CalculateGrade" xml:space="preserve">
+    <value>计算评级</value>
+  </data>
+  <data name="View_CoverageSummaryFormat" xml:space="preserve">
+    <value>覆盖 {0:N0}/{1:N0} 个 NPC · 使用 {2:N0}/{3:N0} 套模组服装 · {4:N0} 套不重复服装</value>
+  </data>
+  <data name="View_ClickCalculateHint" xml:space="preserve">
+    <value>点击“计算评级”以分析您的分发设置</value>
+  </data>
+  <data name="View_SourceMods" xml:space="preserve">
+    <value>来源模组</value>
+  </data>
+  <data name="View_UnusedOutfitsFormat" xml:space="preserve">
+    <value>未使用的模组服装 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsFormat" xml:space="preserve">
+    <value>未加入任何服装的护甲 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsHint" xml:space="preserve">
+    <value>来自模组、任何服装都未授予的可穿着未附魔护甲。部分可能刻意仅可制造。</value>
+  </data>
+  <data name="View_NotApplicable" xml:space="preserve">
+    <value>不适用</value>
+  </data>
+  <data name="View_HideEmptyContainers" xml:space="preserve">
+    <value>隐藏空容器</value>
+  </data>
+  <data name="View_CellLabel" xml:space="preserve">
+    <value>单元格：</value>
+  </data>
+  <data name="View_RespawnsLabel" xml:space="preserve">
+    <value>重生：</value>
+  </data>
+  <data name="View_ItemsHeader" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="View_MerchantHeader" xml:space="preserve">
+    <value>商人</value>
+  </data>
+  <data name="View_CellsHeader" xml:space="preserve">
+    <value>单元格</value>
+  </data>
+  <data name="View_RespawnsHeader" xml:space="preserve">
+    <value>重生</value>
+  </data>
+  <data name="View_ItemHeader" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="View_CountHeader" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="View_SelectContainer" xml:space="preserve">
+    <value>选择一个容器</value>
+  </data>
+  <data name="View_SelectContainerHint" xml:space="preserve">
+    <value>选择一个容器以查看其内容</value>
+  </data>
+  <data name="View_PreviousOutfitTooltip" xml:space="preserve">
+    <value>上一套服装（左箭头）</value>
+  </data>
+  <data name="View_NextOutfitTooltip" xml:space="preserve">
+    <value>下一套服装（右箭头）</value>
+  </data>
+  <data name="View_LoadingPreview" xml:space="preserve">
+    <value>正在加载预览……</value>
+  </data>
+  <data name="View_LeveledItemsNotice" xml:space="preserve">
+    <value>此服装包含分级列表。</value>
+  </data>
+  <data name="View_LeveledItemsHint" xml:space="preserve">
+    <value>游戏内外观可能有所不同。点击“随机化”可预览不同组合。</value>
+  </data>
+  <data name="View_Randomize" xml:space="preserve">
+    <value>随机化</value>
+  </data>
+  <data name="View_ToggleTabTooltip" xml:space="preserve">
+    <value>按 Tab 键切换</value>
+  </data>
+  <data name="View_ShowBaseBody" xml:space="preserve">
+    <value>显示基础身体</value>
+  </data>
+  <data name="View_HideBaseBodyTooltip" xml:space="preserve">
+    <value>当默认身体网格穿模时将其隐藏</value>
+  </data>
+  <data name="View_OutfitCounterFormat" xml:space="preserve">
+    <value>服装 {0}/{1}</value>
+  </data>
+  <data name="View_UnknownOutfit" xml:space="preserve">
+    <value>未知服装</value>
+  </data>
+  <data name="View_FromSourceFormat" xml:space="preserve">
+    <value>来自 {0}</value>
+  </data>
+  <data name="View_FromSourceWinnerFormat" xml:space="preserve">
+    <value>来自 {0}（获胜者）</value>
+  </data>
+  <data name="View_NoGeometry" xml:space="preserve">
+    <value>没有可渲染的几何体。</value>
+  </data>
+  <data name="View_AutoUpdate" xml:space="preserve">
+    <value>自动更新</value>
+  </data>
+  <data name="View_CheckUpdatesOnStartup" xml:space="preserve">
+    <value>启动时检查更新</value>
+  </data>
+  <data name="View_CheckNow" xml:space="preserve">
+    <value>立即检查</value>
+  </data>
+  <data name="View_Experimental" xml:space="preserve">
+    <value>实验性</value>
+  </data>
+  <data name="View_ShowContainersTab" xml:space="preserve">
+    <value>显示“容器”标签页（需重启）</value>
+  </data>
+  <data name="View_DebugGroup" xml:space="preserve">
+    <value>调试</value>
+  </data>
+  <data name="View_DebugLogging" xml:space="preserve">
+    <value>调试日志</value>
+  </data>
+  <data name="View_EnableDebugLogging" xml:space="preserve">
+    <value>启用调试日志（需重启）</value>
+  </data>
+  <data name="View_LogFiles" xml:space="preserve">
+    <value>日志文件</value>
+  </data>
+  <data name="View_OpenTodaysLog" xml:space="preserve">
+    <value>打开今日日志</value>
+  </data>
+  <data name="View_OpenLogsFolder" xml:space="preserve">
+    <value>打开日志文件夹</value>
+  </data>
+  <data name="View_DragToReorder" xml:space="preserve">
+    <value>拖动以调整顺序</value>
+  </data>
+  <data name="View_ClickChangeIcon" xml:space="preserve">
+    <value>点击更改图标</value>
+  </data>
+  <data name="View_ClickRename" xml:space="preserve">
+    <value>点击重命名</value>
+  </data>
+  <data name="View_RemoveSeparator" xml:space="preserve">
+    <value>移除分隔符</value>
+  </data>
+  <data name="View_TypeLabel" xml:space="preserve">
+    <value>类型：</value>
+  </data>
+  <data name="View_SlotLabel" xml:space="preserve">
+    <value>槽位：</value>
+  </data>
+  <data name="View_AddSeparator" xml:space="preserve">
+    <value>+ 分隔符</value>
+  </data>
+  <data name="View_AddSeparatorTooltip" xml:space="preserve">
+    <value>添加分隔符以整理服装</value>
+  </data>
+  <data name="View_PiecesFormat" xml:space="preserve">
+    <value>（{0} 件）</value>
+  </data>
+  <data name="View_ItemsCountFormat" xml:space="preserve">
+    <value>{0} 项</value>
+  </data>
+  <data name="View_UpdateAvailableTitle" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="View_UpdateAvailableHeader" xml:space="preserve">
+    <value>Boutique 有新版本可用！</value>
+  </data>
+  <data name="View_CurrentVersionLabel" xml:space="preserve">
+    <value>当前版本：</value>
+  </data>
+  <data name="View_LatestVersionLabel" xml:space="preserve">
+    <value>最新版本：</value>
+  </data>
+  <data name="View_WhatsNew" xml:space="preserve">
+    <value>更新内容</value>
+  </data>
+  <data name="View_SkipThisVersion" xml:space="preserve">
+    <value>跳过此版本</value>
+  </data>
+  <data name="View_RemindMeLater" xml:space="preserve">
+    <value>稍后提醒</value>
+  </data>
+  <data name="View_UpdateNow" xml:space="preserve">
+    <value>立即更新</value>
+  </data>
+  <data name="View_SelectIconTitle" xml:space="preserve">
+    <value>选择图标</value>
+  </data>
+  <data name="View_FilterIcons" xml:space="preserve">
+    <value>筛选图标……</value>
+  </data>
+  <data name="View_ClearIcon" xml:space="preserve">
+    <value>清除图标</value>
+  </data>
+  <data name="View_Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="View_InputTitle" xml:space="preserve">
+    <value>输入</value>
+  </data>
+  <data name="View_IntraFileOverlapsTitle" xml:space="preserve">
+    <value>文件内重叠</value>
+  </data>
+  <data name="View_IntraFileOverlapsDescription" xml:space="preserve">
+    <value>服装条目之间共享的 NPC 数量。非零单元格表示被多套服装同时针对的 NPC。</value>
+  </data>
+  <data name="View_IntraFileOverlapsHeaderFormat" xml:space="preserve">
+    <value>{0} 个 NPC 被多套服装同时针对</value>
+  </data>
+  <data name="View_ConfirmRemoveMessage" xml:space="preserve">
+    <value>确定要移除此条目吗？&#10;&#10;{0}</value>
+  </data>
+  <data name="View_ConfirmRemoveTitle" xml:space="preserve">
+    <value>确认移除</value>
+  </data>
+  <data name="View_PatchCreatedTitle" xml:space="preserve">
+    <value>补丁已创建</value>
+  </data>
+  <data name="View_OverwritePatchTitle" xml:space="preserve">
+    <value>覆盖现有补丁？</value>
+  </data>
+  <data name="View_ConfirmDeleteTitle" xml:space="preserve">
+    <value>确认删除</value>
+  </data>
+  <data name="View_CreateOutfitTitle" xml:space="preserve">
+    <value>创建服装</value>
+  </data>
+  <data name="View_MissingMastersSummaryFormat" xml:space="preserve">
+    <value>清理补丁后将移除 {0} 套服装。需要重新添加缺失的主文件 {1} 个才能保留它们。</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>将所选地点添加到条目</value>
+  </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>地点：</value>
+  </data>
+  <data name="Header_Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ 此名称与现有插件冲突</value>
+  </data>
+  <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>保留此名称</value>
+  </data>
+  <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>“{0}”已存在于你的加载顺序中。创建补丁时使用此名称可能会覆盖现有数据。请考虑使用唯一的名称。</value>
+  </data>
+  <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>选择其他名称</value>
+  </data>
+  <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>插件名称冲突</value>
+  </data>
+  <data name="Tab_Containers" xml:space="preserve">
+    <value>容器</value>
+  </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>地点</value>
+  </data>
 </root>

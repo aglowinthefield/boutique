@@ -6,6 +6,8 @@
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:utilities="clr-namespace:Boutique.Utilities"
              xmlns:themes="clr-namespace:Boutique.Themes"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionReportCardTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="700"
@@ -134,7 +136,7 @@
                      DataContext="{Binding OverallGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding OverallPercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="Overall" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Overall}}" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
@@ -146,7 +148,7 @@
                      DataContext="{Binding NpcCoverageGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding NpcCoveragePercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="NPC Coverage" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.NpcCoverage}}" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
@@ -162,13 +164,13 @@
                 <Setter Property="Text" Value="{Binding ModUtilizationPercent, StringFormat='{}{0:P0}'}" />
                 <Style.Triggers>
                   <DataTrigger Binding="{Binding HasModOutfits}" Value="False">
-                    <Setter Property="Text" Value="N/A" />
+                    <Setter Property="Text" Value="{lex:Loc Key={x:Static res:LocalizationKeys+View.NotApplicable}}" />
                   </DataTrigger>
                 </Style.Triggers>
               </Style>
             </TextBlock.Style>
           </TextBlock>
-          <TextBlock Text="Mod Utilization" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ModUtilization}}" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
 
@@ -180,14 +182,14 @@
                      DataContext="{Binding VarietyGrade}" />
           <TextBlock Style="{StaticResource GradePercent}"
                      Text="{Binding VarietyPercent, StringFormat='{}{0:P0}'}" />
-          <TextBlock Text="Outfit Variety" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.OutfitVariety}}" Style="{DynamicResource {x:Static themes:ResourceKeys.StatCardCaptionStyleKey}}" />
         </StackPanel>
       </Border>
     </UniformGrid>
 
     <!-- Row 1: Calculate Button -->
     <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,4,0,8">
-      <Button Content="Calculate Grade"
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.CalculateGrade}}"
               Command="{Binding CalculateCommand}"
               Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
               Padding="24,8"
@@ -197,13 +199,13 @@
                  Visibility="{Binding HasResults, Converter={StaticResource BoolToVis}}"
                  Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextSecondary}}">
         <TextBlock.Text>
-          <MultiBinding StringFormat="{}{0:N0}/{1:N0} NPCs covered · {2:N0}/{3:N0} mod outfits used · {4:N0} unique outfits">
-            <Binding Path="CoveredNpcCount" />
-            <Binding Path="EligibleNpcCount" />
-            <Binding Path="UsedModOutfitCount" />
-            <Binding Path="ModOutfitCount" />
-            <Binding Path="UniqueOutfitCount" />
-          </MultiBinding>
+          <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_CoverageSummaryFormat">
+                  <Binding Path="CoveredNpcCount" />
+                  <Binding Path="EligibleNpcCount" />
+                  <Binding Path="UsedModOutfitCount" />
+                  <Binding Path="ModOutfitCount" />
+                  <Binding Path="UniqueOutfitCount" />
+                </MultiBinding>
         </TextBlock.Text>
       </TextBlock>
     </StackPanel>
@@ -214,7 +216,7 @@
                Margin="0,16,0,8"
                FontStyle="Italic"
                Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}"
-               Text="Click Calculate Grade to analyze your distribution setup">
+               Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ClickCalculateHint}}">
       <TextBlock.Style>
         <Style TargetType="TextBlock">
           <Setter Property="Visibility" Value="Collapsed" />
@@ -243,7 +245,7 @@
           </Grid.ColumnDefinitions>
 
           <StackPanel Grid.Column="0" Margin="0,0,8,0">
-            <TextBlock Text="Factions" Style="{StaticResource RankingColumnHeader}" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Factions}}" Style="{StaticResource RankingColumnHeader}" />
             <ItemsControl ItemsSource="{Binding UncoveredByFaction}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -259,7 +261,7 @@
           </StackPanel>
 
           <StackPanel Grid.Column="1" Margin="4,0,8,0">
-            <TextBlock Text="Classes" Style="{StaticResource RankingColumnHeader}" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Classes}}" Style="{StaticResource RankingColumnHeader}" />
             <ItemsControl ItemsSource="{Binding UncoveredByClass}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -275,7 +277,7 @@
           </StackPanel>
 
           <StackPanel Grid.Column="2" Margin="4,0,8,0">
-            <TextBlock Text="Races" Style="{StaticResource RankingColumnHeader}" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Races}}" Style="{StaticResource RankingColumnHeader}" />
             <ItemsControl ItemsSource="{Binding UncoveredByRace}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -291,7 +293,7 @@
           </StackPanel>
 
           <StackPanel Grid.Column="3" Margin="4,0,0,0">
-            <TextBlock Text="Source Mods" Style="{StaticResource RankingColumnHeader}" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.SourceMods}}" Style="{StaticResource RankingColumnHeader}" />
             <ItemsControl ItemsSource="{Binding UncoveredByMod}"
                           ItemTemplate="{StaticResource RankingRowTemplate}" />
           </StackPanel>
@@ -302,7 +304,7 @@
           <Expander.Header>
             <TextBlock FontWeight="SemiBold">
               <TextBlock.Text>
-                <MultiBinding StringFormat="Unused Mod Outfits ({0})">
+                <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_UnusedOutfitsFormat">
                   <Binding Path="UnusedOutfits.Count" />
                 </MultiBinding>
               </TextBlock.Text>
@@ -316,15 +318,15 @@
                     EnableRowVirtualization="True" EnableColumnVirtualization="True"
                     RowHeight="32">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorID}" Width="2*" CanUserSort="True" />
-              <DataGridTextColumn Header="Plugin" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorID}" Width="2*" CanUserSort="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Plugin}}" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
-              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKeyString}" Width="1.5*" CanUserSort="True"
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKeyString}" Width="1.5*" CanUserSort="True"
                                   ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-              <DataGridTemplateColumn Header="Preview" Width="Auto">
+              <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.PreviewCol}}" Width="Auto">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
-                    <Button Content="Preview"
+                    <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
                             Command="{Binding DataContext.PreviewOutfitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                             CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
                   </DataTemplate>
@@ -339,7 +341,7 @@
           <Expander.Header>
             <TextBlock FontWeight="SemiBold">
               <TextBlock.Text>
-                <MultiBinding StringFormat="Armors Not In Any Outfit ({0})">
+                <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_UnusedArmorsFormat">
                   <Binding Path="UnusedArmors.Count" />
                 </MultiBinding>
               </TextBlock.Text>
@@ -350,7 +352,7 @@
                        FontStyle="Italic"
                        Margin="0,0,0,6"
                        Foreground="{DynamicResource {x:Static utilities:ResourceKeys.BrushTextDisabled}}"
-                       Text="Playable, unenchanted armors from mods that no outfit grants. Some may be intentionally craft-only." />
+                       Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.UnusedArmorsHint}}" />
             <DataGrid ItemsSource="{Binding UnusedArmors}"
                       MaxHeight="360"
                       AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -359,17 +361,17 @@
                       EnableRowVirtualization="True" EnableColumnVirtualization="True"
                       RowHeight="32">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
-                <DataGridTextColumn Header="Slots" Binding="{Binding SlotSummary}" Width="1.5*" CanUserSort="True"
+                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
+                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Slots}}" Binding="{Binding SlotSummary}" Width="1.5*" CanUserSort="True"
                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
-                <DataGridTextColumn Header="Plugin" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
+                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Plugin}}" Binding="{Binding ModDisplayName}" Width="1.5*" CanUserSort="True"
                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
-                <DataGridTextColumn Header="FormID" Binding="{Binding FormIdDisplay}" Width="1*" CanUserSort="True"
+                <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormID}}" Binding="{Binding FormIdDisplay}" Width="1*" CanUserSort="True"
                                     ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-                <DataGridTemplateColumn Header="Preview" Width="Auto">
+                <DataGridTemplateColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.PreviewCol}}" Width="Auto">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                      <Button Content="Preview"
+                      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.ShowPreview}}"
                               Command="{Binding DataContext.PreviewArmorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                               CommandParameter="{Binding}" Padding="8,2" Margin="4,0" HorizontalAlignment="Center" />
                     </DataTemplate>

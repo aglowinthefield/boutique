@@ -27,13 +27,14 @@ public class ContainerDataBuilder(ILogger logger)
     var cellPlacements     = BuildCellPlacementLookup(linkCache);
     var cellTime           = sw.ElapsedMilliseconds - merchantTime;
 
-    var containers = linkCache.WinningOverrides<IContainerGetter>()
-      .Where(c => !isBlacklisted(c.FormKey.ModKey))
-      .Select(c => new ContainerRecordViewModel(
-        c,
+    var containers = linkCache.WinningContextOverrides<IContainer, IContainerGetter>(linkCache)
+      .Where(ctx => !isBlacklisted(ctx.Record.FormKey.ModKey) && !isBlacklisted(ctx.ModKey))
+      .Select(ctx => new ContainerRecordViewModel(
+        ctx.Record,
         linkCache,
-        merchantContainers.GetValueOrDefault(c.FormKey),
-        cellPlacements.GetValueOrDefault(c.FormKey)))
+        merchantContainers.GetValueOrDefault(ctx.Record.FormKey),
+        cellPlacements.GetValueOrDefault(ctx.Record.FormKey),
+        ctx.ModKey))
       .OrderBy(c => c.DisplayName)
       .ToList();
 

@@ -6,6 +6,8 @@
              xmlns:vm="clr-namespace:Boutique.ViewModels"
              xmlns:themes="clr-namespace:Boutique.Themes"
              xmlns:utilities="clr-namespace:Boutique.Utilities"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:res="clr-namespace:Boutique.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:DistributionContainersTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600"
@@ -26,10 +28,10 @@
       </Grid.ColumnDefinitions>
 
       <StackPanel Grid.Column="1" Orientation="Horizontal">
-        <CheckBox Content="Hide empty containers"
+        <CheckBox Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.HideEmptyContainers}}"
                   IsChecked="{Binding HideEmptyContainers}"
                   VerticalAlignment="Center" Margin="0,0,16,0" />
-        <TextBlock Text="Search:"
+        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
                    Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                  MinWidth="250" />
@@ -37,11 +39,11 @@
     </Grid>
 
     <!-- Filter Controls -->
-    <GroupBox Grid.Row="1" Header="Filters" Margin="0,0,0,6" Padding="6">
+    <GroupBox Grid.Row="1" Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Filters}}" Margin="0,0,0,6" Padding="6">
       <WrapPanel Orientation="Horizontal">
         <!-- Cell Filter -->
         <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-          <TextBlock Text="Cell:"
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.CellLabel}}"
                      Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
           <ComboBox ItemsSource="{Binding AvailableCells}"
                     SelectedItem="{Binding SelectedCell}"
@@ -51,7 +53,7 @@
 
         <!-- Respawns Filter -->
         <StackPanel Orientation="Horizontal" Margin="0,2,16,2">
-          <TextBlock Text="Respawns:"
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.RespawnsLabel}}"
                      Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
           <ComboBox ItemsSource="{Binding RespawnsFilterOptions}"
                     SelectedItem="{Binding SelectedRespawnsFilter}"
@@ -78,14 +80,14 @@
                 EnableRowVirtualization="True" EnableColumnVirtualization="True"
                 RowHeight="28">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
-          <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="1.5*" CanUserSort="True"
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorId}" Width="1.5*" CanUserSort="True"
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridFormKeyColumnStyleKey}}" />
-          <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="45" CanUserSort="True" />
-          <DataGridTextColumn Header="Merchant" Binding="{Binding MerchantFaction}" Width="1.5*" CanUserSort="True" />
-          <DataGridTextColumn Header="Cells" Binding="{Binding CellPlacementsDisplay}" Width="2*" CanUserSort="True" />
-          <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="1.5*" CanUserSort="True" />
-          <DataGridCheckBoxColumn Header="Respawns" Binding="{Binding Respawns, Mode=OneWay}" Width="70"
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.ItemsHeader}}" Binding="{Binding ItemCount}" Width="45" CanUserSort="True" />
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.MerchantHeader}}" Binding="{Binding MerchantFaction}" Width="1.5*" CanUserSort="True" />
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.CellsHeader}}" Binding="{Binding CellPlacementsDisplay}" Width="2*" CanUserSort="True" />
+          <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Plugin}}" Binding="{Binding ModName}" Width="1.5*" CanUserSort="True" />
+          <DataGridCheckBoxColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.RespawnsHeader}}" Binding="{Binding Respawns, Mode=OneWay}" Width="70"
                                   CanUserSort="True" IsReadOnly="True" />
         </DataGrid.Columns>
       </DataGrid>
@@ -104,7 +106,7 @@
           <!-- Header -->
           <Border Grid.Row="0" Background="#10000000" Padding="12,8">
             <StackPanel>
-              <TextBlock Text="{Binding SelectedContainer.DisplayName, FallbackValue='Select a container'}"
+              <TextBlock Text="{Binding SelectedContainer.DisplayName, FallbackValue={lex:Loc Key={x:Static res:LocalizationKeys+View.SelectContainer}}}"
                          FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Medium}" />
               <TextBlock Text="{Binding SelectedContainer.EditorId}"
                          Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
@@ -121,15 +123,15 @@
                     EnableRowVirtualization="True" RowHeight="26"
                     Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}}">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Item" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
-              <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="50" CanUserSort="True" />
-              <DataGridTextColumn Header="Plugin" Binding="{Binding ModName}" Width="1.5*" CanUserSort="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.ItemHeader}}" Binding="{Binding DisplayName}" Width="2*" CanUserSort="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.CountHeader}}" Binding="{Binding Count}" Width="50" CanUserSort="True" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Plugin}}" Binding="{Binding ModName}" Width="1.5*" CanUserSort="True" />
             </DataGrid.Columns>
           </DataGrid>
 
           <!-- Empty State -->
           <TextBlock Grid.Row="1"
-                     Text="Select a container to view its contents"
+                     Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.SelectContainerHint}}"
                      Style="{DynamicResource {x:Static themes:ResourceKeys.EmptyStateTextStyleKey}}"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      Visibility="{Binding SelectedContainer, Converter={StaticResource NullToVisConverter}, ConverterParameter=Inverse}" />

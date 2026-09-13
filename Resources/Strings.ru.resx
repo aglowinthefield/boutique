@@ -846,4 +846,828 @@
   <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
     <value>Использует тот же biped-слот, что и другой предмет — при включённом «Использовать все» будет надет только один из них.</value>
   </data>
+
+  <!-- Code-behind Messages -->
+  <data name="Msg_Ready" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>Сохранение...</value>
+  </data>
+  <data name="Msg_ErrorGeneric" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="Msg_ErrorTitle" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Msg_InitializingMutagen" xml:space="preserve">
+    <value>Инициализация Mutagen...</value>
+  </data>
+  <data name="Msg_LoadedPluginsWithArmors" xml:space="preserve">
+    <value>Загружено плагинов с бронёй/нарядами: {0}</value>
+  </data>
+  <data name="Msg_LoadingArmorsFrom" xml:space="preserve">
+    <value>Загрузка брони из {0}...</value>
+  </data>
+  <data name="Msg_LoadedArmorsFrom" xml:space="preserve">
+    <value>Загружено {0} брони из {1}</value>
+  </data>
+  <data name="Msg_LoadedArmorsFromOutfit" xml:space="preserve">
+    <value>Загружено {0} брони из {1}.</value>
+  </data>
+  <data name="Msg_ErrorLoadingArmorsFrom" xml:space="preserve">
+    <value>Ошибка загрузки брони из {0}: {1}</value>
+  </data>
+  <data name="Msg_ErrorLoadingPluginTitle" xml:space="preserve">
+    <value>Ошибка загрузки плагина</value>
+  </data>
+  <data name="Msg_FailedLoadArmors" xml:space="preserve">
+    <value>Не удалось загрузить броню из {0}:&#10;{1}</value>
+  </data>
+  <data name="Msg_MappedArmorsTo" xml:space="preserve">
+    <value>Сопоставлено {0} брони с {1}</value>
+  </data>
+  <data name="Msg_ErrorMappingArmors" xml:space="preserve">
+    <value>Ошибка сопоставления брони: {0}</value>
+  </data>
+  <data name="Msg_MarkedGlamOnly" xml:space="preserve">
+    <value>Отмечено как «только косметическая»: {0} брони.</value>
+  </data>
+  <data name="Msg_ErrorMarkingGlamOnly" xml:space="preserve">
+    <value>Ошибка пометки «только косметическая»: {0}</value>
+  </data>
+  <data name="Msg_ClearedMappings" xml:space="preserve">
+    <value>Все сопоставления очищены.</value>
+  </data>
+  <data name="Msg_RemovedMappingFor" xml:space="preserve">
+    <value>Сопоставление для {0} удалено</value>
+  </data>
+  <data name="Msg_GlamOnlySummary" xml:space="preserve">
+    <value>✨ Только косметическая (рейтинг брони установлен на 0)</value>
+  </data>
+  <data name="Msg_NotMapped" xml:space="preserve">
+    <value>Не сопоставлено</value>
+  </data>
+  <data name="Msg_BuildingPreviewQuoted" xml:space="preserve">
+    <value>Создание предпросмотра для «{0}»...</value>
+  </data>
+  <data name="Msg_PreviewReadyQuoted" xml:space="preserve">
+    <value>Предпросмотр готов для «{0}».</value>
+  </data>
+  <data name="Msg_PreviewError" xml:space="preserve">
+    <value>Ошибка предпросмотра: {0}</value>
+  </data>
+  <data name="Msg_CreatingPatch" xml:space="preserve">
+    <value>Создание патча...</value>
+  </data>
+  <data name="Msg_NoMappedArmors" xml:space="preserve">
+    <value>Нет сопоставленной брони для патча.</value>
+  </data>
+  <data name="Msg_OverwritePatchConfirm" xml:space="preserve">
+    <value>Выбранный файл патча уже существует. Добавление новых данных перезапишет записи с совпадающими FormID в этом ESP.&#10;&#10;Продолжить?</value>
+  </data>
+  <data name="Msg_PatchCanceled" xml:space="preserve">
+    <value>Создание патча отменено.</value>
+  </data>
+  <data name="Msg_FailedToCreatePatch" xml:space="preserve">
+    <value>Не удалось создать патч</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>Непредвиденная ошибка</value>
+  </data>
+  <data name="Msg_ErrorCreatingPatch" xml:space="preserve">
+    <value>Ошибка создания патча: {0}</value>
+  </data>
+  <data name="Msg_SelectFilePath" xml:space="preserve">
+    <value>Пожалуйста, выберите путь к файлу.</value>
+  </data>
+  <data name="Msg_ConflictsDetectedHeader" xml:space="preserve">
+    <value>⚠ Обнаружены конфликты распределения</value>
+  </data>
+  <data name="Msg_ConflictsRenameNote" xml:space="preserve">
+    <value>Чтобы новые распределения имели приоритет (загружались последними), имя файла будет изменено на:</value>
+  </data>
+  <data name="Msg_ConflictsZPrefixNote" xml:space="preserve">
+    <value>Префикс «Z» гарантирует, что при алфавитной сортировке ваш файл окажется после конфликтующих файлов.</value>
+  </data>
+  <data name="Msg_ConflictsContinueFilename" xml:space="preserve">
+    <value>Продолжить с этим именем файла?</value>
+  </data>
+  <data name="Msg_ConflictsTitle" xml:space="preserve">
+    <value>Обнаружены конфликты — требуется изменение имени файла</value>
+  </data>
+  <data name="Msg_SaveCancelled" xml:space="preserve">
+    <value>Сохранение отменено.</value>
+  </data>
+  <data name="Msg_OverwriteFileConfirm" xml:space="preserve">
+    <value>Файл «{0}» уже существует.&#10;&#10;Перезаписать его?</value>
+  </data>
+  <data name="Msg_ConfirmOverwriteTitle" xml:space="preserve">
+    <value>Подтверждение перезаписи</value>
+  </data>
+  <data name="Msg_SavingDistributionFile" xml:space="preserve">
+    <value>Сохранение файла распределения...</value>
+  </data>
+  <data name="Msg_SavedDistributionFile" xml:space="preserve">
+    <value>Файл распределения успешно сохранён: {0}</value>
+  </data>
+  <data name="Msg_ErrorSavingFile" xml:space="preserve">
+    <value>Ошибка сохранения файла: {0}</value>
+  </data>
+  <data name="Msg_UnsavedChangesPrompt" xml:space="preserve">
+    <value>У вас есть несохранённые изменения распределения. Сохранить их перед продолжением?</value>
+  </data>
+  <data name="Msg_UnsavedChangesTitle" xml:space="preserve">
+    <value>Несохранённые изменения</value>
+  </data>
+  <data name="Msg_SavedFile" xml:space="preserve">
+    <value>Сохранено: {0}</value>
+  </data>
+  <data name="Msg_FileNotExist" xml:space="preserve">
+    <value>Файл не существует. Пожалуйста, выберите существующий файл.</value>
+  </data>
+  <data name="Msg_LoadingDistributionFile" xml:space="preserve">
+    <value>Загрузка файла распределения...</value>
+  </data>
+  <data name="Msg_LoadedDistributionEntries" xml:space="preserve">
+    <value>Загружено {0} записей распределения из {1}</value>
+  </data>
+  <data name="Msg_ParseErrorsSuffix" xml:space="preserve">
+    <value>({0} строк(и) не удалось разобрать)</value>
+  </data>
+  <data name="Msg_ErrorLoadingFile" xml:space="preserve">
+    <value>Ошибка загрузки файла: {0}</value>
+  </data>
+  <data name="Msg_ErrorGeneratingContent" xml:space="preserve">
+    <value>; Ошибка генерации содержимого файла: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathScanNpcs" xml:space="preserve">
+    <value>Перед сканированием NPC укажите путь к данным Skyrim в настройках.</value>
+  </data>
+  <data name="Msg_DataPathNotExist" xml:space="preserve">
+    <value>Путь к данным Skyrim не существует: {0}</value>
+  </data>
+  <data name="Msg_InitializingSkyrim" xml:space="preserve">
+    <value>Инициализация окружения Skyrim...</value>
+  </data>
+  <data name="Msg_LoadingGameData" xml:space="preserve">
+    <value>Загрузка игровых данных (NPC, фракции, ключевые слова, расы, классы)...</value>
+  </data>
+  <data name="Msg_LoadingGameDataPlugins" xml:space="preserve">
+    <value>Загрузка игровых данных из плагинов...</value>
+  </data>
+  <data name="Msg_LoadedGameData" xml:space="preserve">
+    <value>Загружено: NPC — {0:N0}, фракций — {1:N0}, рас — {2:N0}, классов — {3:N0}, ключевых слов — {4:N0}.</value>
+  </data>
+  <data name="Msg_ErrorScanningNpcs" xml:space="preserve">
+    <value>Ошибка сканирования NPC: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitSelectedPreview" xml:space="preserve">
+    <value>Для предпросмотра не выбран наряд.</value>
+  </data>
+  <data name="Msg_InitializeBeforePreview" xml:space="preserve">
+    <value>Инициализируйте путь к данным Skyrim перед предпросмотром нарядов.</value>
+  </data>
+  <data name="Msg_NoArmorPieces" xml:space="preserve">
+    <value>У наряда «{0}» нет деталей брони для предпросмотра.</value>
+  </data>
+  <data name="Msg_BuildingPreview" xml:space="preserve">
+    <value>Создание предпросмотра для {0}...</value>
+  </data>
+  <data name="Msg_PreviewReady" xml:space="preserve">
+    <value>Предпросмотр готов для {0}.</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfit" xml:space="preserve">
+    <value>Не удалось предпросмотреть наряд: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitForNpc" xml:space="preserve">
+    <value>У этого NPC нет наряда для предпросмотра.</value>
+  </data>
+  <data name="Msg_CouldNotResolveOutfit" xml:space="preserve">
+    <value>Не удалось разрешить наряд: {0}</value>
+  </data>
+  <data name="Msg_NoDistributionToPreview" xml:space="preserve">
+    <value>Нет распределения для предпросмотра.</value>
+  </data>
+  <data name="Msg_BuildingOutfitPreview" xml:space="preserve">
+    <value>Создание предпросмотра наряда...</value>
+  </data>
+  <data name="Msg_PreviewReadyWithCount" xml:space="preserve">
+    <value>Предпросмотр готов ({0} наряд(ов)).</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfits" xml:space="preserve">
+    <value>Не удалось предпросмотреть наряды: {0}</value>
+  </data>
+  <data name="Msg_FailedPreviewGeneric" xml:space="preserve">
+    <value>Не удалось выполнить предпросмотр: {0}</value>
+  </data>
+  <data name="Msg_LinkCacheNotAvailable" xml:space="preserve">
+    <value>LinkCache недоступен.</value>
+  </data>
+  <data name="Msg_FoundNpcDistributions" xml:space="preserve">
+    <value>Найдено NPC с распределением нарядов: {0} (конфликтов: {1}).</value>
+  </data>
+  <data name="Msg_LoadingNpcOutfits" xml:space="preserve">
+    <value>Загрузка данных о нарядах NPC...</value>
+  </data>
+  <data name="Msg_ErrorLoadingNpcOutfits" xml:space="preserve">
+    <value>Ошибка загрузки нарядов NPC: {0}</value>
+  </data>
+  <data name="Msg_RefreshingNpcOutfits" xml:space="preserve">
+    <value>Обновление данных о нарядах NPC...</value>
+  </data>
+  <data name="Msg_ErrorRefreshingNpcOutfits" xml:space="preserve">
+    <value>Ошибка обновления нарядов NPC: {0}</value>
+  </data>
+  <data name="Msg_NoFiltersActive" xml:space="preserve">
+    <value>Нет активных фильтров</value>
+  </data>
+  <data name="Msg_NoFiltersToCopy" xml:space="preserve">
+    <value>Нет фильтров для копирования. Сначала примените фильтры.</value>
+  </data>
+  <data name="Msg_FilterCopied" xml:space="preserve">
+    <value>Фильтр скопирован: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathLoadOutfits" xml:space="preserve">
+    <value>Перед загрузкой нарядов укажите путь к данным Skyrim в настройках.</value>
+  </data>
+  <data name="Msg_LoadingOutfits" xml:space="preserve">
+    <value>Загрузка нарядов из порядка загрузки...</value>
+  </data>
+  <data name="Msg_LoadedOutfits" xml:space="preserve">
+    <value>Загружено нарядов: {0}.</value>
+  </data>
+  <data name="Msg_ErrorLoadingOutfits" xml:space="preserve">
+    <value>Ошибка загрузки нарядов: {0}</value>
+  </data>
+  <data name="Msg_NoContainers" xml:space="preserve">
+    <value>Контейнеры не загружены</value>
+  </data>
+  <data name="Msg_ContainersCount" xml:space="preserve">
+    <value>Контейнеры: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="Msg_CalculatingGrades" xml:space="preserve">
+    <value>Вычисление оценок...</value>
+  </data>
+  <data name="Msg_GradeSummary" xml:space="preserve">
+    <value>Оценка: {0} — покрыто NPC: {1:N0}/{2:N0}, использовано мод-нарядов: {3:N0}/{4:N0}, уникальных нарядов: {5:N0}</value>
+  </data>
+  <data name="Msg_CalculationFailed" xml:space="preserve">
+    <value>Не удалось выполнить вычисление — подробности в журналах</value>
+  </data>
+  <data name="Msg_NothingToSave" xml:space="preserve">
+    <value>Нечего сохранять.</value>
+  </data>
+  <data name="Msg_ErrorSavingTitle" xml:space="preserve">
+    <value>Ошибка сохранения</value>
+  </data>
+  <data name="Msg_UnexpectedErrorSaving" xml:space="preserve">
+    <value>Произошла непредвиденная ошибка:&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorSaving" xml:space="preserve">
+    <value>Ошибка сохранения: {0}</value>
+  </data>
+  <data name="Msg_MissingMastersCheckFailedTitle" xml:space="preserve">
+    <value>Ошибка проверки отсутствующих мастеров</value>
+  </data>
+  <data name="Msg_CouldNotVerifyMasters" xml:space="preserve">
+    <value>Не удалось проверить мастеров патча (файл может быть повреждён или заблокирован):&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatchTitle" xml:space="preserve">
+    <value>Ошибка очистки патча</value>
+  </data>
+  <data name="Msg_SelectPluginImportLists" xml:space="preserve">
+    <value>Выберите исходный плагин для импорта уровневых списков.</value>
+  </data>
+  <data name="Msg_SelectSpecificPlugin" xml:space="preserve">
+    <value>Выберите конкретный плагин (не «Все плагины») для импорта уровневых списков.</value>
+  </data>
+  <data name="Msg_ImportingLeveledLists" xml:space="preserve">
+    <value>Импорт уровневых списков из {0}...</value>
+  </data>
+  <data name="Msg_NoLeveledListsFound" xml:space="preserve">
+    <value>В {0} не найдено уровневых списков.</value>
+  </data>
+  <data name="Msg_ImportedLeveledLists" xml:space="preserve">
+    <value>Импортировано {0} уровневых списков из {1}.</value>
+  </data>
+  <data name="Msg_AllListsLoaded" xml:space="preserve">
+    <value>Все уровневые списки из {0} уже загружены.</value>
+  </data>
+  <data name="Msg_FailedOpenLogFile" xml:space="preserve">
+    <value>Не удалось открыть файл журнала: {0}</value>
+  </data>
+  <data name="Msg_LogFileNotExist" xml:space="preserve">
+    <value>Сегодняшний файл журнала ещё не существует:&#10;{0}</value>
+  </data>
+  <data name="Msg_LogFileNotFoundTitle" xml:space="preserve">
+    <value>Файл журнала не найден</value>
+  </data>
+  <data name="Msg_FailedOpenLogsFolder" xml:space="preserve">
+    <value>Не удалось открыть папку журналов: {0}</value>
+  </data>
+  <data name="Msg_LogsFolderNotExist" xml:space="preserve">
+    <value>Папка журналов не существует:&#10;{0}</value>
+  </data>
+  <data name="Msg_FolderNotFoundTitle" xml:space="preserve">
+    <value>Папка не найдена</value>
+  </data>
+  <data name="Msg_FormatChangePrompt" xml:space="preserve">
+    <value>Включение распределения по шансу изменит формат файла на SPID.&#10;&#10;SkyPatcher не поддерживает распределение нарядов по шансу. Файл будет сохранён в формате SPID для поддержки этой функции.&#10;&#10;Продолжить?</value>
+  </data>
+  <data name="Msg_FormatChangeTitle" xml:space="preserve">
+    <value>Требуется изменение формата</value>
+  </data>
+  <data name="Msg_WritingPatch" xml:space="preserve">
+    <value>Запись файла патча...</value>
+  </data>
+  <data name="Msg_RefreshingLoadOrder" xml:space="preserve">
+    <value>Обновление порядка загрузки...</value>
+  </data>
+  <data name="Msg_NoValidMatches" xml:space="preserve">
+    <value>Нет подходящих совпадений для патча.</value>
+  </data>
+  <data name="Msg_PatchingArmor" xml:space="preserve">
+    <value>Наложение патча на {0}...</value>
+  </data>
+  <data name="Msg_PatchCreated" xml:space="preserve">
+    <value>Патч с {0} предметом(ами) брони успешно создан: {1}</value>
+  </data>
+  <data name="Msg_WritingOutfit" xml:space="preserve">
+    <value>Запись наряда {0}...</value>
+  </data>
+  <data name="Msg_WritingLeveledList" xml:space="preserve">
+    <value>Запись уровневого списка {0}...</value>
+  </data>
+  <data name="Msg_SavedTo" xml:space="preserve">
+    <value>Сохранено в {1}: {0}</value>
+  </data>
+  <data name="Msg_OutfitsCount" xml:space="preserve">
+    <value>{0} наряд(ов)</value>
+  </data>
+  <data name="Msg_LeveledListsCount" xml:space="preserve">
+    <value>{0} уровневых списков</value>
+  </data>
+  <data name="Msg_ListJoin" xml:space="preserve">
+    <value> и </value>
+  </data>
+  <data name="Msg_ZeroRecords" xml:space="preserve">
+    <value>0 записей</value>
+  </data>
+  <data name="Msg_MutagenNotInitialized" xml:space="preserve">
+    <value>Сервис Mutagen не инициализирован. Сначала укажите путь к данным Skyrim.</value>
+  </data>
+  <data name="Msg_InvalidPluginName" xml:space="preserve">
+    <value>«{0}» — недопустимое имя плагина. Имя файла патча должно заканчиваться на .esp, .esm или .esl.</value>
+  </data>
+  <data name="Msg_CannotWriteFileLocked" xml:space="preserve">
+    <value>Невозможно выполнить запись в «{0}». Файл может быть заблокирован другой программой (Skyrim, xEdit и т.д.). Закройте программы, которые могут его использовать, и повторите попытку.</value>
+  </data>
+  <data name="Msg_CannotWriteFile" xml:space="preserve">
+    <value>Невозможно выполнить запись в «{0}»: {1}. Файл может быть заблокирован другой программой.</value>
+  </data>
+  <data name="Msg_CannotWriteUnknown" xml:space="preserve">
+    <value>Невозможно выполнить запись в «{0}»: неизвестная ошибка.</value>
+  </data>
+  <data name="Msg_RemovedOutfitsMissingMasters" xml:space="preserve">
+    <value>Успешно удалено нарядов с отсутствующими мастерами: {0}.</value>
+  </data>
+  <data name="Msg_PatchFileNotExist" xml:space="preserve">
+    <value>Файл патча не существует.</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatch" xml:space="preserve">
+    <value>Ошибка очистки патча: {0}</value>
+  </data>
+  <data name="Msg_UpdateDownloadFailed" xml:space="preserve">
+    <value>Не удалось скачать обновление: {0}</value>
+  </data>
+  <data name="Msg_UpdateErrorTitle" xml:space="preserve">
+    <value>Ошибка обновления</value>
+  </data>
+  <data name="Msg_LatestVersion" xml:space="preserve">
+    <value>У вас последняя версия.</value>
+  </data>
+  <data name="Msg_NoUpdateTitle" xml:space="preserve">
+    <value>Обновлений нет</value>
+  </data>
+  <data name="Msg_AutosaveNoticeBody" xml:space="preserve">
+    <value>Автосохранение файлов распределения удалено.&#10;&#10;Теперь файлы распределения сохраняются только при явном нажатии кнопки «Сохранить». Перед каждым сохранением автоматически создаётся ротационная резервная копия, которая хранится в:&#10;%LOCALAPPDATA%\Boutique\Backups\&#10;&#10;Это изменение предотвращает незаметную потерю данных, с которой сталкивались некоторые пользователи при автосохранении.</value>
+  </data>
+  <data name="Msg_AutosaveNoticeTitle" xml:space="preserve">
+    <value>Автосохранение файлов распределения удалено</value>
+  </data>
+  <data name="View_EntryDetails" xml:space="preserve">
+    <value>Сведения о записи</value>
+  </data>
+  <data name="View_Filters" xml:space="preserve">
+    <value>Фильтры</value>
+  </data>
+  <data name="View_SelectEntryHint" xml:space="preserve">
+    <value>Выберите запись из списка, чтобы изменить её данные</value>
+  </data>
+  <data name="View_ExclusiveGroupNameTooltip" xml:space="preserve">
+    <value>Имя ExclusiveGroup.</value>
+  </data>
+  <data name="View_ExclusiveGroupFormsTooltip" xml:space="preserve">
+    <value>Список форм через запятую.</value>
+  </data>
+  <data name="View_FormsLabel" xml:space="preserve">
+    <value>Формы:</value>
+  </data>
+  <data name="View_ChanceLabel" xml:space="preserve">
+    <value>Шанс:</value>
+  </data>
+  <data name="View_Traits" xml:space="preserve">
+    <value>Признаки</value>
+  </data>
+  <data name="View_GenderLabel" xml:space="preserve">
+    <value>Пол:</value>
+  </data>
+  <data name="View_UniqueLabel" xml:space="preserve">
+    <value>Уник.:</value>
+  </data>
+  <data name="View_LevelLabel" xml:space="preserve">
+    <value>Уровень:</value>
+  </data>
+  <data name="View_LevelNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="View_LevelLevel" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="View_LevelSkillLevel" xml:space="preserve">
+    <value>Уровень навыка</value>
+  </data>
+  <data name="View_LevelSkillWeight" xml:space="preserve">
+    <value>Вес навыка</value>
+  </data>
+  <data name="View_LevelRaw" xml:space="preserve">
+    <value>Сырой</value>
+  </data>
+  <data name="View_Min" xml:space="preserve">
+    <value>Мин</value>
+  </data>
+  <data name="View_Max" xml:space="preserve">
+    <value>Макс</value>
+  </data>
+  <data name="View_ToggleNegationTooltip" xml:space="preserve">
+    <value>Нажмите, чтобы переключить отрицание</value>
+  </data>
+  <data name="View_AndOrLogicFormat" xml:space="preserve">
+    <value>И: Должны совпадать все {0} | ИЛИ: Должен совпадать хотя бы один {0}</value>
+  </data>
+  <data name="View_OutfitFilters" xml:space="preserve">
+    <value>Фильтры нарядов</value>
+  </data>
+  <data name="View_RawFilters" xml:space="preserve">
+    <value>Необработанные фильтры</value>
+  </data>
+  <data name="View_StringLabel" xml:space="preserve">
+    <value>Строка:</value>
+  </data>
+  <data name="View_FormLabel" xml:space="preserve">
+    <value>Форма:</value>
+  </data>
+  <data name="View_RawStringFiltersTooltip" xml:space="preserve">
+    <value>Необработанные строковые фильтры: подстановочные знаки (*Mage), отрицания (-Exclude) и ключевые слова SPID. Запятая — ИЛИ, плюс — И.</value>
+  </data>
+  <data name="View_RawFormFiltersTooltip" xml:space="preserve">
+    <value>Необработанные фильтры форм: отрицаемые фракции (-FactionName), расы и т.д. Запятая — ИЛИ.</value>
+  </data>
+  <data name="View_Results" xml:space="preserve">
+    <value>Результаты</value>
+  </data>
+  <data name="View_TotalNpcsFormat" xml:space="preserve">
+    <value>Всего: {0} NPC</value>
+  </data>
+  <data name="View_Criteria" xml:space="preserve">
+    <value>Критерии</value>
+  </data>
+  <data name="View_TargetFormat" xml:space="preserve">
+    <value>Цель: {0}</value>
+  </data>
+  <data name="View_TargetNone" xml:space="preserve">
+    <value>Цель: (не выбрано)</value>
+  </data>
+  <data name="View_TargetOutfitsHint" xml:space="preserve">
+    <value>Целевые NPC, носящие указанный существующий наряд, фактически заменяя его.</value>
+  </data>
+  <data name="View_AddSelectedOutfits" xml:space="preserve">
+    <value>Добавить выбранные наряды</value>
+  </data>
+  <data name="View_ShowingPrefix" xml:space="preserve">
+    <value>Показано </value>
+  </data>
+  <data name="View_OfSeparator" xml:space="preserve">
+    <value> из </value>
+  </data>
+  <data name="View_NpcsSuffix" xml:space="preserve">
+    <value> NPC</value>
+  </data>
+  <data name="View_OutfitFileTooltip" xml:space="preserve">
+    <value>Файл распределения, определяющий наряд этого NPC</value>
+  </data>
+  <data name="View_ContainsLeveledLists" xml:space="preserve">
+    <value>Содержит уровневые списки</value>
+  </data>
+  <data name="View_ContainsLeveledListsTooltip" xml:space="preserve">
+    <value>Показывать только наряды, содержащие уровневые списки или списки форм</value>
+  </data>
+  <data name="View_MoreActions" xml:space="preserve">
+    <value>Другие действия</value>
+  </data>
+  <data name="View_NpcCountFormat" xml:space="preserve">
+    <value>({0} NPC)</value>
+  </data>
+  <data name="View_UnresolvedFiltersTooltip" xml:space="preserve">
+    <value>У этой записи есть необработанные фильтры, которые не удалось сопоставить с известными NPC или ключевыми словами</value>
+  </data>
+  <data name="View_IntraFileOverlapsFormat" xml:space="preserve">
+    <value>{0} внутрифайловых перекрытий</value>
+  </data>
+  <data name="View_ViewButton" xml:space="preserve">
+    <value>Просмотр</value>
+  </data>
+  <data name="View_ParseErrorsSuffix" xml:space="preserve">
+    <value> ошибок анализа - эти строки будут сохранены при записи</value>
+  </data>
+  <data name="View_Plugin" xml:space="preserve">
+    <value>Плагин</value>
+  </data>
+  <data name="View_ArValFormat" xml:space="preserve">
+    <value> (АР: {0:F0}, Знач.: {1})</value>
+  </data>
+  <data name="View_Overall" xml:space="preserve">
+    <value>Общий</value>
+  </data>
+  <data name="View_NpcCoverage" xml:space="preserve">
+    <value>Покрытие NPC</value>
+  </data>
+  <data name="View_ModUtilization" xml:space="preserve">
+    <value>Использование модов</value>
+  </data>
+  <data name="View_OutfitVariety" xml:space="preserve">
+    <value>Разнообразие нарядов</value>
+  </data>
+  <data name="View_CalculateGrade" xml:space="preserve">
+    <value>Рассчитать оценку</value>
+  </data>
+  <data name="View_CoverageSummaryFormat" xml:space="preserve">
+    <value>{0:N0}/{1:N0} NPC покрыто · использовано {2:N0}/{3:N0} нарядов из модов · {4:N0} уникальных нарядов</value>
+  </data>
+  <data name="View_ClickCalculateHint" xml:space="preserve">
+    <value>Нажмите «Рассчитать оценку», чтобы проанализировать настройки распределения</value>
+  </data>
+  <data name="View_SourceMods" xml:space="preserve">
+    <value>Исходные моды</value>
+  </data>
+  <data name="View_UnusedOutfitsFormat" xml:space="preserve">
+    <value>Неиспользуемые наряды из модов ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsFormat" xml:space="preserve">
+    <value>Броня, не входящая ни в один наряд ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsHint" xml:space="preserve">
+    <value>Играбельная незачарованная броня из модов, которую не даёт ни один наряд. Некоторые могут быть намеренно только крафтовыми.</value>
+  </data>
+  <data name="View_NotApplicable" xml:space="preserve">
+    <value>Н/Д</value>
+  </data>
+  <data name="View_HideEmptyContainers" xml:space="preserve">
+    <value>Скрыть пустые контейнеры</value>
+  </data>
+  <data name="View_CellLabel" xml:space="preserve">
+    <value>Ячейка:</value>
+  </data>
+  <data name="View_RespawnsLabel" xml:space="preserve">
+    <value>Возрождение:</value>
+  </data>
+  <data name="View_ItemsHeader" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="View_MerchantHeader" xml:space="preserve">
+    <value>Торговец</value>
+  </data>
+  <data name="View_CellsHeader" xml:space="preserve">
+    <value>Ячейки</value>
+  </data>
+  <data name="View_RespawnsHeader" xml:space="preserve">
+    <value>Возрождение</value>
+  </data>
+  <data name="View_ItemHeader" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="View_CountHeader" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="View_SelectContainer" xml:space="preserve">
+    <value>Выберите контейнер</value>
+  </data>
+  <data name="View_SelectContainerHint" xml:space="preserve">
+    <value>Выберите контейнер, чтобы просмотреть его содержимое</value>
+  </data>
+  <data name="View_PreviousOutfitTooltip" xml:space="preserve">
+    <value>Предыдущий наряд (стрелка влево)</value>
+  </data>
+  <data name="View_NextOutfitTooltip" xml:space="preserve">
+    <value>Следующий наряд (стрелка вправо)</value>
+  </data>
+  <data name="View_LoadingPreview" xml:space="preserve">
+    <value>Загрузка предпросмотра...</value>
+  </data>
+  <data name="View_LeveledItemsNotice" xml:space="preserve">
+    <value>Этот наряд содержит уровневые списки.</value>
+  </data>
+  <data name="View_LeveledItemsHint" xml:space="preserve">
+    <value>Внешний вид в игре может отличаться. Нажмите «Случайно», чтобы просмотреть другие комбинации.</value>
+  </data>
+  <data name="View_Randomize" xml:space="preserve">
+    <value>Случайно</value>
+  </data>
+  <data name="View_ToggleTabTooltip" xml:space="preserve">
+    <value>Переключение клавишей Tab</value>
+  </data>
+  <data name="View_ShowBaseBody" xml:space="preserve">
+    <value>Показать базовое тело</value>
+  </data>
+  <data name="View_HideBaseBodyTooltip" xml:space="preserve">
+    <value>Скрывает стандартный меш тела, когда он проступает сквозь броню</value>
+  </data>
+  <data name="View_OutfitCounterFormat" xml:space="preserve">
+    <value>Наряд {0} из {1}</value>
+  </data>
+  <data name="View_UnknownOutfit" xml:space="preserve">
+    <value>Неизвестный наряд</value>
+  </data>
+  <data name="View_FromSourceFormat" xml:space="preserve">
+    <value>из {0}</value>
+  </data>
+  <data name="View_FromSourceWinnerFormat" xml:space="preserve">
+    <value>из {0} (победитель)</value>
+  </data>
+  <data name="View_NoGeometry" xml:space="preserve">
+    <value>Нет геометрии для отображения.</value>
+  </data>
+  <data name="View_AutoUpdate" xml:space="preserve">
+    <value>Автообновление</value>
+  </data>
+  <data name="View_CheckUpdatesOnStartup" xml:space="preserve">
+    <value>Проверять обновления при запуске</value>
+  </data>
+  <data name="View_CheckNow" xml:space="preserve">
+    <value>Проверить сейчас</value>
+  </data>
+  <data name="View_Experimental" xml:space="preserve">
+    <value>Экспериментально</value>
+  </data>
+  <data name="View_ShowContainersTab" xml:space="preserve">
+    <value>Показывать вкладку «Контейнеры» (требуется перезапуск)</value>
+  </data>
+  <data name="View_DebugGroup" xml:space="preserve">
+    <value>Отладка</value>
+  </data>
+  <data name="View_DebugLogging" xml:space="preserve">
+    <value>Отладочный журнал</value>
+  </data>
+  <data name="View_EnableDebugLogging" xml:space="preserve">
+    <value>Включить отладочный журнал (требуется перезапуск)</value>
+  </data>
+  <data name="View_LogFiles" xml:space="preserve">
+    <value>Файлы журналов</value>
+  </data>
+  <data name="View_OpenTodaysLog" xml:space="preserve">
+    <value>Открыть сегодняшний журнал</value>
+  </data>
+  <data name="View_OpenLogsFolder" xml:space="preserve">
+    <value>Открыть папку журналов</value>
+  </data>
+  <data name="View_DragToReorder" xml:space="preserve">
+    <value>Перетащите для изменения порядка</value>
+  </data>
+  <data name="View_ClickChangeIcon" xml:space="preserve">
+    <value>Нажмите, чтобы сменить значок</value>
+  </data>
+  <data name="View_ClickRename" xml:space="preserve">
+    <value>Нажмите, чтобы переименовать</value>
+  </data>
+  <data name="View_RemoveSeparator" xml:space="preserve">
+    <value>Удалить разделитель</value>
+  </data>
+  <data name="View_TypeLabel" xml:space="preserve">
+    <value>Тип:</value>
+  </data>
+  <data name="View_SlotLabel" xml:space="preserve">
+    <value>Слот:</value>
+  </data>
+  <data name="View_AddSeparator" xml:space="preserve">
+    <value>+ Разделитель</value>
+  </data>
+  <data name="View_AddSeparatorTooltip" xml:space="preserve">
+    <value>Добавляет разделитель для организации нарядов</value>
+  </data>
+  <data name="View_PiecesFormat" xml:space="preserve">
+    <value>({0} дет.)</value>
+  </data>
+  <data name="View_ItemsCountFormat" xml:space="preserve">
+    <value>{0} элем.</value>
+  </data>
+  <data name="View_UpdateAvailableTitle" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="View_UpdateAvailableHeader" xml:space="preserve">
+    <value>Доступна новая версия Boutique!</value>
+  </data>
+  <data name="View_CurrentVersionLabel" xml:space="preserve">
+    <value>Текущая версия: </value>
+  </data>
+  <data name="View_LatestVersionLabel" xml:space="preserve">
+    <value>Последняя версия: </value>
+  </data>
+  <data name="View_WhatsNew" xml:space="preserve">
+    <value>Что нового</value>
+  </data>
+  <data name="View_SkipThisVersion" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="View_RemindMeLater" xml:space="preserve">
+    <value>Напомнить позже</value>
+  </data>
+  <data name="View_UpdateNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="View_SelectIconTitle" xml:space="preserve">
+    <value>Выбрать значок</value>
+  </data>
+  <data name="View_FilterIcons" xml:space="preserve">
+    <value>Фильтр значков...</value>
+  </data>
+  <data name="View_ClearIcon" xml:space="preserve">
+    <value>Убрать значок</value>
+  </data>
+  <data name="View_Ok" xml:space="preserve">
+    <value>ОК</value>
+  </data>
+  <data name="View_InputTitle" xml:space="preserve">
+    <value>Ввод</value>
+  </data>
+  <data name="View_IntraFileOverlapsTitle" xml:space="preserve">
+    <value>Внутрифайловые перекрытия</value>
+  </data>
+  <data name="View_IntraFileOverlapsDescription" xml:space="preserve">
+    <value>Совместные счётчики NPC между записями нарядов. Ненулевые ячейки означают NPC, охваченных несколькими нарядами.</value>
+  </data>
+  <data name="View_IntraFileOverlapsHeaderFormat" xml:space="preserve">
+    <value>{0} NPC, охваченных несколькими нарядами</value>
+  </data>
+  <data name="View_ConfirmRemoveMessage" xml:space="preserve">
+    <value>Вы уверены, что хотите удалить эту запись?&#10;&#10;{0}</value>
+  </data>
+  <data name="View_ConfirmRemoveTitle" xml:space="preserve">
+    <value>Подтвердите удаление</value>
+  </data>
+  <data name="View_PatchCreatedTitle" xml:space="preserve">
+    <value>Патч создан</value>
+  </data>
+  <data name="View_OverwritePatchTitle" xml:space="preserve">
+    <value>Перезаписать существующий патч?</value>
+  </data>
+  <data name="View_ConfirmDeleteTitle" xml:space="preserve">
+    <value>Подтвердите удаление</value>
+  </data>
+  <data name="View_CreateOutfitTitle" xml:space="preserve">
+    <value>Создать наряд</value>
+  </data>
+  <data name="View_MissingMastersSummaryFormat" xml:space="preserve">
+    <value>Если очистить патч, будет удалено нарядов: {0}. Чтобы сохранить их, нужно заново добавить отсутствующие мастер-файлы: {1}.</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>Добавить выбранные локации в запись</value>
+  </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>Локации:</value>
+  </data>
+  <data name="Header_Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ Это имя конфликтует с существующим плагином</value>
+  </data>
+  <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>Оставить это имя</value>
+  </data>
+  <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>"{0}" уже есть в вашем порядке загрузки. Использование этого имени может перезаписать существующие данные при создании патча. Выберите уникальное имя.</value>
+  </data>
+  <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>Выбрать другое имя</value>
+  </data>
+  <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>Конфликт имени плагина</value>
+  </data>
+  <data name="Tab_Containers" xml:space="preserve">
+    <value>Контейнеры</value>
+  </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>Локации</value>
+  </data>
 </root>

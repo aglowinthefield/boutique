@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using Boutique.Resources;
 using Boutique.Services;
 using Boutique.ViewModels;
 
@@ -44,7 +45,9 @@ public partial class MainWindow
                                      MessageBox.Show(
                                        this,
                                        message,
-                                       "Patch Created",
+                                       LocalizationService.Get(
+                                         LocalizationKeys.View.PatchCreatedTitle,
+                                         "Patch Created"),
                                        MessageBoxButton.OK,
                                        MessageBoxImage.Information));
       interaction.SetOutput(Unit.Default);
@@ -58,7 +61,9 @@ public partial class MainWindow
                                                   MessageBox.Show(
                                                     this,
                                                     message,
-                                                    "Overwrite Existing Patch?",
+                                                    LocalizationService.Get(
+                                                      LocalizationKeys.View.OverwritePatchTitle,
+                                                      "Overwrite Existing Patch?"),
                                                     MessageBoxButton.YesNo,
                                                     MessageBoxImage.Warning,
                                                     MessageBoxResult.No));
@@ -73,7 +78,9 @@ public partial class MainWindow
                                                   MessageBox.Show(
                                                     this,
                                                     message,
-                                                    "Confirm Delete",
+                                                    LocalizationService.Get(
+                                                      LocalizationKeys.View.ConfirmDeleteTitle,
+                                                      "Confirm Delete"),
                                                     MessageBoxButton.YesNo,
                                                     MessageBoxImage.Question,
                                                     MessageBoxResult.No));
@@ -85,7 +92,13 @@ public partial class MainWindow
     {
       var (prompt, defaultValue) = interaction.Input;
       var result = await Dispatcher.InvokeAsync(() =>
-                                                  InputDialog.Show(this, prompt, "Create Outfit", defaultValue));
+                                                  InputDialog.Show(
+                                                    this,
+                                                    prompt,
+                                                    LocalizationService.Get(
+                                                      LocalizationKeys.View.CreateOutfitTitle,
+                                                      "Create Outfit"),
+                                                    defaultValue));
       interaction.SetOutput(result);
     });
     _bindings.Add(outfitNameDisposable);
@@ -214,17 +227,13 @@ public partial class MainWindow
       return;
     }
 
-    if (tabItem.Header is not string header)
+    // Compare by control name rather than Header text: the header is localized at runtime.
+    switch (tabItem.Name)
     {
-      return;
-    }
-
-    switch (header)
-    {
-      case "Armor Patch":
+      case "ArmorPatchTab":
         await viewModel.LoadTargetPluginAsync();
         break;
-      case "Outfit Creator":
+      case "OutfitCreatorTab":
         await viewModel.OutfitCreator.LoadOutfitPluginAsync();
         break;
     }

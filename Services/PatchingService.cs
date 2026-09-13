@@ -6,6 +6,7 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.Services;
 
@@ -23,7 +24,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   {
     if (!mutagenService.IsInitialized)
     {
-      throw new InvalidOperationException("Mutagen service is not initialized. Please set the Skyrim data path first.");
+      throw new InvalidOperationException(
+        LocalizationService.Get(
+          Messages.MutagenNotInitialized,
+          "Mutagen service is not initialized. Please set the Skyrim data path first."));
     }
   }
 
@@ -35,7 +39,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     if (!ModKey.TryFromFileName(fileName, out var modKey))
     {
       throw new InvalidOperationException(
-        $"'{fileName}' is not a valid plugin name. The patch file name must end in .esp, .esm, or .esl.");
+        LocalizationService.GetFormatted(
+          Messages.InvalidPluginName,
+          "'{0}' is not a valid plugin name. The patch file name must end in .esp, .esm, or .esl.",
+          fileName));
     }
 
     SkyrimMod patchMod;
@@ -75,7 +82,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     TryApplyEslFlag(patchMod);
 
-    progress?.Report((1, 1, "Writing patch file..."));
+    progress?.Report(
+      (
+        1,
+        1,
+        LocalizationService.Get(Messages.WritingPatch, "Writing patch file...")
+      ));
     mutagenService.ReleaseLinkCache();
 
     WritePatchWithRetry(patchMod, outputPath, actuallyRequiredMasters);
@@ -85,7 +97,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string outputPath,
     IProgress<(int current, int total, string message)>? progress)
   {
-    progress?.Report((1, 1, "Refreshing load order..."));
+    progress?.Report(
+      (
+        1,
+        1,
+        LocalizationService.Get(Messages.RefreshingLoadOrder, "Refreshing load order...")
+      ));
     var pluginName = Path.GetFileName(outputPath);
     await mutagenService.RefreshLinkCacheAsync(pluginName);
   }
@@ -111,7 +128,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         if (validMatches.Count == 0)
         {
           _logger.Warning("Patch creation aborted — no valid matches were provided.");
-          return (false, "No valid matches to patch.");
+          return (false, LocalizationService.Get(Messages.NoValidMatches, "No valid matches to patch."));
         }
 
         var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "armor patch");
@@ -124,7 +141,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         {
           current++;
           var sourceName = match.SourceArmor.Name.SafeString(match.SourceArmor) ?? match.SourceArmor.EditorID ?? "Unknown";
-          progress?.Report((current, total, $"Patching {sourceName}..."));
+          progress?.Report(
+            (
+              current,
+              total,
+              LocalizationService.GetFormatted(Messages.PatchingArmor, "Patching {0}...", sourceName)
+            ));
 
           var patchedArmor = patchMod.Armors.GetOrAddAsOverride(match.SourceArmor);
 
@@ -147,7 +169,13 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
         _logger.Information("Patch successfully written to {OutputPath}", outputPath);
 
-        return (true, $"Successfully created patch with {validMatches.Count} armor(s) at {outputPath}");
+        return (
+          true,
+          LocalizationService.GetFormatted(
+            Messages.PatchCreated,
+            "Successfully created patch with {0} armor(s) at {1}",
+            validMatches.Count,
+            outputPath));
       }
       catch (InvalidOperationException ex)
       {
@@ -156,7 +184,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       catch (Exception ex)
       {
         _logger.Error(ex, "Error creating patch destined for {OutputPath}", outputPath);
-        return (false, $"Error creating patch: {ex.Message}");
+        return (
+          false,
+          LocalizationService.GetFormatted(
+            Messages.ErrorCreatingPatch,
+            "Error creating patch: {0}",
+            ex.Message));
       }
     });
 
@@ -217,9 +250,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         var listList   = lists.ToList();
         if (outfitList.Count == 0 && listList.Count == 0)
         {
-          return (false, "Nothing to save.",
-                  (IReadOnlyList<OutfitCreationResult>)[],
-                  (IReadOnlyList<LeveledListCreationResult>)[]);
+          return (
+            false,
+            LocalizationService.Get(Messages.NothingToSave, "Nothing to save."),
+            (IReadOnlyList<OutfitCreationResult>)[],
+            (IReadOnlyList<LeveledListCreationResult>)[]);
         }
 
         _logger.Information(
@@ -241,18 +276,36 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         var savedParts = new List<string>();
         if (outfitResults.Count > 0)
         {
-          savedParts.Add($"{outfitResults.Count} outfit(s)");
+          savedParts.Add(
+            LocalizationService.GetFormatted(
+              Messages.OutfitsCount,
+              "{0} outfit(s)",
+              outfitResults.Count));
         }
 
         if (listResults.Count > 0)
         {
-          savedParts.Add($"{listResults.Count} leveled list(s)");
+          savedParts.Add(
+            LocalizationService.GetFormatted(
+              Messages.LeveledListsCount,
+              "{0} leveled list(s)",
+              listResults.Count));
         }
 
-        var summary = savedParts.Count > 0 ? string.Join(" and ", savedParts) : "0 records";
-        return (true, $"Saved {summary} to {outputPath}",
-                (IReadOnlyList<OutfitCreationResult>)outfitResults,
-                (IReadOnlyList<LeveledListCreationResult>)listResults);
+        var summary = savedParts.Count > 0
+                        ? string.Join(
+                          LocalizationService.Get(Messages.ListJoin, " and "),
+                          savedParts)
+                        : LocalizationService.Get(Messages.ZeroRecords, "0 records");
+        return (
+          true,
+          LocalizationService.GetFormatted(
+            Messages.SavedTo,
+            "Saved {0} to {1}",
+            summary,
+            outputPath),
+          (IReadOnlyList<OutfitCreationResult>)outfitResults,
+          (IReadOnlyList<LeveledListCreationResult>)listResults);
       }
       catch (InvalidOperationException ex)
       {
@@ -263,9 +316,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       catch (Exception ex)
       {
         _logger.Error(ex, "Error saving outfits/leveled lists destined for {OutputPath}", outputPath);
-        return (false, $"Error saving: {ex.Message}",
-                (IReadOnlyList<OutfitCreationResult>)[],
-                (IReadOnlyList<LeveledListCreationResult>)[]);
+        return (
+          false,
+          LocalizationService.GetFormatted(Messages.ErrorSaving, "Error saving: {0}", ex.Message),
+          (IReadOnlyList<OutfitCreationResult>)[],
+          (IReadOnlyList<LeveledListCreationResult>)[]);
       }
     });
 
@@ -295,7 +350,12 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     foreach (var request in outfitList)
     {
       current++;
-      progress?.Report((current, total, $"Writing outfit {request.Name}..."));
+      progress?.Report(
+        (
+          current,
+          total,
+          LocalizationService.GetFormatted(Messages.WritingOutfit, "Writing outfit {0}...", request.Name)
+        ));
 
       var contentCount = request.Pieces.Count + (request.LeveledLists?.Count ?? 0);
 
@@ -490,7 +550,15 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     foreach (var (request, item) in pending)
     {
       current++;
-      progress?.Report((current, total, $"Writing leveled list {request.EditorId}..."));
+      progress?.Report(
+        (
+          current,
+          total,
+          LocalizationService.GetFormatted(
+            Messages.WritingLeveledList,
+            "Writing leveled list {0}...",
+            request.EditorId)
+        ));
 
       item.Flags = request.Flags;
 
@@ -615,7 +683,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     target.EnchantmentAmount = source.EnchantmentAmount;
   }
 
-  private void EnsureMasters(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
+  internal static void EnsureMasters(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
   {
     var masterList = patchMod.ModHeader.MasterReferences;
 
@@ -634,10 +702,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       }
 
       masterList.Add(new MasterReference { Master = master });
-      _logger.Debug("Added master {Master} to patch header.", master);
+      Log.Debug("Added master {Master} to patch header.", master);
     }
 
-    _logger.Information(
+    Log.Information(
       "Patch master list: {Masters}",
       string.Join(", ", masterList.Select(m => m.Master.FileName)));
   }
@@ -713,13 +781,24 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       throw lastException switch
       {
         UnauthorizedAccessException => new InvalidOperationException(
-          $"Cannot write to '{fileName}'. " +
-          "The file may be locked by another program (Skyrim, xEdit, etc). " +
-          "Please close any programs that might have it open and try again."),
+          LocalizationService.GetFormatted(
+            Messages.CannotWriteFileLocked,
+            "Cannot write to '{0}'. " +
+            "The file may be locked by another program (Skyrim, xEdit, etc). " +
+            "Please close any programs that might have it open and try again.",
+            fileName)),
         IOException ioEx => new InvalidOperationException(
-          $"Cannot write to '{fileName}': {ioEx.Message}. " +
-          "The file may be locked by another program."),
-        _ => new InvalidOperationException($"Cannot write to '{fileName}': Unknown error.")
+          LocalizationService.GetFormatted(
+            Messages.CannotWriteFile,
+            "Cannot write to '{0}': {1}. " +
+            "The file may be locked by another program.",
+            fileName,
+            ioEx.Message)),
+        _ => new InvalidOperationException(
+          LocalizationService.GetFormatted(
+            Messages.CannotWriteUnknown,
+            "Cannot write to '{0}': Unknown error.",
+            fileName))
       };
     }
     finally
@@ -894,8 +973,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       }
       catch (Exception ex)
       {
+        // A failed check must not be reported as "no missing masters" — surface the error
+        // so the caller can show it instead of treating a broken patch as healthy.
         _logger.Error(ex, "Error checking missing masters for patch {Path}.", patchPath);
-        return new MissingMastersResult(false, [], []);
+        throw;
       }
     });
   }
@@ -910,7 +991,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       {
         if (!File.Exists(patchPath))
         {
-          return (false, "Patch file does not exist.");
+          return (false, LocalizationService.Get(Messages.PatchFileNotExist, "Patch file does not exist."));
         }
 
         _logger.Information(
@@ -955,17 +1036,27 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         WritePatchWithRetry(patchMod, patchPath, remainingMasters);
 
         _logger.Information("Patch cleaned successfully. Removed {Count} outfit(s).", removedCount);
-        return (true, $"Successfully removed {removedCount} outfit(s) with missing masters.");
+        return (
+          true,
+          LocalizationService.GetFormatted(
+            Messages.RemovedOutfitsMissingMasters,
+            "Successfully removed {0} outfit(s) with missing masters.",
+            removedCount));
       }
       catch (Exception ex)
       {
         _logger.Error(ex, "Error cleaning patch {Path}.", patchPath);
-        return (false, $"Error cleaning patch: {ex.Message}");
+        return (
+          false,
+          LocalizationService.GetFormatted(
+            Messages.ErrorCleaningPatch,
+            "Error cleaning patch: {0}",
+            ex.Message));
       }
     });
   }
 
-  private static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
+  internal static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
   {
     var requiredMasters = new HashSet<ModKey>();
     var patchModKey     = patchMod.ModKey;
@@ -1040,7 +1131,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     return requiredMasters;
   }
 
-  private void CleanupMasterReferences(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
+  internal static void CleanupMasterReferences(SkyrimMod patchMod, HashSet<ModKey> requiredMasters)
   {
     var masterList = patchMod.ModHeader.MasterReferences;
     var mastersToRemove = masterList
@@ -1050,10 +1141,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     foreach (var master in mastersToRemove)
     {
       masterList.Remove(master);
-      _logger.Debug("Removed unused master {Master} from patch header.", master.Master.FileName);
+      Log.Debug("Removed unused master {Master} from patch header.", master.Master.FileName);
     }
 
-    _logger.Information(
+    Log.Information(
       "Cleaned master list: {Masters}",
       string.Join(", ", masterList.Select(m => m.Master.FileName)));
   }

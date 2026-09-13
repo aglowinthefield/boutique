@@ -39,10 +39,10 @@
                   IsChecked="{Binding HideVanillaOutfits}"
                   VerticalAlignment="Center" Margin="0,0,16,0"
                   ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.HideVanillaTooltip}}" />
-        <CheckBox Content="Contains Leveled Lists"
+        <CheckBox Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.ContainsLeveledLists}}"
                   IsChecked="{Binding ShowOnlyLeveledOutfits}"
                   VerticalAlignment="Center" Margin="0,0,16,0"
-                  ToolTip="Show only outfits that contain leveled lists or form lists" />
+                  ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ContainsLeveledListsTooltip}}" />
         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Labels.Search}}"
                    Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}" />
         <TextBox Text="{Binding OutfitSearchText, UpdateSourceTrigger=PropertyChanged}"
@@ -97,7 +97,7 @@
                           MinWidth="28"
                           Margin="0,0,4,0"
                           Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          ToolTip="More actions">
+                          ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.MoreActions}}">
                     <Button.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitsTab.CopyToPatch}}"
@@ -198,9 +198,14 @@
                         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Winner}}"
                                    Foreground="{StaticResource Brush.Success}" FontWeight="Bold" Margin="8,0,0,0"
                                    Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
-                        <TextBlock Text="{Binding NpcCount, StringFormat='({0} NPCs)'}"
-                                   Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
-                                   Margin="8,0,0,0" />
+                        <TextBlock Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
+                                   Margin="8,0,0,0">
+                          <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_NpcCountFormat">
+                  <Binding Path="NpcCount" />
+                </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
                       </StackPanel>
                       <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding TargetingDescription}"
                                  Foreground="#8EC07C" FontSize="{DynamicResource FontSize.Small}" TextWrapping="Wrap" Margin="0,4,0,0"

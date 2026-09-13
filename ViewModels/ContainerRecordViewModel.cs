@@ -11,12 +11,13 @@ public sealed class ContainerRecordViewModel(
   IContainerGetter container,
   ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
   string? merchantFaction = null,
-  IReadOnlyList<string>? cellPlacements = null)
+  IReadOnlyList<string>? cellPlacements = null,
+  ModKey? sourceMod = null)
 {
   public FormKey FormKey { get; } = container.FormKey;
   public string EditorId { get; } = container.EditorID ?? string.Empty;
   public string Name { get; } = container.Name.SafeString(container) ?? container.EditorID ?? container.FormKey.ToString();
-  public string ModName { get; } = container.FormKey.ModKey.FileName;
+  public string ModName { get; } = (sourceMod ?? container.FormKey.ModKey).FileName;
   public bool Respawns { get; } = container.Flags.HasFlag(Container.Flag.Respawns);
   public IReadOnlyList<ContainerContentItem> Items { get; } = ResolveItems(container, linkCache);
   public string? MerchantFaction { get; } = merchantFaction;

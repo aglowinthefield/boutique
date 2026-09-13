@@ -3,8 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:res="clr-namespace:Boutique.Resources"
         mc:Ignorable="d"
-        Title="Intra-file Overlaps"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+View.IntraFileOverlapsTitle}}"
         SizeToContent="WidthAndHeight"
         MinWidth="400" MinHeight="300"
         MaxWidth="1200" MaxHeight="800"
@@ -29,7 +31,7 @@
                  FontWeight="SemiBold"
                  Foreground="{StaticResource Brush.Accent}"
                  Margin="0,0,0,6" />
-      <TextBlock Text="Shared NPC counts between outfit entries. Non-zero cells indicate NPCs targeted by multiple outfits."
+      <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.IntraFileOverlapsDescription}}"
                  TextWrapping="Wrap"
                  FontSize="12"
                  Foreground="{StaticResource Brush.TextSecondary}" />
@@ -46,7 +48,7 @@
     </Border>
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-      <Button Content="Close"
+      <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Close}}"
               Click="CloseButton_Click"
               MinWidth="100"
               Padding="14,8" />

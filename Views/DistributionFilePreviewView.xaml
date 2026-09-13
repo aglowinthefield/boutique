@@ -26,7 +26,7 @@
         <Expander.Header>
           <TextBlock>
             <Run Text="{Binding ActualParseErrors.Count, Mode=OneWay}" />
-            <Run Text=" parsing error(s) - these lines will be preserved on save" />
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ParseErrorsSuffix}}" />
           </TextBlock>
         </Expander.Header>
         <Border Padding="6" Background="{DynamicResource Brush.Error.Background}"

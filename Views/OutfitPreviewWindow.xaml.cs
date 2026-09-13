@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Media3D;
 using Boutique.Models;
+using Boutique.Resources;
 using Boutique.Services;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model.Scene;
@@ -203,16 +204,27 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     {
       if (_sceneCollection.Count > 1)
       {
-        OutfitCounterText.Text = $"Outfit {sceneIndex + 1} of {_sceneCollection.Count}";
+        OutfitCounterText.Text = LocalizationService.GetFormatted(
+          LocalizationKeys.View.OutfitCounterFormat,
+          "Outfit {0} of {1}",
+          sceneIndex + 1,
+          _sceneCollection.Count);
       }
 
-      OutfitLabelText.Text = metadata.OutfitLabel ?? "Unknown Outfit";
+      OutfitLabelText.Text = metadata.OutfitLabel
+                             ?? LocalizationService.Get(LocalizationKeys.View.UnknownOutfit, "Unknown Outfit");
 
       if (!string.IsNullOrWhiteSpace(metadata.SourceFile))
       {
         OutfitSourceText.Text = metadata.IsWinner
-                                  ? $"from {metadata.SourceFile} (Winner)"
-                                  : $"from {metadata.SourceFile}";
+                                  ? LocalizationService.GetFormatted(
+                                    LocalizationKeys.View.FromSourceWinnerFormat,
+                                    "from {0} (Winner)",
+                                    metadata.SourceFile)
+                                  : LocalizationService.GetFormatted(
+                                    LocalizationKeys.View.FromSourceFormat,
+                                    "from {0}",
+                                    metadata.SourceFile);
         var brushKey = metadata.IsWinner ? "Brush.Accent" : "Brush.TextSecondary";
         OutfitSourceText.SetResourceReference(TextBlock.ForegroundProperty, brushKey);
       }
@@ -244,7 +256,10 @@ public sealed partial class OutfitPreviewWindow : IDisposable
     if (evaluatedMeshes.Count == 0)
     {
       MissingAssetsPanel.Visibility = Visibility.Visible;
-      MissingAssetsList.ItemsSource = new[] { "No geometry available to render." };
+      MissingAssetsList.ItemsSource = new[]
+      {
+        LocalizationService.Get(LocalizationKeys.View.NoGeometry, "No geometry available to render.")
+      };
       return;
     }
 

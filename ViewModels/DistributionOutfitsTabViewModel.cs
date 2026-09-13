@@ -13,6 +13,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -132,19 +133,26 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
 
         if (string.IsNullOrWhiteSpace(dataPath))
         {
-          StatusMessage = "Please set the Skyrim data path in Settings before loading outfits.";
+          StatusMessage = LocalizationService.Get(
+            Messages.SetDataPathLoadOutfits,
+            "Please set the Skyrim data path in Settings before loading outfits.");
           _logger.Warning("Skyrim data path is not set");
           return;
         }
 
         if (!Directory.Exists(dataPath))
         {
-          StatusMessage = $"Skyrim data path does not exist: {dataPath}";
+          StatusMessage = LocalizationService.GetFormatted(
+            Messages.DataPathNotExist,
+            "Skyrim data path does not exist: {0}",
+            dataPath);
           _logger.Warning("Skyrim data path does not exist: {DataPath}", dataPath);
           return;
         }
 
-        StatusMessage = "Initializing Skyrim environment...";
+        StatusMessage = LocalizationService.Get(
+          Messages.InitializingSkyrim,
+          "Initializing Skyrim environment...");
         _logger.Debug("Initializing MutagenService...");
         await _mutagenService.InitializeAsync(dataPath);
         _logger.Debug("MutagenService initialized successfully");
@@ -153,13 +161,17 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
 
       if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
       {
-        StatusMessage = "LinkCache not available.";
+        StatusMessage = LocalizationService.Get(
+          Messages.LinkCacheNotAvailable,
+          "LinkCache not available.");
         _logger.Warning("LinkCache not available");
         return;
       }
 
       // Load all outfits from the load order
-      StatusMessage = "Loading outfits from load order...";
+      StatusMessage = LocalizationService.Get(
+        Messages.LoadingOutfits,
+        "Loading outfits from load order...");
       _logger.Debug("Loading outfits from load order...");
       var outfits = await Task.Run(() =>
                                      linkCache.WinningOverrides<IOutfitGetter>().ToList());
@@ -194,13 +206,19 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
         UpdateOutfitNpcCounts();
       }
 
-      StatusMessage = $"Loaded {outfits.Count} outfits.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.LoadedOutfits,
+        "Loaded {0} outfits.",
+        outfits.Count);
       _logger.Information("Loaded {OutfitCount} outfits from load order.", outfits.Count);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to load outfits.");
-      StatusMessage = $"Error loading outfits: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorLoadingOutfits,
+        "Error loading outfits: {0}",
+        ex.Message);
     }
     finally
     {
@@ -213,13 +231,17 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
   {
     if (outfitVm == null)
     {
-      StatusMessage = "No outfit selected for preview.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoOutfitSelectedPreview,
+        "No outfit selected for preview.");
       return;
     }
 
     if (!_mutagenService.IsInitialized || _mutagenService.LinkCache is not { } linkCache)
     {
-      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      StatusMessage = LocalizationService.Get(
+        Messages.InitializeBeforePreview,
+        "Initialize Skyrim data path before previewing outfits.");
       return;
     }
 
@@ -229,13 +251,19 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
 
     if (initialResult.ArmorPieces.Count == 0)
     {
-      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.NoArmorPieces,
+        "Outfit '{0}' has no armor pieces to preview.",
+        label);
       return;
     }
 
     try
     {
-      StatusMessage = $"Building preview for {label}...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreview,
+        "Building preview for {0}...",
+        label);
 
       var metadata = new OutfitMetadata(
         label,
@@ -254,12 +282,15 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
         });
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for {label}.";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewReady, "Preview ready for {0}.", label);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.FailedPreviewOutfit,
+        "Failed to preview outfit: {0}",
+        ex.Message);
     }
   }
 
@@ -268,21 +299,28 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
   {
     if (clickedDistribution == null)
     {
-      StatusMessage = "No distribution to preview.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoDistributionToPreview,
+        "No distribution to preview.");
       return;
     }
 
     if (!_mutagenService.IsInitialized ||
         _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      StatusMessage = LocalizationService.Get(
+        Messages.InitializeBeforePreview,
+        "Initialize Skyrim data path before previewing outfits.");
       return;
     }
 
     var outfitFormKey = clickedDistribution.OutfitFormKey;
     if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
     {
-      StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.CouldNotResolveOutfit,
+        "Could not resolve outfit: {0}",
+        outfitFormKey);
       return;
     }
 
@@ -291,7 +329,10 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
 
     if (initialResult.ArmorPieces.Count == 0)
     {
-      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.NoArmorPieces,
+        "Outfit '{0}' has no armor pieces to preview.",
+        label);
       return;
     }
 
@@ -303,7 +344,10 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
 
     try
     {
-      StatusMessage = $"Building preview for {label}...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreview,
+        "Building preview for {0}...",
+        label);
 
       var metadata = new OutfitMetadata(
         clickedDistribution.OutfitEditorId ?? clickedDistribution.OutfitFormKey.ToString(),
@@ -325,12 +369,15 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
         initialGender);
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for {label}.";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewReady, "Preview ready for {0}.", label);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.FailedPreviewOutfit,
+        "Failed to preview outfit: {0}",
+        ex.Message);
     }
   }
 
@@ -507,7 +554,9 @@ public sealed partial class DistributionOutfitsTabViewModel : ReactiveObject, ID
     if (!_mutagenService.IsInitialized ||
         _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      SelectedOutfitContents = "LinkCache not available.";
+      SelectedOutfitContents = LocalizationService.Get(
+        Messages.LinkCacheNotAvailable,
+        "LinkCache not available.");
       return;
     }
 

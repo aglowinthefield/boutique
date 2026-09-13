@@ -8,6 +8,7 @@ using Boutique.Services;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -255,11 +256,13 @@ public partial class DistributionEntryViewModel : ReactiveObject
           if (useChance && !wasEnabled && _dialogService != null &&
               isFormatChangingToSpid != null && isFormatChangingToSpid() &&
               !_dialogService.Confirm(
-                "Enabling chance-based distribution will change the file format to SPID.\n\n" +
-                "SkyPatcher does not support chance-based outfit distribution. " +
-                "The file will be saved in SPID format to support this feature.\n\n" +
-                "Do you want to continue?",
-                "Format Change Required"))
+                LocalizationService.Get(
+                  Messages.FormatChangePrompt,
+                  "Enabling chance-based distribution will change the file format to SPID.\n\n" +
+                  "SkyPatcher does not support chance-based outfit distribution. " +
+                  "The file will be saved in SPID format to support this feature.\n\n" +
+                  "Do you want to continue?"),
+                LocalizationService.Get(Messages.FormatChangeTitle, "Format Change Required")))
           {
             previousUseChance = false;
             UseChance         = false;

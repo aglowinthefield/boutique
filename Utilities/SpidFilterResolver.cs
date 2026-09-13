@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using Boutique.Models;
 using Mutagen.Bethesda.Plugins;
@@ -7,10 +8,20 @@ using Serilog;
 
 namespace Boutique.Utilities;
 
+/// <summary>
+///   Per-file lookup indexes built once from the link cache: bare-FormID → FormKey across the
+///   record types SPID form/string filters can reference, plus lazily-built EditorID → FormKey
+///   indexes so resolving a filter value doesn't re-enumerate the whole load order per value.
+/// </summary>
 public sealed class FormIdLookupCache
 {
+  private readonly ILinkCache<ISkyrimMod, ISkyrimModGetter> _linkCache;
+  private readonly ConcurrentDictionary<Type, IReadOnlyDictionary<string, FormKey>> _editorIdIndexes = new();
+
   public FormIdLookupCache(ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
+    _linkCache = linkCache;
+
     var dict = new Dictionary<uint, FormKey>();
     AddOverrides<INpcGetter>(linkCache, dict);
     AddOverrides<IFactionGetter>(linkCache, dict);
@@ -21,6 +32,33 @@ public sealed class FormIdLookupCache
   }
 
   public IReadOnlyDictionary<uint, FormKey> FormKeysByFormId { get; }
+
+  /// <summary>
+  ///   Resolves an EditorID to its winning override's FormKey using a per-type index that is
+  ///   built on first use (large load orders only pay for the types actually queried).
+  /// </summary>
+  public bool TryGetFormKeyByEditorId<T>(string editorId, out FormKey formKey)
+    where T : class, ISkyrimMajorRecordGetter
+  {
+    var index = _editorIdIndexes.GetOrAdd(typeof(T), _ => BuildEditorIdIndex<T>(_linkCache));
+    return index.TryGetValue(editorId, out formKey);
+  }
+
+  private static IReadOnlyDictionary<string, FormKey> BuildEditorIdIndex<T>(
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    where T : class, ISkyrimMajorRecordGetter
+  {
+    var dict = new Dictionary<string, FormKey>(StringComparer.OrdinalIgnoreCase);
+    foreach (var record in linkCache.WinningOverrides<T>())
+    {
+      if (!string.IsNullOrWhiteSpace(record.EditorID))
+      {
+        dict.TryAdd(record.EditorID, record.FormKey);
+      }
+    }
+
+    return dict;
+  }
 
   private static void AddOverrides<T>(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
@@ -54,97 +92,24 @@ public static class SpidFilterResolver
         return null;
       }
 
-      var npcFilters           = new List<FormKeyFilter>();
-      var keywordFilters       = new List<KeywordFilter>();
-      var factionFilters       = new List<FormKeyFilter>();
-      var raceFilters          = new List<FormKeyFilter>();
-      var classFormKeys        = new List<FormKey>();
-      var combatStyleFormKeys  = new List<FormKey>();
-      var outfitFilterFormKeys = new List<FormKey>();
-      var perkFormKeys         = new List<FormKey>();
-      var voiceTypeFormKeys    = new List<FormKey>();
-      var locationFormKeys     = new List<FormKey>();
-      var formListFormKeys     = new List<FormKey>();
+      var sections = ResolveSections(filter, linkCache, cachedNpcs, knownVirtualKeywords, formIdCache, logger);
 
-      ProcessStringFilters(
-        filter.StringFilters,
-        linkCache,
-        cachedNpcs,
-        npcFilters,
-        keywordFilters,
-        knownVirtualKeywords,
-        logger);
-
-      var resolvedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-      ProcessFormFilters(
-        filter.FormFilters,
-        linkCache,
-        formIdCache,
-        npcFilters,
-        factionFilters,
-        raceFilters,
-        classFormKeys,
-        combatStyleFormKeys,
-        outfitFilterFormKeys,
-        perkFormKeys,
-        voiceTypeFormKeys,
-        locationFormKeys,
-        formListFormKeys,
-        resolvedFormEditorIds,
-        logger);
-
-      var rawStringFilters =
-        ExtractUnresolvableStringFilters(filter.StringFilters, npcFilters, keywordFilters, cachedNpcs);
-      var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
-
-      var hasAnyFilter = npcFilters.Count > 0 || factionFilters.Count > 0 ||
-                         keywordFilters.Count > 0 || raceFilters.Count > 0 ||
-                         classFormKeys.Count > 0 || combatStyleFormKeys.Count > 0 ||
-                         outfitFilterFormKeys.Count > 0 || perkFormKeys.Count > 0 ||
-                         voiceTypeFormKeys.Count > 0 ||
-                         locationFormKeys.Count > 0 || formListFormKeys.Count > 0 ||
-                         !string.IsNullOrEmpty(rawStringFilters) || !string.IsNullOrEmpty(rawFormFilters);
-
-      if (!hasAnyFilter && !filter.TargetsAllNpcs)
+      if (!sections.HasAnyFilter && !filter.TargetsAllNpcs)
       {
         logger?.Debug("No filters could be resolved for SPID line: {Line}", filter.RawLine);
         return null;
       }
 
-      var entry = new DistributionEntry
-                  {
-                    Outfit               = outfit,
-                    NpcFilters           = npcFilters,
-                    KeywordFilters       = keywordFilters,
-                    FactionFilters       = factionFilters,
-                    RaceFilters          = raceFilters,
-                    ClassFormKeys        = classFormKeys,
-                    CombatStyleFormKeys  = combatStyleFormKeys,
-                    OutfitFilterFormKeys = outfitFilterFormKeys,
-                    PerkFormKeys         = perkFormKeys,
-                    VoiceTypeFormKeys    = voiceTypeFormKeys,
-                    LocationFormKeys     = locationFormKeys,
-                    FormListFormKeys     = formListFormKeys,
-                    TraitFilters         = filter.TraitFilters,
-                    LevelFilters         = filter.LevelFilters,
-                    RawStringFilters     = rawStringFilters,
-                    RawFormFilters       = rawFormFilters,
-                    NpcLogicMode         = DetectLogicMode(filter.StringFilters, npcFilters.Count),
-                    KeywordLogicMode     = DetectLogicMode(filter.StringFilters, keywordFilters.Count),
-                    FactionLogicMode     = DetectLogicMode(filter.FormFilters, factionFilters.Count),
-                    RaceLogicMode        = DetectLogicMode(filter.FormFilters, raceFilters.Count),
-                    ClassLogicMode       = DetectLogicMode(filter.FormFilters, classFormKeys.Count),
-                    LocationLogicMode    = DetectLogicMode(filter.FormFilters, locationFormKeys.Count),
-                    OutfitFilterLogicMode = DetectLogicMode(filter.FormFilters, outfitFilterFormKeys.Count)
-                  };
+      var entry = BuildEntry(filter, sections);
+      entry.Outfit = outfit;
 
-      if (outfitFilterFormKeys.Count > 0)
+      if (sections.OutfitFilterFormKeys.Count > 0)
       {
         logger?.Information(
           "Resolved {Count} outfit filter(s) for line: {Line} => {FormKeys}",
-          outfitFilterFormKeys.Count,
+          sections.OutfitFilterFormKeys.Count,
           filter.RawLine,
-          string.Join(", ", outfitFilterFormKeys));
+          string.Join(", ", sections.OutfitFilterFormKeys));
       }
 
       if (filter.Chance != 100)
@@ -178,76 +143,11 @@ public static class SpidFilterResolver
         return null;
       }
 
-      var npcFilters           = new List<FormKeyFilter>();
-      var keywordFilters       = new List<KeywordFilter>();
-      var factionFilters       = new List<FormKeyFilter>();
-      var raceFilters          = new List<FormKeyFilter>();
-      var classFormKeys        = new List<FormKey>();
-      var combatStyleFormKeys  = new List<FormKey>();
-      var outfitFilterFormKeys = new List<FormKey>();
-      var perkFormKeys         = new List<FormKey>();
-      var voiceTypeFormKeys    = new List<FormKey>();
-      var locationFormKeys     = new List<FormKey>();
-      var formListFormKeys     = new List<FormKey>();
+      var sections = ResolveSections(filter, linkCache, cachedNpcs, knownVirtualKeywords, formIdCache, logger);
 
-      ProcessStringFilters(
-        filter.StringFilters,
-        linkCache,
-        cachedNpcs,
-        npcFilters,
-        keywordFilters,
-        knownVirtualKeywords,
-        logger);
-
-      var resolvedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-      ProcessFormFilters(
-        filter.FormFilters,
-        linkCache,
-        formIdCache,
-        npcFilters,
-        factionFilters,
-        raceFilters,
-        classFormKeys,
-        combatStyleFormKeys,
-        outfitFilterFormKeys,
-        perkFormKeys,
-        voiceTypeFormKeys,
-        locationFormKeys,
-        formListFormKeys,
-        resolvedFormEditorIds,
-        logger);
-
-      var rawStringFilters =
-        ExtractUnresolvableStringFilters(filter.StringFilters, npcFilters, keywordFilters, cachedNpcs);
-      var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
-
-      var entry = new DistributionEntry
-                  {
-                    Type                 = DistributionType.Keyword,
-                    KeywordToDistribute  = keywordToDistribute,
-                    NpcFilters           = npcFilters,
-                    KeywordFilters       = keywordFilters,
-                    FactionFilters       = factionFilters,
-                    RaceFilters          = raceFilters,
-                    ClassFormKeys        = classFormKeys,
-                    CombatStyleFormKeys  = combatStyleFormKeys,
-                    OutfitFilterFormKeys = outfitFilterFormKeys,
-                    PerkFormKeys         = perkFormKeys,
-                    VoiceTypeFormKeys    = voiceTypeFormKeys,
-                    LocationFormKeys     = locationFormKeys,
-                    FormListFormKeys     = formListFormKeys,
-                    TraitFilters         = filter.TraitFilters,
-                    LevelFilters         = filter.LevelFilters,
-                    RawStringFilters     = rawStringFilters,
-                    RawFormFilters       = rawFormFilters,
-                    NpcLogicMode         = DetectLogicMode(filter.StringFilters, npcFilters.Count),
-                    KeywordLogicMode     = DetectLogicMode(filter.StringFilters, keywordFilters.Count),
-                    FactionLogicMode     = DetectLogicMode(filter.FormFilters, factionFilters.Count),
-                    RaceLogicMode        = DetectLogicMode(filter.FormFilters, raceFilters.Count),
-                    ClassLogicMode       = DetectLogicMode(filter.FormFilters, classFormKeys.Count),
-                    LocationLogicMode    = DetectLogicMode(filter.FormFilters, locationFormKeys.Count),
-                    OutfitFilterLogicMode = DetectLogicMode(filter.FormFilters, outfitFilterFormKeys.Count)
-                  };
+      var entry = BuildEntry(filter, sections);
+      entry.Type                = DistributionType.Keyword;
+      entry.KeywordToDistribute = keywordToDistribute;
 
       if (filter.Chance != 100)
       {
@@ -325,9 +225,131 @@ public static class SpidFilterResolver
     return resolvedOutfit;
   }
 
+  /// <summary>Every filter list resolved from one SPID line's sections, plus unresolvable remainders.</summary>
+  private sealed record ResolvedSections(
+    List<FormKeyFilter> NpcFilters,
+    List<KeywordFilter> KeywordFilters,
+    List<FormKeyFilter> FactionFilters,
+    List<FormKeyFilter> RaceFilters,
+    List<FormKey> ClassFormKeys,
+    List<FormKey> CombatStyleFormKeys,
+    List<FormKey> OutfitFilterFormKeys,
+    List<FormKey> PerkFormKeys,
+    List<FormKey> VoiceTypeFormKeys,
+    List<FormKey> LocationFormKeys,
+    List<FormKey> FormListFormKeys,
+    string? RawStringFilters,
+    string? RawFormFilters)
+  {
+    public bool HasAnyFilter =>
+      NpcFilters.Count > 0 || FactionFilters.Count > 0 ||
+      KeywordFilters.Count > 0 || RaceFilters.Count > 0 ||
+      ClassFormKeys.Count > 0 || CombatStyleFormKeys.Count > 0 ||
+      OutfitFilterFormKeys.Count > 0 || PerkFormKeys.Count > 0 ||
+      VoiceTypeFormKeys.Count > 0 || LocationFormKeys.Count > 0 ||
+      FormListFormKeys.Count > 0 ||
+      !string.IsNullOrEmpty(RawStringFilters) || !string.IsNullOrEmpty(RawFormFilters);
+  }
+
+  private static ResolvedSections ResolveSections(
+    SpidDistributionFilter filter,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyList<INpcGetter> cachedNpcs,
+    IReadOnlySet<string>? knownVirtualKeywords,
+    FormIdLookupCache? formIdCache,
+    ILogger? logger)
+  {
+    var npcFilters           = new List<FormKeyFilter>();
+    var keywordFilters       = new List<KeywordFilter>();
+    var factionFilters       = new List<FormKeyFilter>();
+    var raceFilters          = new List<FormKeyFilter>();
+    var classFormKeys        = new List<FormKey>();
+    var combatStyleFormKeys  = new List<FormKey>();
+    var outfitFilterFormKeys = new List<FormKey>();
+    var perkFormKeys         = new List<FormKey>();
+    var voiceTypeFormKeys    = new List<FormKey>();
+    var locationFormKeys     = new List<FormKey>();
+    var formListFormKeys     = new List<FormKey>();
+
+    ProcessStringFilters(
+      filter.StringFilters,
+      linkCache,
+      formIdCache,
+      cachedNpcs,
+      npcFilters,
+      keywordFilters,
+      knownVirtualKeywords,
+      logger);
+
+    var resolvedFormEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    ProcessFormFilters(
+      filter.FormFilters,
+      linkCache,
+      formIdCache,
+      npcFilters,
+      factionFilters,
+      raceFilters,
+      classFormKeys,
+      combatStyleFormKeys,
+      outfitFilterFormKeys,
+      perkFormKeys,
+      voiceTypeFormKeys,
+      locationFormKeys,
+      formListFormKeys,
+      resolvedFormEditorIds,
+      logger);
+
+    var rawStringFilters =
+      ExtractUnresolvableStringFilters(filter.StringFilters, npcFilters, keywordFilters, cachedNpcs);
+    var rawFormFilters = ExtractUnresolvableFormFilters(filter.FormFilters, resolvedFormEditorIds);
+
+    return new ResolvedSections(
+      npcFilters,
+      keywordFilters,
+      factionFilters,
+      raceFilters,
+      classFormKeys,
+      combatStyleFormKeys,
+      outfitFilterFormKeys,
+      perkFormKeys,
+      voiceTypeFormKeys,
+      locationFormKeys,
+      formListFormKeys,
+      rawStringFilters,
+      rawFormFilters);
+  }
+
+  private static DistributionEntry BuildEntry(SpidDistributionFilter filter, ResolvedSections sections) =>
+    new()
+    {
+      NpcFilters            = sections.NpcFilters,
+      KeywordFilters        = sections.KeywordFilters,
+      FactionFilters        = sections.FactionFilters,
+      RaceFilters           = sections.RaceFilters,
+      ClassFormKeys         = sections.ClassFormKeys,
+      CombatStyleFormKeys   = sections.CombatStyleFormKeys,
+      OutfitFilterFormKeys  = sections.OutfitFilterFormKeys,
+      PerkFormKeys          = sections.PerkFormKeys,
+      VoiceTypeFormKeys     = sections.VoiceTypeFormKeys,
+      LocationFormKeys      = sections.LocationFormKeys,
+      FormListFormKeys      = sections.FormListFormKeys,
+      TraitFilters          = filter.TraitFilters,
+      LevelFilters          = filter.LevelFilters,
+      RawStringFilters      = sections.RawStringFilters,
+      RawFormFilters        = sections.RawFormFilters,
+      NpcLogicMode          = DetectLogicMode(filter.StringFilters, sections.NpcFilters.Count),
+      KeywordLogicMode      = DetectLogicMode(filter.StringFilters, sections.KeywordFilters.Count),
+      FactionLogicMode      = DetectLogicMode(filter.FormFilters, sections.FactionFilters.Count),
+      RaceLogicMode         = DetectLogicMode(filter.FormFilters, sections.RaceFilters.Count),
+      ClassLogicMode        = DetectLogicMode(filter.FormFilters, sections.ClassFormKeys.Count),
+      LocationLogicMode     = DetectLogicMode(filter.FormFilters, sections.LocationFormKeys.Count),
+      OutfitFilterLogicMode = DetectLogicMode(filter.FormFilters, sections.OutfitFilterFormKeys.Count)
+    };
+
   private static void ProcessStringFilters(
     SpidFilterSection stringFilters,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    FormIdLookupCache? formIdCache,
     IReadOnlyList<INpcGetter> cachedNpcs,
     List<FormKeyFilter> npcFilters,
     List<KeywordFilter> keywordFilters,
@@ -336,6 +358,7 @@ public static class SpidFilterResolver
   {
     var context = new StringFilterContext(
       linkCache,
+      formIdCache,
       cachedNpcs,
       npcFilters,
       keywordFilters,
@@ -368,6 +391,7 @@ public static class SpidFilterResolver
 
   private sealed record StringFilterContext(
     ILinkCache<ISkyrimMod, ISkyrimModGetter> LinkCache,
+    FormIdLookupCache? FormIdCache,
     IReadOnlyList<INpcGetter> CachedNpcs,
     List<FormKeyFilter> NpcFilters,
     List<KeywordFilter> KeywordFilters,
@@ -398,6 +422,12 @@ public static class SpidFilterResolver
           : "Resolved NPC string filter '{Value}' to {FormKey}",
         value,
         npc.FormKey);
+      return;
+    }
+
+    if (context.FormIdCache?.TryGetFormKeyByEditorId<IKeywordGetter>(value, out var keywordFormKey) == true)
+    {
+      context.KeywordFilters.Add(new KeywordFilter(value, isNegated));
       return;
     }
 
@@ -471,13 +501,20 @@ public static class SpidFilterResolver
           part.Value,
           part.IsNegated,
           linkCache,
+          formIdCache,
           factionFilters,
           resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAddFilter<IRaceGetter>(part.Value, part.IsNegated, linkCache, raceFilters, resolvedEditorIds))
+        if (TryResolveAndAddFilter<IRaceGetter>(
+          part.Value,
+          part.IsNegated,
+          linkCache,
+          formIdCache,
+          raceFilters,
+          resolvedEditorIds))
         {
           continue;
         }
@@ -487,37 +524,62 @@ public static class SpidFilterResolver
           continue;
         }
 
-        if (TryResolveAndAdd<IClassGetter>(part.Value, linkCache, classFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<IClassGetter>(part.Value, linkCache, formIdCache, classFormKeys, resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<ICombatStyleGetter>(part.Value, linkCache, combatStyleFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<ICombatStyleGetter>(
+          part.Value,
+          linkCache,
+          formIdCache,
+          combatStyleFormKeys,
+          resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<IOutfitGetter>(part.Value, linkCache, outfitFilterFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<IOutfitGetter>(
+          part.Value,
+          linkCache,
+          formIdCache,
+          outfitFilterFormKeys,
+          resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<IPerkGetter>(part.Value, linkCache, perkFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<IPerkGetter>(part.Value, linkCache, formIdCache, perkFormKeys, resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<IVoiceTypeGetter>(part.Value, linkCache, voiceTypeFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<IVoiceTypeGetter>(
+          part.Value,
+          linkCache,
+          formIdCache,
+          voiceTypeFormKeys,
+          resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<ILocationGetter>(part.Value, linkCache, locationFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<ILocationGetter>(
+          part.Value,
+          linkCache,
+          formIdCache,
+          locationFormKeys,
+          resolvedEditorIds))
         {
           continue;
         }
 
-        if (TryResolveAndAdd<IFormListGetter>(part.Value, linkCache, formListFormKeys, resolvedEditorIds))
+        if (TryResolveAndAdd<IFormListGetter>(
+          part.Value,
+          linkCache,
+          formIdCache,
+          formListFormKeys,
+          resolvedEditorIds))
         {
           continue;
         }
@@ -544,12 +606,12 @@ public static class SpidFilterResolver
         continue;
       }
 
-      if (TryResolveAndAddFilter<IFactionGetter>(value, true, linkCache, factionFilters, resolvedEditorIds))
+      if (TryResolveAndAddFilter<IFactionGetter>(value, true, linkCache, formIdCache, factionFilters, resolvedEditorIds))
       {
         continue;
       }
 
-      TryResolveAndAddFilter<IRaceGetter>(value, true, linkCache, raceFilters, resolvedEditorIds);
+      TryResolveAndAddFilter<IRaceGetter>(value, true, linkCache, formIdCache, raceFilters, resolvedEditorIds);
     }
   }
 
@@ -777,10 +839,18 @@ public static class SpidFilterResolver
   private static bool TryResolveAndAdd<T>(
     string editorId,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    FormIdLookupCache? formIdCache,
     List<FormKey> targetList,
     HashSet<string>? resolvedEditorIds)
     where T : class, ISkyrimMajorRecordGetter
   {
+    if (formIdCache?.TryGetFormKeyByEditorId<T>(editorId, out var cachedFormKey) == true)
+    {
+      targetList.Add(cachedFormKey);
+      resolvedEditorIds?.Add(editorId);
+      return true;
+    }
+
     var record = ResolveByEditorId<T>(editorId, linkCache);
     if (record == null)
     {
@@ -796,10 +866,18 @@ public static class SpidFilterResolver
     string editorId,
     bool isNegated,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    FormIdLookupCache? formIdCache,
     List<FormKeyFilter> targetList,
     HashSet<string>? resolvedEditorIds)
     where T : class, ISkyrimMajorRecordGetter
   {
+    if (formIdCache?.TryGetFormKeyByEditorId<T>(editorId, out var cachedFormKey) == true)
+    {
+      targetList.Add(new FormKeyFilter(cachedFormKey, isNegated));
+      resolvedEditorIds?.Add(editorId);
+      return true;
+    }
+
     var record = ResolveByEditorId<T>(editorId, linkCache);
     if (record == null)
     {

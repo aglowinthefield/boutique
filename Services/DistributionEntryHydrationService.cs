@@ -3,6 +3,8 @@ using Boutique.Models;
 using Boutique.Utilities;
 using Boutique.ViewModels;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
@@ -15,6 +17,14 @@ public class DistributionEntryHydrationService(
   GameDataCacheService cache,
   MutagenService mutagenService)
 {
+  /// <summary>
+  ///   Resolves the mod supplying the winning override of a record, falling back to the
+  ///   FormKey's origin mod when no context is available.
+  /// </summary>
+  private static ModKey ResolveWinningModOrDefault<TMajor>(ILinkCache linkCache, TMajor record, FormKey formKey)
+    where TMajor : class, IMajorRecordGetter =>
+    linkCache.TryResolveSimpleContext(record, out var context) ? context.ModKey : formKey.ModKey;
+
   public void HydrateEntry(
     DistributionEntryViewModel entryVm,
     DistributionEntry entry,
@@ -120,7 +130,7 @@ public class DistributionEntryHydrationService(
         npc.FormKey,
         npc.EditorID,
         npc.Name.SafeString(npc),
-        npc.FormKey.ModKey);
+        ResolveWinningModOrDefault(linkCache, npc, formKey));
       return new NpcRecordViewModel(npcRecord);
     }
 
@@ -155,7 +165,8 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IFactionGetter>(formKey, out var faction))
     {
-      return new FactionRecordViewModel(FactionRecord.FromGetter(faction));
+      return new FactionRecordViewModel(
+        FactionRecord.FromGetter(faction, ResolveWinningModOrDefault(linkCache, faction, formKey)));
     }
 
     return null;
@@ -204,7 +215,8 @@ public class DistributionEntryHydrationService(
                                                StringComparison.OrdinalIgnoreCase));
       if (keyword != null)
       {
-        return new KeywordRecordViewModel(KeywordRecord.FromGetter(keyword));
+        return new KeywordRecordViewModel(
+          KeywordRecord.FromGetter(keyword, ResolveWinningModOrDefault(linkCache, keyword, keyword.FormKey)));
       }
     }
 
@@ -223,7 +235,8 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword))
     {
-      return new KeywordRecordViewModel(KeywordRecord.FromGetter(keyword));
+      return new KeywordRecordViewModel(
+        KeywordRecord.FromGetter(keyword, ResolveWinningModOrDefault(linkCache, keyword, formKey)));
     }
 
     return null;
@@ -257,7 +270,8 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IRaceGetter>(formKey, out var race))
     {
-      return new RaceRecordViewModel(RaceRecord.FromGetter(race));
+      return new RaceRecordViewModel(
+        RaceRecord.FromGetter(race, ResolveWinningModOrDefault(linkCache, race, formKey)));
     }
 
     return null;
@@ -277,7 +291,8 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IClassGetter>(formKey, out var classRecord))
     {
-      return new ClassRecordViewModel(ClassRecord.FromGetter(classRecord));
+      return new ClassRecordViewModel(
+        ClassRecord.FromGetter(classRecord, ResolveWinningModOrDefault(linkCache, classRecord, formKey)));
     }
 
     return null;
@@ -299,7 +314,9 @@ public class DistributionEntryHydrationService(
       return null;
     }
 
-    var locationRecord = LocationRecord.FromGetter(locationGetter);
+    var locationRecord = LocationRecord.FromGetter(
+      locationGetter,
+      ResolveWinningModOrDefault(mutagenService.LinkCache!, locationGetter, formKey));
     return new LocationRecordViewModel(locationRecord);
   }
 
@@ -313,7 +330,9 @@ public class DistributionEntryHydrationService(
     if (mutagenService.LinkCache is { } linkCache &&
         linkCache.TryResolve<IOutfitGetter>(formKey, out var outfit))
     {
-      return new OutfitRecordViewModel(outfit);
+      return new OutfitRecordViewModel(
+        outfit,
+        sourceMod: ResolveWinningModOrDefault(linkCache, outfit, formKey));
     }
 
     return null;

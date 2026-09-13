@@ -186,6 +186,20 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
   public Task<IEnumerable<IArmorGetter>> LoadArmorsFromPluginAsync(string pluginFileName) =>
     LoadRecordsFromPluginAsync(pluginFileName, mod => mod.Armors);
 
+  /// <summary>
+  /// Loads every armor in the load order paired with the mod supplying its winning override,
+  /// so callers can attribute the record to the plugin users actually see (an override ESP,
+  /// not the mod that first defined the record).
+  /// </summary>
+  public Task<IReadOnlyList<(IArmorGetter Armor, ModKey SourceMod)>> LoadAllArmorsWithContextAsync() =>
+    Task.Run<IReadOnlyList<(IArmorGetter, ModKey)>>(() =>
+      LinkCache is null
+        ? []
+        : LinkCache.WinningContextOverrides<IArmor, IArmorGetter>(LinkCache)
+                   .Where(ctx => !IsBlacklisted(ctx.Record.FormKey.ModKey.FileName) && !IsBlacklisted(ctx.ModKey.FileName))
+                   .Select(ctx => (ctx.Record, ctx.ModKey))
+                   .ToList());
+
   public Task<IEnumerable<IArmorGetter>> LoadAllArmorsAsync() =>
     Task.Run<IEnumerable<IArmorGetter>>(() =>
       LinkCache is null
@@ -256,23 +270,24 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
     {
       var plugins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-      foreach (var armor in LinkCache!.WinningOverrides<IArmorGetter>())
+      // Attribute each winning override to the plugin providing it, so override-only
+      // plugins (e.g. stat rebalances) also appear in the plugin lists.
+      foreach (var armor in LinkCache!.WinningContextOverrides<IArmor, IArmorGetter>(LinkCache))
       {
-        var modKey = armor.FormKey.ModKey;
-        if (IsBlacklisted(modKey.FileName))
+        if (IsBlacklisted(armor.Record.FormKey.ModKey.FileName) || IsBlacklisted(armor.ModKey.FileName))
         {
           continue;
         }
 
-        if (!string.IsNullOrWhiteSpace(armor.Name.SafeString(armor)))
+        if (!string.IsNullOrWhiteSpace(armor.Record.Name.SafeString(armor.Record)))
         {
-          plugins.Add(modKey.FileName);
+          plugins.Add(armor.ModKey.FileName);
         }
       }
 
-      foreach (var fileName in LinkCache.WinningOverrides<IOutfitGetter>()
-                 .Select(outfit => outfit.FormKey.ModKey.FileName)
-                 .Where(fn => !IsBlacklisted(fn)))
+      foreach (var fileName in LinkCache.WinningContextOverrides<IOutfit, IOutfitGetter>(LinkCache)
+                     .Select(outfit => outfit.ModKey.FileName)
+                     .Where(fn => !IsBlacklisted(fn)))
       {
         plugins.Add(fileName);
       }
@@ -302,16 +317,28 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
 
     await Task.Run(() =>
     {
-      _environment?.Dispose();
-
+      // Build the replacement environment first and swap it in before disposing the old one:
+      // concurrent readers may still hold the previous LinkCache, and disposing it under them
+      // would throw ObjectDisposedException mid-enumeration. The stale environment is disposed
+      // after the swap (last reader to have captured it may briefly outlive this, which is safe
+      // for read-only link caches as long as we don't dispose while it's being built).
       var useExplicitPath = PathUtilities.HasPluginFiles(DataFolderPath);
+      var oldEnvironment  = _environment;
       try
       {
         BuildEnvironment(useExplicitPath ? DataFolderPath : null);
       }
-      catch
+      catch (Exception ex)
       {
+        _logger.Warning(
+          ex,
+          "BuildEnvironment with explicit path {UseExplicit} failed during refresh, falling back to auto-detection.",
+          useExplicitPath);
         BuildEnvironment(null);
+      }
+      finally
+      {
+        oldEnvironment?.Dispose();
       }
     });
 

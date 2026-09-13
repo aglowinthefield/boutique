@@ -1,6 +1,8 @@
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Boutique.Resources;
+using Boutique.Services;
 using Boutique.ViewModels;
 using ReactiveUI;
 
@@ -41,8 +43,11 @@ public partial class DistributionEntryListView
     {
       var targetName = entryVm.TargetDisplayName;
       var result = MessageBox.Show(
-        $"Are you sure you want to remove this entry?\n\n{targetName}",
-        "Confirm Remove",
+        LocalizationService.GetFormatted(
+          LocalizationKeys.View.ConfirmRemoveMessage,
+          "Are you sure you want to remove this entry?\n\n{0}",
+          targetName),
+        LocalizationService.Get(LocalizationKeys.View.ConfirmRemoveTitle, "Confirm Remove"),
         MessageBoxButton.YesNo,
         MessageBoxImage.Question);
 

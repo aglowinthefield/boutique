@@ -9,6 +9,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -30,7 +31,7 @@ public partial class DistributionViewModel : ReactiveObject
 
   [Reactive] private int _selectedTabIndex;
 
-  [Reactive] private string _statusMessage = "Ready";
+  [Reactive] private string _statusMessage = LocalizationService.Get(Messages.Ready, "Ready");
 
   public DistributionViewModel(
     DistributionFileEditorService fileWriterService,
@@ -307,7 +308,8 @@ public partial class DistributionViewModel : ReactiveObject
   public Interaction<ArmorPreviewSceneCollection, Unit> ShowPreview { get; } = new();
 
   private static string GetFirstNonEmptyStatus(params string[] statuses) =>
-    statuses.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ?? "Ready";
+    statuses.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ??
+    LocalizationService.Get(Messages.Ready, "Ready");
 
   private void NavigateToNpcsTabFromRanking((RankingCategory Category, string Label) args)
   {

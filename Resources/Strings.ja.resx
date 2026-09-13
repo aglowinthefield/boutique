@@ -846,4 +846,828 @@
   <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
     <value>別のアイテムとバイプ部位スロットが重複しています。「すべて使用」がオンの場合、どちらか一方しか装備されません。</value>
   </data>
+
+  <!-- Code-behind Messages -->
+  <data name="Msg_Ready" xml:space="preserve">
+    <value>準備完了</value>
+  </data>
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>保存中...</value>
+  </data>
+  <data name="Msg_ErrorGeneric" xml:space="preserve">
+    <value>エラー: {0}</value>
+  </data>
+  <data name="Msg_ErrorTitle" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="Msg_InitializingMutagen" xml:space="preserve">
+    <value>Mutagenを初期化しています...</value>
+  </data>
+  <data name="Msg_LoadedPluginsWithArmors" xml:space="preserve">
+    <value>防具/衣装を含む{0}個のプラグインを読み込みました</value>
+  </data>
+  <data name="Msg_LoadingArmorsFrom" xml:space="preserve">
+    <value>{0}から防具を読み込んでいます...</value>
+  </data>
+  <data name="Msg_LoadedArmorsFrom" xml:space="preserve">
+    <value>{1}から{0}件の防具を読み込みました</value>
+  </data>
+  <data name="Msg_LoadedArmorsFromOutfit" xml:space="preserve">
+    <value>{1}から{0}件の防具を読み込みました。</value>
+  </data>
+  <data name="Msg_ErrorLoadingArmorsFrom" xml:space="preserve">
+    <value>{0}からの防具の読み込みエラー: {1}</value>
+  </data>
+  <data name="Msg_ErrorLoadingPluginTitle" xml:space="preserve">
+    <value>プラグインの読み込みエラー</value>
+  </data>
+  <data name="Msg_FailedLoadArmors" xml:space="preserve">
+    <value>{0}から防具を読み込めませんでした:&#10;{1}</value>
+  </data>
+  <data name="Msg_MappedArmorsTo" xml:space="preserve">
+    <value>{0}件の防具を{1}に割り当てました</value>
+  </data>
+  <data name="Msg_ErrorMappingArmors" xml:space="preserve">
+    <value>防具の割り当てエラー: {0}</value>
+  </data>
+  <data name="Msg_MarkedGlamOnly" xml:space="preserve">
+    <value>{0}件の防具を外観のみとしてマークしました。</value>
+  </data>
+  <data name="Msg_ErrorMarkingGlamOnly" xml:space="preserve">
+    <value>外観のみのマーク中にエラー: {0}</value>
+  </data>
+  <data name="Msg_ClearedMappings" xml:space="preserve">
+    <value>すべての割り当てをクリアしました。</value>
+  </data>
+  <data name="Msg_RemovedMappingFor" xml:space="preserve">
+    <value>{0}の割り当てを削除しました</value>
+  </data>
+  <data name="Msg_GlamOnlySummary" xml:space="preserve">
+    <value>✨ 外観のみ（防御値を0に設定）</value>
+  </data>
+  <data name="Msg_NotMapped" xml:space="preserve">
+    <value>未割り当て</value>
+  </data>
+  <data name="Msg_BuildingPreviewQuoted" xml:space="preserve">
+    <value>'{0}'のプレビューを作成しています...</value>
+  </data>
+  <data name="Msg_PreviewReadyQuoted" xml:space="preserve">
+    <value>'{0}'のプレビュー準備ができました。</value>
+  </data>
+  <data name="Msg_PreviewError" xml:space="preserve">
+    <value>プレビューエラー: {0}</value>
+  </data>
+  <data name="Msg_CreatingPatch" xml:space="preserve">
+    <value>パッチを作成しています...</value>
+  </data>
+  <data name="Msg_NoMappedArmors" xml:space="preserve">
+    <value>パッチする割り当て済みの防具がありません。</value>
+  </data>
+  <data name="Msg_OverwritePatchConfirm" xml:space="preserve">
+    <value>選択したパッチファイルは既に存在します。新しいデータを追加すると、そのESP内で同じFormIDを持つレコードが上書きされます。&#10;&#10;続行しますか？</value>
+  </data>
+  <data name="Msg_PatchCanceled" xml:space="preserve">
+    <value>パッチの作成がキャンセルされました。</value>
+  </data>
+  <data name="Msg_FailedToCreatePatch" xml:space="preserve">
+    <value>パッチの作成に失敗しました</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>予期しないエラー</value>
+  </data>
+  <data name="Msg_ErrorCreatingPatch" xml:space="preserve">
+    <value>パッチの作成エラー: {0}</value>
+  </data>
+  <data name="Msg_SelectFilePath" xml:space="preserve">
+    <value>ファイルパスを選択してください。</value>
+  </data>
+  <data name="Msg_ConflictsDetectedHeader" xml:space="preserve">
+    <value>⚠ 分布の競合が検出されました</value>
+  </data>
+  <data name="Msg_ConflictsRenameNote" xml:space="preserve">
+    <value>新しい分布を優先させる（最後に読み込まれるようにする）ため、ファイル名が次のように変更されます:</value>
+  </data>
+  <data name="Msg_ConflictsZPrefixNote" xml:space="preserve">
+    <value>この「Z」接頭辞により、アルファベット順の並べ替えで競合するファイルの後にあなたのファイルが配置されます。</value>
+  </data>
+  <data name="Msg_ConflictsContinueFilename" xml:space="preserve">
+    <value>このファイル名で続行しますか？</value>
+  </data>
+  <data name="Msg_ConflictsTitle" xml:space="preserve">
+    <value>競合が検出されました - ファイル名の変更が必要です</value>
+  </data>
+  <data name="Msg_SaveCancelled" xml:space="preserve">
+    <value>保存がキャンセルされました。</value>
+  </data>
+  <data name="Msg_OverwriteFileConfirm" xml:space="preserve">
+    <value>ファイル'{0}'は既に存在します。&#10;&#10;上書きしますか？</value>
+  </data>
+  <data name="Msg_ConfirmOverwriteTitle" xml:space="preserve">
+    <value>上書きの確認</value>
+  </data>
+  <data name="Msg_SavingDistributionFile" xml:space="preserve">
+    <value>分布ファイルを保存しています...</value>
+  </data>
+  <data name="Msg_SavedDistributionFile" xml:space="preserve">
+    <value>分布ファイルを保存しました: {0}</value>
+  </data>
+  <data name="Msg_ErrorSavingFile" xml:space="preserve">
+    <value>ファイルの保存エラー: {0}</value>
+  </data>
+  <data name="Msg_UnsavedChangesPrompt" xml:space="preserve">
+    <value>未保存の分布変更があります。続行する前に保存しますか？</value>
+  </data>
+  <data name="Msg_UnsavedChangesTitle" xml:space="preserve">
+    <value>未保存の変更</value>
+  </data>
+  <data name="Msg_SavedFile" xml:space="preserve">
+    <value>{0}を保存しました</value>
+  </data>
+  <data name="Msg_FileNotExist" xml:space="preserve">
+    <value>ファイルが存在しません。有効なファイルを選択してください。</value>
+  </data>
+  <data name="Msg_LoadingDistributionFile" xml:space="preserve">
+    <value>分布ファイルを読み込んでいます...</value>
+  </data>
+  <data name="Msg_LoadedDistributionEntries" xml:space="preserve">
+    <value>{1}から{0}件の分布エントリを読み込みました</value>
+  </data>
+  <data name="Msg_ParseErrorsSuffix" xml:space="preserve">
+    <value>（{0}行を解析できませんでした）</value>
+  </data>
+  <data name="Msg_ErrorLoadingFile" xml:space="preserve">
+    <value>ファイルの読み込みエラー: {0}</value>
+  </data>
+  <data name="Msg_ErrorGeneratingContent" xml:space="preserve">
+    <value>; ファイル内容の生成エラー: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathScanNpcs" xml:space="preserve">
+    <value>NPCをスキャンする前に、設定でSkyrimのデータパスを設定してください。</value>
+  </data>
+  <data name="Msg_DataPathNotExist" xml:space="preserve">
+    <value>Skyrimのデータパスが存在しません: {0}</value>
+  </data>
+  <data name="Msg_InitializingSkyrim" xml:space="preserve">
+    <value>Skyrim環境を初期化しています...</value>
+  </data>
+  <data name="Msg_LoadingGameData" xml:space="preserve">
+    <value>ゲームデータを読み込んでいます（NPC、ファクション、キーワード、種族、クラス）...</value>
+  </data>
+  <data name="Msg_LoadingGameDataPlugins" xml:space="preserve">
+    <value>プラグインからゲームデータを読み込んでいます...</value>
+  </data>
+  <data name="Msg_LoadedGameData" xml:space="preserve">
+    <value>読み込み完了: NPC {0:N0}、ファクション {1:N0}、種族 {2:N0}、クラス {3:N0}、キーワード {4:N0}。</value>
+  </data>
+  <data name="Msg_ErrorScanningNpcs" xml:space="preserve">
+    <value>NPCのスキャンエラー: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitSelectedPreview" xml:space="preserve">
+    <value>プレビューする衣装が選択されていません。</value>
+  </data>
+  <data name="Msg_InitializeBeforePreview" xml:space="preserve">
+    <value>衣装をプレビューする前に、Skyrimのデータパスを初期化してください。</value>
+  </data>
+  <data name="Msg_NoArmorPieces" xml:space="preserve">
+    <value>衣装'{0}'にはプレビューできる防具パーツがありません。</value>
+  </data>
+  <data name="Msg_BuildingPreview" xml:space="preserve">
+    <value>{0}のプレビューを作成しています...</value>
+  </data>
+  <data name="Msg_PreviewReady" xml:space="preserve">
+    <value>{0}のプレビュー準備ができました。</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfit" xml:space="preserve">
+    <value>衣装のプレビューに失敗しました: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitForNpc" xml:space="preserve">
+    <value>このNPCにはプレビューする衣装がありません。</value>
+  </data>
+  <data name="Msg_CouldNotResolveOutfit" xml:space="preserve">
+    <value>衣装を解決できませんでした: {0}</value>
+  </data>
+  <data name="Msg_NoDistributionToPreview" xml:space="preserve">
+    <value>プレビューする分布がありません。</value>
+  </data>
+  <data name="Msg_BuildingOutfitPreview" xml:space="preserve">
+    <value>衣装のプレビューを作成しています...</value>
+  </data>
+  <data name="Msg_PreviewReadyWithCount" xml:space="preserve">
+    <value>{0}件の衣装のプレビュー準備ができました。</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfits" xml:space="preserve">
+    <value>衣装のプレビューに失敗しました: {0}</value>
+  </data>
+  <data name="Msg_FailedPreviewGeneric" xml:space="preserve">
+    <value>プレビューに失敗しました: {0}</value>
+  </data>
+  <data name="Msg_LinkCacheNotAvailable" xml:space="preserve">
+    <value>LinkCacheを利用できません。</value>
+  </data>
+  <data name="Msg_FoundNpcDistributions" xml:space="preserve">
+    <value>衣装分布を持つ{0}人のNPCが見つかりました（競合{1}件）。</value>
+  </data>
+  <data name="Msg_LoadingNpcOutfits" xml:space="preserve">
+    <value>NPCの衣装データを読み込んでいます...</value>
+  </data>
+  <data name="Msg_ErrorLoadingNpcOutfits" xml:space="preserve">
+    <value>NPCの衣装の読み込みエラー: {0}</value>
+  </data>
+  <data name="Msg_RefreshingNpcOutfits" xml:space="preserve">
+    <value>NPCの衣装データを更新しています...</value>
+  </data>
+  <data name="Msg_ErrorRefreshingNpcOutfits" xml:space="preserve">
+    <value>NPCの衣装の更新エラー: {0}</value>
+  </data>
+  <data name="Msg_NoFiltersActive" xml:space="preserve">
+    <value>有効なフィルターはありません</value>
+  </data>
+  <data name="Msg_NoFiltersToCopy" xml:space="preserve">
+    <value>コピーするフィルターがありません。先にフィルターを適用してください。</value>
+  </data>
+  <data name="Msg_FilterCopied" xml:space="preserve">
+    <value>フィルターをコピーしました: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathLoadOutfits" xml:space="preserve">
+    <value>衣装を読み込む前に、設定でSkyrimのデータパスを設定してください。</value>
+  </data>
+  <data name="Msg_LoadingOutfits" xml:space="preserve">
+    <value>ロードオーダーから衣装を読み込んでいます...</value>
+  </data>
+  <data name="Msg_LoadedOutfits" xml:space="preserve">
+    <value>{0}件の衣装を読み込みました。</value>
+  </data>
+  <data name="Msg_ErrorLoadingOutfits" xml:space="preserve">
+    <value>衣装の読み込みエラー: {0}</value>
+  </data>
+  <data name="Msg_NoContainers" xml:space="preserve">
+    <value>コンテナが読み込まれていません</value>
+  </data>
+  <data name="Msg_ContainersCount" xml:space="preserve">
+    <value>コンテナ {0:N0} / {1:N0}</value>
+  </data>
+  <data name="Msg_CalculatingGrades" xml:space="preserve">
+    <value>グレードを計算しています...</value>
+  </data>
+  <data name="Msg_GradeSummary" xml:space="preserve">
+    <value>グレード: {0} — NPCカバー {1:N0}/{2:N0}、Mod衣装使用 {3:N0}/{4:N0}、ユニーク衣装 {5:N0}</value>
+  </data>
+  <data name="Msg_CalculationFailed" xml:space="preserve">
+    <value>計算に失敗しました — 詳細はログを確認してください</value>
+  </data>
+  <data name="Msg_NothingToSave" xml:space="preserve">
+    <value>保存するものがありません。</value>
+  </data>
+  <data name="Msg_ErrorSavingTitle" xml:space="preserve">
+    <value>保存エラー</value>
+  </data>
+  <data name="Msg_UnexpectedErrorSaving" xml:space="preserve">
+    <value>予期しないエラーが発生しました:&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorSaving" xml:space="preserve">
+    <value>保存エラー: {0}</value>
+  </data>
+  <data name="Msg_MissingMastersCheckFailedTitle" xml:space="preserve">
+    <value>欠落マスターのチェックに失敗しました</value>
+  </data>
+  <data name="Msg_CouldNotVerifyMasters" xml:space="preserve">
+    <value>パッチのマスターを検証できませんでした（ファイルが破損しているかロックされている可能性があります）:&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatchTitle" xml:space="preserve">
+    <value>パッチのクリーンアップエラー</value>
+  </data>
+  <data name="Msg_SelectPluginImportLists" xml:space="preserve">
+    <value>レベルドリストをインポートするには、ソースプラグインを選択してください。</value>
+  </data>
+  <data name="Msg_SelectSpecificPlugin" xml:space="preserve">
+    <value>レベルドリストをインポートするには、特定のプラグインを選択してください（すべてのプラグインは不可）。</value>
+  </data>
+  <data name="Msg_ImportingLeveledLists" xml:space="preserve">
+    <value>{0}からレベルドリストをインポートしています...</value>
+  </data>
+  <data name="Msg_NoLeveledListsFound" xml:space="preserve">
+    <value>{0}にレベルドリストが見つかりませんでした。</value>
+  </data>
+  <data name="Msg_ImportedLeveledLists" xml:space="preserve">
+    <value>{1}から{0}件のレベルドリストをインポートしました。</value>
+  </data>
+  <data name="Msg_AllListsLoaded" xml:space="preserve">
+    <value>{0}のすべてのレベルドリストは既に読み込まれています。</value>
+  </data>
+  <data name="Msg_FailedOpenLogFile" xml:space="preserve">
+    <value>ログファイルを開けませんでした: {0}</value>
+  </data>
+  <data name="Msg_LogFileNotExist" xml:space="preserve">
+    <value>今日のログファイルはまだ存在しません:&#10;{0}</value>
+  </data>
+  <data name="Msg_LogFileNotFoundTitle" xml:space="preserve">
+    <value>ログファイルが見つかりません</value>
+  </data>
+  <data name="Msg_FailedOpenLogsFolder" xml:space="preserve">
+    <value>ログフォルダを開けませんでした: {0}</value>
+  </data>
+  <data name="Msg_LogsFolderNotExist" xml:space="preserve">
+    <value>ログフォルダが存在しません:&#10;{0}</value>
+  </data>
+  <data name="Msg_FolderNotFoundTitle" xml:space="preserve">
+    <value>フォルダが見つかりません</value>
+  </data>
+  <data name="Msg_FormatChangePrompt" xml:space="preserve">
+    <value>確率ベースの分布を有効にすると、ファイル形式がSPIDに変更されます。&#10;&#10;SkyPatcherは確率ベースの衣装分布に対応していません。この機能をサポートするため、ファイルはSPID形式で保存されます。&#10;&#10;続行しますか？</value>
+  </data>
+  <data name="Msg_FormatChangeTitle" xml:space="preserve">
+    <value>形式の変更が必要です</value>
+  </data>
+  <data name="Msg_WritingPatch" xml:space="preserve">
+    <value>パッチファイルを書き込んでいます...</value>
+  </data>
+  <data name="Msg_RefreshingLoadOrder" xml:space="preserve">
+    <value>ロードオーダーを更新しています...</value>
+  </data>
+  <data name="Msg_NoValidMatches" xml:space="preserve">
+    <value>パッチする有効なマッチがありません。</value>
+  </data>
+  <data name="Msg_PatchingArmor" xml:space="preserve">
+    <value>{0}をパッチしています...</value>
+  </data>
+  <data name="Msg_PatchCreated" xml:space="preserve">
+    <value>{1}に{0}件の防具を含むパッチを正常に作成しました</value>
+  </data>
+  <data name="Msg_WritingOutfit" xml:space="preserve">
+    <value>衣装{0}を書き込んでいます...</value>
+  </data>
+  <data name="Msg_WritingLeveledList" xml:space="preserve">
+    <value>レベルドリスト{0}を書き込んでいます...</value>
+  </data>
+  <data name="Msg_SavedTo" xml:space="preserve">
+    <value>{0}を{1}に保存しました</value>
+  </data>
+  <data name="Msg_OutfitsCount" xml:space="preserve">
+    <value>{0}件の衣装</value>
+  </data>
+  <data name="Msg_LeveledListsCount" xml:space="preserve">
+    <value>{0}件のレベルドリスト</value>
+  </data>
+  <data name="Msg_ListJoin" xml:space="preserve">
+    <value>と</value>
+  </data>
+  <data name="Msg_ZeroRecords" xml:space="preserve">
+    <value>0レコード</value>
+  </data>
+  <data name="Msg_MutagenNotInitialized" xml:space="preserve">
+    <value>Mutagenサービスが初期化されていません。先にSkyrimのデータパスを設定してください。</value>
+  </data>
+  <data name="Msg_InvalidPluginName" xml:space="preserve">
+    <value>'{0}'は有効なプラグイン名ではありません。パッチファイル名は.esp、.esm、.eslのいずれかで終わる必要があります。</value>
+  </data>
+  <data name="Msg_CannotWriteFileLocked" xml:space="preserve">
+    <value>'{0}'に書き込めません。ファイルが他のプログラム（Skyrim、xEditなど）によってロックされている可能性があります。開いている可能性のあるプログラムを閉じてから、再試行してください。</value>
+  </data>
+  <data name="Msg_CannotWriteFile" xml:space="preserve">
+    <value>'{0}'に書き込めません: {1}。ファイルが他のプログラムによってロックされている可能性があります。</value>
+  </data>
+  <data name="Msg_CannotWriteUnknown" xml:space="preserve">
+    <value>'{0}'に書き込めません: 不明なエラー。</value>
+  </data>
+  <data name="Msg_RemovedOutfitsMissingMasters" xml:space="preserve">
+    <value>欠落マスターを持つ{0}件の衣装を正常に削除しました。</value>
+  </data>
+  <data name="Msg_PatchFileNotExist" xml:space="preserve">
+    <value>パッチファイルが存在しません。</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatch" xml:space="preserve">
+    <value>パッチのクリーンアップエラー: {0}</value>
+  </data>
+  <data name="Msg_UpdateDownloadFailed" xml:space="preserve">
+    <value>更新のダウンロードに失敗しました: {0}</value>
+  </data>
+  <data name="Msg_UpdateErrorTitle" xml:space="preserve">
+    <value>更新エラー</value>
+  </data>
+  <data name="Msg_LatestVersion" xml:space="preserve">
+    <value>最新バージョンを実行しています。</value>
+  </data>
+  <data name="Msg_NoUpdateTitle" xml:space="preserve">
+    <value>利用可能な更新はありません</value>
+  </data>
+  <data name="Msg_AutosaveNoticeBody" xml:space="preserve">
+    <value>分布ファイルの自動保存は廃止されました。&#10;&#10;分布ファイルは、ユーザーが明示的に「保存」をクリックしたときにのみ保存されるようになりました。保存のたびに、ローテーションバックアップが自動的に作成され、次の場所に保存されます:&#10;%LOCALAPPDATA%\Boutique\Backups\&#10;&#10;この変更により、自動保存で一部のユーザーが経験したサイレントなデータ損失を防止できます。</value>
+  </data>
+  <data name="Msg_AutosaveNoticeTitle" xml:space="preserve">
+    <value>分布ファイルの自動保存の廃止</value>
+  </data>
+  <data name="View_EntryDetails" xml:space="preserve">
+    <value>エントリの詳細</value>
+  </data>
+  <data name="View_Filters" xml:space="preserve">
+    <value>フィルター</value>
+  </data>
+  <data name="View_SelectEntryHint" xml:space="preserve">
+    <value>リストからエントリを選択して詳細を編集します</value>
+  </data>
+  <data name="View_ExclusiveGroupNameTooltip" xml:space="preserve">
+    <value>ExclusiveGroup の名前。</value>
+  </data>
+  <data name="View_ExclusiveGroupFormsTooltip" xml:space="preserve">
+    <value>コンマ区切りのフォーム リスト。</value>
+  </data>
+  <data name="View_FormsLabel" xml:space="preserve">
+    <value>フォーム:</value>
+  </data>
+  <data name="View_ChanceLabel" xml:space="preserve">
+    <value>確率:</value>
+  </data>
+  <data name="View_Traits" xml:space="preserve">
+    <value>特性</value>
+  </data>
+  <data name="View_GenderLabel" xml:space="preserve">
+    <value>性別:</value>
+  </data>
+  <data name="View_UniqueLabel" xml:space="preserve">
+    <value>ユニーク:</value>
+  </data>
+  <data name="View_LevelLabel" xml:space="preserve">
+    <value>レベル:</value>
+  </data>
+  <data name="View_LevelNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="View_LevelLevel" xml:space="preserve">
+    <value>レベル</value>
+  </data>
+  <data name="View_LevelSkillLevel" xml:space="preserve">
+    <value>スキル レベル</value>
+  </data>
+  <data name="View_LevelSkillWeight" xml:space="preserve">
+    <value>スキル重量</value>
+  </data>
+  <data name="View_LevelRaw" xml:space="preserve">
+    <value>生値</value>
+  </data>
+  <data name="View_Min" xml:space="preserve">
+    <value>最小</value>
+  </data>
+  <data name="View_Max" xml:space="preserve">
+    <value>最大</value>
+  </data>
+  <data name="View_ToggleNegationTooltip" xml:space="preserve">
+    <value>クリックで否定を切り替え</value>
+  </data>
+  <data name="View_AndOrLogicFormat" xml:space="preserve">
+    <value>AND: すべての{0}が一致する必要があります | OR: 少なくとも 1 つの{0}が一致する必要があります</value>
+  </data>
+  <data name="View_OutfitFilters" xml:space="preserve">
+    <value>装備フィルター</value>
+  </data>
+  <data name="View_RawFilters" xml:space="preserve">
+    <value>生フィルター</value>
+  </data>
+  <data name="View_StringLabel" xml:space="preserve">
+    <value>文字列:</value>
+  </data>
+  <data name="View_FormLabel" xml:space="preserve">
+    <value>フォーム:</value>
+  </data>
+  <data name="View_RawStringFiltersTooltip" xml:space="preserve">
+    <value>生文字列フィルター: ワイルドカード (*Mage)、否定 (-Exclude)、SPID 配布キーワード。コンマで OR、プラスで AND。</value>
+  </data>
+  <data name="View_RawFormFiltersTooltip" xml:space="preserve">
+    <value>生フォーム フィルター: 否定ファクション (-FactionName)、種族など。コンマで OR。</value>
+  </data>
+  <data name="View_Results" xml:space="preserve">
+    <value>結果</value>
+  </data>
+  <data name="View_TotalNpcsFormat" xml:space="preserve">
+    <value>合計: {0} 人の NPC</value>
+  </data>
+  <data name="View_Criteria" xml:space="preserve">
+    <value>条件</value>
+  </data>
+  <data name="View_TargetFormat" xml:space="preserve">
+    <value>ターゲット: {0}</value>
+  </data>
+  <data name="View_TargetNone" xml:space="preserve">
+    <value>ターゲット: (未選択)</value>
+  </data>
+  <data name="View_TargetOutfitsHint" xml:space="preserve">
+    <value>特定の既存装備を着ている NPC をターゲットにし、実質的にそれを置き換えます。</value>
+  </data>
+  <data name="View_AddSelectedOutfits" xml:space="preserve">
+    <value>選択した装備を追加</value>
+  </data>
+  <data name="View_ShowingPrefix" xml:space="preserve">
+    <value>表示: </value>
+  </data>
+  <data name="View_OfSeparator" xml:space="preserve">
+    <value> / </value>
+  </data>
+  <data name="View_NpcsSuffix" xml:space="preserve">
+    <value> 人の NPC</value>
+  </data>
+  <data name="View_OutfitFileTooltip" xml:space="preserve">
+    <value>この NPC の装備を決定するディストリビューション ファイル</value>
+  </data>
+  <data name="View_ContainsLeveledLists" xml:space="preserve">
+    <value>リスト状リストを含む</value>
+  </data>
+  <data name="View_ContainsLeveledListsTooltip" xml:space="preserve">
+    <value>レベルド リストまたはフォーム リストを含む装備のみを表示</value>
+  </data>
+  <data name="View_MoreActions" xml:space="preserve">
+    <value>その他の操作</value>
+  </data>
+  <data name="View_NpcCountFormat" xml:space="preserve">
+    <value>({0} 人の NPC)</value>
+  </data>
+  <data name="View_UnresolvedFiltersTooltip" xml:space="preserve">
+    <value>このエントリには、既知の NPC やキーワードに一致できなかった未解決のフィルターがあります</value>
+  </data>
+  <data name="View_IntraFileOverlapsFormat" xml:space="preserve">
+    <value>{0} 件のファイル内重複</value>
+  </data>
+  <data name="View_ViewButton" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="View_ParseErrorsSuffix" xml:space="preserve">
+    <value> 件の解析エラー - これらの行は保存時に保持されます</value>
+  </data>
+  <data name="View_Plugin" xml:space="preserve">
+    <value>プラグイン</value>
+  </data>
+  <data name="View_ArValFormat" xml:space="preserve">
+    <value> (AR: {0:F0}, 値: {1})</value>
+  </data>
+  <data name="View_Overall" xml:space="preserve">
+    <value>総合</value>
+  </data>
+  <data name="View_NpcCoverage" xml:space="preserve">
+    <value>NPC カバレッジ</value>
+  </data>
+  <data name="View_ModUtilization" xml:space="preserve">
+    <value>Mod 利用率</value>
+  </data>
+  <data name="View_OutfitVariety" xml:space="preserve">
+    <value>装備の多様性</value>
+  </data>
+  <data name="View_CalculateGrade" xml:space="preserve">
+    <value>評価を計算</value>
+  </data>
+  <data name="View_CoverageSummaryFormat" xml:space="preserve">
+    <value>{0:N0}/{1:N0} 人の NPC をカバー · {2:N0}/{3:N0} の Mod 装備を使用 · {4:N0} の一意な装備</value>
+  </data>
+  <data name="View_ClickCalculateHint" xml:space="preserve">
+    <value>「評価を計算」をクリックしてディストリビューション設定を分析します</value>
+  </data>
+  <data name="View_SourceMods" xml:space="preserve">
+    <value>ソース Mod</value>
+  </data>
+  <data name="View_UnusedOutfitsFormat" xml:space="preserve">
+    <value>未使用の Mod 装備 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsFormat" xml:space="preserve">
+    <value>どの装備にも含まれない防具 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsHint" xml:space="preserve">
+    <value>どの装備にも付与されていない、Mod 由来の着用可能な未付与防具。一部は意図的に作成限定の場合があります。</value>
+  </data>
+  <data name="View_NotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="View_HideEmptyContainers" xml:space="preserve">
+    <value>空のコンテナーを非表示</value>
+  </data>
+  <data name="View_CellLabel" xml:space="preserve">
+    <value>セル:</value>
+  </data>
+  <data name="View_RespawnsLabel" xml:space="preserve">
+    <value>リスポーン:</value>
+  </data>
+  <data name="View_ItemsHeader" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="View_MerchantHeader" xml:space="preserve">
+    <value>商人</value>
+  </data>
+  <data name="View_CellsHeader" xml:space="preserve">
+    <value>セル</value>
+  </data>
+  <data name="View_RespawnsHeader" xml:space="preserve">
+    <value>リスポーン</value>
+  </data>
+  <data name="View_ItemHeader" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="View_CountHeader" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="View_SelectContainer" xml:space="preserve">
+    <value>コンテナーを選択</value>
+  </data>
+  <data name="View_SelectContainerHint" xml:space="preserve">
+    <value>コンテナーを選択すると内容が表示されます</value>
+  </data>
+  <data name="View_PreviousOutfitTooltip" xml:space="preserve">
+    <value>前の装備 (左矢印)</value>
+  </data>
+  <data name="View_NextOutfitTooltip" xml:space="preserve">
+    <value>次の装備 (右矢印)</value>
+  </data>
+  <data name="View_LoadingPreview" xml:space="preserve">
+    <value>プレビューを読み込み中...</value>
+  </data>
+  <data name="View_LeveledItemsNotice" xml:space="preserve">
+    <value>この装備にはレベルド リストが含まれています。</value>
+  </data>
+  <data name="View_LeveledItemsHint" xml:space="preserve">
+    <value>ゲーム内の見た目は異なる場合があります。「ランダム化」をクリックすると別の組み合わせをプレビューできます。</value>
+  </data>
+  <data name="View_Randomize" xml:space="preserve">
+    <value>ランダム化</value>
+  </data>
+  <data name="View_ToggleTabTooltip" xml:space="preserve">
+    <value>Tab キーで切り替え</value>
+  </data>
+  <data name="View_ShowBaseBody" xml:space="preserve">
+    <value>ベース ボディを表示</value>
+  </data>
+  <data name="View_HideBaseBodyTooltip" xml:space="preserve">
+    <value>防具を貫通する場合に既定のボディ メッシュを非表示にします</value>
+  </data>
+  <data name="View_OutfitCounterFormat" xml:space="preserve">
+    <value>装備 {0}/{1}</value>
+  </data>
+  <data name="View_UnknownOutfit" xml:space="preserve">
+    <value>不明な装備</value>
+  </data>
+  <data name="View_FromSourceFormat" xml:space="preserve">
+    <value>来源: {0}</value>
+  </data>
+  <data name="View_FromSourceWinnerFormat" xml:space="preserve">
+    <value>来源: {0} (勝者)</value>
+  </data>
+  <data name="View_NoGeometry" xml:space="preserve">
+    <value>レンダリング可能なジオメトリがありません。</value>
+  </data>
+  <data name="View_AutoUpdate" xml:space="preserve">
+    <value>自動更新</value>
+  </data>
+  <data name="View_CheckUpdatesOnStartup" xml:space="preserve">
+    <value>起動時に更新を確認</value>
+  </data>
+  <data name="View_CheckNow" xml:space="preserve">
+    <value>今すぐ確認</value>
+  </data>
+  <data name="View_Experimental" xml:space="preserve">
+    <value>試験運用</value>
+  </data>
+  <data name="View_ShowContainersTab" xml:space="preserve">
+    <value>[コンテナー] タブを表示 (再起動が必要)</value>
+  </data>
+  <data name="View_DebugGroup" xml:space="preserve">
+    <value>デバッグ</value>
+  </data>
+  <data name="View_DebugLogging" xml:space="preserve">
+    <value>デバッグ ログ</value>
+  </data>
+  <data name="View_EnableDebugLogging" xml:space="preserve">
+    <value>デバッグ ログを有効化 (再起動が必要)</value>
+  </data>
+  <data name="View_LogFiles" xml:space="preserve">
+    <value>ログ ファイル</value>
+  </data>
+  <data name="View_OpenTodaysLog" xml:space="preserve">
+    <value>今日のログを開く</value>
+  </data>
+  <data name="View_OpenLogsFolder" xml:space="preserve">
+    <value>ログ フォルダーを開く</value>
+  </data>
+  <data name="View_DragToReorder" xml:space="preserve">
+    <value>ドラッグで並べ替え</value>
+  </data>
+  <data name="View_ClickChangeIcon" xml:space="preserve">
+    <value>クリックでアイコンを変更</value>
+  </data>
+  <data name="View_ClickRename" xml:space="preserve">
+    <value>クリックで名前を変更</value>
+  </data>
+  <data name="View_RemoveSeparator" xml:space="preserve">
+    <value>区切りを削除</value>
+  </data>
+  <data name="View_TypeLabel" xml:space="preserve">
+    <value>種類:</value>
+  </data>
+  <data name="View_SlotLabel" xml:space="preserve">
+    <value>スロット:</value>
+  </data>
+  <data name="View_AddSeparator" xml:space="preserve">
+    <value>+ 区切り</value>
+  </data>
+  <data name="View_AddSeparatorTooltip" xml:space="preserve">
+    <value>装備を整理するための区切りを追加</value>
+  </data>
+  <data name="View_PiecesFormat" xml:space="preserve">
+    <value>({0} 点)</value>
+  </data>
+  <data name="View_ItemsCountFormat" xml:space="preserve">
+    <value>{0} 項目</value>
+  </data>
+  <data name="View_UpdateAvailableTitle" xml:space="preserve">
+    <value>利用可能な更新</value>
+  </data>
+  <data name="View_UpdateAvailableHeader" xml:space="preserve">
+    <value>Boutique の新しいバージョンが利用可能です!</value>
+  </data>
+  <data name="View_CurrentVersionLabel" xml:space="preserve">
+    <value>現在のバージョン: </value>
+  </data>
+  <data name="View_LatestVersionLabel" xml:space="preserve">
+    <value>最新バージョン: </value>
+  </data>
+  <data name="View_WhatsNew" xml:space="preserve">
+    <value>新機能</value>
+  </data>
+  <data name="View_SkipThisVersion" xml:space="preserve">
+    <value>このバージョンをスキップ</value>
+  </data>
+  <data name="View_RemindMeLater" xml:space="preserve">
+    <value>後で通知</value>
+  </data>
+  <data name="View_UpdateNow" xml:space="preserve">
+    <value>今すぐ更新</value>
+  </data>
+  <data name="View_SelectIconTitle" xml:space="preserve">
+    <value>アイコンを選択</value>
+  </data>
+  <data name="View_FilterIcons" xml:space="preserve">
+    <value>アイコンをフィルター...</value>
+  </data>
+  <data name="View_ClearIcon" xml:space="preserve">
+    <value>アイコンを解除</value>
+  </data>
+  <data name="View_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="View_InputTitle" xml:space="preserve">
+    <value>入力</value>
+  </data>
+  <data name="View_IntraFileOverlapsTitle" xml:space="preserve">
+    <value>ファイル内重複</value>
+  </data>
+  <data name="View_IntraFileOverlapsDescription" xml:space="preserve">
+    <value>装備エントリ間で共有される NPC 数。0 以外のセルは複数の装備の対象となる NPC を示します。</value>
+  </data>
+  <data name="View_IntraFileOverlapsHeaderFormat" xml:space="preserve">
+    <value>複数の装備の対象となっている NPC: {0} 人</value>
+  </data>
+  <data name="View_ConfirmRemoveMessage" xml:space="preserve">
+    <value>このエントリを削除してもよろしいですか？&#10;&#10;{0}</value>
+  </data>
+  <data name="View_ConfirmRemoveTitle" xml:space="preserve">
+    <value>削除の確認</value>
+  </data>
+  <data name="View_PatchCreatedTitle" xml:space="preserve">
+    <value>パッチ作成完了</value>
+  </data>
+  <data name="View_OverwritePatchTitle" xml:space="preserve">
+    <value>既存のパッチを上書きしますか？</value>
+  </data>
+  <data name="View_ConfirmDeleteTitle" xml:space="preserve">
+    <value>削除の確認</value>
+  </data>
+  <data name="View_CreateOutfitTitle" xml:space="preserve">
+    <value>装備を作成</value>
+  </data>
+  <data name="View_MissingMastersSummaryFormat" xml:space="preserve">
+    <value>パッチをクリーンアップすると {0} 件の装備が削除されます。保持するには、不足しているマスター {1} 件を再び追加する必要があります。</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>選択した場所をエントリに追加</value>
+  </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>場所:</value>
+  </data>
+  <data name="Header_Type" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ この名前は既存のプラグインと競合しています</value>
+  </data>
+  <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>この名前を使用</value>
+  </data>
+  <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>"{0}" はロード オーダーに既に存在します。この名前を使用すると、パッチ作成時に既存のデータが上書きされる可能性があります。一意の名前を選択してください。</value>
+  </data>
+  <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>別の名前を選択</value>
+  </data>
+  <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>プラグイン名の競合</value>
+  </data>
+  <data name="Tab_Containers" xml:space="preserve">
+    <value>コンテナー</value>
+  </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>場所</value>
+  </data>
 </root>

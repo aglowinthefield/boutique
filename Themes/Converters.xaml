@@ -17,4 +17,5 @@
   <utilities:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
   <utilities:CollectionContainsConverter x:Key="CollectionContainsConverter" />
   <views:IconNameToUriConverter x:Key="IconNameToUriConverter" />
+  <views:FormatConverter x:Key="FormatConverter" />
 </ResourceDictionary>

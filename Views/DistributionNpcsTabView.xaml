@@ -151,11 +151,11 @@
           <TextBlock Text="{Binding FilterDescription}" FontStyle="Italic" Foreground="#8EC07C"
                      VerticalAlignment="Center" />
           <TextBlock Margin="12,0,0,0" VerticalAlignment="Center">
-            <Run Text="Showing " />
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ShowingPrefix}}" />
             <Run Text="{Binding FilteredCount, Mode=OneWay}" FontWeight="Bold" />
-            <Run Text=" of " />
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.OfSeparator}}" />
             <Run Text="{Binding TotalCount, Mode=OneWay}" />
-            <Run Text=" NPCs" />
+            <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.NpcsSuffix}}" />
           </TextBlock>
         </StackPanel>
       </Grid>
@@ -201,7 +201,7 @@
                               ElementStyle="{DynamicResource {x:Static themes:ResourceKeys.DataGridSecondaryColumnStyleKey}}" />
           <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Distributor}}"
                               Binding="{Binding WinningFileName}" Width="1.5*" CanUserSort="True"
-                              ToolTipService.ToolTip="The distribution file determining this NPC's outfit">
+                              ToolTipService.ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.OutfitFileTooltip}}">
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
@@ -292,17 +292,28 @@
                         <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Winner}}"
                                    Foreground="Green" FontWeight="Bold"
                                    Visibility="{Binding IsWinner, Converter={StaticResource BoolToVisConverter}}" />
-                        <TextBlock Text="{Binding Chance, StringFormat=' ({0}% chance)'}"
+                        <TextBlock
                                    Foreground="{StaticResource Brush.Conflict}" FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Margin="4,0,0,0"
-                                   Visibility="{Binding Chance, Converter={StaticResource InequalityToVisConverter}, ConverterParameter=100}" />
+                                   Visibility="{Binding Chance, Converter={StaticResource InequalityToVisConverter}, ConverterParameter=100}">
+                          <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="NPCs_ChanceFormat">
+                  <Binding Path="Chance" />
+                </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
                       </StackPanel>
                       <Button Grid.Column="1" Grid.Row="0" Content="👁" VerticalAlignment="Top"
                               Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.PreviewDistributionOutfitCommand}"
                               CommandParameter="{Binding}"
                               Padding="2,0" FontSize="{DynamicResource FontSize.Small}" MinWidth="0" MinHeight="0" Margin="4,0,0,0" />
                       <TextBlock Grid.Column="0" Grid.Row="1"
-                                 Text="{Binding OutfitEditorId, StringFormat='Outfit: {0}'}"
-                                 FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}" Margin="0,2,0,0" />
+                                 FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}" Margin="0,2,0,0">
+                        <TextBlock.Text>
+                          <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="NPCs_OutfitFormat">
+                  <Binding Path="OutfitEditorId" />
+                </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
                       <TextBlock Grid.Column="0" Grid.Row="2" Text="{Binding TargetingDescription}"
                                  Foreground="#8EC07C" FontSize="{DynamicResource FontSize.Small}" TextWrapping="Wrap" Margin="0,2,0,0"
                                  Visibility="{Binding TargetingDescription, Converter={StaticResource StringEmptyToVisConverter}}" />
@@ -478,7 +489,13 @@
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Text="{Binding FactionEditorId}" FontSize="{DynamicResource FontSize.Small}" />
-                      <TextBlock Text="{Binding Rank, StringFormat=' (Rank {0})'}" FontSize="{DynamicResource FontSize.Small}" Foreground="{StaticResource Brush.TextDisabled}" />
+                      <TextBlock Margin="3,0,0,0" FontSize="{DynamicResource FontSize.Small}" Foreground="{StaticResource Brush.TextDisabled}">
+                        <TextBlock.Text>
+                          <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="NPCs_RankFormat">
+                  <Binding Path="Rank" />
+                </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

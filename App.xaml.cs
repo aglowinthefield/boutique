@@ -7,6 +7,7 @@ using Boutique.Services;
 using Boutique.ViewModels;
 using Boutique.Views;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 [assembly: NeutralResourcesLanguage("en")]
 
@@ -105,12 +106,16 @@ public partial class App
     }
 
     dialog.ShowInfo(
-      "Auto-save for distribution files has been removed.\n\n" +
-      "Distribution files are now only saved when you explicitly click Save. " +
-      "A rotating backup is created automatically before each save, stored in:\n" +
-      "%LOCALAPPDATA%\\Boutique\\Backups\\\n\n" +
-      "This change prevents the silent data loss some users experienced with auto-save.",
-      "Distribution File Auto-Save Removed");
+      LocalizationService.Get(
+        Messages.AutosaveNoticeBody,
+        "Auto-save for distribution files has been removed.\n\n" +
+        "Distribution files are now only saved when you explicitly click Save. " +
+        "A rotating backup is created automatically before each save, stored in:\n" +
+        "%LOCALAPPDATA%\\Boutique\\Backups\\\n\n" +
+        "This change prevents the silent data loss some users experienced with auto-save."),
+      LocalizationService.Get(
+        Messages.AutosaveNoticeTitle,
+        "Distribution File Auto-Save Removed"));
 
     settings.DismissNotice(key);
   }

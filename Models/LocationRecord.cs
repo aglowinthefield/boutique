@@ -14,6 +14,6 @@ public sealed record LocationRecord(
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => ModKey.FileName;
 
-  public static LocationRecord FromGetter(ILocationGetter location) =>
-    new(location.FormKey, location.EditorID, location.Name.SafeString(location), location.FormKey.ModKey);
+  public static LocationRecord FromGetter(ILocationGetter location, ModKey? winningModKey = null) =>
+    new(location.FormKey, location.EditorID, location.Name.SafeString(location), winningModKey ?? location.FormKey.ModKey);
 }

@@ -7,6 +7,7 @@ using System.Windows;
 using AutoUpdaterDotNET;
 using Boutique.Views;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.Services;
 
@@ -89,13 +90,20 @@ public static partial class AutoUpdateService
         catch (Exception ex)
         {
           Log.Error(ex, "Failed to download update.");
-          _dialogService?.ShowError($"Failed to download update: {ex.Message}", "Update Error");
+          _dialogService?.ShowError(
+            LocalizationService.GetFormatted(
+              Messages.UpdateDownloadFailed,
+              "Failed to download update: {0}",
+              ex.Message),
+            LocalizationService.Get(Messages.UpdateErrorTitle, "Update Error"));
         }
       }
     }
     else if (_forceShowUpdate)
     {
-      _dialogService?.ShowInfo("You are running the latest version.", "No Update Available");
+      _dialogService?.ShowInfo(
+        LocalizationService.Get(Messages.LatestVersion, "You are running the latest version."),
+        LocalizationService.Get(Messages.NoUpdateTitle, "No Update Available"));
     }
   }
 

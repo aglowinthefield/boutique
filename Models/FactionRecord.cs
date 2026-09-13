@@ -19,6 +19,6 @@ public sealed record FactionRecord(
   public string FormKeyString => FormKey.ToString();
   public string ModDisplayName => ModKey.FileName;
 
-  public static FactionRecord FromGetter(IFactionGetter faction) =>
-    new(faction.FormKey, faction.EditorID, faction.Name.SafeString(faction), faction.FormKey.ModKey);
+  public static FactionRecord FromGetter(IFactionGetter faction, ModKey? winningModKey = null) =>
+    new(faction.FormKey, faction.EditorID, faction.Name.SafeString(faction), winningModKey ?? faction.FormKey.ModKey);
 }

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using Boutique.Resources;
 using Serilog;
 using WPFLocalizeExtension.Engine;
 using WPFLocalizeExtension.Providers;
@@ -116,4 +117,18 @@ public class LocalizationService(ILogger logger, GuiSettingsService guiSettings)
     AvailableLanguages.FirstOrDefault(l =>
                                         l.Code.Equals(CurrentLanguageCode, StringComparison.OrdinalIgnoreCase) ||
                                         CurrentLanguageCode.StartsWith(l.Code, StringComparison.OrdinalIgnoreCase));
+
+  /// <summary>
+  ///   Looks up a localized string by resource key, returning the supplied English fallback
+  ///   when the key is missing. Mirrors the pattern used in code-behind views.
+  /// </summary>
+  public static string Get(string key, string fallback) =>
+    Strings.ResourceManager.GetString(key, Strings.Culture) ?? fallback;
+
+  /// <summary>
+  ///   Looks up a localized composite-format string by resource key and formats it with the
+  ///   supplied arguments, falling back to the English template when the key is missing.
+  /// </summary>
+  public static string GetFormatted(string key, string fallback, params object?[] args) =>
+    string.Format(CultureInfo.CurrentCulture, Get(key, fallback), args);
 }

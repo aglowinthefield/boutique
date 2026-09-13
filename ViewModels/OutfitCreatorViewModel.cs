@@ -17,6 +17,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -55,7 +56,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private            IList   _selectedOutfitArmors = new List<ArmorRecordViewModel>();
   [Reactive] private string? _selectedOutfitArmorType;
   [Reactive] private string? _selectedOutfitSlot;
-  [Reactive] private string  _statusMessage = "Ready";
+  [Reactive] private string  _statusMessage = LocalizationService.Get(Messages.Ready, "Ready");
   private            bool    _suppressPluginDeselection;
 
   public OutfitCreatorViewModel(
@@ -438,14 +439,20 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
     try
     {
-      StatusMessage = $"Loading armors from {plugin}...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.LoadingArmorsFrom,
+        "Loading armors from {0}...",
+        plugin);
       _logger.Information("Loading outfit armors from plugin {Plugin}", plugin);
 
+      var pluginModKey = ModKey.FromNameAndExtension(plugin);
       var armorsFromPlugin = IsAllPlugins(plugin)
-                               ? await _mutagenService.LoadAllArmorsAsync()
-                               : await _mutagenService.LoadArmorsFromPluginAsync(plugin);
+                               ? (await _mutagenService.LoadAllArmorsWithContextAsync())
+                                 .Select(a => (a.Armor, (ModKey?)a.SourceMod))
+                               : (await _mutagenService.LoadArmorsFromPluginAsync(plugin))
+                                 .Select(a => (a, (ModKey?)pluginModKey));
       var armors = armorsFromPlugin
-                   .Select(a => new ArmorRecordViewModel(a, _mutagenService.LinkCache))
+                   .Select(pair => new ArmorRecordViewModel(pair.Item1, _mutagenService.LinkCache, pair.Item2))
                    .ToList();
 
       _logger.Debug("Found {Count} armors in {Plugin}", armors.Count, plugin);
@@ -463,14 +470,30 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
                                ? new List<ArmorRecordViewModel> { FilteredOutfitArmors[0] }
                                : Array.Empty<ArmorRecordViewModel>();
 
-      StatusMessage = $"Loaded {armors.Count} armors from {plugin}.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.LoadedArmorsFromOutfit,
+        "Loaded {0} armors from {1}.",
+        armors.Count,
+        plugin);
       _logger.Information("Loaded {Count} outfit armors from {Plugin}", armors.Count, plugin);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to load outfit armors from plugin {Plugin}", plugin);
-      StatusMessage = $"Error loading armors from {plugin}: {ex.Message}";
-      await ShowError.Handle(("Error Loading Plugin", $"Failed to load armors from {plugin}:\n{ex.Message}"));
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorLoadingArmorsFrom,
+        "Error loading armors from {0}: {1}",
+        plugin,
+        ex.Message);
+      await ShowError.Handle(
+        (
+          LocalizationService.Get(Messages.ErrorLoadingPluginTitle, "Error Loading Plugin"),
+          LocalizationService.GetFormatted(
+            Messages.FailedLoadArmors,
+            "Failed to load armors from {0}:\n{1}",
+            plugin,
+            ex.Message)
+        ));
     }
   }
 
@@ -507,7 +530,27 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
+    MissingMastersResult missingMastersResult;
+    try
+    {
+      missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Missing masters check failed for patch {Plugin}.", outputPlugin);
+      await ShowError.Handle(
+        (
+          LocalizationService.Get(
+            Messages.MissingMastersCheckFailedTitle,
+            "Missing Masters Check Failed"),
+          LocalizationService.GetFormatted(
+            Messages.CouldNotVerifyMasters,
+            "Could not verify the patch's masters (the file may be corrupt or locked):\n{0}",
+            ex.Message)
+        ));
+      return;
+    }
+
     if (missingMastersResult.HasMissingMasters)
     {
       _logger.Warning(
@@ -530,7 +573,11 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         else
         {
           _logger.Error("Failed to clean patch: {Message}", message);
-          await ShowError.Handle(("Error Cleaning Patch", message));
+          await ShowError.Handle(
+            (
+              LocalizationService.Get(Messages.ErrorCleaningPatchTitle, "Error Cleaning Patch"),
+              message
+            ));
           return;
         }
       }
@@ -549,7 +596,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       outfits,
       _mutagenService.LinkCache!,
       targetModKey,
-      (formKey, _) => GetWinningModForOutfit(formKey));
+      (formKey, target) => GetWinningModForOutfit(formKey, target));
 
     var leveledItems = await _mutagenService.LoadLeveledItemsFromPluginAsync(outputPlugin);
     _leveledListManager.SuppressAutoSave = true;
@@ -664,7 +711,10 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   {
     try
     {
-      StatusMessage = $"Building preview for '{armor.DisplayName}'...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreviewQuoted,
+        "Building preview for '{0}'...",
+        armor.DisplayName);
 
       var metadata = new OutfitMetadata(armor.DisplayName, armor.Armor.FormKey.ModKey.FileName.String, false);
       var collection = new ArmorPreviewSceneCollection(
@@ -680,11 +730,14 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         });
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for '{armor.DisplayName}'.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.PreviewReadyQuoted,
+        "Preview ready for '{0}'.",
+        armor.DisplayName);
     }
     catch (Exception ex)
     {
-      StatusMessage = $"Preview error: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewError, "Preview error: {0}", ex.Message);
       _logger.Error(ex, "Failed to build armor preview for {Armor}.", armor.DisplayName);
     }
   }
@@ -700,13 +753,13 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     var hasListChanges   = _leveledListManager.HasUnsavedChanges();
     if (!hasOutfitChanges && !hasListChanges)
     {
-      StatusMessage = "Nothing to save.";
+      StatusMessage = LocalizationService.Get(Messages.NothingToSave, "Nothing to save.");
       _logger.Debug("SaveAllAsync invoked with no outfit or leveled list changes.");
       return;
     }
 
     IsCreatingOutfits = true;
-    StatusMessage     = "Saving...";
+    StatusMessage     = LocalizationService.Get(Messages.Saving, "Saving...");
     _logger.Information("Starting save operation.");
 
     try
@@ -734,15 +787,26 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       else
       {
         _logger.Error("Save failed: {Message}", message);
-        StatusMessage = $"Error: {message}";
-        await ShowError.Handle(("Error Saving", message));
+        StatusMessage = LocalizationService.GetFormatted(Messages.ErrorGeneric, "Error: {0}", message);
+        await ShowError.Handle(
+          (
+            LocalizationService.Get(Messages.ErrorSavingTitle, "Error Saving"),
+            message
+          ));
       }
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Exception during save operation");
-      StatusMessage = $"Error saving: {ex.Message}";
-      await ShowError.Handle(("Error Saving", $"An unexpected error occurred:\n{ex.Message}"));
+      StatusMessage = LocalizationService.GetFormatted(Messages.ErrorSaving, "Error saving: {0}", ex.Message);
+      await ShowError.Handle(
+        (
+          LocalizationService.Get(Messages.ErrorSavingTitle, "Error Saving"),
+          LocalizationService.GetFormatted(
+            Messages.UnexpectedErrorSaving,
+            "An unexpected error occurred:\n{0}",
+            ex.Message)
+        ));
     }
     finally
     {
@@ -771,24 +835,34 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     var plugin = SelectedOutfitPlugin;
     if (string.IsNullOrWhiteSpace(plugin) || _mutagenService.LinkCache is null)
     {
-      StatusMessage = "Select a source plugin to import leveled lists.";
+      StatusMessage = LocalizationService.Get(
+        Messages.SelectPluginImportLists,
+        "Select a source plugin to import leveled lists.");
       return;
     }
 
     if (IsAllPlugins(plugin))
     {
-      StatusMessage = "Select a specific plugin (not All Plugins) to import leveled lists.";
+      StatusMessage = LocalizationService.Get(
+        Messages.SelectSpecificPlugin,
+        "Select a specific plugin (not All Plugins) to import leveled lists.");
       return;
     }
 
-    StatusMessage = $"Importing leveled lists from {plugin}...";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.ImportingLeveledLists,
+      "Importing leveled lists from {0}...",
+      plugin);
 
     var lists = await _mutagenService.LoadLeveledItemsFromPluginAsync(plugin);
 
     var listVms = lists.ToList();
     if (listVms.Count == 0)
     {
-      StatusMessage = $"No leveled lists found in {plugin}.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.NoLeveledListsFound,
+        "No leveled lists found in {0}.",
+        plugin);
       return;
     }
 
@@ -797,8 +871,15 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     {
       var added = _leveledListManager.AddDraftsFromLeveledItems(listVms, _mutagenService.LinkCache);
       StatusMessage = added > 0
-                        ? $"Imported {added} leveled list(s) from {plugin}."
-                        : $"All leveled lists from {plugin} are already loaded.";
+                        ? LocalizationService.GetFormatted(
+                          Messages.ImportedLeveledLists,
+                          "Imported {0} leveled list(s) from {1}.",
+                          added,
+                          plugin)
+                        : LocalizationService.GetFormatted(
+                          Messages.AllListsLoaded,
+                          "All leveled lists from {0} are already loaded.",
+                          plugin);
     }
     finally
     {
@@ -823,7 +904,13 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       return;
     }
 
-    var winningMod = GetWinningModForOutfit(copiedOutfit.OutfitFormKey);
+    ModKey? patchTargetModKey = null;
+    if (!string.IsNullOrWhiteSpace(Settings.PatchFileName))
+    {
+      patchTargetModKey = ModKey.FromFileName(Settings.PatchFileName);
+    }
+
+    var winningMod = GetWinningModForOutfit(copiedOutfit.OutfitFormKey, patchTargetModKey);
     if (winningMod != null && copiedOutfit.IsOverride)
     {
       CreateOverrideDraft(outfit, result.ArmorPieces, winningMod);
@@ -840,11 +927,27 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     IReadOnlyList<ArmorRecordViewModel> armorPieces,
     ModKey? winningMod) => _draftManager.CreateOverrideDraft(outfit, armorPieces, winningMod);
 
-  private ModKey? GetWinningModForOutfit(FormKey formKey)
+  /// <summary>
+  ///   Resolves the mod whose override of this outfit is currently being replaced. When the
+  ///   winning override is the output plugin itself, falls back to the FormKey's origin so the
+  ///   "Overrides X in Y" label points at the original authoring mod.
+  /// </summary>
+  private ModKey? GetWinningModForOutfit(FormKey formKey, ModKey? targetModKey)
   {
-    if (_mutagenService.LinkCache!.TryResolve<IOutfitGetter>(formKey, out var resolved))
+    if (_mutagenService.LinkCache is { } linkCache)
     {
-      return resolved.FormKey.ModKey;
+      try
+      {
+        if (linkCache.ResolveSimpleContext<IOutfitGetter>(formKey) is { } context &&
+            context.ModKey != targetModKey)
+        {
+          return context.ModKey;
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.Warning(ex, "Failed to resolve winning context for outfit {FormKey}", formKey);
+      }
     }
 
     return formKey.ModKey;

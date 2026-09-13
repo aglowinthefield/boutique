@@ -165,12 +165,17 @@
         <Border Style="{DynamicResource {x:Static themes:ResourceKeys.InfoPanelStyleKey}}" Margin="0,6,0,0"
                 Visibility="{Binding HasIntraFileOverlaps, Converter={StaticResource BoolToVisConverter}}">
           <DockPanel>
-            <Button Content="View" DockPanel.Dock="Right" Padding="8,2"
+            <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.ViewButton}}" DockPanel.Dock="Right" Padding="8,2"
                     Command="{Binding ViewIntraFileOverlapsCommand}" />
-            <TextBlock Text="{Binding IntraFileOverlapCount, StringFormat='{}{0} intra-file overlaps'}"
-                       Foreground="{StaticResource Brush.Info}" FontSize="{DynamicResource FontSize.Small}"
+            <TextBlock Foreground="{StaticResource Brush.Info}" FontSize="{DynamicResource FontSize.Small}"
                        FontWeight="SemiBold"
-                       VerticalAlignment="Center" />
+                       VerticalAlignment="Center">
+              <TextBlock.Text>
+                <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_IntraFileOverlapsFormat">
+                  <Binding Path="IntraFileOverlapCount" />
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
           </DockPanel>
         </Border>
       </StackPanel>
@@ -182,8 +187,13 @@
         <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.SaveFile}}"
                 Command="{Binding SaveDistributionFileCommand}" Margin="0,0,6,0" Padding="8,2" />
         <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilter}}"
-                Command="{Binding PasteFilterToEntryCommand}" Padding="8,2"
-                ToolTip="{Binding CopiedFilter.Description, StringFormat='Paste filter: {0}', FallbackValue={lex:Loc Key={x:Static res:LocalizationKeys+Distribution.PasteFilterTooltip}}}" />
+                Command="{Binding PasteFilterToEntryCommand}" Padding="8,2">
+          <Button.ToolTip>
+            <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="Distribution_PasteFilterFormat">
+                  <Binding Path="CopiedFilter.Description" />
+                </MultiBinding>
+          </Button.ToolTip>
+        </Button>
       </StackPanel>
 
       <!-- Compact Entry List -->
@@ -235,7 +245,7 @@
               <!-- Target name -->
               <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
                 <TextBlock Text="⚠ " Foreground="{StaticResource Brush.Conflict}" FontWeight="Bold"
-                           ToolTip="This entry has unresolved filters that couldn't be matched to known NPCs or keywords">
+                           ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.UnresolvedFiltersTooltip}}">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">
                       <Setter Property="Visibility" Value="Collapsed" />

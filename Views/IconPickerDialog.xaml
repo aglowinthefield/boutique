@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Boutique.ViewModels"
+        xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:res="clr-namespace:Boutique.Resources"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:IconPickerViewModel}"
-        Title="Select Icon"
+        Title="{lex:Loc Key={x:Static res:LocalizationKeys+View.SelectIconTitle}}"
         Width="480" Height="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResizeWithGrip"
@@ -30,7 +32,7 @@
                Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                FontSize="13"
                Padding="6,4" />
-      <TextBlock Text="Filter icons..." Foreground="Gray"
+      <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.FilterIcons}}" Foreground="Gray"
                  IsHitTestVisible="False"
                  Margin="8,0,0,0" VerticalAlignment="Center"
                  Visibility="{Binding Text, ElementName=SearchBox, Converter={StaticResource StringEmptyToVisConverter}, ConverterParameter=Inverse}" />
@@ -82,18 +84,18 @@
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
 
-      <Button Grid.Column="0" Content="Clear Icon"
+      <Button Grid.Column="0" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.ClearIcon}}"
               Click="ClearButton_Click"
               MinWidth="80"
               Padding="12,6" />
 
-      <Button Grid.Column="2" Content="Cancel"
+      <Button Grid.Column="2" Content="{lex:Loc Key={x:Static res:LocalizationKeys+Buttons.Cancel}}"
               Click="CancelButton_Click"
               IsCancel="True"
               MinWidth="80"
               Margin="0,0,8,0"
               Padding="12,6" />
-      <Button Grid.Column="3" Content="OK"
+      <Button Grid.Column="3" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.Ok}}"
               Click="OkButton_Click"
               IsDefault="True"
               MinWidth="80"

@@ -846,4 +846,828 @@
   <data name="LeveledList_SlotConflictTooltip" xml:space="preserve">
     <value>다른 아이템과 바이패드 슬롯을 공유합니다. '모두 사용'이 켜져 있으면 그 중 하나만 착용됩니다.</value>
   </data>
+
+  <!-- Code-behind Messages -->
+  <data name="Msg_Ready" xml:space="preserve">
+    <value>준비됨</value>
+  </data>
+  <data name="Msg_Saving" xml:space="preserve">
+    <value>저장 중...</value>
+  </data>
+  <data name="Msg_ErrorGeneric" xml:space="preserve">
+    <value>오류: {0}</value>
+  </data>
+  <data name="Msg_ErrorTitle" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="Msg_InitializingMutagen" xml:space="preserve">
+    <value>Mutagen 초기화 중...</value>
+  </data>
+  <data name="Msg_LoadedPluginsWithArmors" xml:space="preserve">
+    <value>방어구/의상이 포함된 {0}개의 플러그인을 불러왔습니다</value>
+  </data>
+  <data name="Msg_LoadingArmorsFrom" xml:space="preserve">
+    <value>{0}에서 방어구를 불러오는 중...</value>
+  </data>
+  <data name="Msg_LoadedArmorsFrom" xml:space="preserve">
+    <value>{1}에서 방어구 {0}개를 불러왔습니다</value>
+  </data>
+  <data name="Msg_LoadedArmorsFromOutfit" xml:space="preserve">
+    <value>{1}에서 방어구 {0}개를 불러왔습니다.</value>
+  </data>
+  <data name="Msg_ErrorLoadingArmorsFrom" xml:space="preserve">
+    <value>{0}에서 방어구를 불러오는 중 오류 발생: {1}</value>
+  </data>
+  <data name="Msg_ErrorLoadingPluginTitle" xml:space="preserve">
+    <value>플러그인 불러오기 오류</value>
+  </data>
+  <data name="Msg_FailedLoadArmors" xml:space="preserve">
+    <value>{0}에서 방어구를 불러올 수 없습니다:&#10;{1}</value>
+  </data>
+  <data name="Msg_MappedArmorsTo" xml:space="preserve">
+    <value>방어구 {0}개를 {1}에 매핑했습니다</value>
+  </data>
+  <data name="Msg_ErrorMappingArmors" xml:space="preserve">
+    <value>방어구 매핑 오류: {0}</value>
+  </data>
+  <data name="Msg_MarkedGlamOnly" xml:space="preserve">
+    <value>방어구 {0}개를 외형만으로 표시했습니다.</value>
+  </data>
+  <data name="Msg_ErrorMarkingGlamOnly" xml:space="preserve">
+    <value>외형만 표시 오류: {0}</value>
+  </data>
+  <data name="Msg_ClearedMappings" xml:space="preserve">
+    <value>모든 매핑을 지웠습니다.</value>
+  </data>
+  <data name="Msg_RemovedMappingFor" xml:space="preserve">
+    <value>{0}의 매핑을 제거했습니다</value>
+  </data>
+  <data name="Msg_GlamOnlySummary" xml:space="preserve">
+    <value>✨ 외형만 (방어도 0으로 설정)</value>
+  </data>
+  <data name="Msg_NotMapped" xml:space="preserve">
+    <value>매핑되지 않음</value>
+  </data>
+  <data name="Msg_BuildingPreviewQuoted" xml:space="preserve">
+    <value>'{0}'의 미리 보기를 만드는 중...</value>
+  </data>
+  <data name="Msg_PreviewReadyQuoted" xml:space="preserve">
+    <value>'{0}'의 미리 보기가 준비되었습니다.</value>
+  </data>
+  <data name="Msg_PreviewError" xml:space="preserve">
+    <value>미리 보기 오류: {0}</value>
+  </data>
+  <data name="Msg_CreatingPatch" xml:space="preserve">
+    <value>패치를 만드는 중...</value>
+  </data>
+  <data name="Msg_NoMappedArmors" xml:space="preserve">
+    <value>패치할 매핑된 방어구가 없습니다.</value>
+  </data>
+  <data name="Msg_OverwritePatchConfirm" xml:space="preserve">
+    <value>선택한 패치 파일이 이미 있습니다. 새 데이터를 추가하면 해당 ESP에서 FormID가 일치하는 레코드를 덮어씁니다.&#10;&#10;계속하시겠습니까?</value>
+  </data>
+  <data name="Msg_PatchCanceled" xml:space="preserve">
+    <value>패치 생성이 취소되었습니다.</value>
+  </data>
+  <data name="Msg_FailedToCreatePatch" xml:space="preserve">
+    <value>패치 생성 실패</value>
+  </data>
+  <data name="Msg_UnexpectedError" xml:space="preserve">
+    <value>예기치 않은 오류</value>
+  </data>
+  <data name="Msg_ErrorCreatingPatch" xml:space="preserve">
+    <value>패치 생성 오류: {0}</value>
+  </data>
+  <data name="Msg_SelectFilePath" xml:space="preserve">
+    <value>파일 경로를 선택해 주세요.</value>
+  </data>
+  <data name="Msg_ConflictsDetectedHeader" xml:space="preserve">
+    <value>⚠ 배분 충돌이 감지되었습니다</value>
+  </data>
+  <data name="Msg_ConflictsRenameNote" xml:space="preserve">
+    <value>새 배분이 우선 적용되도록(마지막에 로드되도록) 하기 위해 파일 이름이 다음과 같이 변경됩니다:</value>
+  </data>
+  <data name="Msg_ConflictsZPrefixNote" xml:space="preserve">
+    <value>이 'Z' 접두사는 알파벳 정렬 시 충돌 파일 뒤에 파일이 배치되도록 보장합니다.</value>
+  </data>
+  <data name="Msg_ConflictsContinueFilename" xml:space="preserve">
+    <value>이 파일 이름으로 계속하시겠습니까?</value>
+  </data>
+  <data name="Msg_ConflictsTitle" xml:space="preserve">
+    <value>충돌 감지됨 - 파일 이름 변경 필요</value>
+  </data>
+  <data name="Msg_SaveCancelled" xml:space="preserve">
+    <value>저장이 취소되었습니다.</value>
+  </data>
+  <data name="Msg_OverwriteFileConfirm" xml:space="preserve">
+    <value>'{0}' 파일이 이미 있습니다.&#10;&#10;덮어쓰시겠습니까?</value>
+  </data>
+  <data name="Msg_ConfirmOverwriteTitle" xml:space="preserve">
+    <value>덮어쓰기 확인</value>
+  </data>
+  <data name="Msg_SavingDistributionFile" xml:space="preserve">
+    <value>배분 파일을 저장하는 중...</value>
+  </data>
+  <data name="Msg_SavedDistributionFile" xml:space="preserve">
+    <value>배분 파일을 저장했습니다: {0}</value>
+  </data>
+  <data name="Msg_ErrorSavingFile" xml:space="preserve">
+    <value>파일 저장 오류: {0}</value>
+  </data>
+  <data name="Msg_UnsavedChangesPrompt" xml:space="preserve">
+    <value>저장하지 않은 배분 변경 사항이 있습니다. 계속하기 전에 저장하시겠습니까?</value>
+  </data>
+  <data name="Msg_UnsavedChangesTitle" xml:space="preserve">
+    <value>저장되지 않은 변경 사항</value>
+  </data>
+  <data name="Msg_SavedFile" xml:space="preserve">
+    <value>{0}을(를) 저장했습니다</value>
+  </data>
+  <data name="Msg_FileNotExist" xml:space="preserve">
+    <value>파일이 존재하지 않습니다. 유효한 파일을 선택해 주세요.</value>
+  </data>
+  <data name="Msg_LoadingDistributionFile" xml:space="preserve">
+    <value>배분 파일을 불러오는 중...</value>
+  </data>
+  <data name="Msg_LoadedDistributionEntries" xml:space="preserve">
+    <value>{1}에서 배분 항목 {0}개를 불러왔습니다</value>
+  </data>
+  <data name="Msg_ParseErrorsSuffix" xml:space="preserve">
+    <value>({0}개 줄을 구문 분석할 수 없습니다)</value>
+  </data>
+  <data name="Msg_ErrorLoadingFile" xml:space="preserve">
+    <value>파일 불러오기 오류: {0}</value>
+  </data>
+  <data name="Msg_ErrorGeneratingContent" xml:space="preserve">
+    <value>; 파일 내용 생성 오류: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathScanNpcs" xml:space="preserve">
+    <value>NPC를 스캔하기 전에 설정에서 Skyrim 데이터 경로를 설정해 주세요.</value>
+  </data>
+  <data name="Msg_DataPathNotExist" xml:space="preserve">
+    <value>Skyrim 데이터 경로가 존재하지 않습니다: {0}</value>
+  </data>
+  <data name="Msg_InitializingSkyrim" xml:space="preserve">
+    <value>Skyrim 환경을 초기화하는 중...</value>
+  </data>
+  <data name="Msg_LoadingGameData" xml:space="preserve">
+    <value>게임 데이터를 불러오는 중(NPC, 팩션, 키워드, 종족, 직업)...</value>
+  </data>
+  <data name="Msg_LoadingGameDataPlugins" xml:space="preserve">
+    <value>플러그인에서 게임 데이터를 불러오는 중...</value>
+  </data>
+  <data name="Msg_LoadedGameData" xml:space="preserve">
+    <value>불러옴: NPC {0:N0}, 팩션 {1:N0}, 종족 {2:N0}, 직업 {3:N0}, 키워드 {4:N0}.</value>
+  </data>
+  <data name="Msg_ErrorScanningNpcs" xml:space="preserve">
+    <value>NPC 스캔 오류: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitSelectedPreview" xml:space="preserve">
+    <value>미리 볼 의상이 선택되지 않았습니다.</value>
+  </data>
+  <data name="Msg_InitializeBeforePreview" xml:space="preserve">
+    <value>의상을 미리 보기 전에 Skyrim 데이터 경로를 초기화해 주세요.</value>
+  </data>
+  <data name="Msg_NoArmorPieces" xml:space="preserve">
+    <value>의상 '{0}'에 미리 볼 방어구 조각이 없습니다.</value>
+  </data>
+  <data name="Msg_BuildingPreview" xml:space="preserve">
+    <value>{0}의 미리 보기를 만드는 중...</value>
+  </data>
+  <data name="Msg_PreviewReady" xml:space="preserve">
+    <value>{0}의 미리 보기가 준비되었습니다.</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfit" xml:space="preserve">
+    <value>의상 미리 보기 실패: {0}</value>
+  </data>
+  <data name="Msg_NoOutfitForNpc" xml:space="preserve">
+    <value>이 NPC에게 미리 볼 의상이 없습니다.</value>
+  </data>
+  <data name="Msg_CouldNotResolveOutfit" xml:space="preserve">
+    <value>의상을 확인할 수 없습니다: {0}</value>
+  </data>
+  <data name="Msg_NoDistributionToPreview" xml:space="preserve">
+    <value>미리 볼 배분이 없습니다.</value>
+  </data>
+  <data name="Msg_BuildingOutfitPreview" xml:space="preserve">
+    <value>의상 미리 보기를 만드는 중...</value>
+  </data>
+  <data name="Msg_PreviewReadyWithCount" xml:space="preserve">
+    <value>의상 {0}개의 미리 보기가 준비되었습니다.</value>
+  </data>
+  <data name="Msg_FailedPreviewOutfits" xml:space="preserve">
+    <value>의상 미리 보기 실패: {0}</value>
+  </data>
+  <data name="Msg_FailedPreviewGeneric" xml:space="preserve">
+    <value>미리 보기 실패: {0}</value>
+  </data>
+  <data name="Msg_LinkCacheNotAvailable" xml:space="preserve">
+    <value>LinkCache를 사용할 수 없습니다.</value>
+  </data>
+  <data name="Msg_FoundNpcDistributions" xml:space="preserve">
+    <value>의상 배분이 있는 NPC {0}명을 찾았습니다(충돌 {1}건).</value>
+  </data>
+  <data name="Msg_LoadingNpcOutfits" xml:space="preserve">
+    <value>NPC 의상 데이터를 불러오는 중...</value>
+  </data>
+  <data name="Msg_ErrorLoadingNpcOutfits" xml:space="preserve">
+    <value>NPC 의상 불러오기 오류: {0}</value>
+  </data>
+  <data name="Msg_RefreshingNpcOutfits" xml:space="preserve">
+    <value>NPC 의상 데이터를 새로 고치는 중...</value>
+  </data>
+  <data name="Msg_ErrorRefreshingNpcOutfits" xml:space="preserve">
+    <value>NPC 의상 새로 고침 오류: {0}</value>
+  </data>
+  <data name="Msg_NoFiltersActive" xml:space="preserve">
+    <value>활성 필터 없음</value>
+  </data>
+  <data name="Msg_NoFiltersToCopy" xml:space="preserve">
+    <value>복사할 필터가 없습니다. 먼저 필터를 적용해 주세요.</value>
+  </data>
+  <data name="Msg_FilterCopied" xml:space="preserve">
+    <value>필터 복사됨: {0}</value>
+  </data>
+  <data name="Msg_SetDataPathLoadOutfits" xml:space="preserve">
+    <value>의상을 불러오기 전에 설정에서 Skyrim 데이터 경로를 설정해 주세요.</value>
+  </data>
+  <data name="Msg_LoadingOutfits" xml:space="preserve">
+    <value>로드 순서에서 의상을 불러오는 중...</value>
+  </data>
+  <data name="Msg_LoadedOutfits" xml:space="preserve">
+    <value>의상 {0}개를 불러왔습니다.</value>
+  </data>
+  <data name="Msg_ErrorLoadingOutfits" xml:space="preserve">
+    <value>의상 불러오기 오류: {0}</value>
+  </data>
+  <data name="Msg_NoContainers" xml:space="preserve">
+    <value>불러온 컨테이너가 없습니다</value>
+  </data>
+  <data name="Msg_ContainersCount" xml:space="preserve">
+    <value>컨테이너 {0:N0} / {1:N0}</value>
+  </data>
+  <data name="Msg_CalculatingGrades" xml:space="preserve">
+    <value>등급을 계산하는 중...</value>
+  </data>
+  <data name="Msg_GradeSummary" xml:space="preserve">
+    <value>등급: {0} — NPC 커버 {1:N0}/{2:N0}, 모드 의상 사용 {3:N0}/{4:N0}, 고유 의상 {5:N0}</value>
+  </data>
+  <data name="Msg_CalculationFailed" xml:space="preserve">
+    <value>계산 실패 — 자세한 내용은 로그를 확인하세요</value>
+  </data>
+  <data name="Msg_NothingToSave" xml:space="preserve">
+    <value>저장할 내용이 없습니다.</value>
+  </data>
+  <data name="Msg_ErrorSavingTitle" xml:space="preserve">
+    <value>저장 오류</value>
+  </data>
+  <data name="Msg_UnexpectedErrorSaving" xml:space="preserve">
+    <value>예기치 않은 오류가 발생했습니다:&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorSaving" xml:space="preserve">
+    <value>저장 오류: {0}</value>
+  </data>
+  <data name="Msg_MissingMastersCheckFailedTitle" xml:space="preserve">
+    <value>누락된 마스터 확인 실패</value>
+  </data>
+  <data name="Msg_CouldNotVerifyMasters" xml:space="preserve">
+    <value>패치의 마스터를 확인할 수 없습니다(파일이 손상되었거나 잠겨 있을 수 있습니다):&#10;{0}</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatchTitle" xml:space="preserve">
+    <value>패치 정리 오류</value>
+  </data>
+  <data name="Msg_SelectPluginImportLists" xml:space="preserve">
+    <value>레벨 리스트를 가져오려면 소스 플러그인을 선택해 주세요.</value>
+  </data>
+  <data name="Msg_SelectSpecificPlugin" xml:space="preserve">
+    <value>레벨 리스트를 가져오려면 특정 플러그인을 선택해 주세요(모든 플러그인 제외).</value>
+  </data>
+  <data name="Msg_ImportingLeveledLists" xml:space="preserve">
+    <value>{0}에서 레벨 리스트를 가져오는 중...</value>
+  </data>
+  <data name="Msg_NoLeveledListsFound" xml:space="preserve">
+    <value>{0}에서 레벨 리스트를 찾을 수 없습니다.</value>
+  </data>
+  <data name="Msg_ImportedLeveledLists" xml:space="preserve">
+    <value>{1}에서 레벨 리스트 {0}개를 가져왔습니다.</value>
+  </data>
+  <data name="Msg_AllListsLoaded" xml:space="preserve">
+    <value>{0}의 모든 레벨 리스트는 이미 불러와져 있습니다.</value>
+  </data>
+  <data name="Msg_FailedOpenLogFile" xml:space="preserve">
+    <value>로그 파일을 열 수 없습니다: {0}</value>
+  </data>
+  <data name="Msg_LogFileNotExist" xml:space="preserve">
+    <value>오늘의 로그 파일이 아직 없습니다:&#10;{0}</value>
+  </data>
+  <data name="Msg_LogFileNotFoundTitle" xml:space="preserve">
+    <value>로그 파일을 찾을 수 없음</value>
+  </data>
+  <data name="Msg_FailedOpenLogsFolder" xml:space="preserve">
+    <value>로그 폴더를 열 수 없습니다: {0}</value>
+  </data>
+  <data name="Msg_LogsFolderNotExist" xml:space="preserve">
+    <value>로그 폴더가 존재하지 않습니다:&#10;{0}</value>
+  </data>
+  <data name="Msg_FolderNotFoundTitle" xml:space="preserve">
+    <value>폴더를 찾을 수 없음</value>
+  </data>
+  <data name="Msg_FormatChangePrompt" xml:space="preserve">
+    <value>확률 기반 배분을 사용하면 파일 형식이 SPID로 변경됩니다.&#10;&#10;SkyPatcher는 확률 기반 의상 배분을 지원하지 않습니다. 이 기능을 지원하기 위해 파일은 SPID 형식으로 저장됩니다.&#10;&#10;계속하시겠습니까?</value>
+  </data>
+  <data name="Msg_FormatChangeTitle" xml:space="preserve">
+    <value>형식 변경 필요</value>
+  </data>
+  <data name="Msg_WritingPatch" xml:space="preserve">
+    <value>패치 파일을 쓰는 중...</value>
+  </data>
+  <data name="Msg_RefreshingLoadOrder" xml:space="preserve">
+    <value>로드 순서를 새로 고치는 중...</value>
+  </data>
+  <data name="Msg_NoValidMatches" xml:space="preserve">
+    <value>패치할 유효한 매치가 없습니다.</value>
+  </data>
+  <data name="Msg_PatchingArmor" xml:space="preserve">
+    <value>{0}을(를) 패치하는 중...</value>
+  </data>
+  <data name="Msg_PatchCreated" xml:space="preserve">
+    <value>{1}에 방어구 {0}개가 포함된 패치를 성공적으로 만들었습니다</value>
+  </data>
+  <data name="Msg_WritingOutfit" xml:space="preserve">
+    <value>의상 {0}을(를) 쓰는 중...</value>
+  </data>
+  <data name="Msg_WritingLeveledList" xml:space="preserve">
+    <value>레벨 리스트 {0}을(를) 쓰는 중...</value>
+  </data>
+  <data name="Msg_SavedTo" xml:space="preserve">
+    <value>{0}을(를) {1}에 저장했습니다</value>
+  </data>
+  <data name="Msg_OutfitsCount" xml:space="preserve">
+    <value>의상 {0}개</value>
+  </data>
+  <data name="Msg_LeveledListsCount" xml:space="preserve">
+    <value>레벨 리스트 {0}개</value>
+  </data>
+  <data name="Msg_ListJoin" xml:space="preserve">
+    <value> 및 </value>
+  </data>
+  <data name="Msg_ZeroRecords" xml:space="preserve">
+    <value>레코드 0개</value>
+  </data>
+  <data name="Msg_MutagenNotInitialized" xml:space="preserve">
+    <value>Mutagen 서비스가 초기화되지 않았습니다. 먼저 Skyrim 데이터 경로를 설정해 주세요.</value>
+  </data>
+  <data name="Msg_InvalidPluginName" xml:space="preserve">
+    <value>'{0}'은(는) 유효한 플러그인 이름이 아닙니다. 패치 파일 이름은 .esp, .esm 또는 .esl로 끝나야 합니다.</value>
+  </data>
+  <data name="Msg_CannotWriteFileLocked" xml:space="preserve">
+    <value>'{0}'에 쓸 수 없습니다. 파일이 다른 프로그램(Skyrim, xEdit 등)에 의해 잠겨 있을 수 있습니다. 파일을 열고 있을 수 있는 프로그램을 모두 닫고 다시 시도해 주세요.</value>
+  </data>
+  <data name="Msg_CannotWriteFile" xml:space="preserve">
+    <value>'{0}'에 쓸 수 없습니다: {1}. 파일이 다른 프로그램에 의해 잠겨 있을 수 있습니다.</value>
+  </data>
+  <data name="Msg_CannotWriteUnknown" xml:space="preserve">
+    <value>'{0}'에 쓸 수 없습니다: 알 수 없는 오류.</value>
+  </data>
+  <data name="Msg_RemovedOutfitsMissingMasters" xml:space="preserve">
+    <value>누락된 마스터가 있는 의상 {0}개를 성공적으로 제거했습니다.</value>
+  </data>
+  <data name="Msg_PatchFileNotExist" xml:space="preserve">
+    <value>패치 파일이 존재하지 않습니다.</value>
+  </data>
+  <data name="Msg_ErrorCleaningPatch" xml:space="preserve">
+    <value>패치 정리 오류: {0}</value>
+  </data>
+  <data name="Msg_UpdateDownloadFailed" xml:space="preserve">
+    <value>업데이트 다운로드 실패: {0}</value>
+  </data>
+  <data name="Msg_UpdateErrorTitle" xml:space="preserve">
+    <value>업데이트 오류</value>
+  </data>
+  <data name="Msg_LatestVersion" xml:space="preserve">
+    <value>최신 버전을 사용하고 있습니다.</value>
+  </data>
+  <data name="Msg_NoUpdateTitle" xml:space="preserve">
+    <value>사용 가능한 업데이트 없음</value>
+  </data>
+  <data name="Msg_AutosaveNoticeBody" xml:space="preserve">
+    <value>배분 파일 자동 저장이 제거되었습니다.&#10;&#10;이제 배분 파일은 사용자가 명시적으로 저장을 클릭할 때만 저장됩니다. 저장할 때마다 회전 백업이 자동으로 생성되며 다음 위치에 저장됩니다:&#10;%LOCALAPPDATA%\Boutique\Backups\&#10;&#10;이 변경으로 자동 저장으로 인해 일부 사용자가 겪었던 데이터 손실을 방지할 수 있습니다.</value>
+  </data>
+  <data name="Msg_AutosaveNoticeTitle" xml:space="preserve">
+    <value>배분 파일 자동 저장 제거됨</value>
+  </data>
+  <data name="View_EntryDetails" xml:space="preserve">
+    <value>항목 세부 정보</value>
+  </data>
+  <data name="View_Filters" xml:space="preserve">
+    <value>필터</value>
+  </data>
+  <data name="View_SelectEntryHint" xml:space="preserve">
+    <value>목록에서 항목을 선택하여 세부 정보를 편집하세요</value>
+  </data>
+  <data name="View_ExclusiveGroupNameTooltip" xml:space="preserve">
+    <value>ExclusiveGroup 이름입니다.</value>
+  </data>
+  <data name="View_ExclusiveGroupFormsTooltip" xml:space="preserve">
+    <value>쉼표로 구분된 폼 목록입니다.</value>
+  </data>
+  <data name="View_FormsLabel" xml:space="preserve">
+    <value>폼:</value>
+  </data>
+  <data name="View_ChanceLabel" xml:space="preserve">
+    <value>확률:</value>
+  </data>
+  <data name="View_Traits" xml:space="preserve">
+    <value>특성</value>
+  </data>
+  <data name="View_GenderLabel" xml:space="preserve">
+    <value>성별:</value>
+  </data>
+  <data name="View_UniqueLabel" xml:space="preserve">
+    <value>고유:</value>
+  </data>
+  <data name="View_LevelLabel" xml:space="preserve">
+    <value>레벨:</value>
+  </data>
+  <data name="View_LevelNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="View_LevelLevel" xml:space="preserve">
+    <value>레벨</value>
+  </data>
+  <data name="View_LevelSkillLevel" xml:space="preserve">
+    <value>스킬 레벨</value>
+  </data>
+  <data name="View_LevelSkillWeight" xml:space="preserve">
+    <value>스킬 가중치</value>
+  </data>
+  <data name="View_LevelRaw" xml:space="preserve">
+    <value>원시</value>
+  </data>
+  <data name="View_Min" xml:space="preserve">
+    <value>최소</value>
+  </data>
+  <data name="View_Max" xml:space="preserve">
+    <value>최대</value>
+  </data>
+  <data name="View_ToggleNegationTooltip" xml:space="preserve">
+    <value>클릭하면 부정을 전환합니다</value>
+  </data>
+  <data name="View_AndOrLogicFormat" xml:space="preserve">
+    <value>AND: 모든 {0}이(가) 일치해야 함 | OR: 최소 하나의 {0}이(가) 일치해야 함</value>
+  </data>
+  <data name="View_OutfitFilters" xml:space="preserve">
+    <value>의상 필터</value>
+  </data>
+  <data name="View_RawFilters" xml:space="preserve">
+    <value>원시 필터</value>
+  </data>
+  <data name="View_StringLabel" xml:space="preserve">
+    <value>문자열:</value>
+  </data>
+  <data name="View_FormLabel" xml:space="preserve">
+    <value>폼:</value>
+  </data>
+  <data name="View_RawStringFiltersTooltip" xml:space="preserve">
+    <value>원시 문자열 필터: 와일드카드(*Mage), 부정(-Exclude), SPID 배포 키워드. 쉼표는 OR, 더하기는 AND입니다.</value>
+  </data>
+  <data name="View_RawFormFiltersTooltip" xml:space="preserve">
+    <value>원시 폼 필터: 부정된 팩션(-FactionName), 종족 등. 쉼표는 OR입니다.</value>
+  </data>
+  <data name="View_Results" xml:space="preserve">
+    <value>결과</value>
+  </data>
+  <data name="View_TotalNpcsFormat" xml:space="preserve">
+    <value>총 {0}명의 NPC</value>
+  </data>
+  <data name="View_Criteria" xml:space="preserve">
+    <value>기준</value>
+  </data>
+  <data name="View_TargetFormat" xml:space="preserve">
+    <value>대상: {0}</value>
+  </data>
+  <data name="View_TargetNone" xml:space="preserve">
+    <value>대상: (선택 없음)</value>
+  </data>
+  <data name="View_TargetOutfitsHint" xml:space="preserve">
+    <value>지정된 기존 의상을 착용한 NPC를 대상으로 하여 사실상 해당 의상을 대체합니다.</value>
+  </data>
+  <data name="View_AddSelectedOutfits" xml:space="preserve">
+    <value>선택한 의상 추가</value>
+  </data>
+  <data name="View_ShowingPrefix" xml:space="preserve">
+    <value>표시: </value>
+  </data>
+  <data name="View_OfSeparator" xml:space="preserve">
+    <value> / </value>
+  </data>
+  <data name="View_NpcsSuffix" xml:space="preserve">
+    <value>명의 NPC</value>
+  </data>
+  <data name="View_OutfitFileTooltip" xml:space="preserve">
+    <value>이 NPC의 의상을 결정하는 배포 파일</value>
+  </data>
+  <data name="View_ContainsLeveledLists" xml:space="preserve">
+    <value>레벨드 리스트 포함</value>
+  </data>
+  <data name="View_ContainsLeveledListsTooltip" xml:space="preserve">
+    <value>레벨드 리스트 또는 폼 리스트가 포함된 의상만 표시</value>
+  </data>
+  <data name="View_MoreActions" xml:space="preserve">
+    <value>추가 작업</value>
+  </data>
+  <data name="View_NpcCountFormat" xml:space="preserve">
+    <value>(NPC {0}명)</value>
+  </data>
+  <data name="View_UnresolvedFiltersTooltip" xml:space="preserve">
+    <value>이 항목에는 알려진 NPC 또는 키워드와 일치하지 않는 미해결 필터가 있습니다</value>
+  </data>
+  <data name="View_IntraFileOverlapsFormat" xml:space="preserve">
+    <value>파일 내 중복 {0}개</value>
+  </data>
+  <data name="View_ViewButton" xml:space="preserve">
+    <value>보기</value>
+  </data>
+  <data name="View_ParseErrorsSuffix" xml:space="preserve">
+    <value>개의 구문 분석 오류 - 저장 시 이 줄이 유지됩니다</value>
+  </data>
+  <data name="View_Plugin" xml:space="preserve">
+    <value>플러그인</value>
+  </data>
+  <data name="View_ArValFormat" xml:space="preserve">
+    <value> (AR: {0:F0}, 값: {1})</value>
+  </data>
+  <data name="View_Overall" xml:space="preserve">
+    <value>전체</value>
+  </data>
+  <data name="View_NpcCoverage" xml:space="preserve">
+    <value>NPC 커버리지</value>
+  </data>
+  <data name="View_ModUtilization" xml:space="preserve">
+    <value>모드 활용도</value>
+  </data>
+  <data name="View_OutfitVariety" xml:space="preserve">
+    <value>의상 다양성</value>
+  </data>
+  <data name="View_CalculateGrade" xml:space="preserve">
+    <value>등급 계산</value>
+  </data>
+  <data name="View_CoverageSummaryFormat" xml:space="preserve">
+    <value>{0:N0}/{1:N0}명의 NPC 커버 · {2:N0}/{3:N0}개의 모드 의상 사용 · {4:N0}개의 고유 의상</value>
+  </data>
+  <data name="View_ClickCalculateHint" xml:space="preserve">
+    <value>등급 계산을 클릭하여 배포 설정을 분석하세요</value>
+  </data>
+  <data name="View_SourceMods" xml:space="preserve">
+    <value>원본 모드</value>
+  </data>
+  <data name="View_UnusedOutfitsFormat" xml:space="preserve">
+    <value>사용되지 않는 모드 의상 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsFormat" xml:space="preserve">
+    <value>어떤 의상에도 없는 방어구 ({0})</value>
+  </data>
+  <data name="View_UnusedArmorsHint" xml:space="preserve">
+    <value>어떤 의상에도 포함되지 않은 모드의 착용 가능한 마법 없는 방어구입니다. 일부는 의도적으로 제작 전용일 수 있습니다.</value>
+  </data>
+  <data name="View_NotApplicable" xml:space="preserve">
+    <value>해당 없음</value>
+  </data>
+  <data name="View_HideEmptyContainers" xml:space="preserve">
+    <value>빈 컨테이너 숨기기</value>
+  </data>
+  <data name="View_CellLabel" xml:space="preserve">
+    <value>셀:</value>
+  </data>
+  <data name="View_RespawnsLabel" xml:space="preserve">
+    <value>리스폰:</value>
+  </data>
+  <data name="View_ItemsHeader" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="View_MerchantHeader" xml:space="preserve">
+    <value>상인</value>
+  </data>
+  <data name="View_CellsHeader" xml:space="preserve">
+    <value>셀</value>
+  </data>
+  <data name="View_RespawnsHeader" xml:space="preserve">
+    <value>리스폰</value>
+  </data>
+  <data name="View_ItemHeader" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="View_CountHeader" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="View_SelectContainer" xml:space="preserve">
+    <value>컨테이너 선택</value>
+  </data>
+  <data name="View_SelectContainerHint" xml:space="preserve">
+    <value>컨테이너를 선택하면 내용이 표시됩니다</value>
+  </data>
+  <data name="View_PreviousOutfitTooltip" xml:space="preserve">
+    <value>이전 의상(왼쪽 화살표)</value>
+  </data>
+  <data name="View_NextOutfitTooltip" xml:space="preserve">
+    <value>다음 의상(오른쪽 화살표)</value>
+  </data>
+  <data name="View_LoadingPreview" xml:space="preserve">
+    <value>미리 보기 로드 중...</value>
+  </data>
+  <data name="View_LeveledItemsNotice" xml:space="preserve">
+    <value>이 의상에는 레벨드 리스트가 포함되어 있습니다.</value>
+  </data>
+  <data name="View_LeveledItemsHint" xml:space="preserve">
+    <value>게임 내 외형은 다를 수 있습니다. 무작위화를 클릭하면 다른 조합을 미리 볼 수 있습니다.</value>
+  </data>
+  <data name="View_Randomize" xml:space="preserve">
+    <value>무작위화</value>
+  </data>
+  <data name="View_ToggleTabTooltip" xml:space="preserve">
+    <value>Tab 키로 전환</value>
+  </data>
+  <data name="View_ShowBaseBody" xml:space="preserve">
+    <value>기본 바디 표시</value>
+  </data>
+  <data name="View_HideBaseBodyTooltip" xml:space="preserve">
+    <value>방어구를 뚫고 나올 때 기본 바디 메시를 숨깁니다</value>
+  </data>
+  <data name="View_OutfitCounterFormat" xml:space="preserve">
+    <value>의상 {0}/{1}</value>
+  </data>
+  <data name="View_UnknownOutfit" xml:space="preserve">
+    <value>알 수 없는 의상</value>
+  </data>
+  <data name="View_FromSourceFormat" xml:space="preserve">
+    <value>출처: {0}</value>
+  </data>
+  <data name="View_FromSourceWinnerFormat" xml:space="preserve">
+    <value>출처: {0} (승자)</value>
+  </data>
+  <data name="View_NoGeometry" xml:space="preserve">
+    <value>렌더링할 지오메트리가 없습니다.</value>
+  </data>
+  <data name="View_AutoUpdate" xml:space="preserve">
+    <value>자동 업데이트</value>
+  </data>
+  <data name="View_CheckUpdatesOnStartup" xml:space="preserve">
+    <value>시작 시 업데이트 확인</value>
+  </data>
+  <data name="View_CheckNow" xml:space="preserve">
+    <value>지금 확인</value>
+  </data>
+  <data name="View_Experimental" xml:space="preserve">
+    <value>실험적</value>
+  </data>
+  <data name="View_ShowContainersTab" xml:space="preserve">
+    <value>컨테이너 탭 표시(다시 시작 필요)</value>
+  </data>
+  <data name="View_DebugGroup" xml:space="preserve">
+    <value>디버그</value>
+  </data>
+  <data name="View_DebugLogging" xml:space="preserve">
+    <value>디버그 로깅</value>
+  </data>
+  <data name="View_EnableDebugLogging" xml:space="preserve">
+    <value>디버그 로깅 사용(다시 시작 필요)</value>
+  </data>
+  <data name="View_LogFiles" xml:space="preserve">
+    <value>로그 파일</value>
+  </data>
+  <data name="View_OpenTodaysLog" xml:space="preserve">
+    <value>오늘 로그 열기</value>
+  </data>
+  <data name="View_OpenLogsFolder" xml:space="preserve">
+    <value>로그 폴더 열기</value>
+  </data>
+  <data name="View_DragToReorder" xml:space="preserve">
+    <value>드래그하여 순서 변경</value>
+  </data>
+  <data name="View_ClickChangeIcon" xml:space="preserve">
+    <value>클릭하여 아이콘 변경</value>
+  </data>
+  <data name="View_ClickRename" xml:space="preserve">
+    <value>클릭하여 이름 변경</value>
+  </data>
+  <data name="View_RemoveSeparator" xml:space="preserve">
+    <value>구분 기호 제거</value>
+  </data>
+  <data name="View_TypeLabel" xml:space="preserve">
+    <value>유형:</value>
+  </data>
+  <data name="View_SlotLabel" xml:space="preserve">
+    <value>슬롯:</value>
+  </data>
+  <data name="View_AddSeparator" xml:space="preserve">
+    <value>+ 구분 기호</value>
+  </data>
+  <data name="View_AddSeparatorTooltip" xml:space="preserve">
+    <value>의상을 정리하기 위한 구분 기호를 추가합니다</value>
+  </data>
+  <data name="View_PiecesFormat" xml:space="preserve">
+    <value>({0}개 조각)</value>
+  </data>
+  <data name="View_ItemsCountFormat" xml:space="preserve">
+    <value>{0}개 항목</value>
+  </data>
+  <data name="View_UpdateAvailableTitle" xml:space="preserve">
+    <value>업데이트 사용 가능</value>
+  </data>
+  <data name="View_UpdateAvailableHeader" xml:space="preserve">
+    <value>Boutique의 새 버전을 사용할 수 있습니다!</value>
+  </data>
+  <data name="View_CurrentVersionLabel" xml:space="preserve">
+    <value>현재 버전: </value>
+  </data>
+  <data name="View_LatestVersionLabel" xml:space="preserve">
+    <value>최신 버전: </value>
+  </data>
+  <data name="View_WhatsNew" xml:space="preserve">
+    <value>새로운 기능</value>
+  </data>
+  <data name="View_SkipThisVersion" xml:space="preserve">
+    <value>이 버전 건너뛰기</value>
+  </data>
+  <data name="View_RemindMeLater" xml:space="preserve">
+    <value>나중에 알림</value>
+  </data>
+  <data name="View_UpdateNow" xml:space="preserve">
+    <value>지금 업데이트</value>
+  </data>
+  <data name="View_SelectIconTitle" xml:space="preserve">
+    <value>아이콘 선택</value>
+  </data>
+  <data name="View_FilterIcons" xml:space="preserve">
+    <value>아이콘 필터...</value>
+  </data>
+  <data name="View_ClearIcon" xml:space="preserve">
+    <value>아이콘 지우기</value>
+  </data>
+  <data name="View_Ok" xml:space="preserve">
+    <value>확인</value>
+  </data>
+  <data name="View_InputTitle" xml:space="preserve">
+    <value>입력</value>
+  </data>
+  <data name="View_IntraFileOverlapsTitle" xml:space="preserve">
+    <value>파일 내 중복</value>
+  </data>
+  <data name="View_IntraFileOverlapsDescription" xml:space="preserve">
+    <value>의상 항목 간 공유되는 NPC 수입니다. 0이 아닌 셀은 여러 의상이 대상으로 하는 NPC를 나타냅니다.</value>
+  </data>
+  <data name="View_IntraFileOverlapsHeaderFormat" xml:space="preserve">
+    <value>여러 의상이 대상으로 하는 NPC: {0}명</value>
+  </data>
+  <data name="View_ConfirmRemoveMessage" xml:space="preserve">
+    <value>이 항목을 제거하시겠습니까?&#10;&#10;{0}</value>
+  </data>
+  <data name="View_ConfirmRemoveTitle" xml:space="preserve">
+    <value>제거 확인</value>
+  </data>
+  <data name="View_PatchCreatedTitle" xml:space="preserve">
+    <value>패치 생성됨</value>
+  </data>
+  <data name="View_OverwritePatchTitle" xml:space="preserve">
+    <value>기존 패치를 덮어쓰시겠습니까?</value>
+  </data>
+  <data name="View_ConfirmDeleteTitle" xml:space="preserve">
+    <value>삭제 확인</value>
+  </data>
+  <data name="View_CreateOutfitTitle" xml:space="preserve">
+    <value>의상 만들기</value>
+  </data>
+  <data name="View_MissingMastersSummaryFormat" xml:space="preserve">
+    <value>패치를 정리하면 {0}개의 의상이 제거됩니다. 이를 유지하려면 누락된 마스터 {1}개를 다시 추가해야 합니다.</value>
+  </data>
+  <data name="Distribution_AddSelectedLocations" xml:space="preserve">
+    <value>선택한 위치를 항목에 추가</value>
+  </data>
+  <data name="Distribution_Locations" xml:space="preserve">
+    <value>위치:</value>
+  </data>
+  <data name="Header_Type" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="PatchNameCollision_Header" xml:space="preserve">
+    <value>⚠️ 이 이름은 기존 플러그인과 충돌합니다</value>
+  </data>
+  <data name="PatchNameCollision_KeepName" xml:space="preserve">
+    <value>이 이름 유지</value>
+  </data>
+  <data name="PatchNameCollision_Message" xml:space="preserve">
+    <value>"{0}"은(는) 로드 순서에 이미 있습니다. 이 이름을 사용하면 패치를 생성할 때 기존 데이터를 덮어쓸 수 있습니다. 고유한 이름을 선택하세요.</value>
+  </data>
+  <data name="PatchNameCollision_Revert" xml:space="preserve">
+    <value>다른 이름 선택</value>
+  </data>
+  <data name="PatchNameCollision_Title" xml:space="preserve">
+    <value>플러그인 이름 충돌</value>
+  </data>
+  <data name="Tab_Containers" xml:space="preserve">
+    <value>컨테이너</value>
+  </data>
+  <data name="Tab_Locations" xml:space="preserve">
+    <value>위치</value>
+  </data>
 </root>

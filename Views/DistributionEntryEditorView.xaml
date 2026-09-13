@@ -15,11 +15,11 @@
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="400"
              d:DesignWidth="500">
-  <GroupBox Header="Entry Details" Padding="6">
+  <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.EntryDetails}}" Padding="6">
     <TabControl>
       <TabItem>
         <TabItem.Header>
-          <TextBlock Text="Filters" />
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Filters}}" />
         </TabItem.Header>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel DataContext="{Binding SelectedEntry}">
@@ -35,7 +35,7 @@
             </StackPanel.Style>
 
         <!-- No entry selected message -->
-        <TextBlock Text="Select an entry from the list to edit its details"
+        <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.SelectEntryHint}}"
                    Style="{DynamicResource {x:Static themes:ResourceKeys.SecondaryTextStyleKey}}"
                    HorizontalAlignment="Center" Margin="0,20"
                    Visibility="{Binding DataContext.SelectedEntry, ElementName=Root, Converter={StaticResource NullToVisConverter}, ConverterParameter=Inverse}" />
@@ -98,17 +98,17 @@
                           Visibility="{Binding IsExclusiveGroupDistribution, Converter={StaticResource BoolToVisConverter}}">
                 <TextBox Text="{Binding ExclusiveGroupName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MinWidth="140" Height="26" VerticalContentAlignment="Center" Margin="0,0,8,0"
-                         ToolTip="ExclusiveGroup name." />
-                <TextBlock Text="Forms:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                         ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ExclusiveGroupNameTooltip}}" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.FormsLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" />
                 <TextBox Text="{Binding ExclusiveGroupFormsText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          MinWidth="180" Height="26" VerticalContentAlignment="Center"
-                         ToolTip="Comma-separated forms list." />
+                         ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ExclusiveGroupFormsTooltip}}" />
               </StackPanel>
             </StackPanel>
 
             <!-- Chance -->
             <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="12,0,0,0">
-              <TextBlock Text="Chance:" VerticalAlignment="Center" Margin="0,0,6,0" />
+              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ChanceLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" />
               <CheckBox Content="☑" IsChecked="{Binding UseChance, Mode=TwoWay}" VerticalAlignment="Center"
                         Margin="0,0,4,0" ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.UseChance}}" />
               <TextBox Text="{Binding Chance, UpdateSourceTrigger=PropertyChanged}" Width="40" Height="26"
@@ -122,32 +122,32 @@
                   Background="{StaticResource Brush.CardBackground}"
                   CornerRadius="4" Padding="8" Margin="0,0,0,8">
             <StackPanel>
-              <TextBlock Text="Traits" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
+              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Traits}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
               <WrapPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
-                  <TextBlock Text="Gender:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.GenderLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.GenderOptions}"
                             SelectedItem="{Binding Gender, Mode=TwoWay}"
                             MinWidth="80" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
-                  <TextBlock Text="Unique:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.UniqueLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.UniqueOptions}"
                             SelectedItem="{Binding Unique, Mode=TwoWay}"
                             MinWidth="100" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="Level:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}" />
                   <ComboBox SelectedValue="{Binding LevelFilterMode, Mode=TwoWay}"
                             SelectedValuePath="Tag"
                             Width="110" Height="24" VerticalContentAlignment="Center"
                             Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}"
                             ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+Distribution.LevelSkillTooltip}}">
-                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="None" />
-                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="Level" />
-                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillLevel}" Content="Skill Level" />
-                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillWeight}" Content="Skill Weight" />
-                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Raw}" Content="Raw" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.None}" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelNone}}" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Level}" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelLevel}}" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillLevel}" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelSkillLevel}}" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.SkillWeight}" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelSkillWeight}}" />
+                    <ComboBoxItem Tag="{x:Static vm:LevelFilterMode.Raw}" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.LevelRaw}}" />
                   </ComboBox>
                   <ComboBox ItemsSource="{x:Static vm:DistributionEntryViewModel.SkillFilterOptions}"
                             SelectedItem="{Binding SelectedLevelSkill, Mode=TwoWay}"
@@ -155,7 +155,7 @@
                             Width="120" Height="24" VerticalContentAlignment="Center"
                             Margin="0,0,6,0" FontSize="{DynamicResource FontSize.Small}"
                             Visibility="{Binding IsSkillLevelMode, Converter={StaticResource BoolToVisConverter}}" />
-                  <TextBlock Text="Min"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Min}}"
                              VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                              Margin="0,0,4,0"
                              Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
@@ -163,7 +163,7 @@
                            Width="40" Height="24" VerticalContentAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                            Margin="0,0,6,0"
                            Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
-                  <TextBlock Text="Max"
+                  <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Max}}"
                              VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Small}"
                              Margin="0,0,4,0"
                              Visibility="{Binding HasRangeLevelFilterMode, Converter={StaticResource BoolToVisConverter}}" />
@@ -186,7 +186,7 @@
                   Visibility="{Binding SelectedNpcs.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="NPCs" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.NPCs}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
               </DockPanel>
               <ItemsControl ItemsSource="{Binding SelectedNpcs}">
                 <ItemsControl.ItemsPanel>
@@ -211,7 +211,7 @@
                       <StackPanel Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleNpcNegation_Click" Tag="{Binding}"
-                                    ToolTip="Click to toggle negation">
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ToggleNegationTooltip}}">
                           <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
@@ -239,11 +239,13 @@
                   Visibility="{Binding SelectedFactions.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Factions" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Factions}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding FactionLogicMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          ToolTip="AND: All factions must match | OR: At least one faction must match">
+                          SelectedValuePath="Tag">
+                  <ComboBox.ToolTip>
+                    <Binding Source="{x:Null}" Converter="{StaticResource FormatConverter}" ConverterParameter="View_AndOrLogicFormat|Tab_Factions" />
+                  </ComboBox.ToolTip>
                   <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
                   <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
@@ -271,7 +273,7 @@
                       <StackPanel Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleFactionNegation_Click" Tag="{Binding}"
-                                    ToolTip="Click to toggle negation">
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ToggleNegationTooltip}}">
                           <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
@@ -299,11 +301,13 @@
                   Visibility="{Binding SelectedKeywords.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Keywords" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Keywords}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding KeywordLogicMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          ToolTip="AND: All keywords must match | OR: At least one keyword must match">
+                          SelectedValuePath="Tag">
+                  <ComboBox.ToolTip>
+                    <Binding Source="{x:Null}" Converter="{StaticResource FormatConverter}" ConverterParameter="View_AndOrLogicFormat|Tab_Keywords" />
+                  </ComboBox.ToolTip>
                   <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
                   <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
@@ -331,7 +335,7 @@
                       <StackPanel Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleKeywordNegation_Click" Tag="{Binding}"
-                                    ToolTip="Click to toggle negation">
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ToggleNegationTooltip}}">
                           <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
@@ -359,11 +363,13 @@
                   Visibility="{Binding SelectedRaces.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Races" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Races}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding RaceLogicMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          ToolTip="AND: All races must match | OR: At least one race must match">
+                          SelectedValuePath="Tag">
+                  <ComboBox.ToolTip>
+                    <Binding Source="{x:Null}" Converter="{StaticResource FormatConverter}" ConverterParameter="View_AndOrLogicFormat|Tab_Races" />
+                  </ComboBox.ToolTip>
                   <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
                   <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
@@ -391,7 +397,7 @@
                       <StackPanel Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Cursor="Hand"
                                     MouseLeftButtonDown="ToggleRaceNegation_Click" Tag="{Binding}"
-                                    ToolTip="Click to toggle negation">
+                                    ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.ToggleNegationTooltip}}">
                           <TextBlock FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Warning}"
                                      Visibility="{Binding IsExcluded, Converter={StaticResource BoolToVisConverter}}">
                             -
@@ -419,11 +425,13 @@
                   Visibility="{Binding SelectedClasses.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Classes" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Classes}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding ClassLogicMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          ToolTip="AND: All classes must match | OR: At least one class must match">
+                          SelectedValuePath="Tag">
+                  <ComboBox.ToolTip>
+                    <Binding Source="{x:Null}" Converter="{StaticResource FormatConverter}" ConverterParameter="View_AndOrLogicFormat|Tab_Classes" />
+                  </ComboBox.ToolTip>
                   <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
                   <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
@@ -462,11 +470,13 @@
                   Visibility="{Binding SelectedLocations.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
               <DockPanel Margin="0,0,0,6">
-                <TextBlock Text="Locations" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Locations}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" DockPanel.Dock="Left" />
                 <ComboBox DockPanel.Dock="Right" MinWidth="70" Height="22" FontSize="{DynamicResource FontSize.Small}"
                           SelectedValue="{Binding LocationLogicMode, Mode=TwoWay}"
-                          SelectedValuePath="Tag"
-                          ToolTip="AND: All locations must match | OR: At least one location must match">
+                          SelectedValuePath="Tag">
+                  <ComboBox.ToolTip>
+                    <Binding Source="{x:Null}" Converter="{StaticResource FormatConverter}" ConverterParameter="View_AndOrLogicFormat|Tab_Locations" />
+                  </ComboBox.ToolTip>
                   <ComboBoxItem Content="AND" Tag="{x:Static models:FilterLogicMode.And}" />
                   <ComboBoxItem Content="OR" Tag="{x:Static models:FilterLogicMode.Or}" />
                 </ComboBox>
@@ -504,7 +514,7 @@
                   CornerRadius="4" Padding="8" Margin="0,0,0,8"
                   Visibility="{Binding SelectedOutfitFilters.Count, Converter={StaticResource CollectionCountToVisConverter}}">
             <StackPanel>
-              <TextBlock Text="Outfit Filters" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
+              <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.OutfitFilters}}" FontWeight="SemiBold" FontSize="{DynamicResource FontSize.Small}" Margin="0,0,0,6" />
               <ItemsControl ItemsSource="{Binding SelectedOutfitFilters}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
@@ -534,7 +544,7 @@
 
           <!-- Raw Filters -->
           <StackPanel Margin="0,0,0,8">
-            <TextBlock Text="Raw Filters" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.RawFilters}}" Style="{DynamicResource {x:Static themes:ResourceKeys.LabelTextStyleKey}}"
                        Margin="0,0,0,4" />
             <Grid>
               <Grid.ColumnDefinitions>
@@ -545,16 +555,16 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
-              <TextBlock Grid.Row="0" Grid.Column="0" Text="String:" VerticalAlignment="Center" Margin="0,0,6,4" />
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.StringLabel}}" VerticalAlignment="Center" Margin="0,0,6,4" />
               <TextBox Grid.Row="0" Grid.Column="1"
                        Text="{Binding RawStringFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                        Height="26" FontFamily="{StaticResource Font.Mono}" VerticalContentAlignment="Center" Margin="0,0,0,4"
-                       ToolTip="Raw string filters: wildcards (*Mage), negations (-Exclude), and SPID-distributed keywords. Comma-separated for OR, plus-separated for AND." />
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="Form:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                       ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.RawStringFiltersTooltip}}" />
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.FormLabel}}" VerticalAlignment="Center" Margin="0,0,6,0" />
               <TextBox Grid.Row="1" Grid.Column="1"
                        Text="{Binding RawFormFilters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                        Height="26" FontFamily="{StaticResource Font.Mono}" VerticalContentAlignment="Center"
-                       ToolTip="Raw form filters: negated factions (-FactionName), races, etc. Comma-separated for OR." />
+                       ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.RawFormFiltersTooltip}}" />
             </Grid>
           </StackPanel>
         </StackPanel>
@@ -565,7 +575,7 @@
       <TabItem>
         <TabItem.Header>
           <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Results" />
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Results}}" />
             <TextBlock Text="{Binding MatchingNpcsCount, StringFormat=' ({0})'}" />
           </StackPanel>
         </TabItem.Header>
@@ -582,9 +592,14 @@
           </DockPanel.Style>
 
           <TextBlock DockPanel.Dock="Bottom"
-                     Text="{Binding MatchingNpcsCount, StringFormat='Total: {0} NPCs'}"
                      Margin="0,6,0,0" FontSize="{DynamicResource FontSize.Small}"
-                     Foreground="{StaticResource Brush.TextSecondary}" />
+                     Foreground="{StaticResource Brush.TextSecondary}">
+            <TextBlock.Text>
+              <MultiBinding Converter="{StaticResource FormatConverter}" ConverterParameter="View_TotalNpcsFormat">
+                  <Binding Path="MatchingNpcsCount" />
+                </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
 
           <DataGrid ItemsSource="{Binding MatchingNpcsForSelectedEntry}"
                     AutoGenerateColumns="False" IsReadOnly="True"
@@ -596,8 +611,8 @@
                     RowBackground="{StaticResource Brush.CardBackground}"
                     AlternatingRowBackground="{StaticResource Brush.PrimaryBackground}">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="2*" />
-              <DataGridTextColumn Header="Criteria" Binding="{Binding Criteria}" Width="2*">
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.Name}}" Binding="{Binding DisplayName}" Width="2*" />
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.Criteria}}" Binding="{Binding Criteria}" Width="2*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
@@ -605,7 +620,7 @@
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>
-              <DataGridTextColumn Header="EditorID" Binding="{Binding EditorId}" Width="1.5*">
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.EditorID}}" Binding="{Binding EditorId}" Width="1.5*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock">
                     <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
@@ -613,7 +628,7 @@
                   </Style>
                 </DataGridTextColumn.ElementStyle>
               </DataGridTextColumn>
-              <DataGridTextColumn Header="FormKey" Binding="{Binding FormKey}" Width="1.5*">
+              <DataGridTextColumn Header="{lex:Loc Key={x:Static res:LocalizationKeys+Headers.FormKey}}" Binding="{Binding FormKey}" Width="1.5*">
                 <DataGridTextColumn.ElementStyle>
                   <Style TargetType="TextBlock"
                          BasedOn="{StaticResource {x:Static themes:ResourceKeys.FormKeyTextStyleKey}}" />

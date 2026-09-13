@@ -35,7 +35,7 @@
         <Button x:Name="PreviousOutfitButton" Content="◀" Grid.Column="0"
                 Padding="8,4" FontSize="16"
                 Click="OnPreviousOutfit"
-                ToolTip="Previous outfit (Left Arrow)" />
+                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.PreviousOutfitTooltip}}" />
 
         <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
           <TextBlock x:Name="OutfitCounterText"
@@ -57,7 +57,7 @@
         <Button x:Name="NextOutfitButton" Content="▶" Grid.Column="2"
                 Padding="8,4" FontSize="16"
                 Click="OnNextOutfit"
-                ToolTip="Next outfit (Right Arrow)" />
+                ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.NextOutfitTooltip}}" />
       </Grid>
     </Border>
     <Grid Grid.Row="1">
@@ -76,7 +76,7 @@
               Background="#80000000"
               Visibility="Collapsed">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-          <TextBlock Text="Loading preview..."
+          <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LoadingPreview}}"
                      FontSize="16"
                      FontWeight="SemiBold"
                      Foreground="White"
@@ -106,11 +106,11 @@
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" TextWrapping="Wrap" Foreground="#4A5568" VerticalAlignment="Center">
-                <Run FontWeight="SemiBold" Text="This outfit contains leveled lists." />
+                <Run FontWeight="SemiBold" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LeveledItemsNotice}}" />
                 <LineBreak />
-                <Run Text="The in-game appearance may vary. Click Randomize to preview different combinations." />
+                <Run Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LeveledItemsHint}}" />
               </TextBlock>
-              <Button x:Name="RandomizeButton" Grid.Column="1" Content="Randomize" Padding="12,6" Margin="12,0,0,0"
+              <Button x:Name="RandomizeButton" Grid.Column="1" Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.Randomize}}" Padding="12,6" Margin="12,0,0,0"
                       Click="OnRandomize" VerticalAlignment="Center" />
             </Grid>
           </Border>
@@ -231,26 +231,28 @@
           </Grid.ColumnDefinitions>
 
           <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock Text="Gender:"
+            <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.GenderLabel}}"
                        Margin="0,0,8,0"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource Brush.TextPrimary}" />
             <ComboBox x:Name="GenderComboBox"
                       Width="100"
-                      SelectionChanged="OnGenderChanged"
-                      ToolTip="Toggle with Tab key">
-              <ComboBoxItem Content="Female" Tag="Female" />
-              <ComboBoxItem Content="Male" Tag="Male" />
+                      SelectionChanged="OnGenderChanged">
+              <ComboBox.ToolTip>
+                <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.ToggleTabTooltip}}" />
+              </ComboBox.ToolTip>
+              <ComboBoxItem Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Female}}" Tag="Female" />
+              <ComboBoxItem Content="{lex:Loc Key={x:Static res:LocalizationKeys+NpcTab.Male}}" Tag="Male" />
             </ComboBox>
             <CheckBox x:Name="ShowBaseBodyCheckBox"
-                      Content="Show base body"
+                      Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.ShowBaseBody}}"
                       Margin="16,0,0,0"
                       IsChecked="True"
                       VerticalAlignment="Center"
                       Foreground="{DynamicResource Brush.TextPrimary}"
                       Checked="OnShowBaseBodyChanged"
                       Unchecked="OnShowBaseBodyChanged"
-                      ToolTip="Hide the default body mesh when it clips through armor" />
+                      ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+View.HideBaseBodyTooltip}}" />
           </StackPanel>
 
           <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">

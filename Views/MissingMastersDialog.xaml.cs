@@ -1,5 +1,6 @@
 using System.Windows;
 using Boutique.Models;
+using Boutique.Resources;
 using Boutique.Services;
 
 namespace Boutique.Views;
@@ -26,8 +27,11 @@ public partial class MissingMastersDialog : Window
 
     var totalOutfits = result.AllAffectedOutfits.Count;
     var totalMasters = result.MissingMasters.Count;
-    SummaryText.Text = $"{totalOutfits} outfit(s) will be removed if you clean the patch. " +
-                       $"{totalMasters} missing master(s) need to be added back to keep them.";
+    SummaryText.Text = LocalizationService.GetFormatted(
+      LocalizationKeys.View.MissingMastersSummaryFormat,
+      "{0} outfit(s) will be removed if you clean the patch. {1} missing master(s) need to be added back to keep them.",
+      totalOutfits,
+      totalMasters);
   }
 
   public bool CleanPatch { get; private set; }

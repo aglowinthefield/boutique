@@ -6,6 +6,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -153,7 +154,11 @@ public partial class DistributionContainersTabViewModel : ReactiveObject
     var total    = _cacheService.AllContainers.Count;
     var filtered = FilteredContainers.Count;
     StatusMessage = total == 0
-                      ? "No containers loaded"
-                      : $"{filtered:N0} of {total:N0} containers";
+                      ? LocalizationService.Get(Messages.NoContainers, "No containers loaded")
+                      : LocalizationService.GetFormatted(
+                        Messages.ContainersCount,
+                        "{0:N0} of {1:N0} containers",
+                        filtered,
+                        total);
   }
 }

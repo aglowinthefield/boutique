@@ -12,6 +12,7 @@ using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using Serilog;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -205,7 +206,11 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
     TotalCount = _npcAssignmentsSource.Count;
 
     var conflictCount = _cache.AllNpcOutfitAssignments.Count(a => a.HasConflict);
-    StatusMessage = $"Found {TotalCount} NPCs with outfit distributions ({conflictCount} conflicts).";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.FoundNpcDistributions,
+      "Found {0} NPCs with outfit distributions ({1} conflicts).",
+      TotalCount,
+      conflictCount);
     _logger.Debug("Populated {Count} NPC outfit assignments from cache.", TotalCount);
   }
 
@@ -225,7 +230,7 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
     try
     {
       IsLoading     = true;
-      StatusMessage = "Loading NPC outfit data...";
+      StatusMessage = LocalizationService.Get(Messages.LoadingNpcOutfits, "Loading NPC outfit data...");
 
       // Wait for cache to load (uses cached data if available)
       await _cache.EnsureLoadedAsync();
@@ -235,7 +240,10 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to load NPC outfits.");
-      StatusMessage = $"Error loading NPC outfits: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorLoadingNpcOutfits,
+        "Error loading NPC outfits: {0}",
+        ex.Message);
     }
     finally
     {
@@ -253,7 +261,7 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
     try
     {
       IsLoading     = true;
-      StatusMessage = "Refreshing NPC outfit data...";
+      StatusMessage = LocalizationService.Get(Messages.RefreshingNpcOutfits, "Refreshing NPC outfit data...");
 
       // Force reload (invalidates cache and re-scans)
       await _cache.ReloadAsync();
@@ -261,7 +269,10 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to refresh NPC outfits.");
-      StatusMessage = $"Error refreshing NPC outfits: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorRefreshingNpcOutfits,
+        "Error refreshing NPC outfits: {0}",
+        ex.Message);
     }
     finally
     {
@@ -274,21 +285,28 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
   {
     if (npcAssignment == null || !npcAssignment.FinalOutfitFormKey.HasValue)
     {
-      StatusMessage = "No outfit to preview for this NPC.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoOutfitForNpc,
+        "No outfit to preview for this NPC.");
       return;
     }
 
     if (!_mutagenService.IsInitialized ||
         _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      StatusMessage = LocalizationService.Get(
+        Messages.InitializeBeforePreview,
+        "Initialize Skyrim data path before previewing outfits.");
       return;
     }
 
     var outfitFormKey = npcAssignment.FinalOutfitFormKey.Value;
     if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
     {
-      StatusMessage = $"Could not resolve outfit: {outfitFormKey}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.CouldNotResolveOutfit,
+        "Could not resolve outfit: {0}",
+        outfitFormKey);
       return;
     }
 
@@ -297,13 +315,19 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
 
     if (initialResult.ArmorPieces.Count == 0)
     {
-      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.NoArmorPieces,
+        "Outfit '{0}' has no armor pieces to preview.",
+        label);
       return;
     }
 
     try
     {
-      StatusMessage = $"Building preview for {label}...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreview,
+        "Building preview for {0}...",
+        label);
 
       var npcGender = GetNpcGender(npcAssignment.NpcFormKey, linkCache);
       var metadata = new OutfitMetadata(
@@ -324,12 +348,15 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
         npcGender);
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for {label}.";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewReady, "Preview ready for {0}.", label);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.FailedPreviewOutfit,
+        "Failed to preview outfit: {0}",
+        ex.Message);
     }
   }
 
@@ -338,20 +365,26 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
   {
     if (clickedDistribution == null || SelectedNpcAssignment == null)
     {
-      StatusMessage = "No distribution to preview.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoDistributionToPreview,
+        "No distribution to preview.");
       return;
     }
 
     if (!_mutagenService.IsInitialized ||
         _mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      StatusMessage = LocalizationService.Get(
+        Messages.InitializeBeforePreview,
+        "Initialize Skyrim data path before previewing outfits.");
       return;
     }
 
     try
     {
-      StatusMessage = "Building outfit preview...";
+      StatusMessage = LocalizationService.Get(
+        Messages.BuildingOutfitPreview,
+        "Building outfit preview...");
 
       var distributions = SelectedNpcAssignment.Distributions;
       var clickedIndex  = -1;
@@ -416,12 +449,18 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
         npcGender);
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready with {distributions.Count} outfit(s).";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.PreviewReadyWithCount,
+        "Preview ready with {0} outfit(s).",
+        distributions.Count);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to preview outfits");
-      StatusMessage = $"Failed to preview outfits: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.FailedPreviewOutfits,
+        "Failed to preview outfits: {0}",
+        ex.Message);
     }
   }
 
@@ -540,7 +579,7 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
 
     Filter.Clear();
     HasActiveFilters  = false;
-    FilterDescription = "No filters active";
+    FilterDescription = LocalizationService.Get(Messages.NoFiltersActive, "No filters active");
     UpdateSyntaxPreview();
   }
 
@@ -549,13 +588,18 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
   {
     if (!HasActiveFilters)
     {
-      StatusMessage = "No filters to copy. Apply filters first.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoFiltersToCopy,
+        "No filters to copy. Apply filters first.");
       return;
     }
 
     var copiedFilter = CopiedNpcFilter.FromSpidFilter(Filter, FilterDescription);
     FilterCopied?.Invoke(this, copiedFilter);
-    StatusMessage = $"Filter copied: {FilterDescription}";
+    StatusMessage = LocalizationService.GetFormatted(
+      Messages.FilterCopied,
+      "Filter copied: {0}",
+      FilterDescription);
     _logger.Debug("Copied filter: {Description}", FilterDescription);
   }
 
@@ -579,14 +623,19 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
 
     if (_mutagenService.LinkCache is not ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
     {
-      SelectedNpcOutfitContents = "LinkCache not available";
+      SelectedNpcOutfitContents = LocalizationService.Get(
+        Messages.LinkCacheNotAvailable,
+        "LinkCache not available.");
       return;
     }
 
     var outfitFormKey = SelectedNpcAssignment.FinalOutfitFormKey.Value;
     if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey, out var outfit))
     {
-      SelectedNpcOutfitContents = $"Could not resolve outfit: {outfitFormKey}";
+      SelectedNpcOutfitContents = LocalizationService.GetFormatted(
+        Messages.CouldNotResolveOutfit,
+        "Could not resolve outfit: {0}",
+        outfitFormKey);
       return;
     }
 
@@ -668,7 +717,9 @@ public sealed partial class DistributionNpcsTabViewModel : ReactiveObject, IDisp
   /// <summary>
   ///   Human-readable description of active filters.
   /// </summary>
-  [Reactive] private string _filterDescription = "No filters active";
+  [Reactive] private string _filterDescription = LocalizationService.Get(
+    Messages.NoFiltersActive,
+    "No filters active");
 
   /// <summary>
   ///   Whether any filters are currently active.

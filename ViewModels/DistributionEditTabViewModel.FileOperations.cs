@@ -11,6 +11,7 @@ using Microsoft.Win32;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
+using Messages = Boutique.Resources.LocalizationKeys.Messages;
 
 namespace Boutique.ViewModels;
 
@@ -21,7 +22,7 @@ public sealed partial class DistributionEditTabViewModel
   {
     if (string.IsNullOrWhiteSpace(DistributionFilePath))
     {
-      StatusMessage = "Please select a file path.";
+      StatusMessage = LocalizationService.Get(Messages.SelectFilePath, "Please select a file path.");
       return;
     }
 
@@ -32,23 +33,35 @@ public sealed partial class DistributionEditTabViewModel
     if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
     {
       var sb = new StringBuilder();
-      sb.AppendLine("⚠ Distribution Conflicts Detected")
+      sb.AppendLine(LocalizationService.Get(
+                      Messages.ConflictsDetectedHeader,
+                      "⚠ Distribution Conflicts Detected"))
         .AppendLine()
         .AppendLine(ConflictSummary)
         .AppendLine()
-        .AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:")
+        .AppendLine(LocalizationService.Get(
+                      Messages.ConflictsRenameNote,
+                      "To ensure your new distributions take priority (load last), the filename will be changed to:"))
         .AppendLine()
         .Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine()
         .AppendLine()
-        .AppendLine("This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files.")
+        .AppendLine(LocalizationService.Get(
+                      Messages.ConflictsZPrefixNote,
+                      "This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files."))
         .AppendLine()
-        .AppendLine("Do you want to continue with this filename?");
+        .AppendLine(LocalizationService.Get(
+                      Messages.ConflictsContinueFilename,
+                      "Do you want to continue with this filename?"));
 
-      var result = _dialogService.ConfirmWithCancel(sb.ToString(), "Conflicts Detected - Filename Change Required");
+      var result = _dialogService.ConfirmWithCancel(
+        sb.ToString(),
+        LocalizationService.Get(
+          Messages.ConflictsTitle,
+          "Conflicts Detected - Filename Change Required"));
 
       if (result is null)
       {
-        StatusMessage = "Save cancelled.";
+        StatusMessage = LocalizationService.Get(Messages.SaveCancelled, "Save cancelled.");
         return;
       }
 
@@ -71,17 +84,22 @@ public sealed partial class DistributionEditTabViewModel
 
     if (File.Exists(finalFilePath) &&
         !_dialogService.Confirm(
-          $"The file '{Path.GetFileName(finalFilePath)}' already exists.\n\nDo you want to overwrite it?",
-          "Confirm Overwrite"))
+          LocalizationService.GetFormatted(
+            Messages.OverwriteFileConfirm,
+            "The file '{0}' already exists.\n\nDo you want to overwrite it?",
+            Path.GetFileName(finalFilePath)),
+          LocalizationService.Get(Messages.ConfirmOverwriteTitle, "Confirm Overwrite")))
     {
-      StatusMessage = "Save cancelled.";
+      StatusMessage = LocalizationService.Get(Messages.SaveCancelled, "Save cancelled.");
       return;
     }
 
     try
     {
       IsLoading     = true;
-      StatusMessage = "Saving distribution file...";
+      StatusMessage = LocalizationService.Get(
+        Messages.SavingDistributionFile,
+        "Saving distribution file...");
 
       var directory = Path.GetDirectoryName(finalFilePath);
       if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
@@ -93,7 +111,10 @@ public sealed partial class DistributionEditTabViewModel
       await File.WriteAllTextAsync(finalFilePath, DistributionFileContent, Encoding.UTF8);
       _lastSavedContent = DistributionFileContent;
 
-      StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.SavedDistributionFile,
+        "Successfully saved distribution file: {0}",
+        Path.GetFileName(finalFilePath));
       _logger.Information(
         "Saved distribution file: {FilePath} ({LineCount} lines)",
         finalFilePath,
@@ -108,7 +129,10 @@ public sealed partial class DistributionEditTabViewModel
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to save distribution file.");
-      StatusMessage = $"Error saving file: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorSavingFile,
+        "Error saving file: {0}",
+        ex.Message);
     }
     finally
     {
@@ -124,8 +148,10 @@ public sealed partial class DistributionEditTabViewModel
     }
 
     var result = _dialogService.ConfirmWithCancel(
-      "You have unsaved distribution changes. Would you like to save before continuing?",
-      "Unsaved Changes");
+      LocalizationService.Get(
+        Messages.UnsavedChangesPrompt,
+        "You have unsaved distribution changes. Would you like to save before continuing?"),
+      LocalizationService.Get(Messages.UnsavedChangesTitle, "Unsaved Changes"));
 
     switch (result)
     {
@@ -136,7 +162,10 @@ public sealed partial class DistributionEditTabViewModel
           File.WriteAllText(DistributionFilePath, DistributionFileContent, Encoding.UTF8);
           _lastSavedContent = DistributionFileContent;
           _logger.Information("Saved distribution file: {Path}", DistributionFilePath);
-          StatusMessage = $"Saved {Path.GetFileName(DistributionFilePath)}";
+          StatusMessage = LocalizationService.GetFormatted(
+            Messages.SavedFile,
+            "Saved {0}",
+            Path.GetFileName(DistributionFilePath));
         }
         else
         {
@@ -145,7 +174,8 @@ public sealed partial class DistributionEditTabViewModel
 
         return true;
       case false:
-        _lastSavedContent = DistributionFileContent;
+        // "Don't save" must not mark the buffer as saved — the unsaved-changes flag
+        // has to survive so later prompts still warn about the discarded content.
         return true;
       default:
         return false;
@@ -163,7 +193,9 @@ public sealed partial class DistributionEditTabViewModel
 
     if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
     {
-      StatusMessage = "File does not exist. Please select a valid file.";
+      StatusMessage = LocalizationService.Get(
+        Messages.FileNotExist,
+        "File does not exist. Please select a valid file.");
       _logger.Warning("Cannot load file - path is empty or file does not exist: {Path}", DistributionFilePath);
       return;
     }
@@ -171,7 +203,9 @@ public sealed partial class DistributionEditTabViewModel
     try
     {
       IsLoading     = true;
-      StatusMessage = "Loading distribution file...";
+      StatusMessage = LocalizationService.Get(
+        Messages.LoadingDistributionFile,
+        "Loading distribution file...");
       _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
 
       var (entries, detectedFormat, parseErrors) =
@@ -212,10 +246,17 @@ public sealed partial class DistributionEditTabViewModel
       UpdateHasExclusiveGroupDistributions();
 
       var statusMsg =
-        $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
+        LocalizationService.GetFormatted(
+          Messages.LoadedDistributionEntries,
+          "Loaded {0} distribution entries from {1}",
+          entries.Count,
+          Path.GetFileName(DistributionFilePath));
       if (parseErrors.Count > 0)
       {
-        statusMsg += $" ({parseErrors.Count} line(s) could not be parsed)";
+        statusMsg += LocalizationService.GetFormatted(
+          Messages.ParseErrorsSuffix,
+          "({0} line(s) could not be parsed)",
+          parseErrors.Count);
       }
 
       StatusMessage = statusMsg;
@@ -228,7 +269,10 @@ public sealed partial class DistributionEditTabViewModel
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to load distribution file.");
-      StatusMessage = $"Error loading file: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorLoadingFile,
+        "Error loading file: {0}",
+        ex.Message);
     }
     finally
     {
@@ -247,29 +291,40 @@ public sealed partial class DistributionEditTabViewModel
         var dataPath = _settings.SkyrimDataPath;
         if (string.IsNullOrWhiteSpace(dataPath))
         {
-          StatusMessage = "Please set the Skyrim data path in Settings before scanning NPCs.";
+          StatusMessage = LocalizationService.Get(
+            Messages.SetDataPathScanNpcs,
+            "Please set the Skyrim data path in Settings before scanning NPCs.");
           return;
         }
 
         if (!Directory.Exists(dataPath))
         {
-          StatusMessage = $"Skyrim data path does not exist: {dataPath}";
+          StatusMessage = LocalizationService.GetFormatted(
+            Messages.DataPathNotExist,
+            "Skyrim data path does not exist: {0}",
+            dataPath);
           return;
         }
 
-        StatusMessage = "Initializing Skyrim environment...";
+        StatusMessage = LocalizationService.Get(
+          Messages.InitializingSkyrim,
+          "Initializing Skyrim environment...");
         await _mutagenService.InitializeAsync(dataPath);
         this.RaisePropertyChanged(nameof(IsInitialized));
       }
 
       if (_cache is { IsLoaded: false, IsLoading: false })
       {
-        StatusMessage = "Loading game data (NPCs, factions, keywords, races, classes)...";
+        StatusMessage = LocalizationService.Get(
+          Messages.LoadingGameData,
+          "Loading game data (NPCs, factions, keywords, races, classes)...");
         await _cache.LoadAsync();
       }
       else if (_cache.IsLoading)
       {
-        StatusMessage = "Loading game data from plugins...";
+        StatusMessage = LocalizationService.Get(
+          Messages.LoadingGameDataPlugins,
+          "Loading game data from plugins...");
         while (_cache.IsLoading)
         {
           await Task.Delay(100);
@@ -277,7 +332,14 @@ public sealed partial class DistributionEditTabViewModel
       }
 
       StatusMessage =
-        $"Loaded: {AvailableNpcs.Count:N0} NPCs, {AvailableFactions.Count:N0} factions, {AvailableRaces.Count:N0} races, {AvailableClasses.Count:N0} classes, {AvailableKeywords.Count:N0} keywords.";
+        LocalizationService.GetFormatted(
+          Messages.LoadedGameData,
+          "Loaded: {0:N0} NPCs, {1:N0} factions, {2:N0} races, {3:N0} classes, {4:N0} keywords.",
+          AvailableNpcs.Count,
+          AvailableFactions.Count,
+          AvailableRaces.Count,
+          AvailableClasses.Count,
+          AvailableKeywords.Count);
       _logger.Information(
         "Game data loaded: {NpcCount} NPCs, {FactionCount} factions.",
         AvailableNpcs.Count,
@@ -287,7 +349,10 @@ public sealed partial class DistributionEditTabViewModel
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to scan NPCs.");
-      StatusMessage = $"Error scanning NPCs: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.ErrorScanningNpcs,
+        "Error scanning NPCs: {0}",
+        ex.Message);
     }
     finally
     {
@@ -409,7 +474,10 @@ public sealed partial class DistributionEditTabViewModel
     catch (Exception ex)
     {
       _logger.Error(ex, "Error updating distribution file content");
-      DistributionFileContent = $"; Error generating file content: {ex.Message}";
+      DistributionFileContent = LocalizationService.GetFormatted(
+        Messages.ErrorGeneratingContent,
+        "; Error generating file content: {0}",
+        ex.Message);
     }
   }
 
@@ -428,10 +496,6 @@ public sealed partial class DistributionEditTabViewModel
     {
       return;
     }
-
-    var lines = DistributionFileContent.Split('\n');
-
-    _ = lineNumber < lines.Length ? lines[lineNumber].TrimEnd('\r') : string.Empty;
 
     _logger.Information("RaiseHighlightRequest: line {LineNumber}", lineNumber);
     HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
@@ -688,14 +752,18 @@ public sealed partial class DistributionEditTabViewModel
   {
     if (entry == null || entry.SelectedOutfit == null)
     {
-      StatusMessage = "No outfit selected for preview.";
+      StatusMessage = LocalizationService.Get(
+        Messages.NoOutfitSelectedPreview,
+        "No outfit selected for preview.");
       return;
     }
 
     if (!_mutagenService.IsInitialized ||
         _mutagenService.LinkCache is not { } linkCache)
     {
-      StatusMessage = "Initialize Skyrim data path before previewing outfits.";
+      StatusMessage = LocalizationService.Get(
+        Messages.InitializeBeforePreview,
+        "Initialize Skyrim data path before previewing outfits.");
       return;
     }
 
@@ -705,13 +773,19 @@ public sealed partial class DistributionEditTabViewModel
     var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
     if (initialResult.ArmorPieces.Count == 0)
     {
-      StatusMessage = $"Outfit '{label}' has no armor pieces to preview.";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.NoArmorPieces,
+        "Outfit '{0}' has no armor pieces to preview.",
+        label);
       return;
     }
 
     try
     {
-      StatusMessage = $"Building preview for {label}...";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.BuildingPreview,
+        "Building preview for {0}...",
+        label);
 
       var initialGender = entry.Gender switch
       {
@@ -738,12 +812,15 @@ public sealed partial class DistributionEditTabViewModel
         initialGender);
 
       await ShowPreview.Handle(collection);
-      StatusMessage = $"Preview ready for {label}.";
+      StatusMessage = LocalizationService.GetFormatted(Messages.PreviewReady, "Preview ready for {0}.", label);
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to preview outfit {Identifier}", label);
-      StatusMessage = $"Failed to preview outfit: {ex.Message}";
+      StatusMessage = LocalizationService.GetFormatted(
+        Messages.FailedPreviewOutfit,
+        "Failed to preview outfit: {0}",
+        ex.Message);
     }
   }
 
@@ -761,13 +838,16 @@ public sealed partial class DistributionEditTabViewModel
 
     var entryCountAtStart = DistributionEntries.Count;
     var entriesSnapshot   = DistributionEntries.ToList();
+    // Snapshot the distribution file list on the UI thread: the cache behind DistributionFiles
+    // is mutated on the UI thread during saves, and enumerating it on a worker thread races.
+    var filesSnapshot = DistributionFiles.ToList();
     Task.Run(() =>
     {
       try
       {
         var result = DistributionConflictDetectionService.DetectConflicts(
           entriesSnapshot,
-          [.. DistributionFiles],
+          filesSnapshot,
           NewFileName,
           linkCache);
         Application.Current?.Dispatcher.Invoke(() =>

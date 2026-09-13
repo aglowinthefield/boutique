@@ -217,26 +217,26 @@
             </Grid.ColumnDefinitions>
 
             <!-- Row 0: Auto Update -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Auto Update"
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.AutoUpdate}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,12">
               <CheckBox IsChecked="{Binding Settings.AutoUpdateEnabled}" VerticalAlignment="Center"
-                        Content="Check for updates on startup" />
-              <Button Content="Check Now" Command="{Binding Settings.TestAutoUpdateCommand}"
+                        Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.CheckUpdatesOnStartup}}" />
+              <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.CheckNow}}" Command="{Binding Settings.TestAutoUpdateCommand}"
                       Margin="16,0,0,0" MinWidth="90" />
             </StackPanel>
 
             <!-- Row 1: Experimental Features -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Experimental"
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.Experimental}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <CheckBox Grid.Row="1" Grid.Column="1"
                       IsChecked="{Binding Settings.ShowContainersTab}" VerticalAlignment="Center"
-                      Content="Show Containers tab (Requires Restart)" />
+                      Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.ShowContainersTab}}" />
           </Grid>
         </GroupBox>
 
         <!-- Group 5: Debug -->
-        <GroupBox Header="Debug" Padding="12" Margin="0,0,0,12">
+        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+View.DebugGroup}}" Padding="12" Margin="0,0,0,12">
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto" />
@@ -248,20 +248,20 @@
             </Grid.ColumnDefinitions>
 
             <!-- Row 0: Debug Logging -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Debug Logging"
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.DebugLogging}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <CheckBox Grid.Row="0" Grid.Column="1"
                       IsChecked="{Binding Settings.DebugLoggingEnabled}"
-                      Content="Enable debug logging (requires restart)"
+                      Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.EnableDebugLogging}}"
                       Margin="0,0,0,8" />
 
             <!-- Row 1: Log Files -->
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Log Files"
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Key={x:Static res:LocalizationKeys+View.LogFiles}}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-              <Button Content="Open Today's Log" Command="{Binding Settings.OpenTodaysLogCommand}"
+              <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.OpenTodaysLog}}" Command="{Binding Settings.OpenTodaysLogCommand}"
                       MinWidth="130" Margin="0,0,8,0" />
-              <Button Content="Open Logs Folder" Command="{Binding Settings.OpenLogsFolderCommand}"
+              <Button Content="{lex:Loc Key={x:Static res:LocalizationKeys+View.OpenLogsFolder}}" Command="{Binding Settings.OpenLogsFolderCommand}"
                       MinWidth="130" />
             </StackPanel>
           </Grid>
