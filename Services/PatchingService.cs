@@ -423,8 +423,8 @@ public partial class PatchingService(MutagenService mutagenService, ILoggingServ
     {
       var formKey = ResolveItemRef(listRef.ExistingFormKey, listRef.DraftId, draftMap) ?? throw new InvalidOperationException($"Outfit {request.EditorId} has an unresolved leveled-list reference.");
 
-      items.Add(formKey.Value.ToLink<IOutfitTargetGetter>());
-      requiredMasters.Add(formKey.Value.ModKey);
+      items.Add(formKey.ToLink<IOutfitTargetGetter>());
+      requiredMasters.Add(formKey.ModKey);
     }
   }
 
@@ -504,12 +504,12 @@ public partial class PatchingService(MutagenService mutagenService, ILoggingServ
         {
           Data = new LeveledItemEntryData
           {
-            Reference = formKey.Value.ToLink<IItemGetter>(),
+            Reference = formKey.ToLink<IItemGetter>(),
             Level = entry.Level,
             Count = entry.Count
           }
         });
-        requiredMasters.Add(formKey.Value.ModKey);
+        requiredMasters.Add(formKey.ModKey);
       }
 
       results.Add(new LeveledListCreationResult(request.EditorId, item.FormKey));
