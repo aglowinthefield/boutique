@@ -41,6 +41,7 @@ public partial class App
     builder.RegisterType<MutagenService>().SingleInstance();
     builder.RegisterType<GameAssetLocator>().SingleInstance();
     builder.RegisterType<PatchingService>().SingleInstance();
+    builder.RegisterType<ConnectedDraftLifecycle>().SingleInstance();
     builder.RegisterType<ArmorPreviewService>().SingleInstance();
     builder.RegisterType<DistributionScannerService>().SingleInstance();
     builder.RegisterType<DistributionFileEditorService>().SingleInstance();

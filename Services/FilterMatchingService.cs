@@ -1,6 +1,8 @@
 using Boutique.Models;
 using Boutique.Utilities;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.Skyrim;
 
 namespace Boutique.Services;
 
@@ -10,6 +12,56 @@ namespace Boutique.Services;
 /// </summary>
 public static class FilterMatchingService
 {
+  /// <summary>Matches raw rules without flattening SPID's compound expressions into editor categories.</summary>
+  public static IReadOnlyList<NpcFilterData> GetMatchingNpcsForDistributionLine(
+    IReadOnlyList<NpcFilterData> allNpcs,
+    DistributionFileType type,
+    string line,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc = null)
+  {
+    if (type == DistributionFileType.SkyPatcher)
+    {
+      var parser = new SkyPatcherEntryParser(Serilog.Log.Logger);
+      var outfits = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
+      var outfit = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
+      if (string.IsNullOrWhiteSpace(outfit))
+      {
+        return [];
+      }
+
+      // Each SkyPatcher clause constrains the result. Keep AND and OR variants separate,
+      // rather than collapsing both into a single editor category's logic mode.
+      IReadOnlyList<NpcFilterData> matches = allNpcs;
+      foreach (var clause in line.Split(':', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+      {
+        var rule = clause.StartsWith("outfitDefault=", StringComparison.OrdinalIgnoreCase)
+          ? clause : $"{clause}:outfitDefault={outfit}";
+        var (entry, _) = parser.Parse(rule, linkCache, outfits);
+        if (entry == null)
+        {
+          return [];
+        }
+
+        matches = GetMatchingNpcsForEntry(matches, entry, virtualKeywordsByNpc).Select(n => n.Npc).ToList();
+      }
+
+      return matches;
+    }
+
+    if (type != DistributionFileType.Spid || !SpidLineParser.TryParseOutfit(line, out var filter) || filter == null)
+    {
+      return [];
+    }
+
+    return allNpcs.Where(npc =>
+    {
+      HashSet<string>? keywords = null;
+      virtualKeywordsByNpc?.TryGetValue(npc.FormKey, out keywords);
+      return NpcMatchesFilter(npc, filter, keywords);
+    }).ToList();
+  }
+
   public static bool NpcMatchesFilterForBatch(
     NpcFilterData npc,
     SpidDistributionFilter filter,
@@ -60,7 +112,9 @@ public static class FilterMatchingService
              return (Npc: npc, Criteria: BuildMatchCriteria(npc, entry, virtualKeywords));
            })
            .Where(x => x.Criteria != null)
-           .Select(x => new NpcMatchResult(x.Npc, x.Criteria!))
+           .Select(x => new NpcMatchResult(x.Npc, x.Criteria!,
+             entry.PerkFormKeys.Count == 0 && entry.FormListFormKeys.Count == 0 &&
+             string.IsNullOrWhiteSpace(entry.RawFormFilters)))
            .ToList();
 
   private static string? BuildMatchCriteria(
@@ -69,6 +123,11 @@ public static class FilterMatchingService
     IReadOnlySet<string>? virtualKeywords)
   {
     var parts = new List<string>();
+
+    if (npc.ClassFormKey.HasValue && entry.ExcludedClassFormKeys.Contains(npc.ClassFormKey.Value))
+    {
+      return null;
+    }
 
     if (!MatchesRawStringFilters(npc, entry.RawStringFilters, virtualKeywords))
     {
@@ -335,23 +394,8 @@ public static class FilterMatchingService
       return true;
     }
 
-    var expressions = rawStringFilters.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-    if (expressions.Length == 0)
-    {
-      return true;
-    }
-
-    foreach (var expression in expressions)
-    {
-      var parts = expression.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-      if (parts.All(part => MatchesStringPart(npc, part.Trim(), virtualKeywords)))
-      {
-        return true;
-      }
-    }
-
-    return false;
+    return SpidLineParser.TryParseOutfit($"Outfit = Matching|{rawStringFilters}", out var filter) &&
+           filter != null && MatchesStringFilters(npc, filter.StringFilters, virtualKeywords);
   }
 
   private static bool MatchesFilters<TFilter, TValue>(
@@ -415,22 +459,6 @@ public static class FilterMatchingService
     SpidFilterExpression expression,
     IReadOnlySet<string>? virtualKeywords) =>
     expression.Parts.All(part => MatchesStringPart(npc, part, virtualKeywords));
-
-  private static bool MatchesStringPart(
-    NpcFilterData npc,
-    string part,
-    IReadOnlySet<string>? virtualKeywords)
-  {
-    var isNegated   = part.StartsWith('-');
-    var value       = isNegated ? part[1..] : part;
-    var hasWildcard = value.Contains('*');
-
-    var matches = hasWildcard
-                    ? PartialMatchesNpcStrings(npc, value.Replace("*", string.Empty), virtualKeywords)
-                    : ExactMatchesNpcStrings(npc, value, virtualKeywords);
-
-    return isNegated ? !matches : matches;
-  }
 
   private static bool MatchesStringPart(NpcFilterData npc, SpidFilterPart part, IReadOnlySet<string>? virtualKeywords)
   {
@@ -564,7 +592,7 @@ public static class FilterMatchingService
 
       if (!ParseLevelRange(trimmed, out var minLevel, out var maxLevel))
       {
-        continue;
+        return false;
       }
 
       if (npc.Level < minLevel)
@@ -584,10 +612,10 @@ public static class FilterMatchingService
   private static bool TryParseSkillFilter(string value, out int skillIndex, out int minSkill, out int? maxSkill)
   {
     skillIndex = 0;
-    minSkill   = 0;
-    maxSkill   = null;
+    minSkill = 0;
+    maxSkill = null;
 
-    var openParen  = value.IndexOf('(');
+    var openParen = value.IndexOf('(');
     var closeParen = value.IndexOf(')');
 
     if (openParen < 0 || closeParen < openParen)
@@ -641,8 +669,13 @@ public static class FilterMatchingService
       return false;
     }
 
-    if (!string.IsNullOrWhiteSpace(maxPart) && int.TryParse(maxPart, out var max))
+    if (!string.IsNullOrWhiteSpace(maxPart))
     {
+      if (!int.TryParse(maxPart, out var max))
+      {
+        return false;
+      }
+
       maxLevel = max;
     }
 

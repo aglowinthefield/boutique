@@ -29,24 +29,24 @@ public class PreviewLine
 
 public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisposable
 {
-  private readonly ArmorPreviewService                                 _armorPreviewService;
-  private readonly DistributionFileBackupService                       _backupService;
-  private readonly GameDataCacheService                                _cache;
-  private readonly IObservable<bool>                                   _canPaste;
-  private readonly IObservable<bool>                                   _canSave;
-  private readonly IDialogService                                      _dialogService;
-  private readonly CompositeDisposable                                 _disposables               = new();
+  private readonly ArmorPreviewService _armorPreviewService;
+  private readonly DistributionDocument _document;
+  private readonly GameDataCacheService _cache;
+  private readonly IObservable<bool> _canPaste;
+  private readonly IObservable<bool> _canSave;
+  private readonly IDialogService _dialogService;
+  private readonly CompositeDisposable _disposables = new();
   private readonly Dictionary<DistributionEntryViewModel, CompositeDisposable> _entrySubscriptions = new();
-  private readonly DistributionFilePathService                                  _filePathService;
-  private readonly DistributionFileEditorService                                _fileWriterService;
-  private readonly GuiSettingsService                                           _guiSettings;
+  private readonly DistributionFilePathService _filePathService;
+  private readonly DistributionFileEditorService _fileWriterService;
+  private readonly GuiSettingsService _guiSettings;
 
-  private readonly IObservable<bool>                                            _hasEntries;
-  private readonly DistributionEntryHydrationService                            _hydrationService;
-  private readonly ILogger                                                      _logger;
-  private readonly MutagenService                                               _mutagenService;
-  private readonly IObservable<bool>                                            _notLoading;
-  private readonly SettingsViewModel                                            _settings;
+  private readonly IObservable<bool> _hasEntries;
+  private readonly DistributionEntryHydrationService _hydrationService;
+  private readonly ILogger _logger;
+  private readonly MutagenService _mutagenService;
+  private readonly IObservable<bool> _notLoading;
+  private readonly SettingsViewModel _settings;
 
   [ReactiveCollection] private ObservableCollection<DistributionFileSelectionItem> _availableDistributionFiles = [];
 
@@ -68,13 +68,25 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
 
   private List<DistributionParseError> _actualParseErrors = [];
 
-  private ObservableCollection<DistributionEntryViewModel> _distributionEntries = [];
+  private ObservableCollection<DistributionEntryViewModel> _distributionEntries => _document.Entries;
 
   [Reactive] private string _distributionFileContent = string.Empty;
 
-  [Reactive] private string _distributionFilePath = string.Empty;
+  public string DistributionFilePath
+  {
+    get => _document.Destination;
+    set
+    {
+      if (value == _document.Destination)
+      {
+        return;
+      }
 
-  private DistributionFileType _distributionFormat = DistributionFileType.SkyPatcher;
+      _document.Destination = value;
+      this.RaisePropertyChanged();
+      this.RaisePropertyChanged(nameof(HasUnsavedChanges));
+    }
+  }
 
   /// <summary>
   ///   Organized dropdown items with headers and files for tree-ish display.
@@ -121,7 +133,11 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
 
   private string? _justSavedFilePath;
 
-  private string? _lastSavedContent;
+  private bool _isSwitchingFile;
+  private bool _isPrompting;
+  private long _conflictGeneration;
+  private DistributionPreview? _preview;
+  public bool CanEditDocument => !IsLoading && !_document.IsSaving;
 
   [Reactive] private string _keywordSearchText = string.Empty;
 
@@ -158,20 +174,21 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     IDialogService dialogService,
     ILogger logger)
   {
-    _fileWriterService   = fileWriterService;
+    _fileWriterService = fileWriterService;
     _armorPreviewService = armorPreviewService;
-    _mutagenService      = mutagenService;
-    _cache               = cache;
-    _settings            = settings;
-    _guiSettings         = guiSettings;
-    _hydrationService    = hydrationService;
-    _filePathService     = filePathService;
-    _backupService       = backupService;
-    _dialogService       = dialogService;
-    _logger              = logger.ForContext<DistributionEditTabViewModel>();
+    _mutagenService = mutagenService;
+    _cache = cache;
+    _settings = settings;
+    _guiSettings = guiSettings;
+    _hydrationService = hydrationService;
+    _filePathService = filePathService;
+    _document = new DistributionDocument(backupService, CreateEntryViewModel, filePathService);
+    _document.FileSaved += OnDocumentSaved;
+    _dialogService = dialogService;
+    _logger = logger.ForContext<DistributionEditTabViewModel>();
 
     _mutagenService.PluginsChanged += OnPluginsChanged;
-    _cache.CacheLoaded             += OnCacheLoaded;
+    _cache.CacheLoaded += OnCacheLoaded;
 
     SetupFilterPipelines();
     SetupIntraFileConflictDetection();
@@ -186,13 +203,15 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     _hasEntries = this.WhenAnyValue(vm => vm.DistributionEntriesCount, count => count > 0);
 
     _notLoading = this.WhenAnyValue(vm => vm.IsLoading, loading => !loading);
+    this.WhenAnyValue(vm => vm.IsLoading).Subscribe(_ => this.RaisePropertyChanged(nameof(CanEditDocument)));
 
     _canSave = this.WhenAnyValue(
       vm => vm.DistributionFilePath,
       vm => vm.IsCreatingNewFile,
       vm => vm.NewFileName,
-      (path, isNew, newName) =>
-        !string.IsNullOrWhiteSpace(path) || (isNew && !string.IsNullOrWhiteSpace(newName)));
+      vm => vm.IsLoading,
+      (path, isNew, newName, loading) =>
+        !loading && (!string.IsNullOrWhiteSpace(path) || (isNew && !string.IsNullOrWhiteSpace(newName))));
 
     _canPaste = this.WhenAnyValue(
       vm => vm.HasCopiedFilter,
@@ -206,6 +225,11 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
         .Skip(1)
         .Subscribe(_ =>
         {
+          if (_isBulkLoading)
+          {
+            return;
+          }
+
           UpdateDistributionFilePathForFormat();
           UpdateFileContent();
         });
@@ -262,9 +286,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     this.RaisePropertyChanged(nameof(HasParseErrors));
   }
 
-  public bool HasUnsavedChanges =>
-    DistributionEntries.Count > 0 &&
-    !string.Equals(DistributionFileContent, _lastSavedContent, StringComparison.Ordinal);
+  public bool HasUnsavedChanges => _document.HasUnsavedChanges;
 
   public ObservableCollection<DistributionEntryViewModel> DistributionEntries => _distributionEntries;
 
@@ -349,69 +371,74 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     }
   }
 
+  private DistributionFileSelectionItem? _selectedDistributionFile;
   public DistributionFileSelectionItem? SelectedDistributionFile
   {
-    get => field;
-    set
+    get => _selectedDistributionFile;
+    set => _ = SelectDistributionFileAsync(value);
+  }
+
+  public async Task<bool> SelectDistributionFileAsync(DistributionFileSelectionItem? value)
+  {
+    if (_isSwitchingFile || IsLoading || _document.IsSaving)
     {
-      var previous = field;
-      this.RaiseAndSetIfChanged(ref field, value);
+      return false;
+    }
 
-      if (value != null)
+    if (value == _selectedDistributionFile)
+    {
+      return true;
+    }
+
+    // Cache refreshes replace dropdown items, not the open document.
+    if ((value?.IsNewFile == true && _selectedDistributionFile?.IsNewFile == true) ||
+        (value?.File?.FullPath != null && value.File.FullPath == _selectedDistributionFile?.File?.FullPath))
+    {
+      this.RaiseAndSetIfChanged(ref _selectedDistributionFile, value, nameof(SelectedDistributionFile));
+      this.RaisePropertyChanged(nameof(SelectedDropdownItem));
+      return true;
+    }
+
+    _isSwitchingFile = true;
+    try
+    {
+      if (!await PromptAndSaveIfNeededAsync())
       {
-        IsCreatingNewFile = value.IsNewFile;
-        if (!value.IsNewFile && value.File != null)
-        {
-          DistributionFilePath = value.File.FullPath;
-          NewFileName          = string.Empty;
-          if (File.Exists(DistributionFilePath) && !IsLoading)
-          {
-            _logger.Debug("Auto-loading file: {Path}", DistributionFilePath);
-            _ = LoadDistributionFileAsync();
-          }
-        }
-        else if (value.IsNewFile)
-        {
-          if (previous != null && !previous.IsNewFile)
-          {
-            _isBulkLoading = true;
-            try
-            {
-              DistributionEntries.Clear();
-              ParseErrors = [];
-              RefreshActualParseErrors();
-              ResetConflictState();
-            }
-            finally
-            {
-              _isBulkLoading = false;
-            }
-
-            this.RaisePropertyChanged(nameof(DistributionEntriesCount));
-            UpdateFileContent();
-            UpdateHasChanceBasedEntries();
-            UpdateHasKeywordDistributions();
-            UpdateHasExclusiveGroupDistributions();
-          }
-
-          if (string.IsNullOrWhiteSpace(NewFileName))
-          {
-            NewFileName = GenerateUniqueNewFileName();
-          }
-
-          var newPath = _filePathService.BuildPathFromNewFileName(NewFileName, DistributionFormat);
-          if (newPath != null)
-          {
-            DistributionFilePath = newPath;
-          }
-        }
+        return false;
       }
 
-      if (!Equals(previous, value))
+      if (value == null)
       {
-        this.RaisePropertyChanged(nameof(ShowNewFileNameInput));
-        this.RaisePropertyChanged(nameof(SaveDistributionFileCommand));
+        return true;
       }
+
+      if (value.IsNewFile)
+      {
+        IsCreatingNewFile = true;
+        NewFileName = GenerateUniqueNewFileName();
+        ResetDocument(
+          _filePathService.BuildPathFromNewFileName(NewFileName, DistributionFileType.SkyPatcher) ?? string.Empty,
+          DistributionFileType.SkyPatcher, [], []);
+      }
+      else if (value.File != null)
+      {
+        if (!await LoadDistributionFileAsync(value.File.FullPath))
+        {
+          return false;
+        }
+
+        IsCreatingNewFile = false;
+        NewFileName = string.Empty;
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedDistributionFile, value, nameof(SelectedDistributionFile));
+      this.RaisePropertyChanged(nameof(ShowNewFileNameInput));
+      return true;
+    }
+    finally
+    {
+      _isSwitchingFile = false;
+      this.RaisePropertyChanged(nameof(SelectedDropdownItem));
     }
   }
 
@@ -423,7 +450,7 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     set
     {
       this.RaiseAndSetIfChanged(ref field, value);
-      if (IsCreatingNewFile)
+      if (IsCreatingNewFile && !_isBulkLoading)
       {
         var newPath = _filePathService.BuildPathFromNewFileName(value, DistributionFormat);
         if (newPath != null)
@@ -450,21 +477,17 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
   /// </summary>
   public DistributionFileType DistributionFormat
   {
-    get => _distributionFormat;
+    get => _document.Format;
     set
     {
-      if (_distributionFormat == value)
+      if (_document.Format == value)
       {
         return;
       }
 
-      _logger.Debug(
-        "DistributionFormat changing from {OldFormat} to {NewFormat}, EntryCount={Count}",
-        _distributionFormat,
-        value,
-        DistributionEntries.Count);
-
-      this.RaiseAndSetIfChanged(ref _distributionFormat, value);
+      _document.Format = value;
+      this.RaisePropertyChanged();
+      this.RaisePropertyChanged(nameof(DistributionFilePath));
       UpdateFileContent();
     }
   }
@@ -481,9 +504,10 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
 
   public void Dispose()
   {
+    _conflictGeneration++;
     _disposables.Dispose();
     _mutagenService.PluginsChanged -= OnPluginsChanged;
-    _cache.CacheLoaded             -= OnCacheLoaded;
+    _cache.CacheLoaded -= OnCacheLoaded;
 
     foreach (var sub in _entrySubscriptions.Values)
     {
@@ -502,7 +526,8 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
                                            .Select((line, index) =>
                                                      new PreviewLine
                                                      {
-                                                       LineNumber = index + 1, Content = line.TrimEnd('\r')
+                                                       LineNumber = index + 1,
+                                                       Content = line.TrimEnd('\r')
                                                      })
                                            .ToList();
     PreviewLines = lines;
@@ -535,8 +560,8 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     if (_isBulkLoading || outfitEntries.Count < 2)
     {
       _intraFileConflictResult = null;
-      HasIntraFileOverlaps     = false;
-      IntraFileOverlapCount    = 0;
+      HasIntraFileOverlaps = false;
+      IntraFileOverlapCount = 0;
       return;
     }
 
@@ -545,8 +570,8 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
                    _cache.AllNpcs.ToList(),
                    _cache.SimulatedKeywordsByNpc);
     _intraFileConflictResult = result;
-    HasIntraFileOverlaps     = result.TotalOverlappingNpcCount > 0;
-    IntraFileOverlapCount    = result.TotalOverlappingNpcCount;
+    HasIntraFileOverlaps = result.TotalOverlappingNpcCount > 0;
+    IntraFileOverlapCount = result.TotalOverlappingNpcCount;
   }
 
   [ReactiveCommand]
@@ -662,8 +687,6 @@ public sealed partial class DistributionEditTabViewModel : ReactiveObject, IDisp
     composite.Add(
       Observable.FromEventPattern(entry, nameof(entry.EntryChanged))
                 .Do(_ => _lastChangedEntry = entry)
-                .Throttle(TimeSpan.FromMilliseconds(300))
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => UpdateFileContent()));
 
     composite.Add(

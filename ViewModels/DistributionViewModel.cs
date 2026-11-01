@@ -14,21 +14,58 @@ namespace Boutique.ViewModels;
 
 public enum DistributionTab
 {
-  Create     = 0,
+  Create = 0,
   Containers = 1,
-  Npcs       = 2,
-  Outfits    = 3,
+  Npcs = 2,
+  Outfits = 3,
   ReportCard = 4
 }
 
 public partial class DistributionViewModel : ReactiveObject
 {
   private readonly GameDataCacheService _cache;
-  private readonly ILogger              _logger;
+  private readonly ILogger _logger;
 
   [Reactive] private bool _isLoading;
 
-  [Reactive] private int _selectedTabIndex;
+  private int _selectedTabIndex;
+  private bool _tabTransitionPending;
+  public int SelectedTabIndex
+  {
+    get => _selectedTabIndex;
+    set => _ = SelectTabAsync(value);
+  }
+
+  public async Task<bool> SelectTabAsync(int index)
+  {
+    if (_tabTransitionPending)
+    {
+      return false;
+    }
+
+    if (_selectedTabIndex == index)
+    {
+      return true;
+    }
+
+    _tabTransitionPending = true;
+    try
+    {
+      if (_selectedTabIndex == (int)DistributionTab.Create &&
+          !await EditTab.PromptAndSaveIfNeededAsync())
+      {
+        return false;
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedTabIndex, index, nameof(SelectedTabIndex));
+      return true;
+    }
+    finally
+    {
+      _tabTransitionPending = false;
+      this.RaisePropertyChanged(nameof(SelectedTabIndex));
+    }
+  }
 
   [Reactive] private string _statusMessage = "Ready";
 
@@ -46,11 +83,11 @@ public partial class DistributionViewModel : ReactiveObject
     ILogger logger)
   {
     Settings = settings;
-    _cache   = gameDataCache;
-    _logger  = logger.ForContext<DistributionViewModel>();
+    _cache = gameDataCache;
+    _logger = logger.ForContext<DistributionViewModel>();
 
     // Commands for loading/refreshing distribution files (calls cache methods)
-    RefreshCommand      = ReactiveCommand.CreateFromTask(gameDataCache.ReloadAsync);
+    RefreshCommand = ReactiveCommand.CreateFromTask(gameDataCache.ReloadAsync);
     EnsureLoadedCommand = ReactiveCommand.CreateFromTask(gameDataCache.EnsureLoadedAsync);
 
     EditTab = new DistributionEditTabViewModel(
@@ -266,31 +303,31 @@ public partial class DistributionViewModel : ReactiveObject
           switch (index)
           {
             case (int)DistributionTab.Create:
-            {
-              if (EditTab.SelectedDistributionFile == null)
               {
-                var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
-                if (newFileItem != null)
+                if (EditTab.SelectedDistributionFile == null)
                 {
-                  EditTab.SelectedDistributionFile = newFileItem;
+                  var newFileItem = EditTab.AvailableDistributionFiles.FirstOrDefault(f => f.IsNewFile);
+                  if (newFileItem != null)
+                  {
+                    EditTab.SelectedDistributionFile = newFileItem;
+                  }
                 }
-              }
 
-              break;
-            }
+                break;
+              }
 
             case (int)DistributionTab.Npcs:
               break;
             case (int)DistributionTab.Outfits:
-            {
-              if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
               {
-                _logger.Debug("Outfits tab selected, triggering auto-load");
-                _ = OutfitsTab.LoadOutfitsCommand.Execute();
-              }
+                if (OutfitsTab.Outfits.Count == 0 && !OutfitsTab.IsLoading)
+                {
+                  _logger.Debug("Outfits tab selected, triggering auto-load");
+                  _ = OutfitsTab.LoadOutfitsCommand.Execute();
+                }
 
-              break;
-            }
+                break;
+              }
           }
         });
   }

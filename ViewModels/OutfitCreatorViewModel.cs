@@ -22,58 +22,65 @@ namespace Boutique.ViewModels;
 
 public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 {
-  private readonly Subject<Unit>                    _autoSaveTrigger = new();
-  private readonly IObservable<bool>                _canCopyExistingOutfits;
-  private readonly IObservable<bool>                _canCreateOutfit;
-  private readonly IObservable<bool>                _canLoadOutfitPlugin;
-  private readonly IObservable<bool>                _canSaveOutfits;
-  private readonly CompositeDisposable              _disposables = new();
-  private readonly OutfitDraftManager               _draftManager;
-  private readonly LeveledListDraftManager          _leveledListManager;
-  private readonly IObservable<bool>                _canSaveLeveledLists;
-  private readonly ILogger                          _logger;
-  private readonly MutagenService                   _mutagenService;
-  private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource  = new();
-  private readonly SourceList<string>               _outfitPluginsSource = new();
-  private readonly PatchingService                  _patchingService;
-  private readonly ArmorPreviewService              _previewService;
+  private readonly ConnectedDraftLifecycle _lifecycle;
+  private readonly Subject<Unit> _autoSaveTrigger = new();
+  private readonly IObservable<bool> _canCopyExistingOutfits;
+  private readonly IObservable<bool> _canCreateOutfit;
+  private readonly IObservable<bool> _canLoadOutfitPlugin;
+  private readonly IObservable<bool> _canSaveOutfits;
+  private readonly CompositeDisposable _disposables = new();
+  private readonly OutfitDraftManager _draftManager;
+  private readonly LeveledListDraftManager _leveledListManager;
+  private readonly IObservable<bool> _canSaveLeveledLists;
+  private readonly ILogger _logger;
+  private readonly MutagenService _mutagenService;
+  private readonly SourceList<ArmorRecordViewModel> _outfitArmorsSource = new();
+  private readonly SourceList<string> _outfitPluginsSource = new();
+  private readonly ArmorPreviewService _previewService;
 
   [Reactive] private bool _hasExistingPluginOutfits;
   [Reactive] private bool _hasOutfitDrafts;
   [Reactive] private bool _hasLeveledListDrafts;
   [Reactive] private bool _hasPendingOutfitDeletions;
   [Reactive] private bool _isCreatingOutfits;
-  [Reactive] private int  _outfitDraftCount;
-  [Reactive] private int  _leveledListDraftCount;
+  [Reactive] private int _outfitDraftCount;
+  [Reactive] private int _leveledListDraftCount;
 
-  private            string? _lastLoadedOutfitPlugin;
-  [Reactive] private int     _outfitArmorsTotalCount;
-  [Reactive] private string  _outfitDraftSearchText  = string.Empty;
-  [Reactive] private string  _outfitPluginSearchText = string.Empty;
-  [Reactive] private string  _outfitSearchText       = string.Empty;
-  [Reactive] private int     _selectedOutfitArmorCount;
-  private            IList   _selectedOutfitArmors = new List<ArmorRecordViewModel>();
+  private string? _lastLoadedOutfitPlugin;
+  [Reactive] private int _outfitArmorsTotalCount;
+  [Reactive] private string _outfitDraftSearchText = string.Empty;
+  [Reactive] private string _outfitPluginSearchText = string.Empty;
+  [Reactive] private string _outfitSearchText = string.Empty;
+  [Reactive] private int _selectedOutfitArmorCount;
+  private IList _selectedOutfitArmors = new List<ArmorRecordViewModel>();
   [Reactive] private string? _selectedOutfitArmorType;
   [Reactive] private string? _selectedOutfitSlot;
-  [Reactive] private string  _statusMessage = "Ready";
-  private            bool    _suppressPluginDeselection;
+  [Reactive] private string _statusMessage = "Ready";
+  private bool _suppressPluginDeselection;
 
   public OutfitCreatorViewModel(
     OutfitDraftManager draftManager,
     LeveledListDraftManager leveledListManager,
     MutagenService mutagenService,
     ArmorPreviewService previewService,
-    PatchingService patchingService,
     SettingsViewModel settings,
-    ILogger logger)
+    ILogger logger,
+    ConnectedDraftLifecycle lifecycle)
   {
-    _draftManager       = draftManager;
+    _lifecycle = lifecycle;
+    _lifecycle.SetOutputPath(settings.FullOutputPath);
+    settings.PrepareOutputChange = _lifecycle.SetOutputPath;
+    _lifecycle.StateChanged += () =>
+    {
+      HasPendingOutfitDeletions = _lifecycle.HasPendingDeletions;
+      this.RaisePropertyChanged(nameof(CanEditConnectedDrafts));
+    };
+    _draftManager = draftManager;
     _leveledListManager = leveledListManager;
-    _mutagenService     = mutagenService;
-    _previewService     = previewService;
-    _patchingService    = patchingService;
-    Settings            = settings;
-    _logger             = logger.ForContext<OutfitCreatorViewModel>();
+    _mutagenService = mutagenService;
+    _previewService = previewService;
+    Settings = settings;
+    _logger = logger.ForContext<OutfitCreatorViewModel>();
 
     // Wire up draft manager events
     _draftManager.StatusChanged += message => StatusMessage = message;
@@ -91,17 +98,17 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     _draftManager.WhenAnyValue(m => m.HasExistingOutfits)
                  .Subscribe(v => HasExistingPluginOutfits = v);
 
-    OutfitDrafts              = _draftManager.QueueItems;
-    ExistingOutfits           = _draftManager.ExistingOutfits;
-    HasOutfitDrafts           = _draftManager.HasDrafts;
-    HasExistingPluginOutfits  = _draftManager.HasExistingOutfits;
+    OutfitDrafts = _draftManager.QueueItems;
+    ExistingOutfits = _draftManager.ExistingOutfits;
+    HasOutfitDrafts = _draftManager.HasDrafts;
+    HasExistingPluginOutfits = _draftManager.HasExistingOutfits;
     HasPendingOutfitDeletions = _draftManager.HasPendingDeletions;
 
     _leveledListManager.StatusChanged += message => StatusMessage = message;
     _leveledListManager.DraftModified += TriggerAutoSave;
     _leveledListManager.WhenAnyValue(m => m.HasDrafts)
                        .Subscribe(v => HasLeveledListDrafts = v);
-    LeveledListDrafts    = _leveledListManager.Drafts;
+    LeveledListDrafts = _leveledListManager.Drafts;
     HasLeveledListDrafts = _leveledListManager.HasDrafts;
 
     ((INotifyCollectionChanged)OutfitDrafts).CollectionChanged += (_, _) =>
@@ -111,6 +118,12 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
     ((INotifyCollectionChanged)LeveledListDrafts).CollectionChanged += (_, _) =>
       LeveledListDraftCount = LeveledListDrafts.Count;
     LeveledListDraftCount = LeveledListDrafts.Count;
+
+    _disposables.Add(this.WhenAnyValue(
+      x => x.HasOutfitDrafts, x => x.HasLeveledListDrafts, x => x.HasPendingOutfitDeletions,
+      x => x.CanEditConnectedDrafts,
+      (outfits, lists, deletions, editable) => editable && !outfits && !lists && !deletions)
+      .Subscribe(canChange => settings.CanChangeOutput = canChange));
 
     // Outfit draft search filter
     _disposables.Add(
@@ -125,7 +138,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         .Throttle(TimeSpan.FromMilliseconds(1500))
         .ObserveOn(RxApp.MainThreadScheduler)
         .Where(_ => (HasOutfitDrafts || HasPendingOutfitDeletions || HasLeveledListDrafts) && !IsCreatingOutfits)
-        .SelectMany(_ => Observable.FromAsync(SaveAllAsync))
+        .SelectMany(_ => Observable.FromAsync(() => SaveAllAsync(SaveIntent.Autosave)))
         .Subscribe());
 
     // Configure filtering
@@ -146,13 +159,13 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       x => x.IsCreatingOutfits,
       (hasDrafts, isBusy) => hasDrafts && !isBusy);
 
-    // Auto-load from output plugin when patch filename changes or on initialization
-    Settings.WhenAnyValue(x => x.PatchFileName)
+    // Import synchronously on the settings/UI thread before another draft can be created.
+    // Directory-only changes matter just as much as a new filename.
+    _disposables.Add(Settings.WhenAnyValue(x => x.FullOutputPath)
+            .DistinctUntilChanged(StringComparer.OrdinalIgnoreCase)
             .Where(_ => _mutagenService.IsInitialized)
-            .Throttle(TimeSpan.FromMilliseconds(500))
-            .ObserveOn(RxApp.MainThreadScheduler)
             .SelectMany(_ => Observable.FromAsync(LoadOutfitsFromOutputPluginAsync))
-            .Subscribe();
+            .Subscribe());
 
     // Also load when MutagenService initializes (if PatchFileName is already set)
     _mutagenService.Initialized += async (_, _) =>
@@ -225,8 +238,8 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
       {
         _outfitArmorsSource.Clear();
         OutfitArmorsTotalCount = 0;
-        SelectedOutfitArmors   = Array.Empty<ArmorRecordViewModel>();
-        OutfitSearchText       = string.Empty;
+        SelectedOutfitArmors = Array.Empty<ArmorRecordViewModel>();
+        OutfitSearchText = string.Empty;
         return;
       }
 
@@ -240,7 +253,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
 
   public void Dispose()
   {
-    _mutagenService.Initialized    -= OnMutagenInitialized;
+    _mutagenService.Initialized -= OnMutagenInitialized;
     _mutagenService.PluginsChanged -= OnPluginsChanged;
     _disposables.Dispose();
     _autoSaveTrigger.Dispose();
@@ -250,7 +263,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   private void ConfigureOutfitPluginsFiltering()
   {
     // Subscribe to events
-    _mutagenService.Initialized    += OnMutagenInitialized;
+    _mutagenService.Initialized += OnMutagenInitialized;
     _mutagenService.PluginsChanged += OnPluginsChanged;
 
     // Load immediately if already initialized
@@ -456,7 +469,7 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         list.AddRange(armors);
       });
 
-      OutfitArmorsTotalCount  = armors.Count;
+      OutfitArmorsTotalCount = armors.Count;
       _lastLoadedOutfitPlugin = plugin;
 
       SelectedOutfitArmors = FilteredOutfitArmors.Any()
@@ -487,83 +500,41 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   [ReactiveCommand(CanExecute = nameof(_canCopyExistingOutfits))]
   private void CopyExistingOutfits() => _draftManager.CopyExistingOutfits(_mutagenService.LinkCache);
 
-  private async Task LoadOutfitsFromOutputPluginAsync()
+  private Task LoadOutfitsFromOutputPluginAsync()
   {
-    var outputPlugin = Settings.PatchFileName;
-    if (string.IsNullOrWhiteSpace(outputPlugin))
+    if (!CanEditConnectedDrafts || _mutagenService.LinkCache == null)
     {
-      _logger.Debug("No output plugin configured, skipping auto-load of existing outfits.");
-      return;
+      return Task.CompletedTask;
     }
 
-    var targetModKey = ModKey.FromFileName(outputPlugin);
-    _draftManager.CurrentPatchName = outputPlugin;
-    _draftManager.ClearDraftsFromOtherPlugins(targetModKey);
-
-    var patchPath = Settings.FullOutputPath;
-    if (string.IsNullOrEmpty(patchPath) || !File.Exists(patchPath))
-    {
-      _logger.Debug("Patch file does not exist at {Path}, skipping auto-load.", patchPath);
-      return;
-    }
-
-    var missingMastersResult = await _patchingService.CheckMissingMastersAsync(patchPath);
-    if (missingMastersResult.HasMissingMasters)
-    {
-      _logger.Warning(
-        "Missing masters detected in patch {Plugin}: {Masters}",
-        outputPlugin,
-        string.Join(", ", missingMastersResult.MissingMasters.Select(m => m.MissingMaster.FileName)));
-
-      var shouldClean = await HandleMissingMasters.Handle(missingMastersResult);
-      if (shouldClean)
-      {
-        var (success, message) = await _patchingService.CleanPatchMissingMastersAsync(
-                                   patchPath,
-                                   missingMastersResult.AllAffectedOutfits);
-
-        if (success)
-        {
-          StatusMessage = message;
-          _logger.Information("Patch cleaned: {Message}", message);
-        }
-        else
-        {
-          _logger.Error("Failed to clean patch: {Message}", message);
-          await ShowError.Handle(("Error Cleaning Patch", message));
-          return;
-        }
-      }
-      else
-      {
-        _logger.Information("User chose to add masters back instead of cleaning patch.");
-        return;
-      }
-    }
-
-    // Load outfits from the output plugin
-    var outfits = await _mutagenService.LoadOutfitsFromPluginAsync(outputPlugin);
-
-    // Add them as drafts to the queue
-    _draftManager.AddDraftsFromOutfits(
-      outfits,
-      _mutagenService.LinkCache!,
-      targetModKey,
-      (formKey, _) => GetWinningModForOutfit(formKey));
-
-    var leveledItems = await _mutagenService.LoadLeveledItemsFromPluginAsync(outputPlugin);
-    _leveledListManager.SuppressAutoSave = true;
     try
     {
-      _leveledListManager.ClearDraftsFromOtherPlugins(targetModKey);
-      _leveledListManager.AddDraftsFromLeveledItems(leveledItems, _mutagenService.LinkCache!);
+      var path = Settings.FullOutputPath;
+      _lifecycle.SetOutputPath(path);
+      if (!File.Exists(path))
+      {
+        return Task.CompletedTask;
+      }
+
+      var output = SkyrimMod.CreateFromBinary(path, _mutagenService.SkyrimRelease);
+      _draftManager.CurrentPatchName = Path.GetFileName(path);
+      _draftManager.SuppressAutoSave = true;
+      _leveledListManager.SuppressAutoSave = true;
+      _draftManager.AddDraftsFromOutfits(output.Outfits, _mutagenService.LinkCache, output.ModKey,
+        (formKey, _) => GetWinningModForOutfit(formKey));
+      _leveledListManager.AddDraftsFromLeveledItems(output.LeveledItems, _mutagenService.LinkCache);
+    }
+    catch (Exception ex)
+    {
+      StatusMessage = "Output import blocked: " + ex.Message;
     }
     finally
     {
+      _draftManager.SuppressAutoSave = false;
       _leveledListManager.SuppressAutoSave = false;
     }
 
-    _logger.Information("Auto-loaded outfits and leveled lists from {Plugin}", outputPlugin);
+    return Task.CompletedTask;
   }
 
   public async Task SyncOutfitPluginWithTargetAsync(string targetPlugin, bool forceOutfitReload)
@@ -675,8 +646,8 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
         {
           var scene = await _previewService.BuildPreviewAsync([armor], gender);
           return scene with
-                 {
-                 };
+          {
+          };
         });
 
       await ShowPreview.Handle(collection);
@@ -694,59 +665,66 @@ public sealed partial class OutfitCreatorViewModel : ReactiveObject, IDisposable
   [ReactiveCommand(CanExecute = nameof(_canSaveOutfits))]
   private Task SaveOutfitsAsync() => SaveAllAsync();
 
-  private async Task SaveAllAsync()
+  private async Task SaveAllAsync(SaveIntent intent = SaveIntent.Explicit)
   {
-    var hasOutfitChanges = _draftManager.HasUnsavedChanges();
-    var hasListChanges   = _leveledListManager.HasUnsavedChanges();
-    if (!hasOutfitChanges && !hasListChanges)
+    if (!CanEditConnectedDrafts)
     {
-      StatusMessage = "Nothing to save.";
-      _logger.Debug("SaveAllAsync invoked with no outfit or leveled list changes.");
       return;
     }
 
     IsCreatingOutfits = true;
-    StatusMessage     = "Saving...";
-    _logger.Information("Starting save operation.");
-
     try
     {
-      var outfitRequests = _draftManager.BuildSaveRequests();
-      var listRequests   = _leveledListManager.BuildSaveRequests();
-      var (success, message, outfitResults, listResults) =
-        await _patchingService.SaveOutfitsAndLeveledListsAsync(
-          outfitRequests,
-          listRequests,
-          Settings.FullOutputPath);
-
-      if (success)
+      _lifecycle.SetOutputPath(Settings.FullOutputPath);
+      var result = await _lifecycle.SaveAsync(intent);
+      StatusMessage = result.Message;
+      HasPendingOutfitDeletions = _lifecycle.HasPendingDeletions;
+      if (result.Status is ConnectedSaveStatus.WriteFailed or ConnectedSaveStatus.Blocked)
       {
-        _draftManager.ProcessSaveResults(outfitResults);
-        _leveledListManager.ProcessSaveResults(listResults);
-        StatusMessage = message;
-        _logger.Information("Save completed: {Message}", message);
-
-        if (outfitResults.Count > 0 || listResults.Count > 0)
-        {
-          await LoadOutfitsFromOutputPluginAsync();
-        }
-      }
-      else
-      {
-        _logger.Error("Save failed: {Message}", message);
-        StatusMessage = $"Error: {message}";
-        await ShowError.Handle(("Error Saving", message));
+        await ShowError.Handle(("Save blocked", result.Message));
       }
     }
     catch (Exception ex)
     {
-      _logger.Error(ex, "Exception during save operation");
-      StatusMessage = $"Error saving: {ex.Message}";
-      await ShowError.Handle(("Error Saving", $"An unexpected error occurred:\n{ex.Message}"));
+      StatusMessage = ex.Message;
     }
     finally
     {
       IsCreatingOutfits = false;
+      this.RaisePropertyChanged(nameof(CanEditConnectedDrafts));
+    }
+  }
+
+  public bool CanEditConnectedDrafts => _lifecycle.CanMutate;
+
+  [ReactiveCommand]
+  private async Task RetryDraftRefreshAsync()
+  {
+    StatusMessage = (await _lifecycle.RetryRefreshAsync()).Message;
+    this.RaisePropertyChanged(nameof(CanEditConnectedDrafts));
+  }
+
+  public async Task DeleteOutputRecordAsync(Guid draftId)
+  {
+    if (!CanEditConnectedDrafts)
+    {
+      return;
+    }
+
+    if (!await ConfirmDelete.Handle("Queue deletion of this output record? Only explicit Save will apply it. References are checked before writing. Unloaded plugins cannot be inspected.").ToTask())
+    {
+      return;
+    }
+
+    try
+    {
+      _lifecycle.QueueOutputRecordDeletion(draftId);
+      HasPendingOutfitDeletions = _lifecycle.HasPendingDeletions;
+      StatusMessage = "Output deletion queued. Autosave is deferred until explicit Save.";
+    }
+    catch (InvalidOperationException ex)
+    {
+      StatusMessage = ex.Message;
     }
   }
 

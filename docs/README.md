@@ -494,15 +494,46 @@ You can save to:
 
 **Save Process**:
 
-1. Enter outfit name in **Outfit Name** field
-2. Choose output plugin
-3. Click **Save Outfit**
-4. Boutique creates/updates the ESP in your Data folder
-5. Success message confirms save
+1. Choose the output plugin and directory before creating or importing drafts.
+2. Create or import outfit and leveled-list drafts, then edit their contents.
+3. Click **Save Outfits** or **Save Leveled Lists** to save the connected workspace.
+4. Boutique writes changed records to the configured output path.
+5. Check the status message for save and refresh completion.
+
+Populated draft edits can also autosave after a short pause. This is separate from distribution files, which require
+manual saving. Merely opening an unchanged record from the output plugin does not rewrite it. Importing from another
+plugin requests an override in your output, even if you do not edit it.
+
+**Connected Draft Safety**:
+
+- Drafts can refer to unsaved leveled lists; saving resolves their identities together.
+- Editing, imports, and output changes are blocked during saving or refresh recovery.
+- Remove all workspace drafts and resolve pending deletions before changing the output filename or directory.
+- An empty never-saved draft is ignored. Emptying a saved record blocks saving; restore its contents, remove its draft,
+  or explicitly delete the output record.
+- Imported content that the editor cannot fully represent is preserved. Unsafe content edits or duplication are refused
+  with an explanation; safe renaming remains possible where supported.
+- Duplicating an editable outfit retains its leveled-list references, including list-only outfits.
+
+**Remove Draft vs Delete Output Record**:
+
+Removing a draft only removes it from the workspace; it does not delete a saved game record. A never-saved draft cannot
+be removed while another draft references it.
+
+To delete a saved record, use **Delete output record…** and confirm. The deletion remains pending until explicit
+**Save**; autosave pauses while deletions are queued. Saving checks the proposed output, open drafts, and loaded plugins
+for references and names known dependents if deletion is blocked. Remove those references deliberately before saving;
+Boutique does not silently remove links. Unloaded plugins cannot be checked.
+
+**Saved, but Refresh Failed**:
+
+The plugin may already have been written even if refreshing game data fails. Saved identities are retained.
+Use **Retry output refresh (no write)** to recover without rewriting or recreating records; further plugin saves remain
+blocked until recovery succeeds. If the output changed externally, reopen the workspace rather than retrying stale edits.
 
 **Post-Save**:
 
-- Outfit is immediately available in your load order
+- The record is saved in the output plugin; enable that plugin separately if you want it active in your load order
 - You can reference it in xEdit, CK, or distribution files
 - Use the outfit's FormID for distribution (see Distribution sections)
 
@@ -742,6 +773,19 @@ The `Z-` prefix ensures your distribution loads last, overriding other mods.
 3. Entries appear in the entry list
 4. Edit entries, add new ones, or delete
 5. Click **Save File** to update
+
+**Unsaved Changes and Backups**:
+
+SPID and SkyPatcher distribution files save only when you choose **Save File** or confirm saving before leaving the
+editor. Switching files or tabs, or closing Boutique, waits for that save to finish. Cancelling the save or a write
+failure keeps your edits and stops the transition. Choosing to discard restores the last saved state.
+
+- Editing is temporarily disabled while a save is in progress.
+- Deleting the final entry is still an unsaved change. Saving clears the editable entries while keeping lines Boutique
+  could not parse.
+- A failed write leaves the previous file intact; the editor keeps the changes so you can retry.
+- Before replacing a file, Boutique attempts a backup under `%LOCALAPPDATA%\Boutique\Backups`, outside the Skyrim Data
+  folder, keeping up to 15 backups per file. Backup failures are logged and do not block saving.
 
 **File Preview**:
 

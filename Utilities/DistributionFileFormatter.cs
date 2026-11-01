@@ -27,7 +27,7 @@ public static class DistributionFileFormatter
   /// </summary>
   public static string GetAppVersion()
   {
-    var assembly    = Assembly.GetExecutingAssembly();
+    var assembly = Assembly.GetExecutingAssembly();
     var infoVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
     if (!string.IsNullOrEmpty(infoVersion))
@@ -46,8 +46,8 @@ public static class DistributionFileFormatter
   public static List<string> GenerateHeaderLines(string? fileTypePrefix = null)
   {
     var version = GetAppVersion();
-    var date    = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-    var prefix  = string.IsNullOrEmpty(fileTypePrefix) ? string.Empty : $"{fileTypePrefix} ";
+    var date = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    var prefix = string.IsNullOrEmpty(fileTypePrefix) ? string.Empty : $"{fileTypePrefix} ";
 
     return
     [
@@ -64,9 +64,11 @@ public static class DistributionFileFormatter
   public static string GenerateFileContent(
     IEnumerable<DistributionEntryViewModel> entries,
     DistributionFileType format,
-    IReadOnlyList<DistributionParseError>? unparsedLines = null)
+    IReadOnlyList<DistributionParseError>? unparsedLines = null,
+    IDictionary<int, DistributionEntryViewModel>? entriesByLine = null)
   {
     var lines = GenerateHeaderLines();
+    entriesByLine?.Clear();
 
     foreach (var entry in entries)
     {
@@ -96,7 +98,14 @@ public static class DistributionFileFormatter
 
       if (line != null)
       {
-        lines.Add(line);
+        var firstLine = lines.Count;
+        var entryLines = line.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+        for (var i = 0; i < entryLines.Length; i++)
+        {
+          entriesByLine?[firstLine + i] = entry;
+
+          lines.Add(entryLines[i]);
+        }
       }
     }
 
@@ -191,9 +200,9 @@ public static class DistributionFileFormatter
   private static string BuildSpidLine(string formType, string identifier, DistributionEntryViewModel entry)
   {
     var (stringFiltersPart, formFiltersPart) = BuildSpidFilterParts(entry);
-    var           levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
-    var           traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
-    const string? countPart        = null;
+    var levelFiltersPart = !string.IsNullOrWhiteSpace(entry.LevelFilters) ? entry.LevelFilters : null;
+    var traitFiltersPart = FormatTraitFilters(entry.Entry.TraitFilters);
+    const string? countPart = null;
     var chancePart = entry.UseChance && entry.Chance != 100
                        ? entry.Chance.ToString(CultureInfo.InvariantCulture)
                        : null;
@@ -257,7 +266,7 @@ public static class DistributionFileFormatter
 
   private static string? BuildFormFiltersPart(DistributionEntryViewModel entry)
   {
-    var terms      = new List<List<string>>();
+    var terms = new List<List<string>>();
     var exclusions = new List<string>();
 
     CollectEditorIdFilters(entry.SelectedFactions, entry.FactionLogicMode, terms, exclusions);
@@ -369,7 +378,7 @@ public static class DistributionFileFormatter
     }
 
     var first = sequences[0];
-    var rest  = sequences.Skip(1).ToList();
+    var rest = sequences.Skip(1).ToList();
 
     foreach (var item in first)
     {
@@ -467,26 +476,26 @@ public static class DistributionFileFormatter
 
     var formTypeKeyword = filter.FormType switch
     {
-      SpidFormType.Outfit         => "Outfit",
-      SpidFormType.Keyword        => "Keyword",
+      SpidFormType.Outfit => "Outfit",
+      SpidFormType.Keyword => "Keyword",
       SpidFormType.ExclusiveGroup => "ExclusiveGroup",
-      SpidFormType.Spell          => "Spell",
-      SpidFormType.Perk           => "Perk",
-      SpidFormType.Item           => "Item",
-      SpidFormType.Shout          => "Shout",
-      SpidFormType.Package        => "Package",
-      SpidFormType.Faction        => "Faction",
-      SpidFormType.SleepOutfit    => "SleepOutfit",
-      SpidFormType.Skin           => "Skin",
-      _                           => "Outfit"
+      SpidFormType.Spell => "Spell",
+      SpidFormType.Perk => "Perk",
+      SpidFormType.Item => "Item",
+      SpidFormType.Shout => "Shout",
+      SpidFormType.Package => "Package",
+      SpidFormType.Faction => "Faction",
+      SpidFormType.SleepOutfit => "SleepOutfit",
+      SpidFormType.Skin => "Skin",
+      _ => "Outfit"
     };
 
     var stringFiltersPart = FormatFilterSection(filter.StringFilters);
-    var formFiltersPart   = FormatFilterSection(filter.FormFilters);
-    var levelFiltersPart  = filter.LevelFilters;
-    var traitFiltersPart  = FormatTraitFilters(filter.TraitFilters);
-    var countPart         = filter.CountOrPackageIdx;
-    var chancePart        = filter.Chance != 100 ? filter.Chance.ToString(CultureInfo.InvariantCulture) : null;
+    var formFiltersPart = FormatFilterSection(filter.FormFilters);
+    var levelFiltersPart = filter.LevelFilters;
+    var traitFiltersPart = FormatTraitFilters(filter.TraitFilters);
+    var countPart = filter.CountOrPackageIdx;
+    var chancePart = filter.Chance != 100 ? filter.Chance.ToString(CultureInfo.InvariantCulture) : null;
 
     var sb = new StringBuilder();
     sb.Append(formTypeKeyword);

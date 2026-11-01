@@ -37,7 +37,7 @@ public sealed class GameDataCacheService : IDisposable
 
   private readonly SourceCache<KeywordRecordViewModel, string> _keywordsSource = new(x => x.EditorID);
 
-  private readonly ILogger        _logger;
+  private readonly ILogger _logger;
   private readonly MutagenService _mutagenService;
 
   private readonly SourceCache<NpcOutfitAssignmentViewModel, FormKey> _npcOutfitAssignmentsSource =
@@ -45,12 +45,12 @@ public sealed class GameDataCacheService : IDisposable
 
   private readonly SourceCache<NpcRecordViewModel, FormKey> _npcRecordsSource = new(x => x.FormKey);
 
-  private readonly SourceCache<NpcFilterData, FormKey>         _npcsSource          = new(x => x.FormKey);
+  private readonly SourceCache<NpcFilterData, FormKey> _npcsSource = new(x => x.FormKey);
   private readonly SourceCache<OutfitRecordViewModel, FormKey> _outfitRecordsSource = new(x => x.FormKey);
-  private readonly NpcOutfitResolutionService                  _outfitResolutionService;
-  private readonly SourceCache<IOutfitGetter, FormKey>         _outfitsSource = new(x => x.FormKey);
-  private readonly SourceCache<RaceRecordViewModel, FormKey>   _racesSource   = new(x => x.FormKey);
-  private readonly SettingsViewModel                           _settings;
+  private readonly NpcOutfitResolutionService _outfitResolutionService;
+  private readonly SourceCache<IOutfitGetter, FormKey> _outfitsSource = new(x => x.FormKey);
+  private readonly SourceCache<RaceRecordViewModel, FormKey> _racesSource = new(x => x.FormKey);
+  private readonly SettingsViewModel _settings;
 
   public GameDataCacheService(
     MutagenService mutagenService,
@@ -60,13 +60,13 @@ public sealed class GameDataCacheService : IDisposable
     GuiSettingsService guiSettings,
     ILogger logger)
   {
-    _mutagenService          = mutagenService;
-    _discoveryService        = discoveryService;
+    _mutagenService = mutagenService;
+    _discoveryService = discoveryService;
     _outfitResolutionService = outfitResolutionService;
-    _settings                = settings;
-    _guiSettings             = guiSettings;
-    _logger                  = logger.ForContext<GameDataCacheService>();
-    _containerDataBuilder    = new ContainerDataBuilder(logger);
+    _settings = settings;
+    _guiSettings = guiSettings;
+    _logger = logger.ForContext<GameDataCacheService>();
+    _containerDataBuilder = new ContainerDataBuilder(logger);
 
     _disposables.Add(
       _npcsSource.Connect()
@@ -253,27 +253,27 @@ public sealed class GameDataCacheService : IDisposable
         }
       }
 
-      var factionsTask  = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
-      var racesTask     = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
-      var keywordsTask  = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
-      var classesTask   = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
+      var factionsTask = Task.Run(() => RecordLoaders.LoadFactions(linkCache, IsBlacklisted));
+      var racesTask = Task.Run(() => RecordLoaders.LoadRaces(linkCache, IsBlacklisted));
+      var keywordsTask = Task.Run(() => RecordLoaders.LoadKeywords(linkCache, IsBlacklisted));
+      var classesTask = Task.Run(() => RecordLoaders.LoadClasses(linkCache, IsBlacklisted));
       var locationsTask = Task.Run(() => RecordLoaders.LoadLocations(linkCache, IsBlacklisted));
-      var outfitsTask   = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
+      var outfitsTask = Task.Run(() => RecordLoaders.LoadOutfits(linkCache, IsBlacklisted));
 
       await Task.WhenAll(factionsTask, racesTask, keywordsTask, classesTask, locationsTask, outfitsTask)
                 .ContinueWith(_ => { });
-      var factionsList  = await SafeAwaitAsync(factionsTask, "Factions");
-      var racesList     = await SafeAwaitAsync(racesTask, "Races");
-      var keywordsList  = await SafeAwaitAsync(keywordsTask, "Keywords");
-      var classesList   = await SafeAwaitAsync(classesTask, "Classes");
+      var factionsList = await SafeAwaitAsync(factionsTask, "Factions");
+      var racesList = await SafeAwaitAsync(racesTask, "Races");
+      var keywordsList = await SafeAwaitAsync(keywordsTask, "Keywords");
+      var classesList = await SafeAwaitAsync(classesTask, "Classes");
       var locationsList = await SafeAwaitAsync(locationsTask, "Locations");
-      var outfitsList   = await SafeAwaitAsync(outfitsTask, "Outfits");
+      var outfitsList = await SafeAwaitAsync(outfitsTask, "Outfits");
 
       var keywordLookup = keywordsList.ToDictionary(k => k.FormKey, k => k.EditorID);
       var factionLookup = factionsList.ToDictionary(f => f.FormKey, f => f.DisplayName);
-      var raceLookup    = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
-      var classLookup   = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
-      var outfitLookup  = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
+      var raceLookup = racesList.ToDictionary(r => r.FormKey, r => r.DisplayName);
+      var classLookup = classesList.ToDictionary(c => c.FormKey, c => c.DisplayName);
+      var outfitLookup = outfitsList.ToDictionary(o => o.FormKey, o => o.EditorID ?? string.Empty);
 
       var raceKeywordLookup = new Dictionary<FormKey, HashSet<string>>();
       foreach (var race in linkCache.WinningOverrides<IRaceGetter>())
@@ -457,7 +457,7 @@ public sealed class GameDataCacheService : IDisposable
 
   public async Task ReloadAsync()
   {
-    IsLoaded         = false;
+    IsLoaded = false;
     ContainersLoaded = false;
     await _mutagenService.RefreshLinkCacheAsync(_settings.PatchFileName);
     await LoadAsync();
@@ -565,12 +565,6 @@ public sealed class GameDataCacheService : IDisposable
         "Extracted {Count} virtual keywords from SPID distribution files.",
         virtualKeywords.Count);
 
-      var outfitFiles = discoveredFiles
-                        .Where(f => f.OutfitDistributionCount > 0)
-                        .ToList();
-
-      _logger.Debug("Found {Count} distribution files with outfit distributions.", outfitFiles.Count);
-
       // Include ALL discovered files in the dropdown (both outfit and keyword-only files)
       var allFileViewModels = discoveredFiles
                               .Select(f => new DistributionFileViewModel(f))
@@ -578,8 +572,9 @@ public sealed class GameDataCacheService : IDisposable
 
       _logger.Debug("Resolving NPC outfit assignments...");
       var resolutionResult = await _outfitResolutionService.ResolveNpcOutfitsWithFiltersAsync(
-                               outfitFiles,
-                               npcFilterDataList);
+                               discoveredFiles,
+                               npcFilterDataList,
+                               _mutagenService.LinkCache);
       var assignments = resolutionResult.Assignments;
       SimulatedKeywordsByNpc = resolutionResult.SimulatedKeywordsByNpc;
       _logger.Debug("Resolved {Count} NPC outfit assignments.", assignments.Count);
@@ -618,7 +613,7 @@ public sealed class GameDataCacheService : IDisposable
   private static List<KeywordRecordViewModel> ExtractVirtualKeywords(IReadOnlyList<DistributionFile> discoveredFiles)
   {
     var existingEditorIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    var virtualKeywords   = new List<KeywordRecordViewModel>();
+    var virtualKeywords = new List<KeywordRecordViewModel>();
 
     var spidFiles = discoveredFiles.Where(f => f.Type == DistributionFileType.Spid);
 

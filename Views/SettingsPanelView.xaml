@@ -27,7 +27,7 @@
       <StackPanel Margin="0,0,0,12">
 
         <!-- Group 1: Game Configuration -->
-        <GroupBox Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.GameConfiguration}}"
+        <GroupBox IsEnabled="{Binding Settings.CanChangeOutput}" Header="{lex:Loc Key={x:Static res:LocalizationKeys+Settings+SettingGroups.GameConfiguration}}"
                   Padding="12" Margin="0,0,0,12">
           <Grid>
             <Grid.RowDefinitions>
@@ -101,10 +101,10 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{lex:Loc Settings_PatchFileName}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
             <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,12,12">
-              <TextBox Width="200"
-                       Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged}" />
-              <ComboBox ItemsSource="{Binding Settings.PatchExtensions}"
-                        SelectedItem="{Binding Settings.SelectedPatchExtension}"
+              <TextBox IsEnabled="{Binding Settings.CanChangeOutput}" Width="200"
+                       Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+              <ComboBox IsEnabled="{Binding Settings.CanChangeOutput}" ItemsSource="{Binding Settings.PatchExtensions}"
+                        SelectedItem="{Binding Settings.SelectedPatchExtension, ValidatesOnExceptions=True}"
                         VerticalAlignment="Center" Margin="6,0,0,0" />
             </StackPanel>
             <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Settings.FullOutputPath}"
@@ -114,11 +114,11 @@
             <!-- Row 1: Output Path -->
             <TextBlock Grid.Row="1" Grid.Column="0" Text="{lex:Loc Settings_OutputPath}"
                        Style="{DynamicResource {x:Static themes:ResourceKeys.SettingsLabelStyleKey}}" />
-            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
-                     Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox IsEnabled="{Binding Settings.CanChangeOutput}" Grid.Row="1" Grid.Column="1" Margin="0,0,12,12"
+                     Text="{Binding Settings.OutputPatchPath, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"
                      ToolTip="{lex:Loc Settings_OutputPathTooltip}" />
             <Button Grid.Row="1" Grid.Column="2" Content="{lex:Loc Button_Browse}" Margin="0,0,0,12"
-                    Command="{Binding Settings.BrowseOutputPathCommand}" MinWidth="80" />
+                    Command="{Binding Settings.BrowseOutputPathCommand}" IsEnabled="{Binding Settings.CanChangeOutput}" MinWidth="80" />
 
             <!-- Row 2: Blacklist ESPs -->
             <TextBlock Grid.Row="2" Grid.Column="0" Text="{lex:Loc Settings_Blacklist}"

@@ -15,7 +15,7 @@ public class PreviewIntegrationTests
     public async Task OutfitDraftManager_PreviewDelegate_IsInvokedWhenPreviewCommandExecuted()
     {
         var loggingService = new TestLoggingService();
-        var manager = new OutfitDraftManager(loggingService);
+        var manager = new OutfitDraftManager(loggingService, new ConnectedDraftLifecycle(new PatchingService(null!, loggingService)));
 
         var previewInvoked = false;
         OutfitDraftViewModel? previewedDraft = null;
@@ -41,7 +41,7 @@ public class PreviewIntegrationTests
     public async Task OutfitDraftManager_WithoutPreviewDelegate_DoesNotThrow()
     {
         var loggingService = new TestLoggingService();
-        var manager = new OutfitDraftManager(loggingService);
+        var manager = new OutfitDraftManager(loggingService, new ConnectedDraftLifecycle(new PatchingService(null!, loggingService)));
 
         var mockArmor = CreateMockArmorViewModel();
         var draft = await manager.CreateDraftAsync([mockArmor], "TestOutfit");
@@ -56,7 +56,7 @@ public class PreviewIntegrationTests
     public async Task OutfitDraftManager_PreviewCommand_IsDisabledWhenNoPieces()
     {
         var loggingService = new TestLoggingService();
-        var manager = new OutfitDraftManager(loggingService);
+        var manager = new OutfitDraftManager(loggingService, new ConnectedDraftLifecycle(new PatchingService(null!, loggingService)));
 
         var previewInvoked = false;
         manager.PreviewDraftAsync = _ =>
@@ -81,7 +81,7 @@ public class PreviewIntegrationTests
     public async Task OutfitDraftManager_DuplicateCommand_CreatesNewDraft()
     {
         var loggingService = new TestLoggingService();
-        var manager = new OutfitDraftManager(loggingService);
+        var manager = new OutfitDraftManager(loggingService, new ConnectedDraftLifecycle(new PatchingService(null!, loggingService)));
         manager.RequestNameAsync = _ => Task.FromResult<string?>("DuplicatedOutfit");
 
         var mockArmor = CreateMockArmorViewModel();
@@ -100,7 +100,7 @@ public class PreviewIntegrationTests
     public async Task OutfitDraftManager_RemoveSelfCommand_RemovesDraft()
     {
         var loggingService = new TestLoggingService();
-        var manager = new OutfitDraftManager(loggingService);
+        var manager = new OutfitDraftManager(loggingService, new ConnectedDraftLifecycle(new PatchingService(null!, loggingService)));
 
         var mockArmor = CreateMockArmorViewModel();
         var draft = await manager.CreateDraftAsync([mockArmor], "TestOutfit");

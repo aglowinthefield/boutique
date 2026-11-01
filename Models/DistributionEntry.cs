@@ -55,6 +55,7 @@ public sealed class DistributionEntry
   public List<FormKeyFilter> RaceFilters { get; set; } = [];
 
   public List<FormKey> ClassFormKeys { get; set; } = [];
+  public List<FormKey> ExcludedClassFormKeys { get; set; } = [];
   public List<FormKey> CombatStyleFormKeys { get; set; } = [];
   public List<FormKey> OutfitFilterFormKeys { get; set; } = [];
   public List<FormKey> PerkFormKeys { get; set; } = [];
@@ -118,6 +119,27 @@ public sealed class DistributionEntry
   ///   Supports SPID form filter syntax for advanced use cases.
   /// </summary>
   public string? RawFormFilters { get; set; }
+
+  /// <summary>Independent editable snapshot; game records remain read-only references.</summary>
+  public DistributionEntry Copy()
+  {
+    var copy = (DistributionEntry)MemberwiseClone();
+    copy.ExclusiveGroupForms = [.. ExclusiveGroupForms];
+    copy.NpcFilters = [.. NpcFilters];
+    copy.KeywordFilters = [.. KeywordFilters];
+    copy.FactionFilters = [.. FactionFilters];
+    copy.RaceFilters = [.. RaceFilters];
+    copy.ClassFormKeys = [.. ClassFormKeys];
+    copy.ExcludedClassFormKeys = [.. ExcludedClassFormKeys];
+    copy.CombatStyleFormKeys = [.. CombatStyleFormKeys];
+    copy.OutfitFilterFormKeys = [.. OutfitFilterFormKeys];
+    copy.PerkFormKeys = [.. PerkFormKeys];
+    copy.VoiceTypeFormKeys = [.. VoiceTypeFormKeys];
+    copy.LocationFormKeys = [.. LocationFormKeys];
+    copy.FormListFormKeys = [.. FormListFormKeys];
+    copy.TraitFilters = TraitFilters with { };
+    return copy;
+  }
 
   public bool HasUnresolvedFilters =>
     !string.IsNullOrWhiteSpace(RawStringFilters) || !string.IsNullOrWhiteSpace(RawFormFilters);

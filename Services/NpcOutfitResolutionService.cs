@@ -13,15 +13,20 @@ namespace Boutique.Services;
 /// logic, accounting for keyword dependencies, filter matching, and chance-based assignment.
 /// </summary>
 public class NpcOutfitResolutionService(
-  MutagenService mutagenService,
   KeywordDistributionResolver keywordResolver,
   ILogger logger)
 {
   private readonly ILogger _logger = logger.ForContext<NpcOutfitResolutionService>();
 
+  /// <summary>
+  /// Resolves complete discovered inputs: keyword-only files participate in keyword simulation,
+  /// while only outfit-bearing files participate in outfit precedence. The borrowed link cache
+  /// must remain usable until this operation completes.
+  /// </summary>
   public async Task<NpcOutfitResolutionResult> ResolveNpcOutfitsWithFiltersAsync(
     IReadOnlyList<DistributionFile> distributionFiles,
     IReadOnlyList<NpcFilterData> npcFilterData,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter>? linkCache,
     CancellationToken cancellationToken = default)
   {
     _logger.Debug(
@@ -32,7 +37,7 @@ public class NpcOutfitResolutionService(
     return await Task.Run(
              () =>
              {
-               if (mutagenService.LinkCache is not { } linkCache)
+               if (linkCache == null)
                {
                  _logger.Warning("LinkCache not available for NPC outfit resolution.");
                  return NpcOutfitResolutionResult.Empty;
@@ -88,15 +93,16 @@ public class NpcOutfitResolutionService(
                    "After processing ESP outfits: {NpcCount} unique NPCs with distributions",
                    npcDistributions.Count);
 
-                 for (var fileIndex = 0; fileIndex < sortedFiles.Count; fileIndex++)
+                 var outfitFiles = sortedFiles.Where(file => file.OutfitDistributionCount > 0).ToList();
+                 for (var fileIndex = 0; fileIndex < outfitFiles.Count; fileIndex++)
                  {
                    cancellationToken.ThrowIfCancellationRequested();
-                   var file = sortedFiles[fileIndex];
+                   var file = outfitFiles[fileIndex];
 
                    _logger.Debug(
                      "Processing file {Index}/{Total}: {FileName}",
                      fileIndex + 1,
-                     sortedFiles.Count,
+                     outfitFiles.Count,
                      file.FileName);
 
                    ProcessDistributionFileWithFilters(
@@ -233,7 +239,7 @@ public class NpcOutfitResolutionService(
     {
       if (!npcDistributions.TryGetValue(kvp.Key, out var list))
       {
-        list                      = [];
+        list = [];
         npcDistributions[kvp.Key] = list;
       }
 
@@ -255,7 +261,7 @@ public class NpcOutfitResolutionService(
     HashSet<string> factionEditorIds,
     HashSet<string> raceEditorIds)
   {
-    var spidLines       = new List<SpidOutfitLine>();
+    var spidLines = new List<SpidOutfitLine>();
     var skyPatcherLines = new List<DistributionLine>();
 
     foreach (var line in file.Lines)
@@ -347,7 +353,7 @@ public class NpcOutfitResolutionService(
     string lineText,
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
   {
-    var npcFormKeys    = new List<FormKey>();
+    var npcFormKeys = new List<FormKey>();
     var npcIdentifiers = SkyPatcherSyntax.ExtractFilterValuesWithVariants(lineText, "filterByNpcs");
 
     foreach (var npcIdentifier in npcIdentifiers)
@@ -433,7 +439,7 @@ public class NpcOutfitResolutionService(
                              .ToList();
 
       var hasIniDistributions = iniDistributions.Count > 0;
-      var distributionsToUse  = hasIniDistributions ? iniDistributions : sortedDistributions;
+      var distributionsToUse = hasIniDistributions ? iniDistributions : sortedDistributions;
 
       var winnerIndex = distributionsToUse.Count - 1;
       var updatedDistributions = sortedDistributions
@@ -449,14 +455,14 @@ public class NpcOutfitResolutionService(
 
       var winner = distributionsToUse[winnerIndex];
 
-      string? editorId  = null;
-      string? name      = null;
-      var     sourceMod = npcFormKey.ModKey;
+      string? editorId = null;
+      string? name = null;
+      var sourceMod = npcFormKey.ModKey;
 
       if (npcLookup.TryGetValue(npcFormKey, out var npcData))
       {
-        editorId  = npcData.EditorId;
-        name      = npcData.Name;
+        editorId = npcData.EditorId;
+        name = npcData.Name;
         sourceMod = npcData.SourceMod;
       }
 
@@ -524,7 +530,7 @@ public class NpcOutfitResolutionService(
       var npcFormKey = npcData.FormKey;
       if (!npcDistributions.TryGetValue(npcFormKey, out var distributions))
       {
-        distributions                = [];
+        distributions = [];
         npcDistributions[npcFormKey] = distributions;
       }
 

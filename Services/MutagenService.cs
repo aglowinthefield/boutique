@@ -25,21 +25,21 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
 {
   private readonly SemaphoreSlim _initLock = new(1, 1);
   private readonly ILogger _logger = loggingService.ForContext<MutagenService>();
-  private          IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
-  private          Task<IEnumerable<string>>? _pluginsWithArmorsOrOutfitsTask;
+  private IGameEnvironment<ISkyrimMod, ISkyrimModGetter>? _environment;
+  private Task<IEnumerable<string>>? _pluginsWithArmorsOrOutfitsTask;
 
   public ILinkCache<ISkyrimMod, ISkyrimModGetter>? LinkCache { get; private set; }
 
   public string? DataFolderPath { get; private set; }
 
   public BinaryReadParameters Utf8ReadParameters { get; } = new()
-                                                            {
-                                                              StringsParam =
+  {
+    StringsParam =
                                                                 new StringsReadParameters
                                                                 {
                                                                   NonLocalizedEncodingOverride = MutagenEncoding._utf8
                                                                 }
-                                                            };
+  };
 
   public bool IsInitialized => _environment != null;
 
@@ -63,10 +63,10 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
 
   private GameRelease GetGameRelease() => GetSkyrimRelease() switch
   {
-    SkyrimRelease.SkyrimSE    => GameRelease.SkyrimSE,
-    SkyrimRelease.SkyrimVR    => GameRelease.SkyrimVR,
+    SkyrimRelease.SkyrimSE => GameRelease.SkyrimSE,
+    SkyrimRelease.SkyrimVR => GameRelease.SkyrimVR,
     SkyrimRelease.SkyrimSEGog => GameRelease.SkyrimSEGog,
-    _                         => GameRelease.SkyrimSE
+    _ => GameRelease.SkyrimSE
   };
 
   private SkyrimRelease GetSkyrimRelease() =>
@@ -316,7 +316,7 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
     });
 
     var newCount = _environment?.LoadOrder.Count ?? 0;
-    var diff     = newCount - previousCount;
+    var diff = newCount - previousCount;
     var diffText = diff > 0 ? $"+{diff}" : diff.ToString(CultureInfo.InvariantCulture);
 
     _logger.Information(
@@ -362,13 +362,31 @@ public sealed class MutagenService(ILoggingService loggingService, PatcherSettin
     PluginsChanged?.Invoke(this, EventArgs.Empty);
   }
 
+  /// <summary>Raw loaded records for safety inspection, including losing overrides.</summary>
+  public IReadOnlyList<ISkyrimModGetter> GetInspectableLoadedPlugins()
+  {
+    if (_environment == null || LinkCache == null)
+    {
+      throw new InvalidOperationException("Loaded-plugin inspection is unavailable.");
+    }
+
+    var listings = _environment.LoadOrder.PriorityOrder.ToArray();
+    var missing = listings.Where(entry => entry.Enabled && entry.Mod == null).Select(entry => entry.ModKey).ToArray();
+    if (missing.Length != 0)
+    {
+      throw new InvalidOperationException("Loaded-plugin inspection is incomplete: " + string.Join(", ", missing));
+    }
+
+    return listings.Where(entry => entry.Mod != null).Select(entry => (ISkyrimModGetter)entry.Mod!).ToArray();
+  }
+
   public void ReleaseLinkCache()
   {
     _logger.Debug("Releasing LinkCache file handles...");
     _pluginsWithArmorsOrOutfitsTask = null;
     _environment?.Dispose();
     _environment = null;
-    LinkCache    = null;
+    LinkCache = null;
   }
 
   public HashSet<ModKey> GetLoadOrderModKeys() =>

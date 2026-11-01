@@ -19,7 +19,8 @@
     </Grid.RowDefinitions>
 
     <!-- TabControl with Create, Containers, NPCs, and Outfits tabs -->
-    <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
+    <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex, Mode=OneWay}"
+                SelectionChanged="OnTabSelectionChanged">
 
       <!-- CREATE TAB -->
       <TabItem Header="{lex:Loc Key={x:Static res:LocalizationKeys+Tabs.Create}}">

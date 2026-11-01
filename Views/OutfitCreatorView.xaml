@@ -130,6 +130,7 @@
                               Style="{DynamicResource {x:Static themes:ResourceKeys.IconButtonStyleKey}}"
                               Width="28" Height="28" Margin="0,0,4,0" FontSize="{DynamicResource FontSize.Medium}"
                               ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.DuplicateOutfit}}" />
+                      <Button Content="Delete output record…" Click="DeleteOutputRecord_Click" Margin="0,0,4,0" ToolTip="Queue a confirmed deletion; explicit Save is required." />
                       <Button Command="{Binding RemoveSelfCommand}"
                               Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                               Width="28" Height="28" FontSize="{DynamicResource FontSize.Medium}"
@@ -356,7 +357,9 @@
       </views:OutfitQueueItemTemplateSelector.SeparatorTemplate>
     </views:OutfitQueueItemTemplateSelector>
   </UserControl.Resources>
-  <Grid Margin="4,0,0,6">
+  <DockPanel>
+  <Button DockPanel.Dock="Top" Content="Retry output refresh (no write)" Command="{Binding RetryDraftRefreshCommand}" HorizontalAlignment="Right" Margin="4" />
+  <Grid Margin="4,0,0,6" IsEnabled="{Binding CanEditConnectedDrafts}">
     <Grid.RowDefinitions>
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
@@ -703,11 +706,14 @@
                                       VerticalAlignment="Center" Margin="8,0,4,0"
                                       ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.UseAllTooltip}}" />
 
-                            <Button Grid.Column="3"
+                            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                            <Button Content="Delete output record…" Click="DeleteOutputRecord_Click" Margin="0,0,4,0" />
+                            <Button
                                     Command="{Binding RemoveSelfCommand}"
                                     Style="{DynamicResource {x:Static themes:ResourceKeys.InlineRemoveButtonStyleKey}}"
                                     Width="28" Height="28" FontSize="{DynamicResource FontSize.Medium}"
                                     ToolTip="{lex:Loc Key={x:Static res:LocalizationKeys+LeveledList.RemoveList}}" />
+                            </StackPanel>
                           </Grid>
 
                           <StackPanel Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisConverter}}">
@@ -840,7 +846,7 @@
               ToolTip="Add a separator to organize outfits" />
       <Button Grid.Column="2" Command="{Binding SaveOutfitsCommand}" Padding="16,8"
               Style="{DynamicResource {x:Static themes:ResourceKeys.PrimaryButtonStyleKey}}"
-              IsEnabled="{Binding HasOutfitDrafts}">
+              ToolTip="Save connected drafts and apply any confirmed output deletions.">
         <Grid>
           <TextBlock Text="{lex:Loc Key={x:Static res:LocalizationKeys+OutfitCreator.SaveOutfits}}"
                      Visibility="{Binding IsCreatingOutfits, Converter={StaticResource InverseBoolToVisConverter}}" />
@@ -854,4 +860,5 @@
     </Grid>
     </Border>
   </Grid>
+  </DockPanel>
 </UserControl>

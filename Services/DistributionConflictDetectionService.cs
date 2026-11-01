@@ -27,11 +27,6 @@ public static class DistributionConflictDetectionService
     {
       foreach (var entry in outfitEntries)
       {
-        if (entry.Entry.HasUnresolvedFilters)
-        {
-          continue;
-        }
-
         var outfitName = entry.SelectedOutfit?.EditorID ?? "(no outfit)";
         var matchingNpcs = FilterMatchingService.GetMatchingNpcsForEntry(
           allNpcs,
@@ -44,7 +39,7 @@ public static class DistributionConflictDetectionService
           outfitToNpcs[outfitName] = npcSet;
         }
 
-        foreach (var npc in matchingNpcs)
+        foreach (var npc in matchingNpcs.Where(n => n.IsConfirmed))
         {
           npcSet.Add(npc.FormKey);
         }
@@ -95,86 +90,119 @@ public static class DistributionConflictDetectionService
     return new IntraFileConflictResult(allOverlappingNpcs.Count, names, pairCounts);
   }
 
+  /// <summary>
+  /// Captures owned matching inputs before yielding. Keep the borrowed link cache alive until completion.
+  /// Callers can await this result for save decisions without depending on a background preview refresh.
+  /// </summary>
+  public static async Task<ConflictDetectionResult> DetectConflictsAsync(
+    IReadOnlyList<DistributionEntryViewModel> entries,
+    IReadOnlyList<DistributionFileViewModel> existingFiles,
+    string newFileName,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyList<NpcFilterData>? allNpcs = null,
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc = null)
+  {
+    var capturedEntries = entries.Select(entry =>
+    {
+      var captured = new DistributionEntryViewModel(entry.Entry.Copy());
+      if (allNpcs is not { Count: > 0 })
+      {
+        foreach (var npc in entry.SelectedNpcs)
+        {
+          captured.SelectedNpcs.Add(new NpcRecordViewModel(npc.NpcRecord) { IsExcluded = npc.IsExcluded });
+        }
+      }
+
+      return captured;
+    }).ToList();
+    var capturedFiles = existingFiles.Select(file => new DistributionFileViewModel(new DistributionFile(
+      file.FileName, file.FullPath, file.RelativePath, file.Type,
+      file.Lines.Select(line => line with { OutfitFormKeys = line.OutfitFormKeys.ToArray() }).ToArray(),
+      file.OutfitCount, file.KeywordCount, file.ExclusiveGroupCount))).ToList();
+    var capturedNpcs = allNpcs?.Select(SnapshotNpc).ToList();
+    var capturedKeywords = virtualKeywordsByNpc?.ToDictionary(
+      pair => pair.Key,
+      pair => new HashSet<string>(pair.Value, StringComparer.OrdinalIgnoreCase));
+
+    await Task.Yield();
+    return await Task.Run(() => DetectConflicts(capturedEntries, capturedFiles, newFileName,
+      linkCache, capturedNpcs, capturedKeywords)).ConfigureAwait(false);
+  }
+
+  private static NpcFilterData SnapshotNpc(NpcFilterData npc) => new()
+  {
+    FormKey = npc.FormKey,
+    EditorId = npc.EditorId,
+    Name = npc.Name,
+    SourceMod = npc.SourceMod,
+    Keywords = new HashSet<string>(npc.Keywords, StringComparer.OrdinalIgnoreCase),
+    Factions = npc.Factions.ToArray(),
+    RaceFormKey = npc.RaceFormKey,
+    RaceEditorId = npc.RaceEditorId,
+    ClassFormKey = npc.ClassFormKey,
+    ClassEditorId = npc.ClassEditorId,
+    CombatStyleFormKey = npc.CombatStyleFormKey,
+    CombatStyleEditorId = npc.CombatStyleEditorId,
+    VoiceTypeFormKey = npc.VoiceTypeFormKey,
+    VoiceTypeEditorId = npc.VoiceTypeEditorId,
+    DefaultOutfitFormKey = npc.DefaultOutfitFormKey,
+    DefaultOutfitEditorId = npc.DefaultOutfitEditorId,
+    WornArmorFormKey = npc.WornArmorFormKey,
+    IsFemale = npc.IsFemale,
+    IsUnique = npc.IsUnique,
+    IsSummonable = npc.IsSummonable,
+    IsChild = npc.IsChild,
+    IsLeveled = npc.IsLeveled,
+    Level = npc.Level,
+    Locations = new HashSet<FormKey>(npc.Locations),
+    TemplateFormKey = npc.TemplateFormKey,
+    TemplateEditorId = npc.TemplateEditorId,
+    MatchKeys = npc.MatchKeys == null ? null : new HashSet<string>(npc.MatchKeys, npc.MatchKeys.Comparer),
+    SkillValues = npc.SkillValues.ToArray()
+  };
+
   public static ConflictDetectionResult DetectConflicts(
     IReadOnlyList<DistributionEntryViewModel> entries,
     IReadOnlyList<DistributionFileViewModel> existingFiles,
     string newFileName,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyList<NpcFilterData>? allNpcs = null,
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc = null)
   {
-    var npcFormKeysInEntries = entries
-                               .SelectMany(e => e.SelectedNpcs)
-                               .Select(npc => npc.FormKey)
-                               .ToHashSet();
-
-    if (npcFormKeysInEntries.Count == 0)
-    {
-      return new ConflictDetectionResult(false, false, string.Empty, false, false, string.Empty, newFileName, [], []);
-    }
-
-    var (existingDistributions, allNpcsDistributions) = BuildExistingDistributionMap(existingFiles, linkCache);
-    var allIssues = CollectNpcIssues(entries, existingDistributions, allNpcsDistributions);
+    var allIssues = CollectNpcIssues(entries, existingFiles, linkCache, allNpcs, virtualKeywordsByNpc);
 
     var conflicts = allIssues.Where(i => i.IsHardConflict).ToList();
-    var overlaps  = allIssues.Where(i => i.IsProbabilisticOverlap).ToList();
+    var overlaps = allIssues.Where(i => i.IsProbabilisticOverlap).ToList();
 
     var conflictingFileNames = conflicts.Select(c => c.ExistingFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
     var overlappingFileNames = overlaps.Select(o => o.ExistingFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     var loadsAfterConflicts = DoesFileLoadAfterAll(newFileName, conflictingFileNames);
-    var loadsAfterOverlaps  = DoesFileLoadAfterAll(newFileName, overlappingFileNames);
+    var loadsAfterOverlaps = DoesFileLoadAfterAll(newFileName, overlappingFileNames);
 
-    var hasConflicts                = conflicts.Count > 0 && !loadsAfterConflicts;
+    var hasConflicts = conflicts.Count > 0 && !loadsAfterConflicts;
     var conflictsResolvedByFilename = conflicts.Count > 0 && loadsAfterConflicts;
-    var hasOverlaps                 = overlaps.Count > 0 && !loadsAfterOverlaps;
-    var overlapsResolvedByFilename  = overlaps.Count > 0 && loadsAfterOverlaps;
+    var hasOverlaps = overlaps.Count > 0 && !loadsAfterOverlaps;
+    var overlapsResolvedByFilename = overlaps.Count > 0 && loadsAfterOverlaps;
 
-    var hasAllNpcsConflict = allNpcsDistributions.Count > 0 &&
-                             conflicts.Any(c => allNpcsDistributions.Exists(d => d.FileName == c.ExistingFileName));
-    var hasAllNpcsOverlap = allNpcsDistributions.Count > 0 &&
-                            overlaps.Any(o => allNpcsDistributions.Exists(d => d.FileName == o.ExistingFileName));
-
-    var conflictAllNpcsNote = hasAllNpcsConflict
-                                ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
-                                : string.Empty;
-    var overlapAllNpcsNote = hasAllNpcsOverlap
-                               ? $" ('{allNpcsDistributions[0].FileName}' targets all NPCs)"
-                               : string.Empty;
-
-    string conflictAllNpcsMsg = string.Empty;
-    if (hasAllNpcsConflict)
-    {
-      var d = allNpcsDistributions[0];
-      conflictAllNpcsMsg =
-        $"⚠ '{d.FileName}' distributes outfit '{d.OutfitName}' to ALL NPCs (100% chance).{Environment.NewLine}" +
-        $"All {conflicts.Count} NPC(s) in your entries will be overridden.";
-    }
-
-    string overlapAllNpcsMsg = string.Empty;
-    if (hasAllNpcsOverlap)
-    {
-      var d = allNpcsDistributions[0];
-      overlapAllNpcsMsg =
-        $"ℹ '{d.FileName}' distributes outfit '{d.OutfitName}' to ALL NPCs ({d.Chance}% chance).{Environment.NewLine}" +
-        $"{overlaps.Count} NPC(s) in your entries may receive multiple outfits probabilistically.";
-    }
-
+    var conflictCount = conflicts.Select(c => c.NpcFormKey).Distinct().Count();
+    var overlapCount = overlaps.Select(c => c.NpcFormKey).Distinct().Count();
     var conflictSummary = BuildIssueSummary(
-      conflicts,
-      loadsAfterConflicts,
-      hasAllNpcsConflict,
-      $"✓ {conflicts.Count} NPC(s) have 100% chance distributions{conflictAllNpcsNote}, but your filename '{newFileName}' will load after them.",
-      conflictAllNpcsMsg,
-      $"⚠ {conflicts.Count} NPC(s) already have 100% chance outfit distributions:",
+      conflicts, loadsAfterConflicts,
+      $"✓ {conflictCount} NPC(s) have 100% chance distributions, but your filename '{newFileName}' will load after them.",
+      $"⚠ {conflictCount} NPC(s) already have 100% chance outfit distributions:",
       c => $"  • {c.DisplayName ?? c.NpcFormKey.ToString()} ({c.ExistingFileName})");
-
     var overlapSummary = BuildIssueSummary(
-      overlaps,
-      loadsAfterOverlaps,
-      hasAllNpcsOverlap,
-      $"ℹ {overlaps.Count} NPC(s) have chance-based distributions{overlapAllNpcsNote}. Your file will load after them.",
-      overlapAllNpcsMsg,
-      $"ℹ {overlaps.Count} NPC(s) have chance-based distributions (can coexist probabilistically):",
+      overlaps, loadsAfterOverlaps,
+      $"ℹ {overlapCount} NPC(s) have chance-based distributions. Your file will load after them.",
+      $"ℹ {overlapCount} NPC(s) have chance-based distributions (can coexist probabilistically):",
       o => $"  • {o.DisplayName ?? o.NpcFormKey.ToString()} ({o.ExistingFileName}, {o.ExistingChance}% chance)");
+
+    if (allNpcs is not { Count: > 0 })
+    {
+      conflictSummary = (conflictSummary + Environment.NewLine +
+        "NPC matching data unavailable; only explicit NPC selections were checked. Filtered conflicts may be missing.").Trim();
+    }
 
     var suggestedFileName = conflicts.Count > 0 && !loadsAfterConflicts
                               ? CalculateZPrefixedFileName(newFileName, conflictingFileNames)
@@ -194,46 +222,50 @@ public static class DistributionConflictDetectionService
 
   private static List<NpcConflictInfo> CollectNpcIssues(
     IReadOnlyList<DistributionEntryViewModel> entries,
-    Dictionary<FormKey, (string FileName, string? OutfitName, int Chance)> existingDistributions,
-    List<(string FileName, string? OutfitName, int Chance)> allNpcsDistributions)
+    IReadOnlyList<DistributionFileViewModel> files,
+    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
+    IReadOnlyList<NpcFilterData>? allNpcs,
+    IReadOnlyDictionary<FormKey, HashSet<string>>? virtualKeywordsByNpc)
   {
     var issues = new List<NpcConflictInfo>();
 
-    foreach (var entry in entries)
+    // Each proposed population is invariant across existing rules.
+    var candidates = entries.Where(e => e.IsOutfitDistribution).Select(entry => (
+      Chance: entry.UseChance ? entry.Chance : 100,
+      Npcs: (allNpcs is { Count: > 0 }
+        ? FilterMatchingService.GetMatchingNpcsForEntry(allNpcs, entry.Entry, virtualKeywordsByNpc)
+            .Where(n => n.IsConfirmed)
+            .Select(n => (n.FormKey, n.DisplayName))
+        : entry.SelectedNpcs.Where(n => !n.IsExcluded).Select(n => (n.FormKey, n.DisplayName))).ToList())).ToList();
+    foreach (var file in files)
     {
-      var newChance = entry.UseChance ? entry.Chance : 100;
-
-      foreach (var npcVm in entry.SelectedNpcs)
+      foreach (var line in file.Lines.Where(l => l.IsOutfitDistribution))
       {
-        var found = existingDistributions.TryGetValue(npcVm.FormKey, out var existing);
+        var existingChance = DistributionLineParser.ExtractChanceFromLine(file, line);
+        var matchingKeys = allNpcs is { Count: > 0 }
+          ? FilterMatchingService.GetMatchingNpcsForDistributionLine(
+              allNpcs, file.Type, line.RawText, linkCache, virtualKeywordsByNpc).Select(n => n.FormKey).ToHashSet()
+          : DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache).ToHashSet();
+        var fallbackAll = allNpcs is not { Count: > 0 } && DistributionLineParser.LineTargetsAllNpcs(file, line);
 
-        if (!found && allNpcsDistributions.Count > 0)
+        foreach (var candidate in candidates)
         {
-          existing = allNpcsDistributions[0];
+          foreach (var npc in candidate.Npcs.Where(n => fallbackAll || matchingKeys.Contains(n.FormKey)))
+          {
+            issues.Add(new NpcConflictInfo(npc.FormKey, npc.DisplayName, file.FileName,
+              existingChance, candidate.Chance));
+          }
         }
-        else if (!found)
-        {
-          continue;
-        }
-
-        issues.Add(new NpcConflictInfo(
-          npcVm.FormKey,
-          npcVm.DisplayName,
-          existing.FileName,
-          existing.Chance,
-          newChance));
       }
     }
 
-    return issues;
+    return issues.Distinct().ToList();
   }
 
   private static string BuildIssueSummary(
     List<NpcConflictInfo> issues,
     bool loadsAfter,
-    bool hasAllNpcsIssue,
     string resolvedMessage,
-    string allNpcsMessage,
     string individualHeader,
     Func<NpcConflictInfo, string> formatItem)
   {
@@ -247,11 +279,6 @@ public static class DistributionConflictDetectionService
       return resolvedMessage;
     }
 
-    if (hasAllNpcsIssue)
-    {
-      return allNpcsMessage;
-    }
-
     var sb = new StringBuilder();
     sb.AppendLine(individualHeader);
 
@@ -262,7 +289,7 @@ public static class DistributionConflictDetectionService
 
     if (issues.Count > 5)
     {
-      sb.Append(CultureInfo.InvariantCulture, $"  ... and {issues.Count - 5} more").AppendLine();
+      sb.Append(CultureInfo.InvariantCulture, $"  ... and {issues.Count - 5} more matching distributions").AppendLine();
     }
 
     return sb.ToString().TrimEnd();
@@ -291,63 +318,6 @@ public static class DistributionConflictDetectionService
     return true;
   }
 
-  private static (Dictionary<FormKey, (string FileName, string? OutfitName, int Chance)> SpecificNpcDistributions,
-    List<(string FileName, string? OutfitName, int Chance)> AllNpcsDistributions)
-    BuildExistingDistributionMap(
-      IReadOnlyList<DistributionFileViewModel> files,
-      ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var map                  = new Dictionary<FormKey, (string FileName, string? OutfitName, int Chance)>();
-    var allNpcsDistributions = new List<(string FileName, string? OutfitName, int Chance)>();
-
-    var                             hasSpidFiles  = files.Any(f => f.TypeDisplay == "SPID");
-    Dictionary<string, INpcGetter>? npcByEditorId = null;
-    Dictionary<string, INpcGetter>? npcByName     = null;
-
-    if (hasSpidFiles)
-    {
-      var allNpcs = linkCache.WinningOverrides<INpcGetter>().ToList();
-      npcByEditorId = allNpcs
-                      .Where(n => !string.IsNullOrWhiteSpace(n.EditorID))
-                      .GroupBy(n => n.EditorID!, StringComparer.OrdinalIgnoreCase)
-                      .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-      npcByName = allNpcs
-                  .Select(n => (Npc: n, Name: n.Name.SafeString(n)))
-                  .Where(t => !string.IsNullOrWhiteSpace(t.Name))
-                  .GroupBy(t => t.Name!, StringComparer.OrdinalIgnoreCase)
-                  .ToDictionary(g => g.Key, g => g.First().Npc, StringComparer.OrdinalIgnoreCase);
-    }
-
-    foreach (var file in files)
-    {
-      foreach (var line in file.Lines.Where(l => l.IsOutfitDistribution))
-      {
-        var outfitName = DistributionLineParser.ExtractOutfitNameFromLine(line, linkCache);
-        var chance     = DistributionLineParser.ExtractChanceFromLine(file, line);
-
-        if (DistributionLineParser.LineTargetsAllNpcs(file, line))
-        {
-          if (allNpcsDistributions.Count == 0)
-          {
-            allNpcsDistributions.Add((file.FileName, outfitName, chance));
-          }
-
-          continue;
-        }
-
-        var npcFormKeys =
-          DistributionLineParser.ExtractNpcFormKeysFromLine(file, line, linkCache, npcByEditorId, npcByName);
-
-        foreach (var npcFormKey in npcFormKeys)
-        {
-          map.TryAdd(npcFormKey, (file.FileName, outfitName, chance));
-        }
-      }
-    }
-
-    return (map, allNpcsDistributions);
-  }
-
   private static string CalculateZPrefixedFileName(string newFileName, HashSet<string> conflictingFileNames)
   {
     if (string.IsNullOrWhiteSpace(newFileName) || conflictingFileNames.Count == 0)
@@ -374,7 +344,7 @@ public static class DistributionConflictDetectionService
       maxZCount = Math.Max(maxZCount, zCount);
     }
 
-    var zPrefix  = new string('Z', maxZCount + 1);
+    var zPrefix = new string('Z', maxZCount + 1);
     var baseName = newFileName.TrimStart('Z', 'z');
 
     return zPrefix + baseName;
@@ -398,24 +368,24 @@ public static class DistributionConflictDetectionService
         if (conflictNpcFormKeys.Contains(npcVm.FormKey))
         {
           var conflict = result.Conflicts.First(c => c.NpcFormKey == npcVm.FormKey);
-          npcVm.HasConflict         = !result.ConflictsResolvedByFilename;
+          npcVm.HasConflict = !result.ConflictsResolvedByFilename;
           npcVm.ConflictingFileName = conflict.ExistingFileName;
         }
         else
         {
-          npcVm.HasConflict         = false;
+          npcVm.HasConflict = false;
           npcVm.ConflictingFileName = null;
         }
 
         if (overlapNpcFormKeys.Contains(npcVm.FormKey))
         {
           var overlap = result.Overlaps.First(o => o.NpcFormKey == npcVm.FormKey);
-          npcVm.HasOverlap         = !result.OverlapsResolvedByFilename;
+          npcVm.HasOverlap = !result.OverlapsResolvedByFilename;
           npcVm.OverlappingFileName = overlap.ExistingFileName;
         }
         else
         {
-          npcVm.HasOverlap         = false;
+          npcVm.HasOverlap = false;
           npcVm.OverlappingFileName = null;
         }
       }
@@ -428,9 +398,9 @@ public static class DistributionConflictDetectionService
     {
       foreach (var npc in entry.SelectedNpcs)
       {
-        npc.HasConflict         = false;
+        npc.HasConflict = false;
         npc.ConflictingFileName = null;
-        npc.HasOverlap          = false;
+        npc.HasOverlap = false;
         npc.OverlappingFileName = null;
       }
     }

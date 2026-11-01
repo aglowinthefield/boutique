@@ -24,7 +24,7 @@ public sealed class LeveledListReference
   public LeveledListReference(FormKey existingFormKey, string displayName)
   {
     ExistingFormKey = existingFormKey;
-    _existingName   = displayName;
+    _existingName = displayName;
   }
 
   public LeveledListDraftViewModel? PendingDraft { get; }
@@ -50,12 +50,29 @@ public sealed class LeveledListReference
 
 public partial class LeveledListEntryViewModel : ReactiveObject
 {
-  private readonly ArmorRecordViewModel?  _armor;
-  private readonly LeveledListReference?  _listRef;
+  private readonly ArmorRecordViewModel? _armor;
+  private readonly LeveledListReference? _listRef;
 
-  [Reactive] private short _count = 1;
-  [Reactive] private short _level = 1;
-  [Reactive] private bool  _isConflicting;
+  private short _count = 1;
+  private short _level = 1;
+  public Action? EnsureCanEdit { get; set; }
+  public short Count
+  {
+    get => _count; set
+    {
+      EnsureCanEdit?.Invoke();
+      this.RaiseAndSetIfChanged(ref _count, value);
+    }
+  }
+  public short Level
+  {
+    get => _level; set
+    {
+      EnsureCanEdit?.Invoke();
+      this.RaiseAndSetIfChanged(ref _level, value);
+    }
+  }
+  [Reactive] private bool _isConflicting;
 
   private LeveledListEntryViewModel(
     ArmorRecordViewModel? armor,
@@ -64,10 +81,10 @@ public partial class LeveledListEntryViewModel : ReactiveObject
     short count,
     Action<LeveledListEntryViewModel> remove)
   {
-    _armor        = armor;
-    _listRef      = listRef;
-    _level        = level;
-    _count        = count;
+    _armor = armor;
+    _listRef = listRef;
+    _level = level;
+    _count = count;
     RemoveCommand = ReactiveCommand.Create(() => remove(this));
   }
 
@@ -116,11 +133,30 @@ public partial class LeveledListDraftViewModel : ReactiveObject
                                                             .ToArray();
 
   private readonly ObservableCollection<LeveledListEntryViewModel> _entries = [];
-  private readonly Action<LeveledListDraftViewModel>               _removeDraft;
+  private readonly Action<LeveledListDraftViewModel> _removeDraft;
 
-  [Reactive] private FormKey? _formKey;
-  [Reactive] private bool     _isExpanded = true;
-  [Reactive] private bool     _useAll     = true;
+  private FormKey? _formKey;
+  public FormKey? FormKey
+  {
+    get => _formKey; set
+    {
+      EnsureCanEdit?.Invoke();
+      ApplyCommittedIdentity(value);
+    }
+  }
+  internal void ApplyCommittedIdentity(FormKey? value) => this.RaiseAndSetIfChanged(ref _formKey, value, nameof(FormKey));
+  [Reactive] private bool _isExpanded = true;
+  private bool _useAll = true;
+  public Action? EnsureCanEdit { get; set; }
+  public Action? EnsureCanEditContent { get; set; }
+  public bool UseAll
+  {
+    get => _useAll; set
+    {
+      EnsureCanEdit?.Invoke();
+      this.RaiseAndSetIfChanged(ref _useAll, value);
+    }
+  }
 
   private string _editorId = string.Empty;
 
@@ -132,7 +168,7 @@ public partial class LeveledListDraftViewModel : ReactiveObject
     SetEditorIdInternal(editorId);
 
     _entries.CollectionChanged += EntriesOnCollectionChanged;
-    Entries                    =  new ReadOnlyObservableCollection<LeveledListEntryViewModel>(_entries);
+    Entries = new ReadOnlyObservableCollection<LeveledListEntryViewModel>(_entries);
 
     this.WhenAnyValue(x => x.FormKey)
         .Subscribe(_ =>
@@ -154,7 +190,11 @@ public partial class LeveledListDraftViewModel : ReactiveObject
   public string EditorId
   {
     get => _editorId;
-    set => SetEditorIdInternal(value);
+    set
+    {
+      EnsureCanEdit?.Invoke();
+      SetEditorIdInternal(value);
+    }
   }
 
   public ReadOnlyObservableCollection<LeveledListEntryViewModel> Entries { get; }
@@ -173,7 +213,9 @@ public partial class LeveledListDraftViewModel : ReactiveObject
 
   public LeveledListEntryViewModel AddArmorEntry(ArmorRecordViewModel armor, short level = 1, short count = 1)
   {
+    EnsureCanEditContent?.Invoke();
     var entry = LeveledListEntryViewModel.ForArmor(armor, RemoveEntry, level, count);
+    entry.EnsureCanEdit = () => EnsureCanEditContent?.Invoke();
     _entries.Add(entry);
     EntryAdded?.Invoke(entry);
     return entry;
@@ -181,7 +223,9 @@ public partial class LeveledListDraftViewModel : ReactiveObject
 
   public LeveledListEntryViewModel AddListEntry(LeveledListReference reference, short level = 1, short count = 1)
   {
+    EnsureCanEditContent?.Invoke();
     var entry = LeveledListEntryViewModel.ForList(reference, RemoveEntry, level, count);
+    entry.EnsureCanEdit = () => EnsureCanEditContent?.Invoke();
     _entries.Add(entry);
     EntryAdded?.Invoke(entry);
     return entry;
@@ -192,6 +236,7 @@ public partial class LeveledListDraftViewModel : ReactiveObject
 
   private void RemoveEntry(LeveledListEntryViewModel entry)
   {
+    EnsureCanEditContent?.Invoke();
     if (_entries.Remove(entry))
     {
       EntryRemoved?.Invoke(entry);

@@ -3,7 +3,6 @@ using System.Globalization;
 using System.IO;
 using System.Reactive.Linq;
 using System.Text;
-using System.Windows;
 using Boutique.Models;
 using Boutique.Services;
 using Boutique.Utilities;
@@ -17,98 +16,90 @@ namespace Boutique.ViewModels;
 public sealed partial class DistributionEditTabViewModel
 {
   [ReactiveCommand(CanExecute = nameof(_canSave))]
-  private async Task SaveDistributionFileAsync()
+  private async Task SaveDistributionFileAsync() => await SaveCurrentDocumentAsync();
+
+  public async Task<bool> SaveCurrentDocumentAsync()
   {
-    if (string.IsNullOrWhiteSpace(DistributionFilePath))
+    if (IsLoading || _document.IsSaving)
     {
-      StatusMessage = "Please select a file path.";
-      return;
+      return false;
     }
 
-    DetectConflicts();
-
-    var finalFilePath = DistributionFilePath;
-
-    if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
-    {
-      var sb = new StringBuilder();
-      sb.AppendLine("⚠ Distribution Conflicts Detected")
-        .AppendLine()
-        .AppendLine(ConflictSummary)
-        .AppendLine()
-        .AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:")
-        .AppendLine()
-        .Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine()
-        .AppendLine()
-        .AppendLine("This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files.")
-        .AppendLine()
-        .AppendLine("Do you want to continue with this filename?");
-
-      var result = _dialogService.ConfirmWithCancel(sb.ToString(), "Conflicts Detected - Filename Change Required");
-
-      if (result is null)
-      {
-        StatusMessage = "Save cancelled.";
-        return;
-      }
-
-      if (result is true)
-      {
-        var directory = Path.GetDirectoryName(DistributionFilePath);
-        var finalFileName = SuggestedFileName;
-        if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
-        {
-          finalFileName += ".ini";
-        }
-
-        finalFilePath = !string.IsNullOrEmpty(directory)
-                          ? Path.Combine(directory, finalFileName)
-                          : finalFileName;
-
-        NewFileName = finalFileName;
-      }
-    }
-
-    if (File.Exists(finalFilePath) &&
-        !_dialogService.Confirm(
-          $"The file '{Path.GetFileName(finalFilePath)}' already exists.\n\nDo you want to overwrite it?",
-          "Confirm Overwrite"))
-    {
-      StatusMessage = "Save cancelled.";
-      return;
-    }
-
+    IsLoading = true;
     try
     {
-      IsLoading     = true;
-      StatusMessage = "Saving distribution file...";
-
-      var directory = Path.GetDirectoryName(finalFilePath);
-      if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+      UpdateFileContent();
+      if (string.IsNullOrWhiteSpace(DistributionFilePath))
       {
-        Directory.CreateDirectory(directory);
+        StatusMessage = "Please select a file path.";
+        return false;
       }
 
-      _backupService.CreateBackup(finalFilePath);
-      await File.WriteAllTextAsync(finalFilePath, DistributionFileContent, Encoding.UTF8);
-      _lastSavedContent = DistributionFileContent;
+      // A preview refresh may still be pending. The save decision must use this exact state.
+      if (!await RefreshConflictsAsync())
+      {
+        StatusMessage = "Distribution data changed during conflict analysis. Please save again.";
+        return false;
+      }
 
+      var finalFilePath = DistributionFilePath;
+
+      if (IsCreatingNewFile && HasConflicts && !string.IsNullOrEmpty(SuggestedFileName))
+      {
+        var sb = new StringBuilder();
+        sb.AppendLine("⚠ Distribution Conflicts Detected")
+          .AppendLine()
+          .AppendLine(ConflictSummary)
+          .AppendLine()
+          .AppendLine("To ensure your new distributions take priority (load last), the filename will be changed to:")
+          .AppendLine()
+          .Append(CultureInfo.InvariantCulture, $"    {SuggestedFileName}").AppendLine()
+          .AppendLine()
+          .AppendLine("This 'Z' prefix ensures alphabetical sorting places your file after the conflicting files.")
+          .AppendLine()
+          .AppendLine("Do you want to continue with this filename?");
+
+        var result = _dialogService.ConfirmWithCancel(sb.ToString(), "Conflicts Detected - Filename Change Required");
+        if (result is null)
+        {
+          StatusMessage = "Save cancelled.";
+          return false;
+        }
+
+        if (result is true)
+        {
+          var directory = Path.GetDirectoryName(DistributionFilePath);
+          var finalFileName = SuggestedFileName;
+          if (!finalFileName.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
+          {
+            finalFileName += ".ini";
+          }
+
+          finalFilePath = !string.IsNullOrEmpty(directory) ? Path.Combine(directory, finalFileName) : finalFileName;
+          NewFileName = finalFileName;
+        }
+      }
+
+      if (File.Exists(finalFilePath) &&
+          !_dialogService.Confirm(
+            $"The file '{Path.GetFileName(finalFilePath)}' already exists.\n\nDo you want to overwrite it?",
+            "Confirm Overwrite"))
+      {
+        StatusMessage = "Save cancelled.";
+        return false;
+      }
+
+      StatusMessage = "Saving distribution file...";
+      _document.Destination = finalFilePath;
+      await _document.SaveAsync();
       StatusMessage = $"Successfully saved distribution file: {Path.GetFileName(finalFilePath)}";
-      _logger.Information(
-        "Saved distribution file: {FilePath} ({LineCount} lines)",
-        finalFilePath,
-        DistributionFileContent.Split('\n').Length);
-
-      _justSavedFilePath                    = finalFilePath;
-      _guiSettings.LastDistributionFilePath = finalFilePath;
-      DistributionFilePath                  = finalFilePath;
-
-      FileSaved?.Invoke(finalFilePath);
+      return true;
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to save distribution file.");
       StatusMessage = $"Error saving file: {ex.Message}";
+      return false;
     }
     finally
     {
@@ -116,103 +107,159 @@ public sealed partial class DistributionEditTabViewModel
     }
   }
 
-  public bool PromptAndSaveIfNeeded()
+  public async Task<bool> PromptAndSaveIfNeededAsync()
   {
+    if (_isPrompting || IsLoading || _document.IsSaving)
+    {
+      return false;
+    }
+
     if (!HasUnsavedChanges)
     {
       return true;
     }
 
-    var result = _dialogService.ConfirmWithCancel(
-      "You have unsaved distribution changes. Would you like to save before continuing?",
-      "Unsaved Changes");
-
-    switch (result)
-    {
-      case true:
-        if (!IsCreatingNewFile && File.Exists(DistributionFilePath))
-        {
-          _backupService.CreateBackup(DistributionFilePath);
-          File.WriteAllText(DistributionFilePath, DistributionFileContent, Encoding.UTF8);
-          _lastSavedContent = DistributionFileContent;
-          _logger.Information("Saved distribution file: {Path}", DistributionFilePath);
-          StatusMessage = $"Saved {Path.GetFileName(DistributionFilePath)}";
-        }
-        else
-        {
-          SaveDistributionFileCommand.Execute().Subscribe();
-        }
-
-        return true;
-      case false:
-        _lastSavedContent = DistributionFileContent;
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  public event Action<string>? FileSaved;
-
-  private async Task LoadDistributionFileAsync()
-  {
-    _logger.Debug(
-      "LoadDistributionFileAsync called. DistributionFilePath: {Path}, Exists: {Exists}",
-      DistributionFilePath,
-      File.Exists(DistributionFilePath));
-
-    if (string.IsNullOrWhiteSpace(DistributionFilePath) || !File.Exists(DistributionFilePath))
-    {
-      StatusMessage = "File does not exist. Please select a valid file.";
-      _logger.Warning("Cannot load file - path is empty or file does not exist: {Path}", DistributionFilePath);
-      return;
-    }
-
+    _isPrompting = true;
     try
     {
-      IsLoading     = true;
-      StatusMessage = "Loading distribution file...";
-      _logger.Information("Loading distribution file: {FilePath}", DistributionFilePath);
+      var result = _dialogService.ConfirmWithCancel(
+        "You have unsaved distribution changes. Would you like to save before continuing?", "Unsaved Changes");
+      if (result == true)
+      {
+        return await SaveCurrentDocumentAsync();
+      }
 
-      var (entries, detectedFormat, parseErrors) =
-        await _fileWriterService.LoadDistributionFileWithErrorsAsync(DistributionFilePath);
-      DistributionFormat = detectedFormat;
-      ParseErrors        = parseErrors;
-      RefreshActualParseErrors();
+      if (result != false)
+      {
+        return false;
+      }
 
-      await LoadAvailableOutfitsAsync();
       _isBulkLoading = true;
       try
       {
-        DistributionEntries.Clear();
-        ResetConflictState();
-        var entryVms = await Task.Run(() =>
-                                        entries.Select(entry => CreateEntryViewModel(entry)).ToList());
-        foreach (var entryVm in entryVms)
+        foreach (var entry in DistributionEntries.ToList())
         {
-          DistributionEntries.Add(entryVm);
+          UnsubscribeFromEntryChanges(entry);
         }
 
-        foreach (var entryVm in entryVms)
+        _document.Discard();
+        foreach (var entry in DistributionEntries)
         {
-          SubscribeToEntryChanges(entryVm);
+          SubscribeToEntryChanges(entry);
         }
       }
       finally
       {
         _isBulkLoading = false;
       }
+      RefreshDocumentProperties();
+      return true;
+    }
+    finally
+    {
+      _isPrompting = false;
+    }
+  }
 
-      this.RaisePropertyChanged(nameof(DistributionEntriesCount));
-      UpdateFileContent();
-      _lastSavedContent                     = DistributionFileContent;
-      _guiSettings.LastDistributionFilePath = DistributionFilePath;
+  private void OnDocumentSaved(string path)
+  {
+    IsLoading = false;
+    _justSavedFilePath = path;
+    _guiSettings.LastDistributionFilePath = path;
+    this.RaisePropertyChanged(nameof(DistributionFilePath));
+    this.RaisePropertyChanged(nameof(HasUnsavedChanges));
+    FileSaved?.Invoke(path);
+  }
+
+  private void ResetDocument(string path, DistributionFileType format,
+    IEnumerable<DistributionEntryViewModel> entries, IReadOnlyList<DistributionParseError> errors)
+  {
+    _isBulkLoading = true;
+    try
+    {
+      foreach (var entry in DistributionEntries.ToList())
+      {
+        UnsubscribeFromEntryChanges(entry);
+      }
+
+      _document.Load(path, format, entries, errors);
+      ParseErrors = _document.UnparsedLines;
+      foreach (var entry in DistributionEntries)
+      {
+        SubscribeToEntryChanges(entry);
+      }
+
+      ResetConflictState();
+    }
+    finally
+    {
+      _isBulkLoading = false;
+    }
+    RefreshDocumentProperties();
+  }
+
+  private void RefreshDocumentProperties()
+  {
+    SelectedEntry = null;
+    ParseErrors = _document.UnparsedLines;
+    RefreshActualParseErrors();
+    this.RaisePropertyChanged(nameof(DistributionEntriesCount));
+    _isBulkLoading = true;
+    try
+    {
+      if (IsCreatingNewFile)
+      {
+        NewFileName = Path.GetFileName(_document.Destination);
+      }
+
+      this.RaisePropertyChanged(nameof(DistributionFormat));
+      this.RaisePropertyChanged(nameof(DistributionFilePath));
+    }
+    finally
+    {
+      _isBulkLoading = false;
+    }
+    UpdateFileContent();
+    UpdateHasChanceBasedEntries();
+    UpdateHasKeywordDistributions();
+    UpdateHasExclusiveGroupDistributions();
+    this.RaisePropertyChanged(nameof(HasUnsavedChanges));
+  }
+
+  public event Action<string>? FileSaved;
+
+  private async Task<bool> LoadDistributionFileAsync(string path)
+  {
+    _logger.Debug(
+      "LoadDistributionFileAsync called. path: {Path}, Exists: {Exists}",
+      path,
+      File.Exists(path));
+
+    if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+    {
+      StatusMessage = "File does not exist. Please select a valid file.";
+      _logger.Warning("Cannot load file - path is empty or file does not exist: {Path}", path);
+      return false;
+    }
+
+    try
+    {
+      IsLoading = true;
+      StatusMessage = "Loading distribution file...";
+      _logger.Information("Loading distribution file: {FilePath}", path);
+
+      var (entries, detectedFormat, parseErrors) =
+        await _fileWriterService.LoadDistributionFileWithErrorsAsync(path);
+      await LoadAvailableOutfitsAsync();
+      var entryVms = entries.Select(CreateEntryViewModel).ToList();
+      ResetDocument(path, detectedFormat, entryVms, parseErrors);
+      _guiSettings.LastDistributionFilePath = path;
       UpdateHasChanceBasedEntries();
       UpdateHasKeywordDistributions();
       UpdateHasExclusiveGroupDistributions();
 
       var statusMsg =
-        $"Loaded {entries.Count} distribution entries from {Path.GetFileName(DistributionFilePath)}";
+        $"Loaded {entries.Count} distribution entries from {Path.GetFileName(path)}";
       if (parseErrors.Count > 0)
       {
         statusMsg += $" ({parseErrors.Count} line(s) could not be parsed)";
@@ -221,14 +268,16 @@ public sealed partial class DistributionEditTabViewModel
       StatusMessage = statusMsg;
       _logger.Information(
         "Loaded distribution file: {FilePath} with {Count} entries, {ErrorCount} parse errors",
-        DistributionFilePath,
+        path,
         entries.Count,
         parseErrors.Count);
+      return true;
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Failed to load distribution file.");
       StatusMessage = $"Error loading file: {ex.Message}";
+      return false;
     }
     finally
     {
@@ -304,9 +353,11 @@ public sealed partial class DistributionEditTabViewModel
     }
 
     var dialog = new SaveFileDialog
-                 {
-                   Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*", DefaultExt = "ini", FileName = NewFileName
-                 };
+    {
+      Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*",
+      DefaultExt = "ini",
+      FileName = NewFileName
+    };
 
     var targetDirectory = !string.IsNullOrWhiteSpace(_settings.OutputPatchPath) &&
                           Directory.Exists(_settings.OutputPatchPath)
@@ -321,7 +372,7 @@ public sealed partial class DistributionEditTabViewModel
 
     if (dialog.ShowDialog() == true)
     {
-      NewFileName          = Path.GetFileName(dialog.FileName);
+      NewFileName = Path.GetFileName(dialog.FileName);
       DistributionFilePath = dialog.FileName;
       _logger.Debug("Selected distribution file path: {FilePath}", DistributionFilePath);
     }
@@ -334,7 +385,8 @@ public sealed partial class DistributionEditTabViewModel
   private void RefreshAvailableDistributionFiles()
   {
     var previousSelected = SelectedDistributionFile;
-    var justSaved        = _justSavedFilePath;
+    var justSaved = string.Equals(_justSavedFilePath, _document.Destination, StringComparison.OrdinalIgnoreCase)
+      ? _justSavedFilePath : null;
     _justSavedFilePath = null;
 
     _logger.Debug(
@@ -343,10 +395,10 @@ public sealed partial class DistributionEditTabViewModel
       NewFileName,
       justSaved);
 
-    var files                    = _cache.AllDistributionFiles.ToList();
-    var (items, dropdownItems)   = DistributionFileDropdownBuilder.Build(files);
-    AvailableDistributionFiles   = new ObservableCollection<DistributionFileSelectionItem>(items);
-    DropdownItems                = dropdownItems;
+    var files = _cache.AllDistributionFiles.ToList();
+    var (items, dropdownItems) = DistributionFileDropdownBuilder.Build(files);
+    AvailableDistributionFiles = new ObservableCollection<DistributionFileSelectionItem>(items);
+    DropdownItems = dropdownItems;
     this.RaisePropertyChanged(nameof(SelectedDropdownItem));
 
     var resolved = DistributionFileDropdownBuilder.ResolveSelection(
@@ -358,9 +410,11 @@ public sealed partial class DistributionEditTabViewModel
     if (resolved != null && !resolved.IsNewFile && justSaved != null && resolved.File?.FullPath == justSaved)
     {
       _logger.Debug("Selecting just-saved file: {Path}", justSaved);
-      IsCreatingNewFile        = false;
-      NewFileName              = string.Empty;
-      SelectedDistributionFile = resolved;
+      IsCreatingNewFile = false;
+      NewFileName = string.Empty;
+      this.RaiseAndSetIfChanged(ref _selectedDistributionFile, resolved, nameof(SelectedDistributionFile));
+      this.RaisePropertyChanged(nameof(SelectedDropdownItem));
+      this.RaisePropertyChanged(nameof(ShowNewFileNameInput));
     }
     else
     {
@@ -384,32 +438,31 @@ public sealed partial class DistributionEditTabViewModel
 
   private void UpdateFileContent()
   {
+    if (_isBulkLoading || _document.IsSaving)
+    {
+      return;
+    }
+
     try
     {
-      var hasSpidOnlyEntries = DistributionEntries.Any(e =>
-                                                         e.UseChance ||
-                                                         e.Type == DistributionType.Keyword ||
-                                                         e.Type == DistributionType.ExclusiveGroup);
-      var effectiveFormat = hasSpidOnlyEntries ? DistributionFileType.Spid : DistributionFormat;
+      var previousFormat = _document.Format;
+      _document.Format = _document.EffectiveFormat;
+      if (previousFormat != _document.Format)
+      {
+        this.RaisePropertyChanged(nameof(DistributionFormat));
+        this.RaisePropertyChanged(nameof(DistributionFilePath));
+      }
 
-      _logger.Debug(
-        "UpdateFileContent: {EntryCount} entries, effectiveFormat={Format}, hasSpidOnlyEntries={SpidOnly}",
-        DistributionEntries.Count,
-        effectiveFormat,
-        hasSpidOnlyEntries);
-
-      DistributionFileContent =
-        DistributionFileFormatter.GenerateFileContent(DistributionEntries, effectiveFormat, ParseErrors);
-
-      _logger.Debug("UpdateFileContent: Generated {LineCount} lines", DistributionFileContent.Split('\n').Length);
+      _preview = _document.GeneratePreview();
+      DistributionFileContent = _preview.Content;
+      this.RaisePropertyChanged(nameof(HasUnsavedChanges));
       DetectConflicts();
-
       RaiseHighlightRequestForChangedEntry();
     }
     catch (Exception ex)
     {
       _logger.Error(ex, "Error updating distribution file content");
-      DistributionFileContent = $"; Error generating file content: {ex.Message}";
+      StatusMessage = $"Error generating file content: {ex.Message}";
     }
   }
 
@@ -437,64 +490,16 @@ public sealed partial class DistributionEditTabViewModel
     HighlightRequest = new PreviewLineHighlightRequest(lineNumber);
   }
 
-  private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry)
-  {
-    var lineNumber = DistributionFileFormatter.GenerateHeaderLines().Count;
-
-    foreach (var entry in DistributionEntries)
-    {
-      var producesLine = EntryProducesLine(entry);
-
-      if (entry == targetEntry)
-      {
-        return producesLine ? lineNumber : -1;
-      }
-
-      if (producesLine)
-      {
-        lineNumber++;
-      }
-    }
-
-    return -1;
-  }
+  private int CalculateLineNumberForEntry(DistributionEntryViewModel targetEntry) =>
+    _preview?.EntriesByLine.Where(p => p.Value == targetEntry).Select(p => p.Key).DefaultIfEmpty(-1).First() ?? -1;
 
   public void SelectEntryByLineNumber(int lineNumber)
   {
-    var headerLineCount = DistributionFileFormatter.GenerateHeaderLines().Count;
-    if (lineNumber < headerLineCount)
+    if (_preview?.EntriesByLine.TryGetValue(lineNumber, out var entry) == true)
     {
-      return;
-    }
-
-    var currentLine = headerLineCount;
-    foreach (var entry in DistributionEntries)
-    {
-      var producesLine = EntryProducesLine(entry);
-
-      if (!producesLine)
-      {
-        continue;
-      }
-
-      if (currentLine == lineNumber)
-      {
-        SelectedEntry = entry;
-        return;
-      }
-
-      currentLine++;
+      SelectedEntry = entry;
     }
   }
-
-  private static bool EntryProducesLine(DistributionEntryViewModel entry) =>
-    entry.Type switch
-    {
-      DistributionType.Keyword => !string.IsNullOrWhiteSpace(entry.KeywordToDistribute),
-      DistributionType.ExclusiveGroup => !string.IsNullOrWhiteSpace(entry.ExclusiveGroupName) &&
-                                         !string.IsNullOrWhiteSpace(entry.ExclusiveGroupFormsText),
-      _ => entry.SelectedOutfit != null
-    };
 
   private void RaiseHighlightForEntry(DistributionEntryViewModel entry)
   {
@@ -531,7 +536,7 @@ public sealed partial class DistributionEditTabViewModel
                                      linkCache.WinningOverrides<IOutfitGetter>().ToList());
       await MergeOutfitsFromPatchFileAsync(outfits);
       AvailableOutfits = new ObservableCollection<IOutfitGetter>(outfits);
-      _outfitsLoaded   = true;
+      _outfitsLoaded = true;
       _logger.Debug("Loaded {Count} available outfits.", outfits.Count);
     }
     catch (Exception ex)
@@ -553,7 +558,7 @@ public sealed partial class DistributionEditTabViewModel
       return;
     }
 
-    var patchOutfits     = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
+    var patchOutfits = await _mutagenService.LoadOutfitsFromPluginAsync(Path.GetFileName(patchPath));
     var existingFormKeys = outfits.Select(o => o.FormKey).ToHashSet();
 
     var newOutfits = patchOutfits.Where(o => !existingFormKeys.Contains(o.FormKey)).ToList();
@@ -605,10 +610,10 @@ public sealed partial class DistributionEditTabViewModel
   private void InitializeFromCache()
   {
     _logger.Debug("InitializeFromCache: Starting linear initialization...");
-    var files                  = _cache.AllDistributionFiles.ToList();
+    var files = _cache.AllDistributionFiles.ToList();
     var (items, dropdownItems) = DistributionFileDropdownBuilder.Build(files);
     AvailableDistributionFiles = new ObservableCollection<DistributionFileSelectionItem>(items);
-    DropdownItems              = dropdownItems;
+    DropdownItems = dropdownItems;
 
     var lastFilePath = _guiSettings.LastDistributionFilePath;
     var resolved = DistributionFileDropdownBuilder.ResolveSelection(items, null, null, lastFilePath);
@@ -616,7 +621,6 @@ public sealed partial class DistributionEditTabViewModel
     if (resolved != null && !resolved.IsNewFile && resolved.File != null)
     {
       _logger.Debug("Restoring last saved file from settings: {Path}", resolved.File.FullPath);
-      DistributionFilePath     = resolved.File.FullPath;
       SelectedDistributionFile = resolved;
       this.RaisePropertyChanged(nameof(SelectedDropdownItem));
       _isInitialized = true;
@@ -629,7 +633,6 @@ public sealed partial class DistributionEditTabViewModel
         FilteredRaces.Count,
         files.Count,
         resolved.File.FullPath);
-      _ = LoadDistributionFileAsync();
       return;
     }
 
@@ -700,7 +703,7 @@ public sealed partial class DistributionEditTabViewModel
     }
 
     var outfit = entry.SelectedOutfit;
-    var label  = outfit.EditorID ?? outfit.FormKey.ToString();
+    var label = outfit.EditorID ?? outfit.FormKey.ToString();
 
     var initialResult = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
     if (initialResult.ArmorPieces.Count == 0)
@@ -715,9 +718,9 @@ public sealed partial class DistributionEditTabViewModel
 
       var initialGender = entry.Gender switch
       {
-        GenderFilter.Male   => GenderedModelVariant.Male,
+        GenderFilter.Male => GenderedModelVariant.Male,
         GenderFilter.Female => GenderedModelVariant.Female,
-        _                   => GenderedModelVariant.Female
+        _ => GenderedModelVariant.Female
       };
 
       var metadata = new OutfitMetadata(
@@ -732,7 +735,7 @@ public sealed partial class DistributionEditTabViewModel
         async (_, gender) =>
         {
           var result = OutfitResolver.GatherArmorPieces(outfit, linkCache, Environment.TickCount);
-          var scene  = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
+          var scene = await _armorPreviewService.BuildPreviewAsync(result.ArmorPieces, gender);
           return scene with { };
         },
         initialGender);
@@ -751,61 +754,64 @@ public sealed partial class DistributionEditTabViewModel
   ///   Detects conflicts between the current distribution entries and existing distribution files.
   ///   Updates HasConflicts, ConflictSummary, and NPC conflict indicators.
   /// </summary>
-  private void DetectConflicts()
+  private async void DetectConflicts()
   {
-    if (!IsCreatingNewFile || DistributionEntries.Count == 0 || _mutagenService.LinkCache is not { } linkCache || DistributionFiles.Count == 0)
+    // Invalidate older results even when a save/load suppresses a background refresh.
+    _conflictGeneration++;
+    if (IsLoading || _isBulkLoading)
     {
-      ResetConflictState(NewFileName);
       return;
     }
 
-    var entryCountAtStart = DistributionEntries.Count;
-    var entriesSnapshot   = DistributionEntries.ToList();
-    Task.Run(() =>
+    try
     {
-      try
-      {
-        var result = DistributionConflictDetectionService.DetectConflicts(
-          entriesSnapshot,
-          [.. DistributionFiles],
-          NewFileName,
-          linkCache);
-        Application.Current?.Dispatcher.Invoke(() =>
-        {
-          if (DistributionEntries.Count == entryCountAtStart && DistributionEntries.Count > 0)
-          {
-            HasConflicts                = result.HasConflicts;
-            ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
-            ConflictSummary             = result.ConflictSummary;
-            HasOverlaps                 = result.HasOverlaps;
-            OverlapsResolvedByFilename  = result.OverlapsResolvedByFilename;
-            OverlapSummary              = result.OverlapSummary;
-            SuggestedFileName           = result.SuggestedFileName;
-            DistributionConflictDetectionService.ApplyConflictIndicators(result, DistributionEntries);
-          }
-          else
-          {
-            _logger.Debug("Conflict detection completed but entries were cleared/changed, clearing conflict state");
-            ResetConflictState(NewFileName);
-          }
-        });
-      }
-      catch (Exception ex)
-      {
-        _logger.Error(ex, "Error during conflict detection");
-      }
-    });
+      await RefreshConflictsAsync();
+    }
+    catch (Exception ex)
+    {
+      _logger.Error(ex, "Error during conflict detection");
+    }
+  }
+
+  private async Task<bool> RefreshConflictsAsync()
+  {
+    var generation = ++_conflictGeneration;
+    if (!IsCreatingNewFile || DistributionEntries.Count == 0 ||
+        _mutagenService.LinkCache is not { } linkCache || DistributionFiles.Count == 0)
+    {
+      ResetConflictState(NewFileName);
+      return true;
+    }
+
+    var result = await DistributionConflictDetectionService.DetectConflictsAsync(
+      DistributionEntries.ToList(), DistributionFiles.ToList(), NewFileName, linkCache,
+      _cache.AllNpcs, _cache.SimulatedKeywordsByNpc);
+    if (generation != _conflictGeneration)
+    {
+      return false;
+    }
+
+    HasConflicts = result.HasConflicts;
+    ConflictsResolvedByFilename = result.ConflictsResolvedByFilename;
+    ConflictSummary = result.ConflictSummary;
+    HasOverlaps = result.HasOverlaps;
+    OverlapsResolvedByFilename = result.OverlapsResolvedByFilename;
+    OverlapSummary = result.OverlapSummary;
+    SuggestedFileName = result.SuggestedFileName;
+    DistributionConflictDetectionService.ApplyConflictIndicators(result, DistributionEntries);
+    return true;
   }
 
   private void ResetConflictState(string suggestedFileName = "")
   {
-    HasConflicts                = false;
+    _conflictGeneration++;
+    HasConflicts = false;
     ConflictsResolvedByFilename = false;
-    ConflictSummary             = string.Empty;
-    HasOverlaps                 = false;
-    OverlapsResolvedByFilename  = false;
-    OverlapSummary              = string.Empty;
-    SuggestedFileName           = suggestedFileName;
+    ConflictSummary = string.Empty;
+    HasOverlaps = false;
+    OverlapsResolvedByFilename = false;
+    OverlapSummary = string.Empty;
+    SuggestedFileName = suggestedFileName;
     ClearNpcConflictIndicators();
   }
 

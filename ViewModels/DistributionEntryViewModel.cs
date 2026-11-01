@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using Boutique.Models;
 using Boutique.Services;
+using Boutique.Utilities;
 using Mutagen.Bethesda.Skyrim;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -42,6 +44,57 @@ public sealed record SkillFilterOption(int Index, string Name)
 public partial class DistributionEntryViewModel : ReactiveObject
 {
   private readonly IDialogService? _dialogService;
+  private bool _isDocumentSaving;
+  private List<INotifyPropertyChanging> _lockedCriteria = [];
+  internal bool IsDocumentSaving
+  {
+    get => _isDocumentSaving;
+    set
+    {
+      if (_isDocumentSaving == value)
+      {
+        return;
+      }
+
+      _isDocumentSaving = value;
+      if (value)
+      {
+        _lockedCriteria = SelectedNpcs.Cast<INotifyPropertyChanging>()
+          .Concat(SelectedFactions).Concat(SelectedKeywords).Concat(SelectedRaces)
+          .Concat(SelectedClasses).Concat(SelectedLocations).Concat(SelectedOutfitFilters).Distinct().ToList();
+        foreach (var criterion in _lockedCriteria)
+        {
+          criterion.PropertyChanging += RejectCriterionEdit;
+        }
+      }
+      else
+      {
+        foreach (var criterion in _lockedCriteria)
+        {
+          criterion.PropertyChanging -= RejectCriterionEdit;
+        }
+
+        _lockedCriteria.Clear();
+      }
+    }
+  }
+
+  private void RejectCriterionEdit(object? sender, PropertyChangingEventArgs e)
+  {
+    if (e.PropertyName == nameof(ISelectableRecordViewModel.IsExcluded))
+    {
+      EnsureEditable();
+    }
+  }
+
+  private void EnsureEditable()
+  {
+    if (IsDocumentSaving)
+    {
+      throw new InvalidOperationException("Cannot edit a distribution during a save.");
+    }
+  }
+
 
   [Reactive] private int _chance = 100;
 
@@ -71,16 +124,16 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   [Reactive] private string _rawStringFilters = string.Empty;
 
-  private ObservableCollection<ClassRecordViewModel>    _selectedClasses   = [];
-  private ObservableCollection<FactionRecordViewModel> _selectedFactions  = [];
-  private ObservableCollection<KeywordRecordViewModel> _selectedKeywords  = [];
+  private ObservableCollection<ClassRecordViewModel> _selectedClasses = [];
+  private ObservableCollection<FactionRecordViewModel> _selectedFactions = [];
+  private ObservableCollection<KeywordRecordViewModel> _selectedKeywords = [];
   private ObservableCollection<LocationRecordViewModel> _selectedLocations = [];
 
-  [Reactive] private SkillFilterOption?                       _selectedLevelSkill;
-  private            ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
+  [Reactive] private SkillFilterOption? _selectedLevelSkill;
+  private ObservableCollection<NpcRecordViewModel> _selectedNpcs = [];
 
-  [Reactive] private IOutfitGetter?                              _selectedOutfit;
-  private            ObservableCollection<OutfitRecordViewModel> _selectedOutfitFilters = [];
+  [Reactive] private IOutfitGetter? _selectedOutfit;
+  private ObservableCollection<OutfitRecordViewModel> _selectedOutfitFilters = [];
 
   private ObservableCollection<RaceRecordViewModel> _selectedRaces = [];
 
@@ -110,41 +163,55 @@ public partial class DistributionEntryViewModel : ReactiveObject
     Func<bool>? isFormatChangingToSpid = null,
     IDialogService? dialogService = null)
   {
-    _dialogService      = dialogService;
-    Entry               = entry;
-    Type                = entry.Type;
-    SelectedOutfit      = entry.Outfit;
+    ((INotifyPropertyChanging)this).PropertyChanging += (_, e) =>
+    {
+      if (e.PropertyName != nameof(IsSelected))
+      {
+        EnsureEditable();
+      }
+    };
+    _selectedNpcs = new EditableDistributionCollection<NpcRecordViewModel>(EnsureEditable);
+    _selectedFactions = new EditableDistributionCollection<FactionRecordViewModel>(EnsureEditable);
+    _selectedKeywords = new EditableDistributionCollection<KeywordRecordViewModel>(EnsureEditable);
+    _selectedRaces = new EditableDistributionCollection<RaceRecordViewModel>(EnsureEditable);
+    _selectedClasses = new EditableDistributionCollection<ClassRecordViewModel>(EnsureEditable);
+    _selectedLocations = new EditableDistributionCollection<LocationRecordViewModel>(EnsureEditable);
+    _selectedOutfitFilters = new EditableDistributionCollection<OutfitRecordViewModel>(EnsureEditable);
+    _dialogService = dialogService;
+    _entry = entry;
+    Type = entry.Type;
+    SelectedOutfit = entry.Outfit;
     KeywordToDistribute = entry.KeywordToDistribute ?? string.Empty;
-    ExclusiveGroupName  = entry.ExclusiveGroupName ?? string.Empty;
+    ExclusiveGroupName = entry.ExclusiveGroupName ?? string.Empty;
     ExclusiveGroupFormsText = entry.ExclusiveGroupForms.Count > 0
                                 ? string.Join(",", entry.ExclusiveGroupForms)
                                 : string.Empty;
-    UseChance              = entry.Chance.HasValue;
-    Chance                 = entry.Chance ?? 100;
-    LevelFilters           = entry.LevelFilters ?? string.Empty;
-    SelectedLevelSkill     = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
+    UseChance = entry.Chance.HasValue;
+    Chance = entry.Chance ?? 100;
+    LevelFilters = entry.LevelFilters ?? string.Empty;
+    SelectedLevelSkill = SkillFilterOptions.Count > 0 ? SkillFilterOptions[0] : null;
     ParseLevelFiltersToUi(LevelFilters);
-    RawStringFilters       = entry.RawStringFilters ?? string.Empty;
-    RawFormFilters         = entry.RawFormFilters ?? string.Empty;
-    NpcLogicMode           = entry.NpcLogicMode;
-    FactionLogicMode       = entry.FactionLogicMode;
-    KeywordLogicMode       = entry.KeywordLogicMode;
-    RaceLogicMode          = entry.RaceLogicMode;
-    ClassLogicMode         = entry.ClassLogicMode;
-    LocationLogicMode      = entry.LocationLogicMode;
-    OutfitFilterLogicMode  = entry.OutfitFilterLogicMode;
+    RawStringFilters = entry.RawStringFilters ?? string.Empty;
+    RawFormFilters = entry.RawFormFilters ?? string.Empty;
+    NpcLogicMode = entry.NpcLogicMode;
+    FactionLogicMode = entry.FactionLogicMode;
+    KeywordLogicMode = entry.KeywordLogicMode;
+    RaceLogicMode = entry.RaceLogicMode;
+    ClassLogicMode = entry.ClassLogicMode;
+    LocationLogicMode = entry.LocationLogicMode;
+    OutfitFilterLogicMode = entry.OutfitFilterLogicMode;
 
     Gender = entry.TraitFilters.IsFemale switch
     {
-      true  => GenderFilter.Female,
+      true => GenderFilter.Female,
       false => GenderFilter.Male,
-      null  => GenderFilter.Any
+      null => GenderFilter.Any
     };
     Unique = entry.TraitFilters.IsUnique switch
     {
-      true  => UniqueFilter.UniqueOnly,
+      true => UniqueFilter.UniqueOnly,
       false => UniqueFilter.NonUniqueOnly,
-      null  => UniqueFilter.Any
+      null => UniqueFilter.Any
     };
     IsChild = entry.TraitFilters.IsChild;
 
@@ -152,7 +219,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(type =>
         {
-          Entry.Type = type;
+          _entry.Type = type;
           this.RaisePropertyChanged(nameof(IsOutfitDistribution));
           this.RaisePropertyChanged(nameof(IsKeywordDistribution));
           this.RaisePropertyChanged(nameof(IsExclusiveGroupDistribution));
@@ -164,7 +231,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(outfit =>
         {
-          Entry.Outfit = outfit;
+          _entry.Outfit = outfit;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -173,7 +240,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(keyword =>
         {
-          Entry.KeywordToDistribute = keyword;
+          _entry.KeywordToDistribute = keyword;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -182,7 +249,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(groupName =>
         {
-          Entry.ExclusiveGroupName = groupName;
+          _entry.ExclusiveGroupName = groupName;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -191,7 +258,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(formsText =>
         {
-          Entry.ExclusiveGroupForms =
+          _entry.ExclusiveGroupForms =
           [
             .. formsText
                .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -206,15 +273,15 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(gender =>
         {
-          Entry.TraitFilters = Entry.TraitFilters with
-                               {
-                                 IsFemale = gender switch
-                                 {
-                                   GenderFilter.Female => true,
-                                   GenderFilter.Male   => false,
-                                   _                   => null
-                                 }
-                               };
+          _entry.TraitFilters = _entry.TraitFilters with
+          {
+            IsFemale = gender switch
+            {
+              GenderFilter.Female => true,
+              GenderFilter.Male => false,
+              _ => null
+            }
+          };
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -223,15 +290,15 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(unique =>
         {
-          Entry.TraitFilters = Entry.TraitFilters with
-                               {
-                                 IsUnique = unique switch
-                                 {
-                                   UniqueFilter.UniqueOnly    => true,
-                                   UniqueFilter.NonUniqueOnly => false,
-                                   _                          => null
-                                 }
-                               };
+          _entry.TraitFilters = _entry.TraitFilters with
+          {
+            IsUnique = unique switch
+            {
+              UniqueFilter.UniqueOnly => true,
+              UniqueFilter.NonUniqueOnly => false,
+              _ => null
+            }
+          };
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -240,7 +307,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(isChild =>
         {
-          Entry.TraitFilters = Entry.TraitFilters with { IsChild = isChild };
+          _entry.TraitFilters = _entry.TraitFilters with { IsChild = isChild };
           RaiseEntryChanged();
         });
 
@@ -262,11 +329,11 @@ public partial class DistributionEntryViewModel : ReactiveObject
                 "Format Change Required"))
           {
             previousUseChance = false;
-            UseChance         = false;
+            UseChance = false;
             return;
           }
 
-          Entry.Chance = useChance ? Chance : null;
+          _entry.Chance = useChance ? Chance : null;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -277,25 +344,25 @@ public partial class DistributionEntryViewModel : ReactiveObject
         {
           if (UseChance)
           {
-            Entry.Chance = chance;
+            _entry.Chance = chance;
             RaiseFilterSummaryChanged();
             RaiseEntryChanged();
           }
         });
 
-    SubscribeLogicMode(x => x.NpcLogicMode, m => Entry.NpcLogicMode = m);
-    SubscribeLogicMode(x => x.FactionLogicMode, m => Entry.FactionLogicMode = m);
-    SubscribeLogicMode(x => x.KeywordLogicMode, m => Entry.KeywordLogicMode = m);
-    SubscribeLogicMode(x => x.RaceLogicMode, m => Entry.RaceLogicMode = m);
-    SubscribeLogicMode(x => x.ClassLogicMode, m => Entry.ClassLogicMode = m);
-    SubscribeLogicMode(x => x.LocationLogicMode, m => Entry.LocationLogicMode = m);
-    SubscribeLogicMode(x => x.OutfitFilterLogicMode, m => Entry.OutfitFilterLogicMode = m);
+    SubscribeLogicMode(x => x.NpcLogicMode, m => _entry.NpcLogicMode = m);
+    SubscribeLogicMode(x => x.FactionLogicMode, m => _entry.FactionLogicMode = m);
+    SubscribeLogicMode(x => x.KeywordLogicMode, m => _entry.KeywordLogicMode = m);
+    SubscribeLogicMode(x => x.RaceLogicMode, m => _entry.RaceLogicMode = m);
+    SubscribeLogicMode(x => x.ClassLogicMode, m => _entry.ClassLogicMode = m);
+    SubscribeLogicMode(x => x.LocationLogicMode, m => _entry.LocationLogicMode = m);
+    SubscribeLogicMode(x => x.OutfitFilterLogicMode, m => _entry.OutfitFilterLogicMode = m);
 
     this.WhenAnyValue(x => x.LevelFilters)
         .Skip(1)
         .Subscribe(levelFilters =>
         {
-          Entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
+          _entry.LevelFilters = string.IsNullOrWhiteSpace(levelFilters) ? null : levelFilters;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -322,7 +389,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(rawFilters =>
         {
-          Entry.RawStringFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
+          _entry.RawStringFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -331,7 +398,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
         .Skip(1)
         .Subscribe(rawFilters =>
         {
-          Entry.RawFormFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
+          _entry.RawFormFilters = string.IsNullOrWhiteSpace(rawFilters) ? null : rawFilters;
           RaiseFilterSummaryChanged();
           RaiseEntryChanged();
         });
@@ -339,7 +406,20 @@ public partial class DistributionEntryViewModel : ReactiveObject
     RemoveCommand = ReactiveCommand.Create(() => removeAction?.Invoke(this));
   }
 
-  public DistributionEntry Entry { get; }
+  private DistributionEntry _entry;
+  private bool _documentOwned;
+  /// <summary>A snapshot for document-owned entries; mutations go through the editor properties.</summary>
+  public DistributionEntry Entry => _documentOwned ? _entry.Copy() : _entry;
+  internal void TakeDocumentOwnership()
+  {
+    if (_documentOwned)
+    {
+      return;
+    }
+
+    _entry = _entry.Copy();
+    _documentOwned = true;
+  }
 
   public bool IsOutfitDistribution => Type == DistributionType.Outfit;
   public bool IsKeywordDistribution => Type == DistributionType.Keyword;
@@ -423,7 +503,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedNpcs;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedNpcs, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<NpcRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedNpcs, guarded);
       UpdateEntryNpcs();
     }
   }
@@ -433,7 +520,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedFactions;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedFactions, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<FactionRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedFactions, guarded);
       UpdateEntryFactions();
     }
   }
@@ -443,7 +537,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedKeywords;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedKeywords, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<KeywordRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedKeywords, guarded);
       UpdateEntryKeywords();
     }
   }
@@ -453,7 +554,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedRaces;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedRaces, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<RaceRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedRaces, guarded);
       UpdateEntryRaces();
     }
   }
@@ -463,7 +571,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedClasses;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedClasses, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<ClassRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedClasses, guarded);
       UpdateEntryClasses();
     }
   }
@@ -473,7 +588,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedLocations;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedLocations, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<LocationRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedLocations, guarded);
       UpdateEntryLocations();
     }
   }
@@ -483,7 +605,14 @@ public partial class DistributionEntryViewModel : ReactiveObject
     get => _selectedOutfitFilters;
     set
     {
-      this.RaiseAndSetIfChanged(ref _selectedOutfitFilters, value);
+      EnsureEditable();
+      var guarded = new EditableDistributionCollection<OutfitRecordViewModel>(EnsureEditable);
+      foreach (var item in value)
+      {
+        guarded.Add(item);
+      }
+
+      this.RaiseAndSetIfChanged(ref _selectedOutfitFilters, guarded);
       UpdateEntryOutfitFilters();
     }
   }
@@ -507,6 +636,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
   private void SyncEntryList<T>(List<T> target, IEnumerable<T> items)
   {
+    EnsureEditable();
     target.Clear();
     target.AddRange(items);
     RaiseFilterSummaryChanged();
@@ -522,8 +652,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
       if (string.IsNullOrWhiteSpace(text) || text.Equals("NONE", StringComparison.OrdinalIgnoreCase))
       {
         LevelFilterMode = LevelFilterMode.None;
-        LevelFilterMin  = string.Empty;
-        LevelFilterMax  = string.Empty;
+        LevelFilterMin = string.Empty;
+        LevelFilterMax = string.Empty;
         return;
       }
 
@@ -535,18 +665,18 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
       if (TryParseSkillLevelFilter(text, out var isWeight, out var skillIndex, out var minValue, out var maxValue))
       {
-        LevelFilterMode    = isWeight ? LevelFilterMode.SkillWeight : LevelFilterMode.SkillLevel;
+        LevelFilterMode = isWeight ? LevelFilterMode.SkillWeight : LevelFilterMode.SkillLevel;
         SelectedLevelSkill = GetSkillFilterOption(skillIndex);
-        LevelFilterMin     = minValue.ToString(CultureInfo.InvariantCulture);
-        LevelFilterMax     = maxValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        LevelFilterMin = minValue.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax = maxValue?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         return;
       }
 
       if (TryParseRange(text, out var minLevel, out var maxLevel))
       {
         LevelFilterMode = LevelFilterMode.Level;
-        LevelFilterMin  = minLevel.ToString(CultureInfo.InvariantCulture);
-        LevelFilterMax  = maxLevel?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        LevelFilterMin = minLevel.ToString(CultureInfo.InvariantCulture);
+        LevelFilterMax = maxLevel?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         return;
       }
 
@@ -567,12 +697,12 @@ public partial class DistributionEntryViewModel : ReactiveObject
 
     var rebuilt = LevelFilterMode switch
     {
-      LevelFilterMode.None        => null,
-      LevelFilterMode.Level       => BuildRangeSyntax(LevelFilterMin, LevelFilterMax),
-      LevelFilterMode.SkillLevel  => BuildSkillSyntax(false, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.None => null,
+      LevelFilterMode.Level => BuildRangeSyntax(LevelFilterMin, LevelFilterMax),
+      LevelFilterMode.SkillLevel => BuildSkillSyntax(false, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
       LevelFilterMode.SkillWeight => BuildSkillSyntax(true, SelectedLevelSkill, LevelFilterMin, LevelFilterMax),
-      LevelFilterMode.Raw         => null,
-      _                           => null
+      LevelFilterMode.Raw => null,
+      _ => null
     };
 
     if (LevelFilterMode == LevelFilterMode.Raw)
@@ -641,12 +771,12 @@ public partial class DistributionEntryViewModel : ReactiveObject
     out int minValue,
     out int? maxValue)
   {
-    isWeight   = false;
+    isWeight = false;
     skillIndex = 0;
-    minValue   = 0;
-    maxValue   = null;
+    minValue = 0;
+    maxValue = null;
 
-    var openParen  = text.IndexOf('(');
+    var openParen = text.IndexOf('(');
     var closeParen = text.LastIndexOf(')');
     if (openParen < 0 || closeParen <= openParen || closeParen != text.Length - 1)
     {
@@ -662,7 +792,7 @@ public partial class DistributionEntryViewModel : ReactiveObject
     if (prefix.StartsWith('w') || prefix.StartsWith('W'))
     {
       isWeight = true;
-      prefix   = prefix[1..];
+      prefix = prefix[1..];
     }
 
     if (!int.TryParse(prefix, out skillIndex) || skillIndex < 0 || skillIndex > 17)
@@ -723,8 +853,8 @@ public partial class DistributionEntryViewModel : ReactiveObject
   {
     if (Type == DistributionType.ExclusiveGroup)
     {
-      return Entry.ExclusiveGroupForms.Count > 0
-               ? $"{Entry.ExclusiveGroupForms.Count} form(s)"
+      return _entry.ExclusiveGroupForms.Count > 0
+               ? $"{_entry.ExclusiveGroupForms.Count} form(s)"
                : "No forms";
     }
 
@@ -791,29 +921,29 @@ public partial class DistributionEntryViewModel : ReactiveObject
   }
 
   public void UpdateEntryNpcs() =>
-    SyncEntryList(Entry.NpcFilters, _selectedNpcs.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
+    SyncEntryList(_entry.NpcFilters, _selectedNpcs.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
   public void UpdateEntryFactions() =>
-    SyncEntryList(Entry.FactionFilters, _selectedFactions.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
+    SyncEntryList(_entry.FactionFilters, _selectedFactions.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
   public void UpdateEntryKeywords() =>
     SyncEntryList(
-      Entry.KeywordFilters,
+      _entry.KeywordFilters,
       _selectedKeywords
         .Where(k => !string.IsNullOrWhiteSpace(k.KeywordRecord.EditorID))
         .Select(k => new KeywordFilter(k.KeywordRecord.EditorID!, k.IsExcluded)));
 
   public void UpdateEntryRaces() =>
-    SyncEntryList(Entry.RaceFilters, _selectedRaces.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
+    SyncEntryList(_entry.RaceFilters, _selectedRaces.Select(x => new FormKeyFilter(x.FormKey, x.IsExcluded)));
 
   public void UpdateEntryClasses() =>
-    SyncEntryList(Entry.ClassFormKeys, _selectedClasses.Select(x => x.FormKey));
+    SyncEntryList(_entry.ClassFormKeys, _selectedClasses.Select(x => x.FormKey));
 
   public void UpdateEntryLocations() =>
-    SyncEntryList(Entry.LocationFormKeys, _selectedLocations.Select(x => x.FormKey));
+    SyncEntryList(_entry.LocationFormKeys, _selectedLocations.Select(x => x.FormKey));
 
   public void UpdateEntryOutfitFilters() =>
-    SyncEntryList(Entry.OutfitFilterFormKeys, _selectedOutfitFilters.Select(x => x.FormKey));
+    SyncEntryList(_entry.OutfitFilterFormKeys, _selectedOutfitFilters.Select(x => x.FormKey));
 
   public static bool AddCriterion<T>(T item, ObservableCollection<T> collection, Action updateAction)
     where T : ISelectableRecordViewModel

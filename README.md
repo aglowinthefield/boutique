@@ -73,6 +73,9 @@ assignments, create custom outfit records, and sync armor stats between mods.
 5. **Add Filters**: Use the NPCs, Factions, Keywords, or Races tabs to add targeting filters
 6. **Save**: Choose a filename and click "Save File"
 
+Distribution files are not autosaved. Save-and-continue waits before leaving the editor; cancelling or a failed write
+keeps your changes. See [saving distribution files](docs/README.md#saving-distribution-files) for backup and discard behavior.
+
 ### Using the NPC Browser to Build Filters
 
 1. Go to **Distribution > NPCs** tab

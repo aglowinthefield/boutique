@@ -11,11 +11,12 @@ namespace Boutique.Views;
 public partial class MainWindow
 {
   private readonly CompositeDisposable _bindings = [];
-  private readonly GuiSettingsService  _guiSettings;
-  private readonly ThemeService        _themeService;
-  private          bool                _closingConfirmed;
-  private          bool                _initialized;
-  private          int                 _previousMainTabIndex;
+  private readonly GuiSettingsService _guiSettings;
+  private readonly ThemeService _themeService;
+  private bool _closingConfirmed;
+  private bool _navigationPending;
+  private bool _initialized;
+  private int _previousMainTabIndex;
 
   public MainWindow(
     MainViewModel viewModel,
@@ -23,9 +24,9 @@ public partial class MainWindow
     GuiSettingsService guiSettings)
   {
     InitializeComponent();
-    DataContext   = viewModel;
+    DataContext = viewModel;
     _themeService = themeService;
-    _guiSettings  = guiSettings;
+    _guiSettings = guiSettings;
 
     _guiSettings.RestoreWindowGeometry(this);
 
@@ -34,7 +35,7 @@ public partial class MainWindow
       _themeService.ApplyTitleBarTheme(this);
       ApplyFontScale(_themeService.CurrentFontScale);
     };
-    _themeService.ThemeChanged     += OnThemeChanged;
+    _themeService.ThemeChanged += OnThemeChanged;
     _themeService.FontScaleChanged += OnFontScaleChanged;
 
     var notificationDisposable = viewModel.PatchCreatedNotification.RegisterHandler(async interaction =>
@@ -124,7 +125,7 @@ public partial class MainWindow
     });
     _bindings.Add(errorDisposable);
 
-    Closing += (_, e) =>
+    Closing += async (_, e) =>
     {
       _guiSettings.SaveWindowGeometry(this);
       if (_closingConfirmed)
@@ -132,23 +133,30 @@ public partial class MainWindow
         return;
       }
 
-      if (viewModel.Distribution.EditTab.HasUnsavedChanges)
+      e.Cancel = true;
+      if (_navigationPending)
       {
-        e.Cancel = true;
-        Dispatcher.BeginInvoke(() =>
+        return;
+      }
+
+      _navigationPending = true;
+      try
+      {
+        if (await viewModel.Distribution.EditTab.PromptAndSaveIfNeededAsync())
         {
-          if (viewModel.Distribution.EditTab.PromptAndSaveIfNeeded())
-          {
-            _closingConfirmed = true;
-            Close();
-          }
-        });
+          _closingConfirmed = true;
+          Dispatcher.BeginInvoke(new Action(Close));
+        }
+      }
+      finally
+      {
+        _navigationPending = false;
       }
     };
     Closed += (_, _) =>
     {
       _bindings.Dispose();
-      _themeService.ThemeChanged     -= OnThemeChanged;
+      _themeService.ThemeChanged -= OnThemeChanged;
       _themeService.FontScaleChanged -= OnFontScaleChanged;
     };
     Loaded += OnLoaded;
@@ -187,18 +195,35 @@ public partial class MainWindow
 
     var currentIndex = tabControl.SelectedIndex;
 
-    if (_previousMainTabIndex == 0 && currentIndex != 0 &&
-        viewModel.Distribution.EditTab.HasUnsavedChanges)
+    if (_navigationPending)
     {
-      _ = Dispatcher.BeginInvoke(() =>
+      if (tabControl.SelectedIndex != _previousMainTabIndex)
       {
-        if (!viewModel.Distribution.EditTab.PromptAndSaveIfNeeded())
-        {
-          tabControl.SelectedIndex = 0;
-        }
+        tabControl.SelectedIndex = _previousMainTabIndex;
+      }
 
-        _previousMainTabIndex = tabControl.SelectedIndex;
-      });
+      return;
+    }
+
+    if (_previousMainTabIndex == 0 && currentIndex != 0)
+    {
+      _navigationPending = true;
+      tabControl.SelectedIndex = _previousMainTabIndex;
+      var proceed = false;
+      try
+      {
+        proceed = await viewModel.Distribution.EditTab.PromptAndSaveIfNeededAsync();
+      }
+      finally
+      {
+        _navigationPending = false;
+      }
+      if (proceed)
+      {
+        _previousMainTabIndex = currentIndex;
+        tabControl.SelectedIndex = currentIndex;
+      }
+
       return;
     }
 

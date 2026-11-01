@@ -59,10 +59,10 @@
       <StackPanel x:Name="PatchFileNamePanel" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
         <TextBlock Text="{lex:Loc Status_Patch}" Margin="0,0,6,0" VerticalAlignment="Center"
                    Foreground="{StaticResource Brush.TextSecondary}" />
-        <TextBox Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged}"
+        <TextBox IsEnabled="{Binding Settings.CanChangeOutput}" Text="{Binding Settings.PatchFileBaseName, UpdateSourceTrigger=PropertyChanged}"
                  MinWidth="120" FontFamily="{StaticResource Font.Mono}"
                  FontSize="{DynamicResource FontSize.Small}" VerticalAlignment="Center" />
-        <ComboBox ItemsSource="{Binding Settings.PatchExtensions}"
+        <ComboBox IsEnabled="{Binding Settings.CanChangeOutput}" ItemsSource="{Binding Settings.PatchExtensions}"
                   SelectedItem="{Binding Settings.SelectedPatchExtension}"
                   FontFamily="{StaticResource Font.Mono}" FontSize="{DynamicResource FontSize.Small}"
                   VerticalAlignment="Center" Margin="4,0,0,0" />

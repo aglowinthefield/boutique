@@ -1,6 +1,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using Boutique.Services;
 using Boutique.ViewModels;
 using ReactiveUI;
@@ -10,13 +11,51 @@ namespace Boutique.Views;
 public partial class DistributionView
 {
   private IDisposable? _previewSubscription;
+  private bool _restoringTab;
+  private bool _navigationPending;
+
+  private async void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
+  {
+    if (_restoringTab || sender is not TabControl tabs || e.OriginalSource != tabs ||
+        DataContext is not DistributionViewModel viewModel)
+    {
+      return;
+    }
+
+    var requestedIndex = tabs.SelectedIndex;
+    if (requestedIndex == viewModel.SelectedTabIndex)
+    {
+      return;
+    }
+
+    _restoringTab = true;
+    tabs.SetCurrentValue(TabControl.SelectedIndexProperty, viewModel.SelectedTabIndex);
+    _restoringTab = false;
+    if (_navigationPending)
+    {
+      return;
+    }
+
+    _navigationPending = true;
+    try
+    {
+      await viewModel.SelectTabAsync(requestedIndex);
+    }
+    finally
+    {
+      _navigationPending = false;
+      _restoringTab = true;
+      tabs.SetCurrentValue(TabControl.SelectedIndexProperty, viewModel.SelectedTabIndex);
+      _restoringTab = false;
+    }
+  }
 
   public DistributionView()
   {
     InitializeComponent();
     DataContextChanged += OnDataContextChanged;
-    Loaded             += OnLoaded;
-    Unloaded           += OnUnloaded;
+    Loaded += OnLoaded;
+    Unloaded += OnUnloaded;
   }
 
   private void OnUnloaded(object sender, RoutedEventArgs e) => DisposePreviewSubscription();
@@ -34,7 +73,7 @@ public partial class DistributionView
     {
       await Dispatcher.InvokeAsync(() =>
       {
-        var owner        = Window.GetWindow(this);
+        var owner = Window.GetWindow(this);
         var themeService = ThemeService.Current;
         if (themeService == null)
         {

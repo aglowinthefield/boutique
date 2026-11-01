@@ -25,8 +25,16 @@ public class DistributionFileBackupService
 
   private readonly ILogger _logger;
 
-  public DistributionFileBackupService(ILogger logger) =>
+  private readonly string _backupRoot;
+
+  public DistributionFileBackupService(ILogger logger, string? backupRoot = null)
+  {
     _logger = logger.ForContext<DistributionFileBackupService>();
+    _backupRoot = backupRoot ?? BackupRoot;
+  }
+
+  private string BackupDirectory(string filePath) =>
+    Path.Combine(_backupRoot, Path.GetFileName(GetBackupDirectory(filePath)));
 
   /// <summary>
   ///   Copies the current contents of <paramref name="filePath" /> into a timestamped backup,
@@ -42,11 +50,11 @@ public class DistributionFileBackupService
 
     try
     {
-      var backupDir = GetBackupDirectory(filePath);
+      var backupDir = BackupDirectory(filePath);
       Directory.CreateDirectory(backupDir);
 
-      var timestamp  = DateTime.UtcNow.ToString("yyyyMMdd_HHmmssfff", CultureInfo.InvariantCulture);
-      var backupName = $"{Path.GetFileName(filePath)}.{timestamp}.bak";
+      var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmssfff", CultureInfo.InvariantCulture);
+      var backupName = $"{Path.GetFileName(filePath)}.{timestamp}.{Guid.NewGuid():N}.bak";
       var backupPath = Path.Combine(backupDir, backupName);
 
       File.Copy(filePath, backupPath, overwrite: false);
@@ -67,7 +75,7 @@ public class DistributionFileBackupService
       return [];
     }
 
-    var dir = GetBackupDirectory(filePath);
+    var dir = BackupDirectory(filePath);
     if (!Directory.Exists(dir))
     {
       return [];
@@ -88,8 +96,8 @@ public class DistributionFileBackupService
   /// </summary>
   public static string GetBackupDirectory(string filePath)
   {
-    var shortHash  = ShortHashOfPath(filePath);
-    var safeName   = Path.GetFileName(filePath);
+    var shortHash = ShortHashOfPath(filePath);
+    var safeName = Path.GetFileName(filePath);
     var folderName = $"{safeName}_{shortHash}";
     return Path.Combine(BackupRoot, folderName);
   }
@@ -117,7 +125,7 @@ public class DistributionFileBackupService
   private static string ShortHashOfPath(string filePath)
   {
     var normalized = filePath.ToLowerInvariant();
-    var bytes      = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
+    var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
     return Convert.ToHexString(bytes).Substring(0, 8).ToLowerInvariant();
   }
 }

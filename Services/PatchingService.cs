@@ -13,14 +13,16 @@ namespace Boutique.Services;
 /// Creates and modifies Skyrim patch plugins by copying armor stats, keywords, enchantments,
 /// and tempering recipes from gameplay mods to cosmetic mods, and generates outfit records.
 /// </summary>
-public class PatchingService(MutagenService mutagenService, ILoggingService loggingService)
+public partial class PatchingService(MutagenService mutagenService, ILoggingService loggingService,
+  IConnectedDraftEnvironment? draftEnvironment = null)
 {
-  private const    uint    MinimumFormId = 0x800;
+  private const uint MinimumFormId = 0x800;
   private static readonly ModKey SkyrimMaster = ModKey.FromFileName("Skyrim.esm");
-  private readonly ILogger _logger       = loggingService.ForContext<PatchingService>();
+  private readonly ILogger _logger = loggingService.ForContext<PatchingService>();
 
   private void RequireInitialized()
   {
+    RequireOutputWritesReady();
     if (!mutagenService.IsInitialized)
     {
       throw new InvalidOperationException("Mutagen service is not initialized. Please set the Skyrim data path first.");
@@ -95,6 +97,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string outputPath,
     IProgress<(int current, int total, string message)>? progress = null)
   {
+    using var transaction = AcquireOutputTransaction();
     var result = await Task.Run(() =>
     {
       try
@@ -118,7 +121,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         _logger.Information("Loaded patch containing {ArmorCount} armor overrides.", patchMod.Armors.Count);
 
         var current = 0;
-        var total   = validMatches.Count;
+        var total = validMatches.Count;
 
         foreach (var match in validMatches)
         {
@@ -207,6 +210,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       string outputPath,
       IProgress<(int current, int total, string message)>? progress = null)
   {
+    using var transaction = AcquireOutputTransaction();
     var result = await Task.Run(() =>
     {
       try
@@ -214,7 +218,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         RequireInitialized();
 
         var outfitList = outfits.ToList();
-        var listList   = lists.ToList();
+        var listList = lists.ToList();
         if (outfitList.Count == 0 && listList.Count == 0)
         {
           return (false, "Nothing to save.",
@@ -230,7 +234,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
         var (patchMod, requiredMasters) = LoadOrCreatePatch(outputPath, "outfit/leveled list save");
 
-        var draftMap    = new Dictionary<Guid, FormKey>();
+        var draftMap = new Dictionary<Guid, FormKey>();
         var listResults = WriteLeveledLists(patchMod, requiredMasters, listList, draftMap, progress);
         var outfitResults = WriteOutfits(patchMod, requiredMasters, outfitList, draftMap, progress);
 
@@ -289,7 +293,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     IProgress<(int current, int total, string message)>? progress)
   {
     var results = new List<OutfitCreationResult>();
-    var total   = outfitList.Count;
+    var total = outfitList.Count;
     var current = 0;
 
     foreach (var request in outfitList)
@@ -333,7 +337,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       Outfit? existing = null;
       if (request.ExistingFormKey.HasValue)
       {
-        existing = patchMod.Outfits.FirstOrDefault(o => o.FormKey == request.ExistingFormKey.Value);
+        existing = patchMod.Outfits.FirstOrDefault(o => o.FormKey == request.ExistingFormKey.Value)
+          ?? throw new InvalidOperationException($"Persisted outfit {request.ExistingFormKey.Value} is missing; EditorID fallback is forbidden.");
       }
 
       existing ??= patchMod.Outfits
@@ -379,7 +384,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       }
       else
       {
-        outfit          = patchMod.Outfits.AddNew();
+        outfit = patchMod.Outfits.AddNew();
         outfit.EditorID = request.EditorId;
         _logger.Information(
           "Creating new outfit {EditorId} with {Count} item(s).",
@@ -416,12 +421,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
     foreach (var listRef in request.LeveledLists)
     {
-      var formKey = ResolveItemRef(listRef.ExistingFormKey, listRef.DraftId, draftMap);
-      if (formKey == null)
-      {
-        _logger.Warning("Outfit {EditorId} references an unresolved leveled list; skipping.", request.EditorId);
-        continue;
-      }
+      var formKey = ResolveItemRef(listRef.ExistingFormKey, listRef.DraftId, draftMap) ?? throw new InvalidOperationException($"Outfit {request.EditorId} has an unresolved leveled-list reference.");
 
       items.Add(formKey.Value.ToLink<IOutfitTargetGetter>());
       requiredMasters.Add(formKey.Value.ModKey);
@@ -473,7 +473,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       }
       else
       {
-        item          = patchMod.LeveledItems.AddNew();
+        item = patchMod.LeveledItems.AddNew();
         item.EditorID = request.EditorId;
       }
 
@@ -485,7 +485,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       pending.Add((request, item));
     }
 
-    var total   = pending.Count;
+    var total = pending.Count;
     var current = 0;
     foreach (var (request, item) in pending)
     {
@@ -498,22 +498,17 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       entries.Clear();
       foreach (var entry in request.Entries)
       {
-        var formKey = ResolveItemRef(entry.ItemFormKey, entry.DraftListId, draftMap);
-        if (formKey == null)
-        {
-          _logger.Warning("Leveled list {EditorId} has an unresolved entry; skipping.", request.EditorId);
-          continue;
-        }
+        var formKey = ResolveItemRef(entry.ItemFormKey, entry.DraftListId, draftMap) ?? throw new InvalidOperationException($"Leveled list {request.EditorId} has an unresolved entry.");
 
         entries.Add(new LeveledItemEntry
-                    {
-                      Data = new LeveledItemEntryData
-                             {
-                               Reference = formKey.Value.ToLink<IItemGetter>(),
-                               Level     = entry.Level,
-                               Count     = entry.Count
-                             }
-                    });
+        {
+          Data = new LeveledItemEntryData
+          {
+            Reference = formKey.Value.ToLink<IItemGetter>(),
+            Level = entry.Level,
+            Count = entry.Count
+          }
+        });
         requiredMasters.Add(formKey.Value.ModKey);
       }
 
@@ -542,6 +537,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
         existing = patchMod.LeveledItems.GetOrAddAsOverride(sourceList);
         requiredMasters.Add(sourceList.FormKey.ModKey);
       }
+
+      if (existing == null)
+      {
+        throw new InvalidOperationException($"Leveled list {request.ExistingFormKey.Value} is unavailable; EditorID fallback is forbidden.");
+      }
     }
 
     existing ??= patchMod.LeveledItems
@@ -556,9 +556,10 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
   private static FormKey? ResolveItemRef(FormKey? formKey, Guid? draftId, Dictionary<Guid, FormKey> draftMap)
   {
-    if (draftId.HasValue && draftMap.TryGetValue(draftId.Value, out var mapped))
+    if (draftId.HasValue)
     {
-      return mapped;
+      return draftMap.TryGetValue(draftId.Value, out var mapped) ? mapped
+        : throw new InvalidOperationException($"Unresolved draft reference {draftId.Value}.");
     }
 
     if (formKey.HasValue && formKey.Value != FormKey.Null)
@@ -587,8 +588,8 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private static void CopyArmorStats(Armor target, IArmorGetter source)
   {
     target.ArmorRating = source.ArmorRating;
-    target.Value       = source.Value;
-    target.Weight      = source.Weight;
+    target.Value = source.Value;
+    target.Weight = source.Weight;
   }
 
   private static void CopyKeywords(Armor target, IArmorGetter source)
@@ -648,7 +649,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     return File.Exists(masterPath);
   }
 
-  private void WritePatchWithRetry(SkyrimMod patchMod, string outputPath, HashSet<ModKey> extraMasters)
+  private void WritePatchWithRetry(SkyrimMod patchMod, string outputPath, HashSet<ModKey> extraMasters, Action? validateDestination = null, Action<string>? prepared = null)
   {
     var tempPath = Path.Combine(
       Path.GetDirectoryName(outputPath)!,
@@ -673,22 +674,23 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       using (var writtenMod =
         SkyrimMod.CreateFromBinaryOverlay(
           tempPath,
-          mutagenService.SkyrimRelease,
-          mutagenService.Utf8ReadParameters))
+          _draftEnvironment.Release))
       {
         _logger.Information(
           "Masters after write: {Masters}",
           string.Join(", ", writtenMod.ModHeader.MasterReferences.Select(m => m.Master.FileName)));
       }
 
-      const int  maxRetries     = 10;
-      const int  initialDelayMs = 100;
-      Exception? lastException  = null;
+      prepared?.Invoke(ConnectedDraftLifecycle.Fingerprint(tempPath)!);
+      const int maxRetries = 10;
+      const int initialDelayMs = 100;
+      Exception? lastException = null;
 
       for (var attempt = 1; attempt <= maxRetries; attempt++)
       {
         try
         {
+          validateDestination?.Invoke();
           File.Move(tempPath, outputPath, true);
           return;
         }
@@ -740,7 +742,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
 
   private void TryApplyEslFlag(SkyrimMod patchMod)
   {
-    if (mutagenService.SkyrimRelease == SkyrimRelease.SkyrimVR)
+    if (_draftEnvironment.Release == SkyrimRelease.SkyrimVR)
     {
       _logger.Information("ESL flag skipped — Skyrim VR does not natively support ESL plugins.");
       return;
@@ -787,11 +789,11 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           patchPath,
           mutagenService.SkyrimRelease,
           mutagenService.Utf8ReadParameters);
-        var dataFolder       = mutagenService.DataFolderPath ?? string.Empty;
+        var dataFolder = mutagenService.DataFolderPath ?? string.Empty;
         var loadOrderModKeys = mutagenService.GetLoadOrderModKeys();
-        var masterRefs       = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
-        var missingMasters   = new List<ModKey>();
-        var patchModKey      = patchMod.ModKey;
+        var masterRefs = patchMod.ModHeader.MasterReferences.Select(m => m.Master).ToList();
+        var missingMasters = new List<ModKey>();
+        var patchModKey = patchMod.ModKey;
 
         foreach (var master in masterRefs)
         {
@@ -823,9 +825,9 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           return new MissingMastersResult(false, [], []);
         }
 
-        var missingMasterSet        = missingMasters.ToHashSet();
+        var missingMasterSet = missingMasters.ToHashSet();
         var affectedOutfitsByMaster = new Dictionary<ModKey, List<AffectedOutfitInfo>>();
-        var validOutfitsList        = new List<IOutfitGetter>();
+        var validOutfitsList = new List<IOutfitGetter>();
 
         foreach (var outfit in patchMod.Outfits)
         {
@@ -861,7 +863,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
             {
               if (!affectedOutfitsByMaster.TryGetValue(master, out var list))
               {
-                list                            = [];
+                list = [];
                 affectedOutfitsByMaster[master] = list;
               }
 
@@ -904,6 +906,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
     string patchPath,
     IReadOnlyList<AffectedOutfitInfo> outfitsToRemove)
   {
+    using var transaction = AcquireOutputTransaction();
     return await Task.Run(() =>
     {
       try
@@ -918,7 +921,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
           patchPath,
           outfitsToRemove.Count);
 
-        var patchMod           = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
+        var patchMod = SkyrimMod.CreateFromBinary(patchPath, mutagenService.SkyrimRelease);
         var outfitsToRemoveSet = outfitsToRemove.Select(o => o.FormKey).ToHashSet();
 
         var removedCount = 0;
@@ -968,7 +971,7 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
   private static HashSet<ModKey> CollectRequiredMasters(SkyrimMod patchMod, HashSet<FormKey> excludedOutfits)
   {
     var requiredMasters = new HashSet<ModKey>();
-    var patchModKey     = patchMod.ModKey;
+    var patchModKey = patchMod.ModKey;
 
     void AddMaster(ModKey modKey)
     {
@@ -990,50 +993,50 @@ public class PatchingService(MutagenService mutagenService, ILoggingService logg
       switch (record)
       {
         case IOutfitGetter { Items: not null } outfitRecord:
-        {
-          foreach (var formKey in outfitRecord.Items
-                     .Select(item => item.FormKeyNullable)
-                     .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
           {
-            AddMaster(formKey!.Value.ModKey);
-          }
+            foreach (var formKey in outfitRecord.Items
+                       .Select(item => item.FormKeyNullable)
+                       .Where(fk => fk.HasValue && fk.Value != FormKey.Null))
+            {
+              AddMaster(formKey!.Value.ModKey);
+            }
 
-          break;
-        }
+            break;
+          }
 
         case ILeveledItemGetter { Entries: not null } leveledItem:
-        {
-          foreach (var entry in leveledItem.Entries)
           {
-            if (entry.Data?.Reference.FormKeyNullable is { } refKey && refKey != FormKey.Null)
+            foreach (var entry in leveledItem.Entries)
             {
-              AddMaster(refKey.ModKey);
-            }
-          }
-
-          break;
-        }
-
-        case IArmorGetter armor:
-        {
-          if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
-          {
-            AddMaster(enchantKey.ModKey);
-          }
-
-          if (armor.Keywords != null)
-          {
-            foreach (var keyword in armor.Keywords)
-            {
-              if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+              if (entry.Data?.Reference.FormKeyNullable is { } refKey && refKey != FormKey.Null)
               {
-                AddMaster(keywordKey.ModKey);
+                AddMaster(refKey.ModKey);
               }
             }
+
+            break;
           }
 
-          break;
-        }
+        case IArmorGetter armor:
+          {
+            if (armor.ObjectEffect.FormKeyNullable is { } enchantKey && enchantKey != FormKey.Null)
+            {
+              AddMaster(enchantKey.ModKey);
+            }
+
+            if (armor.Keywords != null)
+            {
+              foreach (var keyword in armor.Keywords)
+              {
+                if (keyword.FormKeyNullable is { } keywordKey && keywordKey != FormKey.Null)
+                {
+                  AddMaster(keywordKey.ModKey);
+                }
+              }
+            }
+
+            break;
+          }
       }
     }
 

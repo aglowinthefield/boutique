@@ -10,7 +10,7 @@
              d:DataContext="{d:DesignInstance vm:DistributionEditTabViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="700"
              d:DesignWidth="1200">
-  <Grid>
+  <Grid IsEnabled="{Binding CanEditDocument}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="2*" MinWidth="300" />
       <ColumnDefinition Width="5" />

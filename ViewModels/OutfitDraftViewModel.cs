@@ -10,16 +10,25 @@ namespace Boutique.ViewModels;
 
 public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 {
-  private readonly   Func<OutfitDraftViewModel, Task>                   _duplicateDraft;
-  private readonly   ObservableCollection<ArmorRecordViewModel>         _pieces;
-  private readonly   ObservableCollection<OutfitLeveledListRefViewModel> _leveledLists = [];
-  private readonly   Func<OutfitDraftViewModel, Task>                   _previewDraft;
-  private readonly   Action<OutfitDraftViewModel>                       _removeDraft;
-  private readonly   Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
-  [Reactive] private FormKey?                                           _formKey;
+  private readonly Func<OutfitDraftViewModel, Task> _duplicateDraft;
+  private readonly ObservableCollection<ArmorRecordViewModel> _pieces;
+  private readonly ObservableCollection<OutfitLeveledListRefViewModel> _leveledLists = [];
+  private readonly Func<OutfitDraftViewModel, Task> _previewDraft;
+  private readonly Action<OutfitDraftViewModel> _removeDraft;
+  private readonly Action<OutfitDraftViewModel, ArmorRecordViewModel> _removePiece;
+  private FormKey? _formKey;
+  public FormKey? FormKey
+  {
+    get => _formKey; set
+    {
+      EnsureCanEdit?.Invoke();
+      ApplyCommittedIdentity(value);
+    }
+  }
+  internal void ApplyCommittedIdentity(FormKey? value) => this.RaiseAndSetIfChanged(ref _formKey, value, nameof(FormKey));
 
   [Reactive] private bool _isExpanded = true;
-  [Reactive] private bool _isVisible  = true;
+  [Reactive] private bool _isVisible = true;
 
   private string _name = string.Empty;
 
@@ -32,19 +41,19 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
     Func<OutfitDraftViewModel, Task> previewDraft,
     Func<OutfitDraftViewModel, Task>? duplicateDraft = null)
   {
-    _removeDraft    = removeDraft ?? throw new ArgumentNullException(nameof(removeDraft));
-    _removePiece    = removePiece ?? throw new ArgumentNullException(nameof(removePiece));
-    _previewDraft   = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
+    _removeDraft = removeDraft ?? throw new ArgumentNullException(nameof(removeDraft));
+    _removePiece = removePiece ?? throw new ArgumentNullException(nameof(removePiece));
+    _previewDraft = previewDraft ?? throw new ArgumentNullException(nameof(previewDraft));
     _duplicateDraft = duplicateDraft ?? (_ => Task.CompletedTask);
 
     SetNameInternal(string.IsNullOrWhiteSpace(name) ? editorId : name);
 
-    _pieces                   =  new ObservableCollection<ArmorRecordViewModel>(pieces);
+    _pieces = new ObservableCollection<ArmorRecordViewModel>(pieces);
     _pieces.CollectionChanged += PiecesOnCollectionChanged;
-    Pieces                    =  new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
+    Pieces = new ReadOnlyObservableCollection<ArmorRecordViewModel>(_pieces);
 
     _leveledLists.CollectionChanged += LeveledListsOnCollectionChanged;
-    LeveledLists                    =  new ReadOnlyObservableCollection<OutfitLeveledListRefViewModel>(_leveledLists);
+    LeveledLists = new ReadOnlyObservableCollection<OutfitLeveledListRefViewModel>(_leveledLists);
 
     this.WhenAnyValue(x => x.FormKey)
         .Subscribe(_ =>
@@ -54,19 +63,27 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
         });
 
     RemovePieceCommand = ReactiveCommand.Create<ArmorRecordViewModel>(piece => _removePiece(this, piece));
-    RemoveSelfCommand  = ReactiveCommand.Create(() => _removeDraft(this));
+    RemoveSelfCommand = ReactiveCommand.Create(() => _removeDraft(this));
     PreviewCommand = ReactiveCommand.CreateFromTask(
       () => _previewDraft(this),
       this.WhenAnyValue(x => x.HasPieces));
     DuplicateCommand = ReactiveCommand.CreateFromTask(
       () => _duplicateDraft(this),
-      this.WhenAnyValue(x => x.HasPieces));
+      this.WhenAnyValue(x => x.HasContent));
   }
+
+  public Guid Id { get; } = Guid.NewGuid();
+  public Action? EnsureCanEdit { get; set; }
+  public Action? EnsureCanEditContent { get; set; }
 
   public string Name
   {
     get => _name;
-    set => SetNameInternal(value);
+    set
+    {
+      EnsureCanEdit?.Invoke();
+      SetNameInternal(value);
+    }
   }
 
   public string EditorId { get; private set; } = string.Empty;
@@ -105,12 +122,13 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 
   public ReactiveCommand<Unit, Unit> DuplicateCommand { get; }
 
-  public string ItemId => $"draft:{EditorId}";
+  public string ItemId => $"draft:{Id}";
 
   public IReadOnlyList<ArmorRecordViewModel> GetPieces() => _pieces.ToList();
 
   public void RemovePiece(ArmorRecordViewModel piece)
   {
+    EnsureCanEditContent?.Invoke();
     if (_pieces.Remove(piece))
     {
       this.RaisePropertyChanged(nameof(HasPieces));
@@ -120,6 +138,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   public (IReadOnlyList<ArmorRecordViewModel> added, IReadOnlyList<ArmorRecordViewModel> replaced) AddPieces(
     IEnumerable<ArmorRecordViewModel> newPieces)
   {
+    EnsureCanEditContent?.Invoke();
     var added = new List<ArmorRecordViewModel>();
 
     foreach (var piece in newPieces)
@@ -143,6 +162,7 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
 
   public bool AddLeveledList(LeveledListReference reference)
   {
+    EnsureCanEditContent?.Invoke();
     if (_leveledLists.Any(l => string.Equals(l.Reference.DedupKey, reference.DedupKey, StringComparison.OrdinalIgnoreCase)))
     {
       return false;
@@ -155,7 +175,11 @@ public partial class OutfitDraftViewModel : ReactiveObject, IOutfitQueueItem
   public IReadOnlyList<LeveledListReference> GetLeveledListReferences() =>
     _leveledLists.Select(l => l.Reference).ToList();
 
-  private void RemoveLeveledList(OutfitLeveledListRefViewModel item) => _leveledLists.Remove(item);
+  private void RemoveLeveledList(OutfitLeveledListRefViewModel item)
+  {
+    EnsureCanEditContent?.Invoke();
+    _leveledLists.Remove(item);
+  }
 
   private void PiecesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
@@ -197,7 +221,7 @@ public class OutfitLeveledListRefViewModel : ReactiveObject
 {
   public OutfitLeveledListRefViewModel(LeveledListReference reference, Action<OutfitLeveledListRefViewModel> remove)
   {
-    Reference     = reference;
+    Reference = reference;
     RemoveCommand = ReactiveCommand.Create(() => remove(this));
   }
 

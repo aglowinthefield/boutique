@@ -23,12 +23,16 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 {
   private const string EditorIdPrefix = "LItemBTQ";
 
-  private readonly CompositeDisposable                   _disposables = new();
-  private readonly ILogger                               _logger;
+  private readonly CompositeDisposable _disposables = new();
+  private readonly ILogger _logger;
   private readonly SourceList<LeveledListDraftViewModel> _source = new();
 
-  public LeveledListDraftManager(ILoggingService loggingService)
+  private readonly ConnectedDraftLifecycle _lifecycle;
+
+  public LeveledListDraftManager(ILoggingService loggingService, ConnectedDraftLifecycle lifecycle)
   {
+    _lifecycle = lifecycle;
+    _lifecycle.StateChanged += ReconcileCommittedDeletions;
     _logger = loggingService.ForContext<LeveledListDraftManager>();
 
     _disposables.Add(
@@ -54,8 +58,19 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 
   public bool SuppressAutoSave { get; set; }
 
+  private void ReconcileCommittedDeletions()
+  {
+    var retained = _lifecycle.Drafts.Select(d => d.DraftId).ToHashSet();
+    foreach (var draft in _source.Items.OfType<LeveledListDraftViewModel>().Where(d => !retained.Contains(d.Id)).ToArray())
+    {
+      Detach(draft);
+      _source.Remove(draft);
+    }
+  }
+
   public void Dispose()
   {
+    _lifecycle.StateChanged -= ReconcileCommittedDeletions;
     _disposables.Dispose();
     _source.Dispose();
     GC.SuppressFinalize(this);
@@ -66,6 +81,7 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 
   public LeveledListDraftViewModel? CreateDraft(IReadOnlyList<ArmorRecordViewModel> pieces)
   {
+    _lifecycle.EnsureEditable();
     var distinct = pieces.GroupBy(p => p.Armor.FormKey).Select(g => g.First()).ToList();
     if (distinct.Count == 0)
     {
@@ -74,7 +90,7 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
     }
 
     var editorId = EnsureUniqueEditorId(GenerateEditorId(distinct[0]));
-    var draft    = new LeveledListDraftViewModel(editorId, RemoveDraft);
+    var draft = new LeveledListDraftViewModel(editorId, RemoveDraft);
     Attach(draft);
 
     foreach (var piece in distinct)
@@ -82,6 +98,7 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
       draft.AddArmorEntry(piece);
     }
 
+    _lifecycle.Bind(draft);
     _source.Add(draft);
 
     RaiseStatus($"Added leveled list '{draft.EditorId}' with {distinct.Count} entry/entries.");
@@ -137,6 +154,15 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 
   public void RemoveDraft(LeveledListDraftViewModel draft)
   {
+    try
+    {
+      _lifecycle.RemoveDraft(draft.Id);
+    }
+    catch (InvalidOperationException ex)
+    {
+      RaiseStatus(ex.Message);
+      return;
+    }
     Detach(draft);
     if (!_source.Remove(draft))
     {
@@ -154,6 +180,7 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
     ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
     bool skipExistingFormKeys = true)
   {
+    _lifecycle.EnsureEditable();
     var existingKeys = _source.Items
                               .Where(d => d.FormKey.HasValue)
                               .Select(d => d.FormKey!.Value)
@@ -173,12 +200,13 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
       editorId = EnsureUniqueEditorId(editorId);
 
       var draft = new LeveledListDraftViewModel(editorId, RemoveDraft)
-                  {
-                    FormKey = leveledItem.FormKey,
-                    UseAll  = leveledItem.Flags.HasFlag(LeveledItem.Flag.UseAll)
-                  };
+      {
+        FormKey = leveledItem.FormKey,
+        UseAll = leveledItem.Flags.HasFlag(LeveledItem.Flag.UseAll)
+      };
       Attach(draft);
       PopulateFromLeveledItem(draft, leveledItem, linkCache);
+      _lifecycle.Bind(draft);
       _source.Add(draft);
 
       existingKeys.Add(leveledItem.FormKey);
@@ -195,18 +223,20 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 
   public void ClearDraftsFromOtherPlugins(ModKey targetModKey)
   {
+    _lifecycle.EnsureEditable();
     var toRemove = _source.Items
                           .Where(d => d.FormKey.HasValue && d.FormKey.Value.ModKey != targetModKey)
                           .ToList();
 
     foreach (var draft in toRemove)
     {
+      _lifecycle.RemoveDraft(draft.Id);
       Detach(draft);
       _source.Remove(draft);
     }
   }
 
-  public bool HasUnsavedChanges() => _source.Items.Any(d => d.HasEntries);
+  public bool HasUnsavedChanges() => _lifecycle.HasUnsavedChanges;
 
   public List<LeveledListCreationRequest> BuildSaveRequests() =>
     _source.Items
@@ -272,15 +302,15 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
   private void Attach(LeveledListDraftViewModel draft)
   {
     draft.PropertyChanged += OnDraftPropertyChanged;
-    draft.EntryAdded      += OnEntryAdded;
-    draft.EntryRemoved    += OnEntryRemoved;
+    draft.EntryAdded += OnEntryAdded;
+    draft.EntryRemoved += OnEntryRemoved;
   }
 
   private void Detach(LeveledListDraftViewModel draft)
   {
     draft.PropertyChanged -= OnDraftPropertyChanged;
-    draft.EntryAdded      -= OnEntryAdded;
-    draft.EntryRemoved    -= OnEntryRemoved;
+    draft.EntryAdded -= OnEntryAdded;
+    draft.EntryRemoved -= OnEntryRemoved;
     foreach (var entry in draft.GetEntries())
     {
       entry.PropertyChanged -= OnEntryPropertyChanged;
@@ -334,7 +364,7 @@ public sealed class LeveledListDraftManager : ReactiveObject, IDisposable
 
   private string EnsureUniqueEditorId(string baseName)
   {
-    var candidate   = baseName;
+    var candidate = baseName;
     var suffixIndex = 0;
 
     while (_source.Items.Any(d => string.Equals(d.EditorId, candidate, StringComparison.OrdinalIgnoreCase)))

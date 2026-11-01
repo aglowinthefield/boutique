@@ -3,8 +3,6 @@ using System.Text;
 using Boutique.Models;
 using Boutique.Utilities;
 using Mutagen.Bethesda;
-using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using Serilog;
 
@@ -36,9 +34,9 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
     return await Task.Run(
              () =>
              {
-               var entries        = new List<DistributionEntry>();
-               var parseErrors    = new List<DistributionParseError>();
-               var hasSpidLines   = false;
+               var entries = new List<DistributionEntry>();
+               var parseErrors = new List<DistributionParseError>();
+               var hasSpidLines = false;
                var detectedFormat = DistributionFileType.SkyPatcher;
 
                if (!File.Exists(filePath))
@@ -57,32 +55,35 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                {
                  var lines = File.ReadAllLines(filePath, Encoding.UTF8);
 
-                 List<INpcGetter>?    cachedNpcs    = null;
+                 List<INpcGetter>? cachedNpcs = null;
                  List<IOutfitGetter>? cachedOutfits = null;
-                 FormIdLookupCache?   formIdCache   = null;
+                 FormIdLookupCache? formIdCache = null;
 
                  var outfitByEditorId = FormKeyHelper.BuildOutfitEditorIdLookup(linkCache);
-                 var virtualKeywords  = ExtractVirtualKeywordsFromLines(lines);
+                 var virtualKeywords = ExtractVirtualKeywordsFromLines(lines);
 
                  for (var lineNumber = 0; lineNumber < lines.Length; lineNumber++)
                  {
                    cancellationToken.ThrowIfCancellationRequested();
 
-                   var line    = lines[lineNumber];
+                   var line = lines[lineNumber];
                    var trimmed = line.Trim();
                    if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith(';') || trimmed.StartsWith('#'))
                    {
                      continue;
                    }
 
-                   DistributionEntry? entry              = null;
-                   string?            parseFailureReason = null;
+                   DistributionEntry? entry = null;
+                   string? parseFailureReason = null;
 
                    if (trimmed.Contains("outfitDefault=", StringComparison.OrdinalIgnoreCase))
                    {
-                     var (parsedEntry, reason) = ParseDistributionLine(trimmed, linkCache, outfitByEditorId);
-                     entry                     = parsedEntry;
-                     parseFailureReason        = reason;
+                     var (parsedEntry, reason) = new SkyPatcherEntryParser(_logger).Parse(trimmed, linkCache, outfitByEditorId);
+
+                     // The editor has no class-exclusion control; do not lose that constraint on save.
+                     entry = parsedEntry?.ExcludedClassFormKeys.Count > 0 ? null : parsedEntry;
+                     parseFailureReason = parsedEntry?.ExcludedClassFormKeys.Count > 0
+                       ? "SkyPatcher class exclusion (preserved)" : reason;
                    }
                    else if (SpidLineParser.TryParse(trimmed, out var spidFilter) && spidFilter != null)
                    {
@@ -90,9 +91,9 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
 
                      if (spidFilter.FormType == SpidFormType.Outfit)
                      {
-                       cachedNpcs    ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                       cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
                        cachedOutfits ??= linkCache.PriorityOrder.WinningOverrides<IOutfitGetter>().ToList();
-                       formIdCache   ??= new FormIdLookupCache(linkCache);
+                       formIdCache ??= new FormIdLookupCache(linkCache);
 
                        entry = SpidFilterResolver.Resolve(
                          spidFilter,
@@ -109,7 +110,7 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                      }
                      else if (spidFilter.FormType == SpidFormType.Keyword)
                      {
-                       cachedNpcs  ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
+                       cachedNpcs ??= linkCache.PriorityOrder.WinningOverrides<INpcGetter>().ToList();
                        formIdCache ??= new FormIdLookupCache(linkCache);
 
                        entry = SpidFilterResolver.ResolveKeyword(
@@ -128,11 +129,11 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
                      else if (spidFilter.FormType == SpidFormType.ExclusiveGroup)
                      {
                        entry = new DistributionEntry
-                               {
-                                 Type                = DistributionType.ExclusiveGroup,
-                                 ExclusiveGroupName  = spidFilter.FormIdentifier,
-                                 ExclusiveGroupForms = spidFilter.ExclusiveGroupForms.ToList()
-                               };
+                       {
+                         Type = DistributionType.ExclusiveGroup,
+                         ExclusiveGroupName = spidFilter.FormIdentifier,
+                         ExclusiveGroupForms = spidFilter.ExclusiveGroupForms.ToList()
+                       };
                      }
                      else
                      {
@@ -180,317 +181,6 @@ public class DistributionFileEditorService(MutagenService mutagenService, ILogge
              },
              cancellationToken);
   }
-
-  private (DistributionEntry? Entry, string? Reason) ParseDistributionLine(
-    string line,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    IReadOnlyDictionary<string, FormKey> outfitByEditorId)
-  {
-    try
-    {
-      if (!SkyPatcherSyntax.HasFilter(line, "outfitDefault"))
-      {
-        return (null, null);
-      }
-
-      if (SkyPatcherSyntax.HasNonRoundtrippableFilters(line))
-      {
-        _logger.Debug(
-          "Line has filters that cannot be round-tripped through the UI - preserving unchanged: {Line}",
-          line);
-        return (null, "SkyPatcher filter distribution (preserved)");
-      }
-
-      var npcStrings             = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByNpcs");
-      var excludedNpcStrings     = SkyPatcherSyntax.ExtractFilterValues(line, "filterByNpcsExcluded");
-      var factionStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByFactions");
-      var keywordStrings         = SkyPatcherSyntax.ExtractFilterValuesWithVariants(line, "filterByKeywords");
-      var excludedKeywordStrings = SkyPatcherSyntax.ExtractFilterValues(line, "filterByKeywordsExcluded");
-      var raceStrings            = SkyPatcherSyntax.ExtractFilterValues(line, "filterByRaces");
-      var classStrings           = SkyPatcherSyntax.ExtractFilterValues(line, "filterByClass");
-      var outfitFilterStrings    = SkyPatcherSyntax.ExtractFilterValues(line, "filterByDefaultOutfits");
-      var genderFilter           = SkyPatcherSyntax.ParseGenderFilter(line);
-      var uniqueFilter           = SkyPatcherSyntax.ParseUniqueFilter(line);
-
-      var npcFilters     = ResolveNpcIdentifiersToFilters(npcStrings, excludedNpcStrings, linkCache);
-      var factionFilters = ResolveFactionIdentifiers(factionStrings, linkCache);
-      var keywordFilters = ResolveKeywordIdentifiersToFilters(keywordStrings, excludedKeywordStrings, linkCache);
-      var raceFilters    = ResolveRaceIdentifiers(raceStrings, linkCache);
-      var classFormKeys  = ResolveClassIdentifiers(classStrings, linkCache);
-      var outfitFilterFormKeys = ResolveOutfitFilterIdentifiers(outfitFilterStrings, linkCache, outfitByEditorId);
-
-      var hasAnyParsedFilter = npcFilters.Count > 0 ||
-                               factionFilters.Count > 0 ||
-                               keywordFilters.Count > 0 ||
-                               raceFilters.Count > 0 ||
-                               classFormKeys.Count > 0 ||
-                               outfitFilterFormKeys.Count > 0 ||
-                               genderFilter.HasValue ||
-                               uniqueFilter.HasValue;
-
-      var hasAnyFilterInLine =
-        SkyPatcherSyntax.HasAnyVariant(line, "filterByNpcs") ||
-        SkyPatcherSyntax.HasAnyVariant(line, "filterByFactions") ||
-        SkyPatcherSyntax.HasAnyVariant(line, "filterByKeywords") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByRaces") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByClass") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByDefaultOutfits") ||
-        SkyPatcherSyntax.HasFilter(line, "restrictToFlags") ||
-        SkyPatcherSyntax.HasFilter(line, "filterByGender");
-
-      if (hasAnyFilterInLine && !hasAnyParsedFilter)
-      {
-        _logger.Debug("Line has filters but none could be resolved - preserving unchanged: {Line}", line);
-        return (null, "SkyPatcher filter distribution (preserved)");
-      }
-
-      var outfitString = SkyPatcherSyntax.ExtractFilterValue(line, "outfitDefault");
-      if (string.IsNullOrWhiteSpace(outfitString))
-      {
-        return (null, null);
-      }
-
-      var outfitFormKey = FormKeyHelper.ResolveOutfit(outfitString, outfitByEditorId);
-
-      if (!outfitFormKey.HasValue)
-      {
-        _logger.Debug("Could not resolve outfit identifier: {Identifier}", outfitString);
-        return (null, "SkyPatcher distribution (preserved)");
-      }
-
-      if (!linkCache.TryResolve<IOutfitGetter>(outfitFormKey.Value, out var outfit))
-      {
-        _logger.Debug("Could not resolve outfit FormKey: {FormKey}", outfitFormKey.Value);
-        return (null, "SkyPatcher distribution (preserved)");
-      }
-
-      var npcLogicMode     = npcStrings.Count > 1 ? FilterLogicMode.Or : FilterLogicMode.And;
-      var factionLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByFactionsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
-      var keywordLogicMode = SkyPatcherSyntax.HasFilter(line, "filterByKeywordsOr") ? FilterLogicMode.Or : FilterLogicMode.And;
-
-      return (
-               new DistributionEntry
-               {
-                 Outfit               = outfit,
-                 NpcFilters           = npcFilters,
-                 FactionFilters       = factionFilters,
-                 KeywordFilters       = keywordFilters,
-                 RaceFilters          = raceFilters,
-                 ClassFormKeys        = classFormKeys,
-                 OutfitFilterFormKeys = outfitFilterFormKeys,
-                 TraitFilters         = new SpidTraitFilters { IsFemale = genderFilter, IsUnique = uniqueFilter },
-                 NpcLogicMode         = npcLogicMode,
-                 FactionLogicMode     = factionLogicMode,
-                 KeywordLogicMode     = keywordLogicMode
-               }, null);
-    }
-    catch (Exception ex)
-    {
-      _logger.Debug(ex, "Failed to parse distribution line: {Line}", line);
-      return (null, "SkyPatcher distribution (preserved)");
-    }
-  }
-
-  private List<FormKeyFilter> ResolveNpcIdentifiersToFilters(
-    List<string> includedIdentifiers,
-    List<string> excludedIdentifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var results = new List<FormKeyFilter>();
-
-    foreach (var id in includedIdentifiers)
-    {
-      if (TryResolveNpcIdentifier(id, linkCache) is { } formKey)
-      {
-        results.Add(new FormKeyFilter(formKey));
-      }
-    }
-
-    foreach (var id in excludedIdentifiers)
-    {
-      if (TryResolveNpcIdentifier(id, linkCache) is { } formKey)
-      {
-        results.Add(new FormKeyFilter(formKey, true));
-      }
-    }
-
-    return results;
-  }
-
-  private FormKey? TryResolveNpcIdentifier(string id, ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    if (TryParseFormKey(id) is { } formKey)
-    {
-      return formKey;
-    }
-
-    var npc = linkCache.PriorityOrder.WinningOverrides<INpcGetter>()
-                       .FirstOrDefault(n => string.Equals(n.EditorID, id, StringComparison.OrdinalIgnoreCase)
-                                            || string.Equals(n.Name.SafeString(n), id, StringComparison.OrdinalIgnoreCase));
-    if (npc != null)
-    {
-      _logger.Debug("Resolved NPC EditorID/Name '{Id}' to {FormKey}", id, npc.FormKey);
-      return npc.FormKey;
-    }
-
-    _logger.Warning("Could not resolve NPC identifier: {Id}", id);
-    return null;
-  }
-
-  private List<FormKeyFilter> ResolveFactionIdentifiers(
-    List<string> identifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var results = new List<FormKeyFilter>();
-    foreach (var id in identifiers)
-    {
-      if (TryParseFormKey(id) is { } formKey)
-      {
-        results.Add(new FormKeyFilter(formKey));
-        continue;
-      }
-
-      var faction = linkCache.PriorityOrder.WinningOverrides<IFactionGetter>()
-                             .FirstOrDefault(f => string.Equals(f.EditorID, id, StringComparison.OrdinalIgnoreCase));
-      if (faction != null)
-      {
-        results.Add(new FormKeyFilter(faction.FormKey));
-        _logger.Debug("Resolved Faction EditorID '{Id}' to {FormKey}", id, faction.FormKey);
-      }
-      else
-      {
-        _logger.Warning("Could not resolve Faction identifier: {Id}", id);
-      }
-    }
-
-    return results;
-  }
-
-  private static List<KeywordFilter> ResolveKeywordIdentifiersToFilters(
-    List<string> includedIdentifiers,
-    List<string> excludedIdentifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var results = new List<KeywordFilter>();
-
-    foreach (var id in includedIdentifiers)
-    {
-      results.Add(ResolveKeywordIdentifier(id, false, linkCache));
-    }
-
-    foreach (var id in excludedIdentifiers)
-    {
-      results.Add(ResolveKeywordIdentifier(id, true, linkCache));
-    }
-
-    return results;
-  }
-
-  private static KeywordFilter ResolveKeywordIdentifier(
-    string id,
-    bool isExcluded,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    if (TryParseFormKey(id) is { } formKey &&
-        linkCache.TryResolve<IKeywordGetter>(formKey, out var keyword) &&
-        !string.IsNullOrWhiteSpace(keyword.EditorID))
-    {
-      return new KeywordFilter(keyword.EditorID, isExcluded);
-    }
-
-    var resolvedKeyword = linkCache.PriorityOrder.WinningOverrides<IKeywordGetter>()
-                                   .FirstOrDefault(k => string.Equals(
-                                                     k.EditorID,
-                                                     id,
-                                                     StringComparison.OrdinalIgnoreCase));
-    return resolvedKeyword != null
-             ? new KeywordFilter(resolvedKeyword.EditorID ?? id, isExcluded)
-             : new KeywordFilter(id, isExcluded);
-  }
-
-  private List<FormKey> ResolveClassIdentifiers(
-    List<string> identifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var results = new List<FormKey>();
-    foreach (var id in identifiers)
-    {
-      if (TryParseFormKey(id) is { } formKey)
-      {
-        results.Add(formKey);
-        continue;
-      }
-
-      var classRecord = linkCache.PriorityOrder.WinningOverrides<IClassGetter>()
-                                 .FirstOrDefault(c => string.Equals(c.EditorID, id, StringComparison.OrdinalIgnoreCase));
-      if (classRecord != null)
-      {
-        results.Add(classRecord.FormKey);
-        _logger.Debug("Resolved Class EditorID '{Id}' to {FormKey}", id, classRecord.FormKey);
-      }
-      else
-      {
-        _logger.Warning("Could not resolve Class identifier: {Id}", id);
-      }
-    }
-
-    return results;
-  }
-
-  private List<FormKeyFilter> ResolveRaceIdentifiers(
-    List<string> identifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache)
-  {
-    var results = new List<FormKeyFilter>();
-    foreach (var id in identifiers)
-    {
-      if (TryParseFormKey(id) is { } formKey)
-      {
-        results.Add(new FormKeyFilter(formKey));
-        continue;
-      }
-
-      var race = linkCache.PriorityOrder.WinningOverrides<IRaceGetter>()
-                          .FirstOrDefault(r => string.Equals(r.EditorID, id, StringComparison.OrdinalIgnoreCase));
-      if (race != null)
-      {
-        results.Add(new FormKeyFilter(race.FormKey));
-        _logger.Debug("Resolved Race EditorID '{Id}' to {FormKey}", id, race.FormKey);
-      }
-      else
-      {
-        _logger.Warning("Could not resolve Race identifier: {Id}", id);
-      }
-    }
-
-    return results;
-  }
-
-  private List<FormKey> ResolveOutfitFilterIdentifiers(
-    List<string> identifiers,
-    ILinkCache<ISkyrimMod, ISkyrimModGetter> linkCache,
-    IReadOnlyDictionary<string, FormKey> outfitByEditorId)
-  {
-    var results = new List<FormKey>();
-    foreach (var id in identifiers)
-    {
-      var formKey = FormKeyHelper.ResolveOutfit(id, outfitByEditorId)
-                    ?? FormKeyHelper.ResolveOutfit(id, linkCache);
-      if (formKey.HasValue)
-      {
-        results.Add(formKey.Value);
-      }
-      else
-      {
-        _logger.Warning("Could not resolve outfit filter identifier: {Id}", id);
-      }
-    }
-
-    return results;
-  }
-
-  private static FormKey? TryParseFormKey(string text) =>
-    FormKeyHelper.TryParse(text, out var formKey) ? formKey : null;
 
   private static HashSet<string> ExtractVirtualKeywordsFromLines(string[] lines)
   {
